@@ -1,5 +1,6 @@
 /.idea
 /vendor/
+/node_modules
 /node_modules/
 /composer.lock
 /symfony.lock
