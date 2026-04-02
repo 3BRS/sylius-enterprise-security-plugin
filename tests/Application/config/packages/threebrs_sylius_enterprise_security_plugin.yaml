@@ -1,0 +1,2 @@
+imports:
+    - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/config.{yml,yaml}" }

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose:*)",
+      "Bash(COMPOSE_FILE=compose.yml docker compose exec php sh -c \"cd /srv/sylius && php bin/console debug:container --parameters 2>/dev/null | grep threebrs\")",
+      "Bash(COMPOSE_FILE=compose.yml docker compose exec php sh -c \"cd /srv/sylius && php bin/console debug:container 'threebrs.shipment_exporter' 2>&1\")"
+    ]
+  }
+}

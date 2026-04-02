@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.0/phpunit.xsd"
+         colors="true"
+         bootstrap="tests/Application/config/bootstrap.php">
+    <testsuites>
+        <testsuite name="SyliusEnterpriseSecurityPlugin Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <server name="IS_DOCTRINE_ORM_SUPPORTED" value="true" />
+        <env name="APP_ENV" value="test"/>
+        <env name="SHELL_VERBOSITY" value="-1" />
+
+        <!-- ###+ symfony/framework-bundle ### -->
+        <env name="APP_SECRET" value="e1095c7366122a383edf4e168730a6d5"/>
+        <!-- ###- symfony/framework-bundle ### -->
+
+        <!-- ###+ symfony/mailer ### -->
+        <env name="MAILER_DSN" value="null://null"/>
+        <!-- ###- symfony/mailer ### -->
+
+        <!-- ###+ symfony/messenger ### -->
+        <!-- Choose one of the transports below -->
+        <!-- MESSENGER_TRANSPORT_DSN=amqp://guest:guest@localhost:5672/%2f/messages -->
+        <!-- MESSENGER_TRANSPORT_DSN=redis://localhost:6379/messages -->
+        <env name="MESSENGER_TRANSPORT_DSN" value="doctrine://default?auto_setup=0"/>
+        <!-- ###- symfony/messenger ### -->
+
+        <!-- ###+ doctrine/doctrine-bundle ### -->
+        <!-- Format described at https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url -->
+        <!-- IMPORTANT: You MUST configure your server version, either here or in config/packages/doctrine.yaml -->
+        <!--  -->
+        <!-- DATABASE_URL="sqlite:///%kernel.project_dir%/var/data_%kernel.environment%.db" -->
+        <!-- DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app?serverVersion=8.0.32&charset=utf8mb4" -->
+        <!-- DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app?serverVersion=10.11.2-MariaDB&charset=utf8mb4" -->
+        <env name="DATABASE_URL" value="mysql://root:mysql@mysql/sylius_%kernel.environment%?serverVersion=8.0&amp;charset=utf8mb4"/>
+        <!-- ###- doctrine/doctrine-bundle ### -->
+
+        <!-- ###+ lexik/jwt-authentication-bundle ### -->
+        <env name="JWT_SECRET_KEY" value="%kernel.project_dir%/config/jwt/private.pem"/>
+        <env name="JWT_PUBLIC_KEY" value="%kernel.project_dir%/config/jwt/public.pem"/>
+        <env name="JWT_PASSPHRASE" value="cb3f5fd45f8b908f579eea7b83a90a57ace4f97a39e5622f278e3ab4c39a6be9"/>
+        <!-- ###- lexik/jwt-authentication-bundle ### -->
+
+        <!-- ###+ symfony/routing ### -->
+        <!-- Configure how to generate URLs in non-HTTP contexts, such as CLI commands. -->
+        <!-- See https://symfony.com/doc/current/routing.html#generating-urls-in-commands -->
+        <env name="DEFAULT_URI" value="http://localhost"/>
+        <!-- ###- symfony/routing ### -->
+    </php>
+</phpunit>
