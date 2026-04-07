@@ -3,3 +3,10 @@ services:
         autowire: false
         autoconfigure: false
         public: false
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator:
+        arguments:
+            - '@three_brs.password_policy.customer'
+            - '@three_brs.password_policy.admin'
+        tags:
+            - { name: 'validator.constraint_validator', alias: 'three_brs.validator.password_policy' }
