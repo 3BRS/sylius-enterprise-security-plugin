@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityBundle\Validator;
+namespace ThreeBRS\EnterpriseSecurityBundle\Validator;
 
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use ThreeBRS\SyliusEnterpriseSecurityBundle\Model\PasswordPolicyInterface;
-use ThreeBRS\SyliusEnterpriseSecurityBundle\Validator\Constraint\PasswordPolicy;
+use ThreeBRS\EnterpriseSecurityBundle\Model\PasswordPolicyInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Validator\Constraint\PasswordPolicy;
 
 class PasswordPolicyValidator extends ConstraintValidator implements PasswordPolicyValidatorInterface
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\SyliusEnterpriseSecurityBundle\Unit\Validator;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\Validator;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -10,9 +10,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityBundle\Model\PasswordPolicy;
-use ThreeBRS\SyliusEnterpriseSecurityBundle\Validator\Constraint\PasswordPolicy as PasswordPolicyConstraint;
-use ThreeBRS\SyliusEnterpriseSecurityBundle\Validator\PasswordPolicyValidator;
+use ThreeBRS\EnterpriseSecurityBundle\Model\PasswordPolicy;
+use ThreeBRS\EnterpriseSecurityBundle\Validator\Constraint\PasswordPolicy as PasswordPolicyConstraint;
+use ThreeBRS\EnterpriseSecurityBundle\Validator\PasswordPolicyValidator;
 
 #[CoversClass(PasswordPolicyValidator::class)]
 class PasswordPolicyValidatorTest extends TestCase

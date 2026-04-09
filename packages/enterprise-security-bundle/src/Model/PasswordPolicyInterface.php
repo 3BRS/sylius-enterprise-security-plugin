@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityBundle\Model;
+namespace ThreeBRS\EnterpriseSecurityBundle\Model;
 
 interface PasswordPolicyInterface
 {

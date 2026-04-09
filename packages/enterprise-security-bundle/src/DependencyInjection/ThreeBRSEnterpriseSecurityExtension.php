@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityBundle\DependencyInjection;
+namespace ThreeBRS\EnterpriseSecurityBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
-use ThreeBRS\SyliusEnterpriseSecurityBundle\Model\PasswordPolicy;
-use ThreeBRS\SyliusEnterpriseSecurityBundle\Validator\PasswordPolicyValidator;
+use ThreeBRS\EnterpriseSecurityBundle\Model\PasswordPolicy;
+use ThreeBRS\EnterpriseSecurityBundle\Validator\PasswordPolicyValidator;
 
 class ThreeBRSEnterpriseSecurityExtension extends Extension
 {
