@@ -1,16 +1,5 @@
-imports: []
-
-suites:
-    shop_password_policy:
-        contexts:
-            - Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasswordPolicyContext:
-                session: '@mink.session.default'
-        filters:
-            tags: "@shop&&@password_policy&&@ui"
-
-    admin_password_policy:
-        contexts:
-            - Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PasswordPolicyContext:
-                session: '@mink.session.default'
-        filters:
-            tags: "@admin&&@password_policy&&@ui"
+imports:
+    - suites/shop_password_policy.yml
+    - suites/admin_password_policy.yml
+    - suites/shop_change_password_policy.yml
+    - suites/admin_customer_password_policy.yml

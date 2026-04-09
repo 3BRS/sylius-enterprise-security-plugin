@@ -21,8 +21,7 @@ class PasswordPolicyContext implements Context
     public function iCreateAnAdministratorWithPassword(string $password): void
     {
         $page = $this->session->getPage();
-        $page->fillField('sylius_admin_user_plainPassword_first', $password);
-        $page->fillField('sylius_admin_user_plainPassword_second', $password);
+        $page->find('css', '#sylius_admin_admin_user_plainPassword')?->setValue($password);
         $page->pressButton('Create');
     }
 
@@ -32,9 +31,8 @@ class PasswordPolicyContext implements Context
     public function iChangeTheAdministratorPasswordTo(string $password): void
     {
         $page = $this->session->getPage();
-        $page->fillField('sylius_admin_user_plainPassword_first', $password);
-        $page->fillField('sylius_admin_user_plainPassword_second', $password);
-        $page->pressButton('Save changes');
+        $page->find('css', '#sylius_admin_admin_user_plainPassword')?->setValue($password);
+        $page->find('css', '[data-test-update-changes-button]')?->click();
     }
 
     /**

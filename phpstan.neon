@@ -7,7 +7,6 @@ includes:
 parameters:
     level: 8
     reportUnmatchedIgnoredErrors: false
-    tmpDir: tests/Application/var/phpstan
 
     paths:
         - src

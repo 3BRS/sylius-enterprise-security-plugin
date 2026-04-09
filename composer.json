@@ -96,7 +96,8 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\": "tests/Application/src/",
-            "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\Behat\\": "tests/Behat/"
+            "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\Behat\\": "tests/Behat/",
+            "Tests\\ThreeBRS\\SyliusEnterpriseSecurityBundle\\": "packages/enterprise-security-bundle/tests/"
         }
     },
     "config": {

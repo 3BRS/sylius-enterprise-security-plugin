@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.0/phpunit.xsd"
          colors="true"
          bootstrap="tests/Application/config/bootstrap.php">
     <testsuites>
         <testsuite name="SyliusEnterpriseSecurityPlugin Test Suite">
             <directory>tests</directory>
+        </testsuite>
+        <testsuite name="EnterpriseSecurityBundle Test Suite">
+            <directory>packages/enterprise-security-bundle/tests</directory>
         </testsuite>
     </testsuites>
 

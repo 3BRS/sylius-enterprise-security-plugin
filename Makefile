@@ -100,9 +100,6 @@ schema-reset:
 	./bin-docker/php ./bin/console doctrine:schema:update --no-interaction --complete --force
 	./bin-docker/php ./bin/console doctrine:migration:sync-metadata-storage
 
-fix:
-	./bin-docker/docker-bash bin/ecs.sh --fix
-
 bare-fixtures:
 	@echo "############\nLoading fixtures: $(SPEED_MESSAGE)\n############"
 	./bin-docker/php ./bin/console sylius:fixtures:load --no-interaction

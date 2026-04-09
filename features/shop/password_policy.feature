@@ -1,4 +1,4 @@
-@shop @password_policy
+@shop @password_policy @ui
 Feature: Customer registration password policy
     In order to keep customer accounts secure
     As a store owner
@@ -6,11 +6,10 @@ Feature: Customer registration password policy
 
     Background:
         Given the store operates on a single channel in "United States"
-        And the store has a zone "US" with code "US" for country "United States"
 
     @ui
     Scenario: Customer cannot register with a password that is too short
-        Given I am on the registration page
+        Given I want to register a new account
         When I specify the first name as "John"
         And I specify the last name as "Doe"
         And I specify the email as "john@example.com"
@@ -19,7 +18,7 @@ Feature: Customer registration password policy
 
     @ui
     Scenario: Customer can register with a password that meets the minimum length
-        Given I am on the registration page
+        Given I want to register a new account
         When I specify the first name as "John"
         And I specify the last name as "Doe"
         And I specify the email as "john@example.com"
@@ -29,7 +28,7 @@ Feature: Customer registration password policy
     @ui
     Scenario: Customer cannot register when uppercase letter is required but missing
         Given the store requires uppercase letters in customer passwords
-        And I am on the registration page
+        And I want to register a new account
         When I specify the first name as "John"
         And I specify the last name as "Doe"
         And I specify the email as "john@example.com"
@@ -39,7 +38,7 @@ Feature: Customer registration password policy
     @ui
     Scenario: Customer cannot register when a number is required but missing
         Given the store requires numbers in customer passwords
-        And I am on the registration page
+        And I want to register a new account
         When I specify the first name as "John"
         And I specify the last name as "Doe"
         And I specify the email as "john@example.com"
@@ -49,7 +48,7 @@ Feature: Customer registration password policy
     @ui
     Scenario: Customer cannot register when a special character is required but missing
         Given the store requires special characters in customer passwords
-        And I am on the registration page
+        And I want to register a new account
         When I specify the first name as "John"
         And I specify the last name as "Doe"
         And I specify the email as "john@example.com"
@@ -61,7 +60,7 @@ Feature: Customer registration password policy
         Given the store requires uppercase letters in customer passwords
         And the store requires numbers in customer passwords
         And the store requires special characters in customer passwords
-        And I am on the registration page
+        And I want to register a new account
         When I specify the first name as "John"
         And I specify the last name as "Doe"
         And I specify the email as "john@example.com"

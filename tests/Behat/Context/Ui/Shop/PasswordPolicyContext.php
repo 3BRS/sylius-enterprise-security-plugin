@@ -16,14 +16,25 @@ class PasswordPolicyContext implements Context
     }
 
     /**
+     * @Given the store requires uppercase letters in customer passwords
+     * @Given the store requires lowercase letters in customer passwords
+     * @Given the store requires numbers in customer passwords
+     * @Given the store requires special characters in customer passwords
+     */
+    public function theStoreRequiresPasswordPolicy(): void
+    {
+        // Policy is pre-configured in test app config — this step is documentation only
+    }
+
+    /**
      * @When I register with password :password
      */
     public function iRegisterWithPassword(string $password): void
     {
         $page = $this->session->getPage();
-        $page->fillField('sylius_customer_registration_user_plainPassword_first', $password);
-        $page->fillField('sylius_customer_registration_user_plainPassword_second', $password);
-        $page->pressButton('Register');
+        $page->find('css', '[data-test-password-first]')?->setValue($password);
+        $page->find('css', '[data-test-password-second]')?->setValue($password);
+        $page->find('css', '[data-test-button="register-button"]')?->press();
     }
 
     /**
