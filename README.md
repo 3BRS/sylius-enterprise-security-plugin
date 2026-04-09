@@ -19,7 +19,6 @@
 
 ## Features
 
-- **Password policy** — configurable minimum length and character requirements (uppercase, lowercase, numbers, special characters); overrides Sylius default 3-character minimum
 
 ## Installation
 
