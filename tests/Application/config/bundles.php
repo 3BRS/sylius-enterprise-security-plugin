@@ -57,6 +57,6 @@ return [
     Symfony\UX\Autocomplete\AutocompleteBundle::class                             => ['all' => true],
     Symfony\UX\StimulusBundle\StimulusBundle::class                               => ['all' => true],
     Sylius\Abstraction\StateMachine\SyliusStateMachineAbstractionBundle::class    => ['all' => true],
-    ThreeBRS\SyliusEnterpriseSecurityBundle\ThreeBRSSyliusEnterpriseSecurityBundle::class  => ['all' => true],
+    ThreeBRS\EnterpriseSecurityBundle\ThreeBRSEnterpriseSecurityBundle::class => ['all' => true],
     ThreeBRS\SyliusEnterpriseSecurityPlugin\ThreeBRSSyliusEnterpriseSecurityPlugin::class => ['all' => true],
 ];

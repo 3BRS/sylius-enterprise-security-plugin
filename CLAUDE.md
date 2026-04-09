@@ -1,9 +1,9 @@
-# Pravidla pro tento projekt
+# Rules for this project
 
 ## Interfaces
-Každá nová třída (entita, controller, service, repository, event listener, ...) musí mít vlastní interface.
-Interface se umísťuje do stejné složky nebo do podsložky `Interface/`.
+Every new class (entity, controller, service, repository, event listener, ...) must have its own interface.
+The interface is placed in the same directory or in an `Interface/` subdirectory.
 
-## Žádné `final` třídy
-Nikdy nepoužívej klíčové slovo `final` u žádné třídy.
-Projekt musí zůstat rozšiřitelný — uživatelé pluginu potřebují moci třídy extendovat a upravit chování.
+## No `final` classes
+Never use the `final` keyword on any class.
+The project must remain extensible — plugin users need to be able to extend classes and modify behavior.

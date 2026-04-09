@@ -1,74 +1,66 @@
-# SyliusEnterpriseSecurityPlugin
-
-Advanced security plugin for Sylius e-commerce platform. Provides configurable authentication methods, two-factor authentication, enforced password policies, account protection, and GDPR-compliant account management.
-
-Includes a standalone Symfony bundle (`EnterpriseSecurityBundle`) with reusable security logic that can be used independently of Sylius.
+<p align="center">
+    <a href="https://www.3brs.com" target="_blank">
+        <img src="https://3brs1.fra1.cdn.digitaloceanspaces.com/3brs/logo/3BRS-logo-sylius-200.png"/>
+    </a>
+</p>
+<h1 align="center">
+    Enterprise Security Plugin
+    <br />
+    <a href="https://packagist.org/packages/3brs/sylius-enterprise-security-plugin" title="License" target="_blank">
+        <img src="https://img.shields.io/packagist/l/3brs/sylius-enterprise-security-plugin.svg" />
+    </a>
+    <a href="https://packagist.org/packages/3brs/sylius-enterprise-security-plugin" title="Version" target="_blank">
+        <img src="https://img.shields.io/packagist/v/3brs/sylius-enterprise-security-plugin.svg" />
+    </a>
+    <a href="https://github.com/3BRS/sylius-enterprise-security-plugin/actions" title="Build status" target="_blank">
+        <img src="https://github.com/3BRS/sylius-enterprise-security-plugin/actions/workflows/ci.yml/badge.svg" />
+    </a>
+</h1>
 
 ## Features
 
-### Authentication Methods
-- **Social login** — Google, Apple, extensible to additional OAuth providers
-- **Magic link** — passwordless email-based login
-- **Passkeys** — WebAuthn/FIDO2 biometric and hardware key authentication
-- **Classic password** — with configurable strength requirements
+- **Password policy** — configurable minimum length and character requirements (uppercase, lowercase, numbers, special characters); overrides Sylius default 3-character minimum
 
-### Two-Factor Authentication (2FA)
-- TOTP support (Google Authenticator, etc.)
-- Configurable: disabled / optional / enforced
-- **Trusted devices** — remember device for configurable number of days
-- **Recovery codes** — backup codes for lost 2FA device
+## Installation
 
-### Password Policies
-- Configurable minimum/maximum length and complexity (uppercase, lowercase, numbers, special characters)
-- Overrides Sylius default 3-character minimum
-- **Password history** — prevent reuse of last N passwords
-- **Password expiration** — force password change after X days
-- **Change notifications** — email notification on password change (reset or account update)
+1. Run `composer require 3brs/sylius-enterprise-security-plugin`.
 
-### Account Protection
-- **Account lockout** — lock account after X failed login attempts
-- **Rate limiting** — throttle login, password reset, and registration attempts (built on Symfony Rate Limiter)
-- **Session management** — view active sessions, revoke other sessions
-- **Login notifications** — email alert on login from new device/location
+1. Add plugin and bundle to your `config/bundles.php`:
 
-### Admin Panel
-- All authentication and security features available for admin users with **independent configuration**
-- **IP whitelist** — restrict admin panel access by IP, globally and per admin user
-- **Customer management** — force password reset, block/unblock accounts, view login history, remote logout, session management
+   ```php
+   return [
+       // ...
+       ThreeBRS\EnterpriseSecurityBundle\ThreeBRSEnterpriseSecurityBundle::class => ['all' => true],
+       ThreeBRS\SyliusEnterpriseSecurityPlugin\ThreeBRSSyliusEnterpriseSecurityPlugin::class => ['all' => true],
+   ];
+   ```
 
-### GDPR Compliance
-- **Self-service account deletion** — customer-initiated account anonymization
-- Personal data anonymization with business data retention (orders, payments)
-- Configurable confirmation and grace period
+1. Import plugin configuration by creating `config/packages/threebrs_sylius_enterprise_security_plugin.yaml`:
 
-### Configuration
-- Every feature is fully configurable — enable/disable, set thresholds, time windows
-- Independent configuration for customers and admins
-- Global configuration (not per channel)
+   ```yaml
+   imports:
+       - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/config.yaml" }
+   ```
 
-## Architecture
+## Development
 
+### Usage
+
+- Develop your plugin in `/src`
+- See [`bin/`](./bin) and [`Makefile`](./Makefile) for useful commands
+
+### Testing
+
+After your changes you must ensure that the tests are still passing.
+
+```bash
+make ci
 ```
-sylius-enterprise-security-plugin/
-├── packages/
-│   └── enterprise-security-bundle/    # Standalone Symfony bundle
-│       ├── src/
-│       └── composer.json
-├── src/                                # Sylius plugin
-├── tests/
-│   └── Application/                    # Test Sylius application
-└── composer.json
-```
-
-- **EnterpriseSecurityBundle** — framework-agnostic security logic: interfaces, services, validators, event listeners
-- **SyliusEnterpriseSecurityPlugin** — Sylius integration: entity mapping, UI templates, admin panel, Sylius event handling
-
-## Requirements
-
-- PHP 8.2+
-- Sylius 2.0+
-- Symfony 7.0+
 
 ## License
 
-Proprietary. All rights reserved.
+MIT License. See [LICENSE](./LICENSE) for details.
+
+## Credits
+
+Developed by [3BRS](https://3brs.com)

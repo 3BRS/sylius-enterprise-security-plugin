@@ -10,7 +10,7 @@
     },
     "autoload": {
         "psr-4": {
-            "ThreeBRS\\SyliusEnterpriseSecurityBundle\\": "src/"
+            "ThreeBRS\\EnterpriseSecurityBundle\\": "src/"
         }
     }
 }
