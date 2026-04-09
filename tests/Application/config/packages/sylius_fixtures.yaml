@@ -30,3 +30,27 @@ sylius_fixtures:
                                 first_name: Sylius
                                 last_name: Admin
                                 api: true
+
+                shop_user:
+                    options:
+                        custom:
+                            customer_strong_password:
+                                email: strong@example.com
+                                password: "StrongPass1!"
+                                first_name: Strong
+                                enabled: true
+                            customer_weak_password:
+                                email: weak@example.com
+                                password: "weakpass"
+                                first_name: Weak
+                                enabled: true
+                            customer_no_uppercase:
+                                email: nouppercase@example.com
+                                password: "nouppercase1!"
+                                first_name: NoUppercase
+                                enabled: true
+                            customer_no_numbers:
+                                email: nonumbers@example.com
+                                password: "NoNumbers!!"
+                                first_name: NoNumbers
+                                enabled: true
