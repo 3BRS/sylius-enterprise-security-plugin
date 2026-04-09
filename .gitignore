@@ -9,6 +9,7 @@
 /.env
 /.envrc
 /phpunit_log
+/behat.yml
 
 /etc/build/*
 !/etc/build/.gitkeep
