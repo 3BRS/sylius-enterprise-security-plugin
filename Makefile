@@ -64,6 +64,7 @@ static-only:
 	@make say-ok
 
 phpstan:
+	./bin-docker/php ./bin/console --env=test cache:warmup --no-optional-warmers
 	./bin-docker/docker-bash bin/phpstan.sh
 
 phpunit:

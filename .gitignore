@@ -1,4 +1,6 @@
 /.idea
+/memory/
+/.claude/
 /vendor/
 /node_modules
 /node_modules/
@@ -43,4 +45,5 @@ yarn-error.log
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
+/.phpunit.result.cache
 ###< phpunit/phpunit ###
