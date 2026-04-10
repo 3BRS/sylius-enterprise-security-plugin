@@ -4,6 +4,11 @@ services:
         autoconfigure: false
         public: false
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator:
+        arguments:
+            - '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator.inner'
+        decorates: validator
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator:
         arguments:
             - '@three_brs.password_policy.customer'
