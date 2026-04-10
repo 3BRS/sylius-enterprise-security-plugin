@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator;
 
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\Constraints\GroupSequence;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -17,17 +19,17 @@ class PasswordPolicyFilteringValidator implements PasswordPolicyFilteringValidat
     {
     }
 
-    public function validate(mixed $value, mixed $constraints = null, mixed $groups = null): ConstraintViolationListInterface
+    public function validate(mixed $value, Constraint|array|null $constraints = null, string|GroupSequence|array|null $groups = null): ConstraintViolationListInterface
     {
         return $this->filter($this->inner->validate($value, $constraints, $groups));
     }
 
-    public function validateProperty(object $object, string $propertyName, mixed $groups = null): ConstraintViolationListInterface
+    public function validateProperty(object $object, string $propertyName, string|GroupSequence|array|null $groups = null): ConstraintViolationListInterface
     {
         return $this->filter($this->inner->validateProperty($object, $propertyName, $groups));
     }
 
-    public function validatePropertyValue(object|string $objectOrClass, string $propertyName, mixed $value, mixed $groups = null): ConstraintViolationListInterface
+    public function validatePropertyValue(object|string $objectOrClass, string $propertyName, mixed $value, string|GroupSequence|array|null $groups = null): ConstraintViolationListInterface
     {
         return $this->filter($this->inner->validatePropertyValue($objectOrClass, $propertyName, $value, $groups));
     }
