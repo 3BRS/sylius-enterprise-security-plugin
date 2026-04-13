@@ -17,8 +17,31 @@
     </a>
 </h1>
 
-## Features
+## Repository Structure
 
+This is a monorepo containing two packages:
+
+```
+sylius-enterprise-security-plugin/
+├── packages/
+│   └── enterprise-security-bundle/
+│       ├── src/
+│       └── composer.json
+├── src/
+├── tests/
+│   └── Application/
+└── composer.json
+```
+
+### `3brs/sylius-enterprise-security-plugin`
+
+Sylius-specific plugin. Contains Doctrine entity extensions for `ShopUser` and `AdminUser`, UI controllers, Behat test suite, and Sylius fixture integration.
+
+### `3brs/enterprise-security-bundle`
+
+Standalone Symfony bundle with no dependency on Sylius. Contains reusable interfaces, services, and event listeners that can be used independently of Sylius (e.g. in a plain Symfony app).
+
+## Features
 
 ## Installation
 
