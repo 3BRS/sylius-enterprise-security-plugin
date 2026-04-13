@@ -1,0 +1,32 @@
+sylius_fixtures:
+    suites:
+        default:
+            fixtures:
+                channel:
+                    options:
+                        custom:
+                            default:
+                                name: "Default"
+                                code: "DEFAULT"
+                                hostname: "localhost:8080"
+                                base_currency: "EUR"
+                                default_locale: "en_US"
+                                locales:
+                                    - "en_US"
+                                shipping_address_in_checkout_required: true
+
+                locale:
+                    options:
+                        locales:
+                            - en_US
+
+                admin_user:
+                    options:
+                        custom:
+                            sylius:
+                                username: sylius
+                                password: sylius
+                                email: sylius@example.com
+                                first_name: Sylius
+                                last_name: Admin
+                                api: true

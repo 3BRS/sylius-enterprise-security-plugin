@@ -1,0 +1,13 @@
+includes:
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+    - vendor/phpstan/phpstan-symfony/extension.neon
+
+parameters:
+    symfony:
+        containerXmlPath: tests/Application/var/cache/dev/Tests_ThreeBRS_SyliusEnterpriseSecurityPlugin_KernelDevDebugContainer.xml
+
+    excludePaths:
+        - 'tests/'
+
+    ignoreErrors:
+        - identifier: trait.unused

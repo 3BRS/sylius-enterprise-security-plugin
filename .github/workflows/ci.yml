@@ -1,0 +1,106 @@
+name: CI
+
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
+
+jobs:
+    build:
+        name: "PHP ${{ matrix.php }} | Sylius ${{ matrix.sylius }} | Symfony ${{ matrix.symfony }} | ${{ matrix.prefer }}"
+        runs-on: ubuntu-latest
+
+        strategy:
+            fail-fast: false
+            matrix:
+                php: [ "8.3" ]
+                sylius: [ "2.1", "2.2" ]
+                symfony: [ "7.4" ]
+                prefer: [ "lowest", "dist" ]
+
+        services:
+            mysql:
+                image: mysql:8.0
+                env:
+                    MYSQL_ROOT_PASSWORD: pass_root
+                    MYSQL_USER: sylius
+                    MYSQL_PASSWORD: pass
+                ports:
+                    - 3306:3306
+                options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v4
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php }}
+                    extensions: intl, mbstring, pdo_mysql
+                    tools: composer:v2
+
+            -   name: Setup Node
+                uses: actions/setup-node@v4
+                with:
+                    node-version: '20'
+
+            -   name: Install Yarn
+                run: npm install -g yarn
+
+            -   name: Require Sylius version
+                run: composer require "sylius/sylius:${{ matrix.sylius }}.*" --no-interaction --no-update --no-scripts
+
+            -   name: Require Symfony version
+                run: |
+                    grep -o -E '"(symfony/[^"]+)"' composer.json \
+                      | grep -v -E '(symfony/flex|symfony/webpack-encore-bundle|symfony/maker-bundle)' \
+                      | xargs printf '%s:${{ matrix.symfony }}.* ' \
+                      | xargs composer require --no-interaction --no-update
+
+            -   name: Install dependencies (prefer ${{ matrix.prefer }})
+                run: composer update --prefer-${{ matrix.prefer }} --no-interaction --no-scripts
+
+            -   name: Run post-install scripts
+                run: composer run-script post-install-cmd --no-interaction
+
+            -   name: Install Yarn dependencies
+                run: yarn --cwd=tests/Application install --pure-lockfile
+
+            -   name: Build assets
+                run: GULP_ENV=prod yarn --cwd=tests/Application build
+
+            -   name: Wait for MySQL
+                run: |
+                    until mysqladmin ping -h 127.0.0.1 -P 3306 -u root -ppass_root --silent; do
+                        echo "Waiting for MySQL..."
+                        sleep 2
+                    done
+
+            -   name: Setup database
+                env:
+                    DATABASE_URL: "mysql://root:pass_root@127.0.0.1:3306/sylius_test?serverVersion=8.0&charset=utf8mb4"
+                run: |
+                    php bin/console doctrine:database:create --env=test --no-interaction --if-not-exists
+                    php bin/console doctrine:migrations:migrate --env=test --no-interaction
+                    php bin/console doctrine:schema:update --env=test --no-interaction --complete --force
+
+            -   name: PHPStan
+                run: vendor/bin/phpstan analyse
+
+            -   name: ECS
+                run: vendor/bin/ecs check
+
+            -   name: Symfony lint
+                run: php bin/console lint:container --env=test
+
+            -   name: PHPUnit
+                env:
+                    DATABASE_URL: "mysql://root:pass_root@127.0.0.1:3306/sylius_test?serverVersion=8.0&charset=utf8mb4"
+                run: vendor/bin/phpunit
+
+            -   name: Behat
+                env:
+                    DATABASE_URL: "mysql://root:pass_root@127.0.0.1:3306/sylius_test?serverVersion=8.0&charset=utf8mb4"
+                run: vendor/bin/behat --no-interaction --format=progress

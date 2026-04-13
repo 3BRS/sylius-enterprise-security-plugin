@@ -1,0 +1,3 @@
+imports:
+    - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/services.yaml" }
+    - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/twig_hooks/twig_hooks.yaml" }

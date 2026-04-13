@@ -1,0 +1,121 @@
+{
+    "name": "3brs/sylius-enterprise-security-plugin",
+    "type": "sylius-plugin",
+    "keywords": ["sylius", "sylius-plugin", "security", "2fa", "authentication", "password-policy", "gdpr"],
+    "description": "Advanced security plugin for Sylius — 2FA, password policies, account protection, GDPR",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "sylius/sylius": "^2.1",
+        "3brs/enterprise-security-bundle": "^1.0"
+    },
+    "require-dev": {
+        "behat/behat": "^v3.19.0",
+        "dmore/behat-chrome-extension": "^1.4",
+        "dmore/chrome-mink-driver": "^2.9.3",
+        "friends-of-behat/mink": "^1.11",
+        "friends-of-behat/mink-browserkit-driver": "^v1.6.2",
+        "friends-of-behat/mink-debug-extension": "^v2.1.0",
+        "friends-of-behat/mink-extension": "^v2.7.5",
+        "friends-of-behat/page-object-extension": "^v0.3.2",
+        "friends-of-behat/suite-settings-extension": "^v1.1.0",
+        "friends-of-behat/symfony-extension": "^2.6.2",
+        "friends-of-behat/variadic-extension": "^v1.6.0",
+        "nyholm/psr7": "^1.8",
+        "php-http/message-factory": "^1.1.0",
+        "phpstan/phpstan": "^2.1.10",
+        "phpstan/phpstan-doctrine": "^2.0.2",
+        "phpstan/phpstan-strict-rules": "^2.0.4",
+        "phpstan/phpstan-symfony": "^2.0.3",
+        "phpstan/phpstan-webmozart-assert": "^2.0.0",
+        "phpunit/phpunit": "^11.1 || ^12.0.10",
+        "polishsymfonycommunity/symfony-mocker-container": "^v1.0.8",
+        "rector/rector": "^2.0.10",
+        "sylius-labs/coding-standard": "^v4.4.0",
+        "symfony/browser-kit": "^6.4|^7.4",
+        "symfony/debug-bundle": "^6.4|^7.4",
+        "symfony/doctrine-bridge": "^6.4|^7.4",
+        "symfony/dotenv": "^6.4|^7.4",
+        "symfony/framework-bundle": "^6.4|^7.4",
+        "symfony/http-foundation": "^6.4|^7.4",
+        "symfony/http-kernel": "^6.4|^7.4",
+        "symfony/intl": "^6.4|^7.4",
+        "symfony/maker-bundle": "^1.60",
+        "symfony/property-info": "^6.4|^7.4",
+        "symfony/web-profiler-bundle": "^6.4|^7.4",
+        "symplify/easy-coding-standard": "^12.0"
+    },
+    "conflict": {
+        "api-platform/symfony": "<4.2.0",
+        "api-platform/core": "<4.2.0",
+        "api-platform/json-schema": "<4.2.0",
+        "api-platform/metadata": "<4.2.0",
+        "babdev/pagerfanta-bundle": "<3.7.0",
+        "doctrine/collections": "<1.7.0",
+        "doctrine/data-fixtures": "<1.8.0",
+        "doctrine/dbal": "<2.13.3",
+        "doctrine/doctrine-bundle": "<2.13.1",
+        "doctrine/orm": "<2.19.0",
+        "fakerphp/faker": "<1.21.0",
+        "friendsofsymfony/rest-bundle": "<3.1.0",
+        "jms/serializer-bundle": "<4.2.0",
+        "knplabs/knp-menu": "<3.3.0",
+        "knplabs/knp-menu-bundle": "<3.5.0",
+        "lexik/jwt-authentication-bundle": "<2.12",
+        "masterminds/html5": "<2.7.5",
+        "payum/core": "<1.7.3",
+        "polishsymfonycommunity/symfony-mocker-container": "<1.0.6",
+        "sylius/grid-bundle": "<1.11.0",
+        "sylius/resource-bundle": "<1.13.1",
+        "sylius/sylius": "<2.1.0",
+        "sylius/twig-hooks": ">=0.9.0 <0.9.1",
+        "sylius/twig-extra": ">=0.9.0 <0.9.1",
+        "symfony/css-selector": "<4.4.24",
+        "symfony/dom-crawler": "<5.4.0",
+        "symfony/framework-bundle": ">=5.4.0 <=5.4.20|>=6.0.0 <=6.0.16|>=6.1.0 <=6.1.8|>=6.2.0 <=6.2.2|6.2.8",
+        "symfony/mime": "<5.4.0",
+        "symfony/validator": "7.3.0",
+        "symfony/web-link": "<5.3.0",
+        "symplify/easy-coding-standard": "<10.3.0|12.5.10",
+        "twig/twig": "<2.14.7",
+        "webmozart/assert": "<1.11.0",
+        "willdurand/negotiation": "<3.0"
+    },
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./packages/enterprise-security-bundle"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ThreeBRS\\SyliusEnterpriseSecurityPlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\": "tests/Application/src/",
+            "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\Behat\\": "tests/Behat/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true,
+            "rector/extension-installer": true,
+            "php-http/discovery": true
+        }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "php bin/create_node_symlink.php"
+        ],
+        "post-update-cmd": [
+            "php bin/create_node_symlink.php"
+        ],
+        "post-create-project-cmd": [
+            "php bin/create_node_symlink.php"
+        ]
+    }
+}
