@@ -9,3 +9,10 @@ imports:
     - suites/admin_password_expiration.yml
     - suites/shop_password_change_notification.yml
     - suites/admin_password_change_notification.yml
+    - suites/shop_two_factor_setup.yml
+    - suites/admin_two_factor_setup.yml
+    - suites/shop_two_factor_login.yml
+    - suites/admin_two_factor_login.yml
+    - suites/shop_two_factor_recovery.yml
+    - suites/admin_two_factor_recovery.yml
+    - suites/shop_two_factor_trusted_device.yml

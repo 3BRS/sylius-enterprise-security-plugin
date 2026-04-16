@@ -13,7 +13,9 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordHisto
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordChangeNotificationListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserPasswordHistoryListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicy;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordHistoryValidator;
 
 class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements PrependExtensionInterface
@@ -43,6 +45,22 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerPasswordHistory($container, $config['password_history']);
         $this->registerPasswordExpiration($container, $config['password_expiration']);
         $this->registerPasswordChangeNotification($container, $config['password_change_notification']);
+        $this->registerTwoFactorAuthentication($container, $config['two_factor_authentication']);
+    }
+
+    /** @param array<string, mixed> $config */
+    private function registerTwoFactorAuthentication(ContainerBuilder $container, array $config): void
+    {
+        $container->setParameter('three_brs.two_factor.issuer', $config['issuer']);
+        $container->setParameter('three_brs.two_factor.customer_mode', $config['customer']['mode']);
+        $container->setParameter('three_brs.two_factor.admin_mode', $config['admin']['mode']);
+        $container->setParameter('three_brs.two_factor.recovery_codes_enabled', $config['recovery_codes']['enabled']);
+        $container->setParameter('three_brs.two_factor.recovery_codes_count', $config['recovery_codes']['count']);
+
+        $container->getDefinition(TwoFactorEnforcementChecker::class)
+            ->setArgument('$customerMode', TwoFactorMode::from($config['customer']['mode']))
+            ->setArgument('$adminMode', TwoFactorMode::from($config['admin']['mode']))
+        ;
     }
 
     public function getAlias(): string

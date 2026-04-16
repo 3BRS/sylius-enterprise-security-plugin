@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ 'three_brs.ui.two_factor.challenge_title'|trans }}</title>
+</head>
+<body>
+<div data-test-two-factor-challenge>
+    <h1>{{ 'three_brs.ui.two_factor.challenge_title'|trans }}</h1>
+
+    {% if authenticationError %}
+        <p data-test-two-factor-error>
+            {{ authenticationError|trans(authenticationErrorData, 'SchebTwoFactorBundle') }}
+        </p>
+    {% endif %}
+
+    <form action="{{ checkPathUrl ? checkPathUrl : path(checkPathRoute) }}" method="post">
+        <label for="_auth_code">{{ 'three_brs.ui.two_factor.code'|trans }}</label>
+        <input
+            id="_auth_code"
+            type="text"
+            name="{{ authCodeParameterName }}"
+            data-test-two-factor-auth-code
+            autocomplete="one-time-code"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autofocus
+        />
+
+        {% if displayTrustedOption %}
+            <label>
+                <input type="checkbox" name="{{ trustedParameterName }}" data-test-two-factor-trusted>
+                {{ 'three_brs.ui.two_factor.trust_device'|trans }}
+            </label>
+        {% endif %}
+
+        {% if isCsrfProtectionEnabled %}
+            <input type="hidden" name="{{ csrfParameterName }}" value="{{ csrf_token(csrfTokenId) }}">
+        {% endif %}
+
+        <button type="submit" data-test-two-factor-submit>
+            {{ 'three_brs.ui.two_factor.verify'|trans }}
+        </button>
+    </form>
+
+    {% set recovery_path = null %}
+    {% if app.request.pathInfo starts with '/admin' %}
+        {% set recovery_path = path('three_brs_admin_two_factor_recovery_challenge') %}
+    {% else %}
+        {% set recovery_path = path('three_brs_shop_two_factor_recovery_challenge') %}
+    {% endif %}
+    <p><a href="{{ recovery_path }}" data-test-two-factor-use-recovery-code>
+        {{ 'three_brs.ui.two_factor.use_recovery_code'|trans }}
+    </a></p>
+
+    <p><a href="{{ logoutPath }}" data-test-two-factor-cancel>{{ 'three_brs.ui.two_factor.cancel'|trans }}</a></p>
+</div>
+</body>
+</html>

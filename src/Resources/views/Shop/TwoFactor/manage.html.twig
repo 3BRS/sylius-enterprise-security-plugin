@@ -1,0 +1,21 @@
+{% extends '@SyliusShop/account/common/index.html.twig' %}
+
+{% block title %}{{ 'three_brs.ui.two_factor.manage_title'|trans }} | {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <h2 class="h2 mb-3">{{ 'three_brs.ui.two_factor.manage_title'|trans }}</h2>
+            <p class="alert alert-success" data-test-two-factor-enabled>
+                {{ 'three_brs.ui.two_factor.enabled_notice'|trans }}
+            </p>
+
+            <form method="POST" action="{{ path('three_brs_shop_two_factor_disable') }}">
+                <input type="hidden" name="_csrf_token" value="{{ disable_csrf_token }}">
+                <button type="submit" class="btn btn-danger" data-test-two-factor-disable>
+                    {{ 'three_brs.ui.two_factor.disable'|trans }}
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

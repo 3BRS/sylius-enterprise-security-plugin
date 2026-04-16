@@ -1,0 +1,27 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.two_factor.manage_title'|trans }}{% endblock %}
+
+{% block body_class %}d-flex flex-column{% endblock %}
+
+{% block body %}
+    <div class="page page-center">
+        <div class="container container-tight py-4">
+            <div class="card card-md">
+                <div class="card-body">
+                    <h2 class="h2 text-center mb-2">{{ 'three_brs.ui.two_factor.manage_title'|trans }}</h2>
+                    <p class="alert alert-success" data-test-two-factor-enabled>
+                        {{ 'three_brs.ui.two_factor.enabled_notice'|trans }}
+                    </p>
+
+                    <form method="POST" action="{{ path('three_brs_admin_two_factor_disable') }}">
+                        <input type="hidden" name="_csrf_token" value="{{ disable_csrf_token }}">
+                        <button type="submit" class="btn btn-danger w-100" data-test-two-factor-disable>
+                            {{ 'three_brs.ui.two_factor.disable'|trans }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

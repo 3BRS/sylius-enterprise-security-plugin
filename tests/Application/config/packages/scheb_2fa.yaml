@@ -1,0 +1,13 @@
+scheb_two_factor:
+    security_tokens:
+        - Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken
+        - Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken
+    trusted_device:
+        enabled: true
+        lifetime: 5184000
+        cookie_same_site: 'lax'
+        key: 'a-long-enough-secret-that-is-at-least-256-bits-for-jwt-hmac-sha256'
+    totp:
+        enabled: true
+        issuer: 'Sylius'
+        template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/TwoFactor/challenge.html.twig'

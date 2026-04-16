@@ -2,3 +2,67 @@ three_brs_admin_force_password_change:
     path: /admin/force-password-change
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\ForcePasswordChangeController
     methods: [GET, POST]
+
+three_brs_shop_two_factor_setup:
+    path: /{_locale}/account/two-factor/setup
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorSetupController
+    methods: [GET, POST]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+
+three_brs_shop_two_factor_recovery_codes:
+    path: /{_locale}/account/two-factor/recovery-codes
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorRecoveryCodesController
+    methods: [GET]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+
+three_brs_shop_two_factor_disable:
+    path: /{_locale}/account/two-factor/disable
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorDisableController
+    methods: [POST]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+
+three_brs_admin_two_factor_setup:
+    path: /admin/two-factor/setup
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorSetupController
+    methods: [GET, POST]
+
+three_brs_admin_two_factor_recovery_codes:
+    path: /admin/two-factor/recovery-codes
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRecoveryCodesController
+    methods: [GET]
+
+three_brs_admin_two_factor_disable:
+    path: /admin/two-factor/disable
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorDisableController
+    methods: [POST]
+
+three_brs_shop_two_factor_challenge:
+    path: /2fa
+    controller: scheb_two_factor.form_controller::form
+    methods: [GET]
+
+three_brs_shop_two_factor_check:
+    path: /2fa_check
+    methods: [POST]
+
+three_brs_shop_two_factor_recovery_challenge:
+    path: /2fa/recovery
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorRecoveryChallengeController
+    methods: [GET, POST]
+
+three_brs_admin_two_factor_challenge:
+    path: /admin/2fa
+    controller: scheb_two_factor.form_controller::form
+    methods: [GET]
+
+three_brs_admin_two_factor_check:
+    path: /admin/2fa_check
+    methods: [POST]
+
+three_brs_admin_two_factor_recovery_challenge:
+    path: /admin/2fa/recovery
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRecoveryChallengeController
+    methods: [GET, POST]

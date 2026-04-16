@@ -103,6 +103,136 @@ services:
         tags:
             - { name: 'sylius_fixtures.fixture' }
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository:
+        factory: ['@doctrine.orm.entity_manager', 'getRepository']
+        arguments:
+            - ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerRecoveryCode
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository:
+        factory: ['@doctrine.orm.entity_manager', 'getRepository']
+        arguments:
+            - ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\QrCodeGenerator: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeVerifier:
+        arguments:
+            $customerRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository'
+            $adminRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository'
+            $generator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $clock: '@clock'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker:
+        arguments:
+            $customerMode: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode::DISABLED
+            $adminMode: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode::DISABLED
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\TwoFactorVerifyType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorSetupController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $totpGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator'
+            $qrGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\QrCodeGenerator'
+            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $formFactory: '@form.factory'
+            $router: '@router'
+            $twig: '@twig'
+            $translator: '@translator'
+            $issuer: '%three_brs.two_factor.issuer%'
+            $recoveryCodesEnabled: '%three_brs.two_factor.recovery_codes_enabled%'
+            $recoveryCodesCount: '%three_brs.two_factor.recovery_codes_count%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorRecoveryCodesController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $router: '@router'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorDisableController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $recoveryCodeRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorSetupController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $totpGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator'
+            $qrGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\QrCodeGenerator'
+            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $formFactory: '@form.factory'
+            $router: '@router'
+            $twig: '@twig'
+            $translator: '@translator'
+            $issuer: '%three_brs.two_factor.issuer%'
+            $recoveryCodesEnabled: '%three_brs.two_factor.recovery_codes_enabled%'
+            $recoveryCodesCount: '%three_brs.two_factor.recovery_codes_count%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRecoveryCodesController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $router: '@router'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler.shop:
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler
+        arguments:
+            $twoFactorAuthenticationRequiredHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
+            $defaultSuccessHandler: '@sylius.authentication.success_handler'
+        public: true
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorDisableController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $recoveryCodeRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorRecoveryChallengeController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $recoveryCodeVerifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeVerifier'
+            $router: '@router'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRecoveryChallengeController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $recoveryCodeVerifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeVerifier'
+            $router: '@router'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator:
         arguments:
             $customerPolicy: '@three_brs.password_policy.customer'

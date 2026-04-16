@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ 'three_brs.ui.two_factor.recovery_challenge_title'|trans }}</title>
+</head>
+<body>
+<div data-test-two-factor-recovery-challenge>
+    <h1>{{ 'three_brs.ui.two_factor.recovery_challenge_title'|trans }}</h1>
+
+    <p>{{ 'three_brs.ui.two_factor.recovery_challenge_intro'|trans }}</p>
+
+    {% if error %}
+        <p data-test-two-factor-recovery-error>{{ error|trans }}</p>
+    {% endif %}
+
+    <form method="post">
+        <label for="_recovery_code">{{ 'three_brs.ui.two_factor.recovery_code'|trans }}</label>
+        <input
+            id="_recovery_code"
+            type="text"
+            name="_recovery_code"
+            data-test-two-factor-recovery-code
+            autocomplete="one-time-code"
+            autofocus
+        />
+
+        <button type="submit" data-test-two-factor-recovery-submit>
+            {{ 'three_brs.ui.two_factor.verify_recovery_code'|trans }}
+        </button>
+    </form>
+
+    <p><a href="{{ path('three_brs_admin_two_factor_challenge') }}" data-test-two-factor-challenge-back>
+        {{ 'three_brs.ui.two_factor.back_to_challenge'|trans }}
+    </a></p>
+</div>
+</body>
+</html>

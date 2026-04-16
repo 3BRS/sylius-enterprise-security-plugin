@@ -21,6 +21,14 @@ three_brs_sylius_enterprise_security:
             enabled: true
         admin:
             enabled: true
+    two_factor_authentication:
+        customer:
+            mode: optional
+        admin:
+            mode: optional
+        recovery_codes:
+            enabled: true
+            count: 8
     password_policy:
         customer:
             min_length: 8

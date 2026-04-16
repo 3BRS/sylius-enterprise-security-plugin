@@ -1,0 +1,38 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.two_factor.setup_title'|trans }}{% endblock %}
+
+{% block body_class %}d-flex flex-column{% endblock %}
+
+{% block body %}
+    <div class="page page-center">
+        <div class="container container-tight py-4">
+            <div class="card card-md">
+                <div class="card-body">
+                    <h2 class="h2 text-center mb-2">{{ 'three_brs.ui.two_factor.setup_title'|trans }}</h2>
+                    <p class="text-muted text-center mb-4">{{ 'three_brs.ui.two_factor.setup_description'|trans }}</p>
+
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-4 text-center">
+                            <img src="{{ qr_data_uri }}" alt="TOTP QR code" class="img-fluid" data-test-two-factor-qr>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-2">{{ 'three_brs.ui.two_factor.manual_code'|trans }}</p>
+                            <code class="d-block p-2 bg-light" data-test-two-factor-secret>{{ secret }}</code>
+                        </div>
+                    </div>
+
+                    {% form_theme form '@SyliusAdmin/shared/form_theme.html.twig' %}
+                    {{ form_start(form, { action: path('three_brs_admin_two_factor_setup'), method: 'POST' }) }}
+                        {{ form_row(form.code) }}
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-primary w-100" data-test-two-factor-verify>
+                                {{ 'three_brs.ui.two_factor.verify_and_enable'|trans }}
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

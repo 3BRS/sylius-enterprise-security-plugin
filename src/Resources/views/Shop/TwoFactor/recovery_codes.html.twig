@@ -1,0 +1,22 @@
+{% extends '@SyliusShop/account/common/index.html.twig' %}
+
+{% block title %}{{ 'three_brs.ui.two_factor.recovery_codes_title'|trans }} | {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <h2 class="h2 mb-3">{{ 'three_brs.ui.two_factor.recovery_codes_title'|trans }}</h2>
+            <p class="alert alert-warning">{{ 'three_brs.ui.two_factor.recovery_codes_warning'|trans }}</p>
+
+            <ul class="list-group mb-3" data-test-two-factor-recovery-codes>
+                {% for code in codes %}
+                    <li class="list-group-item font-monospace" data-test-recovery-code>{{ code }}</li>
+                {% endfor %}
+            </ul>
+
+            <a href="{{ path('sylius_shop_account_dashboard') }}" class="btn btn-primary">
+                {{ 'three_brs.ui.two_factor.recovery_codes_acknowledged'|trans }}
+            </a>
+        </div>
+    </div>
+{% endblock %}
