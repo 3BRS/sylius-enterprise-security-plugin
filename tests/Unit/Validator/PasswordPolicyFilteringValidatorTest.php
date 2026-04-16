@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator;
 
@@ -127,6 +128,31 @@ class PasswordPolicyFilteringValidatorTest extends TestCase
         $this->inner->method('validatePropertyValue')->willReturn($violations);
 
         $result = $this->filteringValidator->validatePropertyValue(\stdClass::class, 'plainPassword', 'abc');
+
+        self::assertCount(1, $result);
+        self::assertSame('three_brs.password_policy.min_length', $result->get(0)->getMessageTemplate());
+    }
+
+    public function testRemovesLengthTooShortViolationByCodeWhenPasswordPolicyViolationIsPresentOnSamePath(): void
+    {
+        $lengthViolation = new ConstraintViolation(
+            message: 'This value is too short.',
+            messageTemplate: 'This value is too short.',
+            parameters: [],
+            root: null,
+            propertyPath: 'plainPassword',
+            invalidValue: null,
+            code: Length::TOO_SHORT_ERROR,
+        );
+
+        $violations = new ConstraintViolationList([
+            $lengthViolation,
+            $this->createViolation('three_brs.password_policy.min_length', 'plainPassword'),
+        ]);
+
+        $this->inner->method('validate')->willReturn($violations);
+
+        $result = $this->filteringValidator->validate('abc', null, null);
 
         self::assertCount(1, $result);
         self::assertSame('three_brs.password_policy.min_length', $result->get(0)->getMessageTemplate());

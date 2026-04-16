@@ -209,6 +209,57 @@ class PasswordPolicyValidatorTest extends TestCase
         $validator->validate('ValidPass1!', $constraint);
     }
 
+    public function testPasswordExactlyAtMinLengthPassesValidation(): void
+    {
+        $this->context->expects(self::never())->method('buildViolation');
+
+        $validator = $this->createValidator(customerMinLength: 5);
+        $constraint = new PasswordPolicyConstraint();
+        $constraint->policyGroup = 'customer';
+
+        $validator->validate('passw', $constraint); // exactly 5 chars
+    }
+
+    public function testPasswordExactlyAtMaxLengthPassesValidation(): void
+    {
+        $this->context->expects(self::never())->method('buildViolation');
+
+        $validator = $this->createValidator(customerMinLength: 1, customerMaxLength: 5);
+        $constraint = new PasswordPolicyConstraint();
+        $constraint->policyGroup = 'customer';
+
+        $validator->validate('passw', $constraint); // exactly 5 chars
+    }
+
+    public function testMultibytePasswordCountsCharactersNotBytes(): void
+    {
+        $this->context->expects(self::never())->method('buildViolation');
+
+        $validator = $this->createValidator(customerMinLength: 5);
+        $constraint = new PasswordPolicyConstraint();
+        $constraint->policyGroup = 'customer';
+
+        $validator->validate('héšlö', $constraint); // 5 chars, 7 bytes
+    }
+
+    public function testUnknownPolicyGroupFallsBackToCustomerPolicy(): void
+    {
+        $this->context
+            ->expects(self::once())
+            ->method('buildViolation')
+            ->with('three_brs.password_policy.min_length')
+            ->willReturn($this->violationBuilder)
+        ;
+
+        // customerMinLength=10, adminMinLength=4: unknown group must use customer (not admin)
+        // 'ValidPs!' = 8 chars → fails customer (10), would pass admin (4)
+        $validator = $this->createValidator(customerMinLength: 10, adminMinLength: 4);
+        $constraint = new PasswordPolicyConstraint();
+        $constraint->policyGroup = 'shop';
+
+        $validator->validate('ValidPs!', $constraint);
+    }
+
     public function testAdminPolicyIsUsedForAdminGroup(): void
     {
         $this->context

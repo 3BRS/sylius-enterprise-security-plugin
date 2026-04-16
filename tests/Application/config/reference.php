@@ -3357,16 +3357,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     default_adapter?: scalar|Param|null, // Default: "symfony_workflow"
  *     graphs_to_adapters_mapping?: array<string, scalar|Param|null>,
  * }
- * @psalm-type ThreeBrsEnterpriseSecurityConfig = array{
- *     password_policy?: array<string, array{ // Default: []
- *         min_length?: int|Param, // Default: 8
- *         max_length?: scalar|Param|null, // Default: null
- *         require_uppercase?: bool|Param, // Default: false
- *         require_lowercase?: bool|Param, // Default: false
- *         require_numbers?: bool|Param, // Default: false
- *         require_special_characters?: bool|Param, // Default: false
- *     }>,
- * }
  * @psalm-type ThreeBrsSyliusEnterpriseSecurityConfig = array{
  *     password_policy?: array{
  *         customer?: array{
@@ -3452,7 +3442,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     live_component?: LiveComponentConfig,
  *     stimulus?: StimulusConfig,
  *     sylius_state_machine_abstraction?: SyliusStateMachineAbstractionConfig,
- *     three_brs_enterprise_security?: ThreeBrsEnterpriseSecurityConfig,
  *     three_brs_sylius_enterprise_security?: ThreeBrsSyliusEnterpriseSecurityConfig,
  *     white_october_pagerfanta?: WhiteOctoberPagerfantaConfig,
  *     "when@dev"?: array{
@@ -3513,7 +3502,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         live_component?: LiveComponentConfig,
  *         stimulus?: StimulusConfig,
  *         sylius_state_machine_abstraction?: SyliusStateMachineAbstractionConfig,
- *         three_brs_enterprise_security?: ThreeBrsEnterpriseSecurityConfig,
  *         three_brs_sylius_enterprise_security?: ThreeBrsSyliusEnterpriseSecurityConfig,
  *     },
  *     "when@test"?: array{
@@ -3574,7 +3562,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         live_component?: LiveComponentConfig,
  *         stimulus?: StimulusConfig,
  *         sylius_state_machine_abstraction?: SyliusStateMachineAbstractionConfig,
- *         three_brs_enterprise_security?: ThreeBrsEnterpriseSecurityConfig,
  *         three_brs_sylius_enterprise_security?: ThreeBrsSyliusEnterpriseSecurityConfig,
  *     },
  *     "when@test_cached"?: array{
@@ -3635,7 +3622,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         live_component?: LiveComponentConfig,
  *         stimulus?: StimulusConfig,
  *         sylius_state_machine_abstraction?: SyliusStateMachineAbstractionConfig,
- *         three_brs_enterprise_security?: ThreeBrsEnterpriseSecurityConfig,
  *         three_brs_sylius_enterprise_security?: ThreeBrsSyliusEnterpriseSecurityConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias

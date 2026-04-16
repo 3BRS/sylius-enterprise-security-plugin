@@ -56,6 +56,16 @@ Feature: Customer registration password policy
         Then I should be notified that the password requires a special character
 
     @ui
+    Scenario: Our policy error replaces the Sylius built-in minimum length error for very short passwords
+        Given I want to register a new account
+        When I specify the first name as "John"
+        And I specify the last name as "Doe"
+        And I specify the email as "john@example.com"
+        And I register with password "ab"
+        Then I should be notified that the password must be at least 8 characters
+        And the Sylius built-in minimum password length error should not appear
+
+    @ui
     Scenario: Customer can register with a strong password meeting all requirements
         Given the store requires uppercase letters in customer passwords
         And the store requires numbers in customer passwords

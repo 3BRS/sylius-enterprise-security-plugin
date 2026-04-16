@@ -8,9 +8,6 @@
         <testsuite name="SyliusEnterpriseSecurityPlugin Test Suite">
             <directory>tests</directory>
         </testsuite>
-        <testsuite name="EnterpriseSecurityBundle Test Suite">
-            <directory>packages/enterprise-security-bundle/tests</directory>
-        </testsuite>
     </testsuites>
 
     <php>

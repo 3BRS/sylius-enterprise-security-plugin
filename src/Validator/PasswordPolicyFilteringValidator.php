@@ -6,6 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator;
 
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\GroupSequence;
+use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -70,7 +71,10 @@ class PasswordPolicyFilteringValidator implements PasswordPolicyFilteringValidat
         $filtered = new ConstraintViolationList();
         foreach ($violations as $violation) {
             if (
-                $violation->getMessageTemplate() === 'sylius.user.password.min' &&
+                (
+                    $violation->getMessageTemplate() === 'sylius.user.password.min' ||
+                    $violation->getCode() === Length::TOO_SHORT_ERROR
+                ) &&
                 isset($passwordPolicyPaths[$violation->getPropertyPath()])
             ) {
                 continue;

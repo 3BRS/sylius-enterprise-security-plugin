@@ -34,6 +34,13 @@ Feature: Customer change password policy
         Then I should be notified that the new password requires a number
 
     @ui
+    Scenario: Our policy error replaces the Sylius built-in minimum length error for very short new password
+        When I want to change my password
+        And I change my password from "Password1!" to "ab"
+        Then I should be notified that the new password must be at least 8 characters
+        And the Sylius built-in minimum password length error should not appear
+
+    @ui
     Scenario: Customer cannot change password without a special character when required
         When I want to change my password
         And I change my password from "Password1!" to "NoSpecialChar1"

@@ -60,6 +60,25 @@ class ChangePasswordPolicyContext implements Context
     }
 
     /**
+     * @Then I should be notified that the new password must be at least :limit characters
+     */
+    public function iShouldBeNotifiedThatTheNewPasswordMustBeAtLeastCharacters(int $limit): void
+    {
+        $this->assertValidationError(sprintf('at least %d characters', $limit));
+    }
+
+    /**
+     * @Then the Sylius built-in minimum password length error should not appear
+     */
+    public function theSyliusBuiltInMinimumPasswordLengthErrorShouldNotAppear(): void
+    {
+        Assert::false(
+            $this->session->getPage()->hasContent('at least 4 characters'),
+            'Sylius built-in minimum length error ("at least 4 characters") should be suppressed by our policy error.',
+        );
+    }
+
+    /**
      * @Then my password should be changed successfully
      */
     public function myPasswordShouldBeChangedSuccessfully(): void

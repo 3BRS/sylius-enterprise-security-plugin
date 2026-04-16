@@ -32,3 +32,8 @@ Feature: Admin editing customer password policy
     Scenario: Admin can set a customer password that meets all requirements
         When I change the password of customer "john@example.com" to "StrongPass1!"
         Then the customer should be saved successfully
+
+    @ui
+    Scenario: Admin can set a customer password with exactly the minimum required length
+        When I change the password of customer "john@example.com" to "Passw0r!"
+        Then the customer should be saved successfully

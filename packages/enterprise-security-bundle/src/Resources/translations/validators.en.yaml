@@ -1,8 +1,0 @@
-three_brs:
-    password_policy:
-        min_length: 'Password must be at least {{ limit }} characters long.'
-        max_length: 'Password must not exceed {{ limit }} characters.'
-        require_uppercase: 'Password must contain at least one uppercase letter.'
-        require_lowercase: 'Password must contain at least one lowercase letter.'
-        require_numbers: 'Password must contain at least one number.'
-        require_special_characters: 'Password must contain at least one special character.'
