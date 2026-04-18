@@ -1,22 +1,38 @@
-{% extends '@SyliusShop/account/common/index.html.twig' %}
+{% extends '@SyliusShop/shared/layout/base.html.twig' %}
 
 {% block title %}{{ 'three_brs.ui.two_factor.recovery_codes_title'|trans }} | {{ parent() }}{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <div class="card-body">
-            <h2 class="h2 mb-3">{{ 'three_brs.ui.two_factor.recovery_codes_title'|trans }}</h2>
-            <p class="alert alert-warning">{{ 'three_brs.ui.two_factor.recovery_codes_warning'|trans }}</p>
+    <div class="container mb-auto">
+        <div class="row my-4">
+            <div class="col-12 col-md-3 mb-4 mb-md-0">
+                <div class="mb-3">
+                    {{ knp_menu_render('sylius_shop.account', {'template': '@SyliusShop/account/menu/content.html.twig'}) }}
+                </div>
+            </div>
+            <div class="col-12 col-md-9">
+                <div class="mb-4">
+                    <h1>{{ 'three_brs.ui.two_factor.recovery_codes_title'|trans }}</h1>
+                </div>
 
-            <ul class="list-group mb-3" data-test-two-factor-recovery-codes>
-                {% for code in codes %}
-                    <li class="list-group-item font-monospace" data-test-recovery-code>{{ code }}</li>
-                {% endfor %}
-            </ul>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="alert alert-warning mb-4">
+                            {{ 'three_brs.ui.two_factor.recovery_codes_warning'|trans }}
+                        </div>
 
-            <a href="{{ path('sylius_shop_account_dashboard') }}" class="btn btn-primary">
-                {{ 'three_brs.ui.two_factor.recovery_codes_acknowledged'|trans }}
-            </a>
+                        <ul class="list-group mb-4" data-test-two-factor-recovery-codes>
+                            {% for code in codes %}
+                                <li class="list-group-item font-monospace text-center" data-test-recovery-code>{{ code }}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <a href="{{ path('three_brs_shop_two_factor_setup') }}" class="btn btn-primary col-12 col-md-auto">
+                            {{ 'three_brs.ui.two_factor.recovery_codes_acknowledged'|trans }}
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

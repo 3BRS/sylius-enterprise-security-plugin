@@ -84,3 +84,8 @@ sylius_fixtures:
                             - email: expired@example.com
                               password_changed_days_ago: 100
                         admin_users: []
+
+                three_brs_two_factor:
+                    options:
+                        shop_users: []
+                        admin_users: []

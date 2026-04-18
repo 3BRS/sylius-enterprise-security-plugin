@@ -3570,6 +3570,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             enabled?: bool|Param, // Default: true
  *             count?: int|Param, // Default: 8
  *         },
+ *         trusted_device?: array{
+ *             enabled?: bool|Param, // Default: true
+ *             days?: int|Param, // Default: 60
+ *         },
  *     },
  *     password_policy?: array{
  *         customer?: array{

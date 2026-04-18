@@ -131,6 +131,43 @@ three_brs_sylius_enterprise_security:
 
 > **Note (reverse proxy / load balancer):** the IP address included in the email is read from `Request::getClientIp()`, which respects `X-Forwarded-For` only for trusted proxies. If your Sylius runs behind a load balancer or reverse proxy, make sure `framework.trusted_proxies` and `framework.trusted_headers` are configured (e.g. via the `TRUSTED_PROXIES` / `TRUSTED_HEADERS` environment variables) — otherwise the email will log the proxy's address instead of the real client IP. See the [Symfony docs on trusted proxies](https://symfony.com/doc/current/deployment/proxies.html).
 
+### Two-Factor Authentication
+
+- TOTP-based 2FA for shop and admin users (compatible with Google Authenticator, Authy, 1Password, etc.)
+- QR code + manual secret setup from account page (shop) or admin dashboard (admin)
+- Recovery codes — single-use backup codes generated at setup, regenerable from the manage view (invalidates all previous codes)
+- Trusted device — opt-in cookie (scheb JWT) to skip 2FA on a known device; revocable per user by bumping the user's `trustedTokenVersion`
+- Enforcement modes per user type: `disabled`, `optional`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
+- Firewall integration via `scheb/2fa-bundle` with separate `/2fa` (shop) and `/admin/2fa` (admin) challenge endpoints
+- Fixture (`three_brs_two_factor`) to preload 2FA-enabled users and recovery codes for demo/testing
+- Plugin exposes container parameters (`three_brs.two_factor.issuer`, `three_brs.two_factor.trusted_device_enabled`, `three_brs.two_factor.trusted_device_lifetime`) that can be referenced directly from your `scheb_2fa.yaml`
+
+```yaml
+three_brs_sylius_enterprise_security:
+    two_factor_authentication:
+        issuer: 'Sylius'
+        customer:
+            mode: 'optional'  # disabled | optional | enforced
+        admin:
+            mode: 'enforced'
+        recovery_codes:
+            enabled: true
+            count: 8
+        trusted_device:
+            enabled: true
+            days: 60
+```
+
+```yaml
+# config/packages/scheb_2fa.yaml
+scheb_two_factor:
+    trusted_device:
+        enabled: '%three_brs.two_factor.trusted_device_enabled%'
+        lifetime: '%three_brs.two_factor.trusted_device_lifetime%'
+    totp:
+        issuer: '%three_brs.two_factor.issuer%'
+```
+
 ## Installation
 
 1. Run `composer require 3brs/sylius-enterprise-security-plugin`.

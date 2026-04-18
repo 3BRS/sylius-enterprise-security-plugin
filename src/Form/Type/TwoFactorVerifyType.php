@@ -20,8 +20,13 @@ class TwoFactorVerifyType extends AbstractType
         $builder->add('code', TextType::class, [
             'label' => 'three_brs.ui.two_factor.code',
             'constraints' => [
-                new NotBlank(),
-                new Length(min: 6, max: 8),
+                new NotBlank(message: 'three_brs.two_factor.code_required'),
+                new Length(
+                    min: 6,
+                    max: 8,
+                    minMessage: 'three_brs.two_factor.invalid_code_length',
+                    maxMessage: 'three_brs.two_factor.invalid_code_length',
+                ),
                 new Regex(pattern: '/^\d+$/', message: 'three_brs.two_factor.invalid_code_format'),
             ],
             'attr' => [

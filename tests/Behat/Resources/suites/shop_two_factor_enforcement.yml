@@ -1,0 +1,16 @@
+default:
+    suites:
+        shop_two_factor_enforcement:
+            contexts:
+                - sylius.behat.context.hook.doctrine_orm
+                - sylius.behat.context.setup.channel
+                - sylius.behat.context.setup.currency
+                - sylius.behat.context.setup.geographical
+                - sylius.behat.context.setup.zone
+                - sylius.behat.context.setup.customer
+                - sylius.behat.context.setup.shop_security
+                - sylius.behat.context.transform.shared_storage
+                - three_brs.behat.context.ui.shop.two_factor_setup
+                - three_brs.behat.context.ui.shop.two_factor_enforcement
+            filters:
+                tags: "@shop&&@two_factor_enforcement&&@ui"

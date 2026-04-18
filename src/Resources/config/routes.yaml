@@ -24,6 +24,13 @@ three_brs_shop_two_factor_disable:
     requirements:
         _locale: '[a-z]{2}(?:_[A-Z]{2})?'
 
+three_brs_shop_two_factor_regenerate_recovery_codes:
+    path: /{_locale}/account/two-factor/recovery-codes/regenerate
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorRegenerateRecoveryCodesController
+    methods: [POST]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+
 three_brs_admin_two_factor_setup:
     path: /admin/two-factor/setup
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorSetupController
@@ -37,6 +44,11 @@ three_brs_admin_two_factor_recovery_codes:
 three_brs_admin_two_factor_disable:
     path: /admin/two-factor/disable
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorDisableController
+    methods: [POST]
+
+three_brs_admin_two_factor_regenerate_recovery_codes:
+    path: /admin/two-factor/recovery-codes/regenerate
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRegenerateRecoveryCodesController
     methods: [POST]
 
 three_brs_shop_two_factor_challenge:

@@ -29,6 +29,9 @@ three_brs_sylius_enterprise_security:
         recovery_codes:
             enabled: true
             count: 8
+        trusted_device:
+            enabled: false
+            days: 60
     password_policy:
         customer:
             min_length: 8

@@ -1,25 +1,56 @@
 {% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
 
+{% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+
 {% block title %}{{ parent() }} | {{ 'three_brs.ui.two_factor.manage_title'|trans }}{% endblock %}
 
-{% block body_class %}d-flex flex-column{% endblock %}
-
 {% block body %}
-    <div class="page page-center">
-        <div class="container container-tight py-4">
-            <div class="card card-md">
-                <div class="card-body">
-                    <h2 class="h2 text-center mb-2">{{ 'three_brs.ui.two_factor.manage_title'|trans }}</h2>
-                    <p class="alert alert-success" data-test-two-factor-enabled>
-                        {{ 'three_brs.ui.two_factor.enabled_notice'|trans }}
-                    </p>
+    {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
 
-                    <form method="POST" action="{{ path('three_brs_admin_two_factor_disable') }}">
-                        <input type="hidden" name="_csrf_token" value="{{ disable_csrf_token }}">
-                        <button type="submit" class="btn btn-danger w-100" data-test-two-factor-disable>
-                            {{ 'three_brs.ui.two_factor.disable'|trans }}
-                        </button>
-                    </form>
+    <div class="page-wrapper">
+        {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
+
+        <div class="page-header" data-sticky-header>
+            <div class="container-xl">
+                {{ breadcrumbs([
+                    { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'three_brs.ui.two_factor.menu_item', active: true },
+                ]) }}
+                <div class="row mt-3 row-gap-2">
+                    <div class="col-12">
+                        {{ header.h1('three_brs.ui.two_factor.manage_title'|trans) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="alert alert-success" data-test-two-factor-enabled>
+                            {{ 'three_brs.ui.two_factor.enabled_notice'|trans }}
+                        </div>
+
+                        <div class="d-flex flex-column flex-md-row gap-2">
+                            {% if recovery_codes_enabled %}
+                                <form method="POST" action="{{ path('three_brs_admin_two_factor_regenerate_recovery_codes') }}">
+                                    <input type="hidden" name="_csrf_token" value="{{ regenerate_csrf_token }}">
+                                    <button type="submit" class="btn btn-secondary" data-test-two-factor-regenerate-recovery-codes>
+                                        {{ 'three_brs.ui.two_factor.regenerate_recovery_codes'|trans }}
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            <form method="POST" action="{{ path('three_brs_admin_two_factor_disable') }}">
+                                <input type="hidden" name="_csrf_token" value="{{ disable_csrf_token }}">
+                                <button type="submit" class="btn btn-danger" data-test-two-factor-disable>
+                                    {{ 'three_brs.ui.two_factor.disable'|trans }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

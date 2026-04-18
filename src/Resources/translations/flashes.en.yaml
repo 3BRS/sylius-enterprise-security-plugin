@@ -1,2 +1,6 @@
 three_brs:
     password_expired: 'Your password has expired. Please set a new password to continue.'
+    two_factor:
+        enforcement_required: 'Two-factor authentication is required. Please set it up to continue.'
+        invalid_code: 'The authentication code is invalid. Please try again.'
+        disabled: 'Two-factor authentication has been disabled.'

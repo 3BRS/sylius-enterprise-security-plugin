@@ -57,6 +57,8 @@ class TwoFactorSetupController implements TwoFactorSetupControllerInterface
                 '@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/TwoFactor/manage.html.twig',
                 [
                     'disable_csrf_token' => $this->csrfTokenManager->getToken(TwoFactorDisableController::CSRF_TOKEN_ID)->getValue(),
+                    'regenerate_csrf_token' => $this->csrfTokenManager->getToken(TwoFactorRegenerateRecoveryCodesController::CSRF_TOKEN_ID)->getValue(),
+                    'recovery_codes_enabled' => $this->recoveryCodesEnabled,
                 ],
             ));
         }

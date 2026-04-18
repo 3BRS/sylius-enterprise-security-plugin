@@ -103,6 +103,16 @@ services:
         tags:
             - { name: 'sylius_fixtures.fixture' }
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\TwoFactorFixture:
+        arguments:
+            - '@sylius.repository.customer'
+            - '@sylius.repository.admin_user'
+            - '@doctrine.orm.entity_manager'
+            - '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator'
+            - '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository:
         factory: ['@doctrine.orm.entity_manager', 'getRepository']
         arguments:
@@ -131,6 +141,14 @@ services:
         arguments:
             $customerMode: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode::DISABLED
             $adminMode: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode::DISABLED
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\TwoFactorEnforcementListener:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker'
+            $router: '@router'
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\TwoFactorVerifyType:
         tags:
@@ -169,6 +187,19 @@ services:
             $recoveryCodeRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository'
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorRegenerateRecoveryCodesController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $recoveryCodeRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository'
+            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+            $recoveryCodesEnabled: '%three_brs.two_factor.recovery_codes_enabled%'
+            $recoveryCodesCount: '%three_brs.two_factor.recovery_codes_count%'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -215,6 +246,19 @@ services:
         tags:
             - { name: 'controller.service_arguments' }
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRegenerateRecoveryCodesController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $recoveryCodeRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository'
+            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+            $recoveryCodesEnabled: '%three_brs.two_factor.recovery_codes_enabled%'
+            $recoveryCodesCount: '%three_brs.two_factor.recovery_codes_count%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorRecoveryChallengeController:
         arguments:
             $tokenStorage: '@security.token_storage'
@@ -232,6 +276,14 @@ services:
             $twig: '@twig'
         tags:
             - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\ShopAccountMenuListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\AdminMainMenuListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator:
         arguments:

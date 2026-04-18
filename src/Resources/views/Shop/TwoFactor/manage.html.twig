@@ -1,21 +1,46 @@
-{% extends '@SyliusShop/account/common/index.html.twig' %}
+{% extends '@SyliusShop/shared/layout/base.html.twig' %}
 
 {% block title %}{{ 'three_brs.ui.two_factor.manage_title'|trans }} | {{ parent() }}{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <div class="card-body">
-            <h2 class="h2 mb-3">{{ 'three_brs.ui.two_factor.manage_title'|trans }}</h2>
-            <p class="alert alert-success" data-test-two-factor-enabled>
-                {{ 'three_brs.ui.two_factor.enabled_notice'|trans }}
-            </p>
+    <div class="container mb-auto">
+        <div class="row my-4">
+            <div class="col-12 col-md-3 mb-4 mb-md-0">
+                <div class="mb-3">
+                    {{ knp_menu_render('sylius_shop.account', {'template': '@SyliusShop/account/menu/content.html.twig'}) }}
+                </div>
+            </div>
+            <div class="col-12 col-md-9">
+                <div class="mb-4">
+                    <h1>{{ 'three_brs.ui.two_factor.manage_title'|trans }}</h1>
+                </div>
 
-            <form method="POST" action="{{ path('three_brs_shop_two_factor_disable') }}">
-                <input type="hidden" name="_csrf_token" value="{{ disable_csrf_token }}">
-                <button type="submit" class="btn btn-danger" data-test-two-factor-disable>
-                    {{ 'three_brs.ui.two_factor.disable'|trans }}
-                </button>
-            </form>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="alert alert-success" data-test-two-factor-enabled>
+                            {{ 'three_brs.ui.two_factor.enabled_notice'|trans }}
+                        </div>
+
+                        <div class="d-flex flex-column flex-md-row gap-2 mt-3">
+                            {% if recovery_codes_enabled %}
+                                <form method="POST" action="{{ path('three_brs_shop_two_factor_regenerate_recovery_codes') }}">
+                                    <input type="hidden" name="_csrf_token" value="{{ regenerate_csrf_token }}">
+                                    <button type="submit" class="btn btn-secondary col-12 col-md-auto" data-test-two-factor-regenerate-recovery-codes>
+                                        {{ 'three_brs.ui.two_factor.regenerate_recovery_codes'|trans }}
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            <form method="POST" action="{{ path('three_brs_shop_two_factor_disable') }}">
+                                <input type="hidden" name="_csrf_token" value="{{ disable_csrf_token }}">
+                                <button type="submit" class="btn btn-danger col-12 col-md-auto" data-test-two-factor-disable>
+                                    {{ 'three_brs.ui.two_factor.disable'|trans }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

@@ -31,6 +31,18 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
                 ],
             ],
         ]);
+
+        $config = $this->processConfiguration(
+            new Configuration(),
+            $container->getExtensionConfig($this->getAlias()),
+        );
+        $twoFactor = $config['two_factor_authentication'];
+
+        $container->setParameter('three_brs.two_factor.issuer', $twoFactor['issuer']);
+        $container->setParameter('three_brs.two_factor.recovery_codes_enabled', $twoFactor['recovery_codes']['enabled']);
+        $container->setParameter('three_brs.two_factor.recovery_codes_count', $twoFactor['recovery_codes']['count']);
+        $container->setParameter('three_brs.two_factor.trusted_device_enabled', $twoFactor['trusted_device']['enabled']);
+        $container->setParameter('three_brs.two_factor.trusted_device_lifetime', (int) $twoFactor['trusted_device']['days'] * 86400);
     }
 
     public function load(array $configs, ContainerBuilder $container): void
@@ -51,12 +63,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     /** @param array<string, mixed> $config */
     private function registerTwoFactorAuthentication(ContainerBuilder $container, array $config): void
     {
-        $container->setParameter('three_brs.two_factor.issuer', $config['issuer']);
-        $container->setParameter('three_brs.two_factor.customer_mode', $config['customer']['mode']);
-        $container->setParameter('three_brs.two_factor.admin_mode', $config['admin']['mode']);
-        $container->setParameter('three_brs.two_factor.recovery_codes_enabled', $config['recovery_codes']['enabled']);
-        $container->setParameter('three_brs.two_factor.recovery_codes_count', $config['recovery_codes']['count']);
-
         $container->getDefinition(TwoFactorEnforcementChecker::class)
             ->setArgument('$customerMode', TwoFactorMode::from($config['customer']['mode']))
             ->setArgument('$adminMode', TwoFactorMode::from($config['admin']['mode']))

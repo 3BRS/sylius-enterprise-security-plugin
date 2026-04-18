@@ -1,59 +1,70 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>{{ 'three_brs.ui.two_factor.challenge_title'|trans }}</title>
-</head>
-<body>
-<div data-test-two-factor-challenge>
-    <h1>{{ 'three_brs.ui.two_factor.challenge_title'|trans }}</h1>
+{% set is_admin = app.request.pathInfo starts with '/admin' %}
+{% extends is_admin ? '@SyliusAdmin/shared/layout/base.html.twig' : '@SyliusShop/shared/layout/base.html.twig' %}
 
-    {% if authenticationError %}
-        <p data-test-two-factor-error>
-            {{ authenticationError|trans(authenticationErrorData, 'SchebTwoFactorBundle') }}
-        </p>
-    {% endif %}
+{% block title %}{{ 'three_brs.ui.two_factor.challenge_title'|trans }} | {{ parent() }}{% endblock %}
 
-    <form action="{{ checkPathUrl ? checkPathUrl : path(checkPathRoute) }}" method="post">
-        <label for="_auth_code">{{ 'three_brs.ui.two_factor.code'|trans }}</label>
-        <input
-            id="_auth_code"
-            type="text"
-            name="{{ authCodeParameterName }}"
-            data-test-two-factor-auth-code
-            autocomplete="one-time-code"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            autofocus
-        />
+{% block body_class %}d-flex flex-column{% endblock %}
 
-        {% if displayTrustedOption %}
-            <label>
-                <input type="checkbox" name="{{ trustedParameterName }}" data-test-two-factor-trusted>
-                {{ 'three_brs.ui.two_factor.trust_device'|trans }}
-            </label>
-        {% endif %}
+{% block body %}
+    <div class="page page-center">
+        <div class="container container-tight py-4">
+            <div class="card card-md" data-test-two-factor-challenge>
+                <div class="card-body">
+                    <h2 class="h2 text-center mb-4">{{ 'three_brs.ui.two_factor.challenge_title'|trans }}</h2>
 
-        {% if isCsrfProtectionEnabled %}
-            <input type="hidden" name="{{ csrfParameterName }}" value="{{ csrf_token(csrfTokenId) }}">
-        {% endif %}
+                    {% if authenticationError %}
+                        <div class="alert alert-danger" data-test-two-factor-error>
+                            {{ authenticationError|trans(authenticationErrorData, 'SchebTwoFactorBundle') }}
+                        </div>
+                    {% endif %}
 
-        <button type="submit" data-test-two-factor-submit>
-            {{ 'three_brs.ui.two_factor.verify'|trans }}
-        </button>
-    </form>
+                    <form action="{{ checkPathUrl ? checkPathUrl : path(checkPathRoute) }}" method="post">
+                        <div class="mb-3">
+                            <label for="_auth_code" class="form-label">{{ 'three_brs.ui.two_factor.code'|trans }}</label>
+                            <input
+                                id="_auth_code"
+                                type="text"
+                                class="form-control"
+                                name="{{ authCodeParameterName }}"
+                                data-test-two-factor-auth-code
+                                autocomplete="one-time-code"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                autofocus
+                            />
+                        </div>
 
-    {% set recovery_path = null %}
-    {% if app.request.pathInfo starts with '/admin' %}
-        {% set recovery_path = path('three_brs_admin_two_factor_recovery_challenge') %}
-    {% else %}
-        {% set recovery_path = path('three_brs_shop_two_factor_recovery_challenge') %}
-    {% endif %}
-    <p><a href="{{ recovery_path }}" data-test-two-factor-use-recovery-code>
-        {{ 'three_brs.ui.two_factor.use_recovery_code'|trans }}
-    </a></p>
+                        {% if displayTrustedOption %}
+                            <div class="form-check mb-3">
+                                <input id="_trusted" type="checkbox" class="form-check-input" name="{{ trustedParameterName }}" data-test-two-factor-trusted>
+                                <label class="form-check-label" for="_trusted">
+                                    {{ 'three_brs.ui.two_factor.trust_device'|trans }}
+                                </label>
+                            </div>
+                        {% endif %}
 
-    <p><a href="{{ logoutPath }}" data-test-two-factor-cancel>{{ 'three_brs.ui.two_factor.cancel'|trans }}</a></p>
-</div>
-</body>
-</html>
+                        {% if isCsrfProtectionEnabled %}
+                            <input type="hidden" name="{{ csrfParameterName }}" value="{{ csrf_token(csrfTokenId) }}">
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100" data-test-two-factor-submit>
+                            {{ 'three_brs.ui.two_factor.verify'|trans }}
+                        </button>
+                    </form>
+
+                    {% set recovery_path = is_admin ? path('three_brs_admin_two_factor_recovery_challenge') : path('three_brs_shop_two_factor_recovery_challenge') %}
+                    <div class="text-center mt-4">
+                        <a href="{{ recovery_path }}" data-test-two-factor-use-recovery-code>
+                            {{ 'three_brs.ui.two_factor.use_recovery_code'|trans }}
+                        </a>
+                    </div>
+                    <div class="text-center mt-2">
+                        <a href="{{ logoutPath }}" class="text-muted" data-test-two-factor-cancel>
+                            {{ 'three_brs.ui.two_factor.cancel'|trans }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
