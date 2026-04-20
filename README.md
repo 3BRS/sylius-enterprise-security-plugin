@@ -52,25 +52,24 @@ Standalone Symfony bundle with no dependency on Sylius. Contains reusable interf
 
 ### Defaults for password policy
 
-```
+```yaml
 three_brs_sylius_enterprise_security:
+    password_policy:
+        customer:
+            min_length: 8
+            max_length: ~
+            require_uppercase: false
+            require_lowercase: false
+            require_numbers: false
+            require_special_characters: false
 
-- password_policy:
-- customer:
-- min_length: 8
-- max_length: ~
-- require_uppercase: true
-- require_lowercase: true
-- require_numbers: true
-- require_special_characters: true
-
-- admin:
-- min_length: 12
-- max_length: ~
-- require_uppercase: true
-- require_lowercase: true
-- require_numbers: true
-- require_special_characters: true
+        admin:
+            min_length: 12
+            max_length: ~
+            require_uppercase: true
+            require_lowercase: true
+            require_numbers: true
+            require_special_characters: true
 ```
 
 ## Installation

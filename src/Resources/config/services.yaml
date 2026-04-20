@@ -6,7 +6,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator:
         arguments:
-            - '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator.inner'
+            $inner: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator.inner'
         decorates: validator
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator:
