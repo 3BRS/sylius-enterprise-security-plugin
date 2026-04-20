@@ -27,12 +27,12 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepository:
         factory: ['@doctrine.orm.entity_manager', 'getRepository']
         arguments:
-            - ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerPasswordHistory
+            $className: ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerPasswordHistory
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryRepository:
         factory: ['@doctrine.orm.entity_manager', 'getRepository']
         arguments:
-            - ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasswordHistory
+            $className: ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasswordHistory
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryChecker:
         arguments:
@@ -105,23 +105,23 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\TwoFactorFixture:
         arguments:
-            - '@sylius.repository.customer'
-            - '@sylius.repository.admin_user'
-            - '@doctrine.orm.entity_manager'
-            - '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator'
-            - '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $customerRepository: '@sylius.repository.customer'
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $totpGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator'
+            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
         tags:
             - { name: 'sylius_fixtures.fixture' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository:
         factory: ['@doctrine.orm.entity_manager', 'getRepository']
         arguments:
-            - ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerRecoveryCode
+            $className: ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerRecoveryCode
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository:
         factory: ['@doctrine.orm.entity_manager', 'getRepository']
         arguments:
-            - ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode
+            $className: ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator: ~
 
@@ -167,8 +167,8 @@ services:
             $twig: '@twig'
             $translator: '@translator'
             $issuer: '%three_brs.two_factor.issuer%'
-            $recoveryCodesEnabled: '%three_brs.two_factor.recovery_codes_enabled%'
-            $recoveryCodesCount: '%three_brs.two_factor.recovery_codes_count%'
+            $recoveryCodesEnabled: '%three_brs.two_factor.customer.recovery_codes_enabled%'
+            $recoveryCodesCount: '%three_brs.two_factor.customer.recovery_codes_count%'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -198,8 +198,8 @@ services:
             $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
-            $recoveryCodesEnabled: '%three_brs.two_factor.recovery_codes_enabled%'
-            $recoveryCodesCount: '%three_brs.two_factor.recovery_codes_count%'
+            $recoveryCodesEnabled: '%three_brs.two_factor.customer.recovery_codes_enabled%'
+            $recoveryCodesCount: '%three_brs.two_factor.customer.recovery_codes_count%'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -216,8 +216,8 @@ services:
             $twig: '@twig'
             $translator: '@translator'
             $issuer: '%three_brs.two_factor.issuer%'
-            $recoveryCodesEnabled: '%three_brs.two_factor.recovery_codes_enabled%'
-            $recoveryCodesCount: '%three_brs.two_factor.recovery_codes_count%'
+            $recoveryCodesEnabled: '%three_brs.two_factor.admin.recovery_codes_enabled%'
+            $recoveryCodesCount: '%three_brs.two_factor.admin.recovery_codes_count%'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -254,8 +254,8 @@ services:
             $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
-            $recoveryCodesEnabled: '%three_brs.two_factor.recovery_codes_enabled%'
-            $recoveryCodesCount: '%three_brs.two_factor.recovery_codes_count%'
+            $recoveryCodesEnabled: '%three_brs.two_factor.admin.recovery_codes_enabled%'
+            $recoveryCodesCount: '%three_brs.two_factor.admin.recovery_codes_count%'
         tags:
             - { name: 'controller.service_arguments' }
 

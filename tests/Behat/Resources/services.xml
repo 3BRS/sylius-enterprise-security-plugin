@@ -135,6 +135,13 @@
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
 
+		<service id="three_brs.behat.context.ui.admin.two_factor_trusted_device"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\TwoFactorTrustedDeviceContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
+
 		<service id="three_brs.behat.context.ui.shop.two_factor_enforcement"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\TwoFactorEnforcementContext">
 			<argument type="service" id="behat.mink.default_session"/>

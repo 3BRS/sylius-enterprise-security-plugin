@@ -94,6 +94,33 @@ class TwoFactorSetupContext implements Context
     }
 
     /**
+     * @When I press the admin regenerate recovery codes button
+     */
+    public function iPressTheRegenerateRecoveryCodesButton(): void
+    {
+        $button = $this->session->getPage()->find('css', '[data-test-two-factor-regenerate-recovery-codes]');
+        Assert::notNull($button, 'Regenerate recovery codes button not present on page.');
+        $button->click();
+    }
+
+    /**
+     * @Then none of the previous admin recovery codes should work for :email
+     */
+    public function noneOfThePreviousRecoveryCodesShouldWorkFor(string $email): void
+    {
+        $this->entityManager->clear();
+        $user = $this->findAdminUser($email);
+
+        foreach (['AAAAA-11111', 'BBBBB-22222'] as $previous) {
+            $record = $this->recoveryCodeRepository->findUnusedByAdminUserAndHash(
+                $user,
+                $this->recoveryGenerator->hash($previous),
+            );
+            Assert::null($record, sprintf('Previous recovery code "%s" still matches.', $previous));
+        }
+    }
+
+    /**
      * @Then I should see the admin 2FA QR code
      */
     public function iShouldSeeTheTwoFactorQrCode(): void
@@ -200,6 +227,9 @@ class TwoFactorSetupContext implements Context
     {
         $page = $this->session->getPage();
         $page->fillField('three_brs_two_factor_verify[code]', $code);
-        $page->pressButton('three_brs.ui.two_factor.verify_and_enable');
+
+        $button = $page->find('css', '[data-test-two-factor-verify]');
+        Assert::notNull($button, 'Verify button not present on page.');
+        $button->click();
     }
 }

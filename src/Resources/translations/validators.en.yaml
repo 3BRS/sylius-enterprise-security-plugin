@@ -1,7 +1,8 @@
 three_brs:
     two_factor:
         code_required: 'Please enter your authentication code.'
-        invalid_code_length: 'The authentication code must be between {{ min }} and {{ max }} digits.'
+        invalid_code: 'The authentication code is invalid. Please try again.'
+        invalid_code_length: 'The authentication code must be 6 digits.'
         invalid_code_format: 'The authentication code must contain only digits.'
     password_expiration:
         changed_successfully: 'Your password has been changed successfully.'

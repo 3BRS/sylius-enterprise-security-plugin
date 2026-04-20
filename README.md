@@ -151,12 +151,18 @@ three_brs_sylius_enterprise_security:
         admin:
             mode: 'enforced'
         recovery_codes:
-            enabled: true
-            count: 8
+            customer:
+                enabled: true
+                count: 8
+            admin:
+                enabled: true
+                count: 8
         trusted_device:
             enabled: true
             days: 60
 ```
+
+`trusted_device` is global (scheb-wide) and shared between shop and admin firewalls — scheb's JWT-cookie trusted-device implementation supports only a single lifetime.
 
 ```yaml
 # config/packages/scheb_2fa.yaml
@@ -164,6 +170,7 @@ scheb_two_factor:
     trusted_device:
         enabled: '%three_brs.two_factor.trusted_device_enabled%'
         lifetime: '%three_brs.two_factor.trusted_device_lifetime%'
+        key: '%env(THREE_BRS_TWO_FACTOR_TRUSTED_DEVICE_KEY)%' # required, >=256-bit secret for JWT HMAC-SHA256
     totp:
         issuer: '%three_brs.two_factor.issuer%'
 ```

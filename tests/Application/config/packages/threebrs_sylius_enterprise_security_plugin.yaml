@@ -27,10 +27,14 @@ three_brs_sylius_enterprise_security:
         admin:
             mode: optional
         recovery_codes:
-            enabled: true
-            count: 8
+            customer:
+                enabled: true
+                count: 8
+            admin:
+                enabled: true
+                count: 8
         trusted_device:
-            enabled: false
+            enabled: true
             days: 60
     password_policy:
         customer:

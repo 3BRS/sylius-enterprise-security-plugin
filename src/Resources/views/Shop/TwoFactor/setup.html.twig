@@ -31,9 +31,13 @@
 
                         {% form_theme form '@SyliusShop/form/theme.html.twig' %}
                         {{ form_start(form, { action: path('three_brs_shop_two_factor_setup'), method: 'POST', attr: { novalidate: 'novalidate' } }) }}
-                            {{ form_row(form.code) }}
-                            <div class="mt-3">
-                                <button type="submit" class="btn btn-primary col-12 col-md-auto" data-test-two-factor-verify>
+                            <div class="mb-3 text-center">
+                                {{ form_label(form.code) }}
+                                {{ form_widget(form.code) }}
+                                {{ form_errors(form.code) }}
+                            </div>
+                            <div class="mt-3 text-center">
+                                <button type="submit" class="btn btn-primary" data-test-two-factor-verify>
                                     {{ 'three_brs.ui.two_factor.verify_and_enable'|trans }}
                                 </button>
                             </div>
@@ -43,4 +47,21 @@
             </div>
         </div>
     </div>
+
+    <script>
+        (function () {
+            document.querySelectorAll('[data-totp-code]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    var digits = input.value.replace(/\D/g, '').slice(0, 6);
+                    input.value = digits.length > 3 ? digits.slice(0, 3) + '-' + digits.slice(3) : digits;
+                });
+                var form = input.closest('form');
+                if (form) {
+                    form.addEventListener('submit', function () {
+                        input.value = input.value.replace(/-/g, '');
+                    });
+                }
+            });
+        })();
+    </script>
 {% endblock %}

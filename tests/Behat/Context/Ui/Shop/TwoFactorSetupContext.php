@@ -95,6 +95,34 @@ class TwoFactorSetupContext implements Context
     }
 
     /**
+     * @When I press the regenerate recovery codes button
+     */
+    public function iPressTheRegenerateRecoveryCodesButton(): void
+    {
+        $page = $this->session->getPage();
+        $button = $page->find('css', '[data-test-two-factor-regenerate-recovery-codes]');
+        Assert::notNull($button, 'Regenerate recovery codes button not present on page.');
+        $button->click();
+    }
+
+    /**
+     * @Then none of the previous recovery codes should work for :email
+     */
+    public function noneOfThePreviousRecoveryCodesShouldWorkFor(string $email): void
+    {
+        $this->entityManager->clear();
+        $user = $this->findShopUser($email);
+
+        foreach (['AAAAA-11111', 'BBBBB-22222'] as $previous) {
+            $record = $this->recoveryCodeRepository->findUnusedByShopUserAndHash(
+                $user,
+                $this->recoveryGenerator->hash($previous),
+            );
+            Assert::null($record, sprintf('Previous recovery code "%s" still matches.', $previous));
+        }
+    }
+
+    /**
      * @Then I should see the 2FA disable button
      */
     public function iShouldSeeTheTwoFactorDisableButton(): void
@@ -205,6 +233,9 @@ class TwoFactorSetupContext implements Context
     {
         $page = $this->session->getPage();
         $page->fillField('three_brs_two_factor_verify[code]', $code);
-        $page->pressButton('three_brs.ui.two_factor.verify_and_enable');
+
+        $button = $page->find('css', '[data-test-two-factor-verify]');
+        Assert::notNull($button, 'Verify button not present on page.');
+        $button->click();
     }
 }

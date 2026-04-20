@@ -6,38 +6,42 @@
 {% block body_class %}d-flex flex-column{% endblock %}
 
 {% block body %}
-    <div class="page page-center">
-        <div class="container container-tight py-4">
-            <div class="card card-md" data-test-two-factor-challenge>
-                <div class="card-body">
+    <div class="d-flex align-items-center justify-content-center min-vh-100 py-4">
+        <div class="container" style="max-width: 30rem;">
+            <div class="card shadow-sm" data-test-two-factor-challenge>
+                <div class="card-body p-4">
                     <h2 class="h2 text-center mb-4">{{ 'three_brs.ui.two_factor.challenge_title'|trans }}</h2>
 
                     {% if authenticationError %}
-                        <div class="alert alert-danger" data-test-two-factor-error>
+                        <div class="alert alert-danger text-center" data-test-two-factor-error>
                             {{ authenticationError|trans(authenticationErrorData, 'SchebTwoFactorBundle') }}
                         </div>
                     {% endif %}
 
                     <form action="{{ checkPathUrl ? checkPathUrl : path(checkPathRoute) }}" method="post">
-                        <div class="mb-3">
+                        <div class="mb-3 text-center">
                             <label for="_auth_code" class="form-label">{{ 'three_brs.ui.two_factor.code'|trans }}</label>
                             <input
                                 id="_auth_code"
                                 type="text"
-                                class="form-control"
+                                class="form-control form-control-lg text-center font-monospace"
+                                style="letter-spacing: 0.25em; font-size: 1.75rem; font-weight: 600; width: 16rem; margin-left: auto; margin-right: auto; display: block;"
                                 name="{{ authCodeParameterName }}"
                                 data-test-two-factor-auth-code
+                                data-totp-code
                                 autocomplete="one-time-code"
                                 inputmode="numeric"
-                                pattern="[0-9]*"
+                                pattern="[0-9-]*"
+                                maxlength="7"
+                                placeholder="XXX-XXX"
                                 autofocus
                             />
                         </div>
 
                         {% if displayTrustedOption %}
-                            <div class="form-check mb-3">
+                            <div class="form-check mb-3 d-flex justify-content-center">
                                 <input id="_trusted" type="checkbox" class="form-check-input" name="{{ trustedParameterName }}" data-test-two-factor-trusted>
-                                <label class="form-check-label" for="_trusted">
+                                <label class="form-check-label ms-2" for="_trusted">
                                     {{ 'three_brs.ui.two_factor.trust_device'|trans }}
                                 </label>
                             </div>
@@ -47,9 +51,11 @@
                             <input type="hidden" name="{{ csrfParameterName }}" value="{{ csrf_token(csrfTokenId) }}">
                         {% endif %}
 
-                        <button type="submit" class="btn btn-primary w-100" data-test-two-factor-submit>
-                            {{ 'three_brs.ui.two_factor.verify'|trans }}
-                        </button>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary" data-test-two-factor-submit>
+                                {{ 'three_brs.ui.two_factor.verify'|trans }}
+                            </button>
+                        </div>
                     </form>
 
                     {% set recovery_path = is_admin ? path('three_brs_admin_two_factor_recovery_challenge') : path('three_brs_shop_two_factor_recovery_challenge') %}
@@ -67,4 +73,21 @@
             </div>
         </div>
     </div>
+
+    <script>
+        (function () {
+            document.querySelectorAll('[data-totp-code]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    var digits = input.value.replace(/\D/g, '').slice(0, 6);
+                    input.value = digits.length > 3 ? digits.slice(0, 3) + '-' + digits.slice(3) : digits;
+                });
+                var form = input.closest('form');
+                if (form) {
+                    form.addEventListener('submit', function () {
+                        input.value = input.value.replace(/-/g, '');
+                    });
+                }
+            });
+        })();
+    </script>
 {% endblock %}

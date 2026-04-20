@@ -6,6 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -74,7 +75,7 @@ class TwoFactorSetupController implements TwoFactorSetupControllerInterface
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $code = (string) $form->get('code')->getData();
+            $code = str_replace('-', '', (string) $form->get('code')->getData());
             if ($this->totpGenerator->verifyCode($secret, $code)) {
                 $user->setTotpSecret($secret);
                 $user->setTwoFactorEnabled(true);
@@ -97,8 +98,8 @@ class TwoFactorSetupController implements TwoFactorSetupControllerInterface
                 return new RedirectResponse($this->router->generate('three_brs_shop_two_factor_recovery_codes'));
             }
 
-            $form->get('code')->addError(new \Symfony\Component\Form\FormError(
-                $this->translator->trans('three_brs.two_factor.invalid_code'),
+            $form->get('code')->addError(new FormError(
+                $this->translator->trans('three_brs.two_factor.invalid_code', [], 'validators'),
             ));
         }
 

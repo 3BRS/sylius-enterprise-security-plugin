@@ -46,3 +46,13 @@ Feature: Administrator two-factor authentication setup
         And I press the admin 2FA disable button
         Then admin 2FA should not be enabled for "admin@example.com"
         And the administrator should have no recovery codes
+
+    @ui
+    Scenario: Administrator regenerates recovery codes — previous ones stop working
+        Given the administrator "admin@example.com" already has 2FA enabled with recovery codes
+        And I am logged in as "admin@example.com" administrator
+        When I visit the admin 2FA setup page
+        And I press the admin regenerate recovery codes button
+        Then I should be on the admin 2FA recovery codes page
+        And I should see 8 admin recovery codes
+        And none of the previous admin recovery codes should work for "admin@example.com"
