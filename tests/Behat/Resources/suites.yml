@@ -1,1 +1,5 @@
-imports: []
+imports:
+    - suites/shop_password_policy.yml
+    - suites/admin_password_policy.yml
+    - suites/shop_change_password_policy.yml
+    - suites/admin_customer_password_policy.yml

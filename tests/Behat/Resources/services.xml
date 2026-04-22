@@ -5,5 +5,26 @@
 
 	<services>
 		<defaults public="true"/>
+
+		<service id="three_brs.behat.context.ui.shop.password_policy"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasswordPolicyContext">
+			<argument type="service" id="behat.mink.default_session"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.password_policy"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PasswordPolicyContext">
+			<argument type="service" id="behat.mink.default_session"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.change_password_policy"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\ChangePasswordPolicyContext">
+			<argument type="service" id="behat.mink.default_session"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.customer_password_policy"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\CustomerPasswordPolicyContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+		</service>
 	</services>
 </container>

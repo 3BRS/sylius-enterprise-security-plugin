@@ -3357,6 +3357,26 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     default_adapter?: scalar|Param|null, // Default: "symfony_workflow"
  *     graphs_to_adapters_mapping?: array<string, scalar|Param|null>,
  * }
+ * @psalm-type ThreeBrsSyliusEnterpriseSecurityConfig = array{
+ *     password_policy?: array{
+ *         customer?: array{
+ *             min_length?: int|Param, // Default: 8
+ *             max_length?: scalar|Param|null, // Default: null
+ *             require_uppercase?: bool|Param, // Default: false
+ *             require_lowercase?: bool|Param, // Default: false
+ *             require_numbers?: bool|Param, // Default: false
+ *             require_special_characters?: bool|Param, // Default: false
+ *         },
+ *         admin?: array{
+ *             min_length?: int|Param, // Default: 12
+ *             max_length?: scalar|Param|null, // Default: null
+ *             require_uppercase?: bool|Param, // Default: true
+ *             require_lowercase?: bool|Param, // Default: true
+ *             require_numbers?: bool|Param, // Default: true
+ *             require_special_characters?: bool|Param, // Default: true
+ *         },
+ *     },
+ * }
  * @psalm-type WhiteOctoberPagerfantaConfig = array{ // Deprecated: The "white_october_pagerfanta" configuration node is deprecated, migrate your configuration to the "babdev_pagerfanta" configuration node.
  *     exceptions_strategy?: array{
  *         out_of_range_page?: scalar|Param|null, // Default: "to_http_not_found"
@@ -3422,6 +3442,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     live_component?: LiveComponentConfig,
  *     stimulus?: StimulusConfig,
  *     sylius_state_machine_abstraction?: SyliusStateMachineAbstractionConfig,
+ *     three_brs_sylius_enterprise_security?: ThreeBrsSyliusEnterpriseSecurityConfig,
  *     white_october_pagerfanta?: WhiteOctoberPagerfantaConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
@@ -3481,6 +3502,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         live_component?: LiveComponentConfig,
  *         stimulus?: StimulusConfig,
  *         sylius_state_machine_abstraction?: SyliusStateMachineAbstractionConfig,
+ *         three_brs_sylius_enterprise_security?: ThreeBrsSyliusEnterpriseSecurityConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -3540,6 +3562,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         live_component?: LiveComponentConfig,
  *         stimulus?: StimulusConfig,
  *         sylius_state_machine_abstraction?: SyliusStateMachineAbstractionConfig,
+ *         three_brs_sylius_enterprise_security?: ThreeBrsSyliusEnterpriseSecurityConfig,
  *     },
  *     "when@test_cached"?: array{
  *         imports?: ImportsConfig,
@@ -3599,6 +3622,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         live_component?: LiveComponentConfig,
  *         stimulus?: StimulusConfig,
  *         sylius_state_machine_abstraction?: SyliusStateMachineAbstractionConfig,
+ *         three_brs_sylius_enterprise_security?: ThreeBrsSyliusEnterpriseSecurityConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,
