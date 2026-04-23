@@ -44,6 +44,7 @@ class TwoFactorDisableController implements TwoFactorDisableControllerInterface
 
         $user->setTotpSecret(null);
         $user->setTwoFactorEnabled(false);
+        $user->bumpTrustedTokenVersion();
         $this->recoveryCodeRepository->deleteAllByAdminUser($user);
         $this->entityManager->flush();
 

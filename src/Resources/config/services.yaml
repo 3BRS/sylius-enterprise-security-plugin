@@ -148,7 +148,7 @@ services:
             $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker'
             $router: '@router'
         tags:
-            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 3 }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\TwoFactorVerifyType:
         tags:

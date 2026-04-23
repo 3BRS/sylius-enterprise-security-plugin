@@ -13,11 +13,16 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeVerifierInterface;
 use Twig\Environment;
 
 class TwoFactorRecoveryChallengeController implements TwoFactorRecoveryChallengeControllerInterface
 {
+    use TargetPathTrait;
+
+    protected const FIREWALL_NAME = 'admin';
+
     public function __construct(
         private TokenStorageInterface $tokenStorage,
         private RecoveryCodeVerifierInterface $recoveryCodeVerifier,
@@ -50,7 +55,7 @@ class TwoFactorRecoveryChallengeController implements TwoFactorRecoveryChallenge
                 $authenticatedToken->setAttribute(TwoFactorAuthenticator::FLAG_2FA_COMPLETE, true);
                 $this->tokenStorage->setToken($authenticatedToken);
 
-                return new RedirectResponse($this->router->generate('sylius_admin_dashboard'));
+                return new RedirectResponse($this->resolveRedirectUrl($request));
             }
         }
 
@@ -58,5 +63,17 @@ class TwoFactorRecoveryChallengeController implements TwoFactorRecoveryChallenge
             '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/TwoFactor/recovery_challenge.html.twig',
             ['error' => $error],
         ));
+    }
+
+    private function resolveRedirectUrl(Request $request): string
+    {
+        if ($request->hasSession()) {
+            $targetPath = $this->getTargetPath($request->getSession(), static::FIREWALL_NAME);
+            if (is_string($targetPath) && $targetPath !== '') {
+                return $targetPath;
+            }
+        }
+
+        return $this->router->generate('sylius_admin_dashboard');
     }
 }

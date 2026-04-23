@@ -27,17 +27,6 @@ class CustomerRecoveryCodeRepository extends EntityRepository implements Custome
         ;
     }
 
-    public function findAllByShopUser(ShopUserInterface $user): array
-    {
-        return $this->createQueryBuilder('c')
-            ->where('c.shopUser = :user')
-            ->setParameter('user', $user)
-            ->orderBy('c.createdAt', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
     public function deleteAllByShopUser(ShopUserInterface $user): int
     {
         return $this->createQueryBuilder('c')

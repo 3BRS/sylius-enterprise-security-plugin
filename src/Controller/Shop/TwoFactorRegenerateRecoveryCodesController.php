@@ -21,7 +21,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGeneratorInterfa
 
 class TwoFactorRegenerateRecoveryCodesController implements TwoFactorRegenerateRecoveryCodesControllerInterface
 {
-    public const CSRF_TOKEN_ID = 'three_brs_two_factor_regenerate';
+    public const CSRF_TOKEN_ID = 'three_brs_shop_two_factor_regenerate';
 
     public function __construct(
         private TokenStorageInterface $tokenStorage,

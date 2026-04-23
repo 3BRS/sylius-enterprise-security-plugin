@@ -205,7 +205,10 @@ class TwoFactorSetupContext implements Context
     public function theCustomerShouldHaveNoRecoveryCodes(): void
     {
         $user = $this->findShopUser('john@example.com');
-        Assert::same($this->recoveryCodeRepository->findAllByShopUser($user), []);
+        Assert::same(
+            $this->entityManager->getRepository(CustomerRecoveryCode::class)->findBy(['shopUser' => $user]),
+            [],
+        );
     }
 
     private function findShopUser(string $email): ShopUserInterface&TwoFactorAuthShopUserInterface

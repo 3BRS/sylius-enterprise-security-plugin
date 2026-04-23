@@ -11,10 +11,5 @@ interface AdminUserRecoveryCodeRepositoryInterface
 {
     public function findUnusedByAdminUserAndHash(AdminUserInterface $user, string $codeHash): ?AdminUserRecoveryCodeInterface;
 
-    /**
-     * @return array<int, AdminUserRecoveryCodeInterface>
-     */
-    public function findAllByAdminUser(AdminUserInterface $user): array;
-
     public function deleteAllByAdminUser(AdminUserInterface $user): int;
 }

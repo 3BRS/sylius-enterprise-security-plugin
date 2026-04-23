@@ -19,7 +19,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepos
 
 class TwoFactorDisableController implements TwoFactorDisableControllerInterface
 {
-    public const CSRF_TOKEN_ID = 'three_brs_two_factor_disable';
+    public const CSRF_TOKEN_ID = 'three_brs_shop_two_factor_disable';
 
     public function __construct(
         private TokenStorageInterface $tokenStorage,
@@ -44,6 +44,7 @@ class TwoFactorDisableController implements TwoFactorDisableControllerInterface
 
         $user->setTotpSecret(null);
         $user->setTwoFactorEnabled(false);
+        $user->bumpTrustedTokenVersion();
         $this->recoveryCodeRepository->deleteAllByShopUser($user);
         $this->entityManager->flush();
 

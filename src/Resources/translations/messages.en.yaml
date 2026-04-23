@@ -29,7 +29,7 @@ three_brs:
             recovery_codes_warning: 'Store these codes in a safe place. Each code can be used once if you lose access to your authenticator. After you leave this page, they cannot be shown again.'
             recovery_codes_acknowledged: 'I have saved my recovery codes'
             challenge_title: 'Two-factor authentication'
-            trust_device: 'Trust this device for 60 days'
+            trust_device: 'Trust this device'
             verify: 'Verify'
             use_recovery_code: 'Use a recovery code instead'
             cancel: 'Cancel and sign out'

@@ -27,17 +27,6 @@ class AdminUserRecoveryCodeRepository extends EntityRepository implements AdminU
         ;
     }
 
-    public function findAllByAdminUser(AdminUserInterface $user): array
-    {
-        return $this->createQueryBuilder('c')
-            ->where('c.adminUser = :user')
-            ->setParameter('user', $user)
-            ->orderBy('c.createdAt', 'ASC')
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-
     public function deleteAllByAdminUser(AdminUserInterface $user): int
     {
         return $this->createQueryBuilder('c')

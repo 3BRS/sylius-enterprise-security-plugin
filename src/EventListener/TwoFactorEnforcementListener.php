@@ -18,25 +18,30 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementCheckerI
 
 class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterface
 {
-    private const SHOP_SETUP_ROUTE = 'three_brs_shop_two_factor_setup';
+    protected const SHOP_SETUP_ROUTE = 'three_brs_shop_two_factor_setup';
 
-    private const ADMIN_SETUP_ROUTE = 'three_brs_admin_two_factor_setup';
+    protected const ADMIN_SETUP_ROUTE = 'three_brs_admin_two_factor_setup';
 
-    private const EXCLUDED_ROUTE_PREFIXES = [
+    protected const EXCLUDED_ROUTES = [
         'sylius_shop_login',
+        'sylius_shop_login_check',
         'sylius_shop_logout',
         'sylius_shop_register',
         'sylius_shop_request_password_reset',
         'sylius_shop_render_password_reset',
         'sylius_shop_password_reset',
-        'sylius_shop_live_component',
-        'sylius_shop_account_live_component',
         'sylius_admin_login',
+        'sylius_admin_login_check',
         'sylius_admin_logout',
         'sylius_admin_render_reset_password',
         'sylius_admin_request_password_reset',
         'sylius_admin_render_password_reset',
         'sylius_admin_password_reset',
+    ];
+
+    protected const EXCLUDED_ROUTE_PREFIXES = [
+        'sylius_shop_live_component',
+        'sylius_shop_account_live_component',
         'three_brs_shop_two_factor_',
         'three_brs_admin_two_factor_',
     ];
@@ -77,7 +82,7 @@ class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterf
             $this->checker->shouldEnforceForShopUser($user)
         ) {
             $this->addFlash($request);
-            $url = $this->router->generate(self::SHOP_SETUP_ROUTE);
+            $url = $this->router->generate(static::SHOP_SETUP_ROUTE);
             $event->setResponse(new RedirectResponse($url));
 
             return;
@@ -89,15 +94,19 @@ class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterf
             $this->checker->shouldEnforceForAdminUser($user)
         ) {
             $this->addFlash($request);
-            $url = $this->router->generate(self::ADMIN_SETUP_ROUTE);
+            $url = $this->router->generate(static::ADMIN_SETUP_ROUTE);
             $event->setResponse(new RedirectResponse($url));
         }
     }
 
     private function isExcludedRoute(string $route): bool
     {
-        foreach (self::EXCLUDED_ROUTE_PREFIXES as $excluded) {
-            if ($route === $excluded || str_starts_with($route, $excluded)) {
+        if (in_array($route, static::EXCLUDED_ROUTES, true)) {
+            return true;
+        }
+
+        foreach (static::EXCLUDED_ROUTE_PREFIXES as $prefix) {
+            if (str_starts_with($route, $prefix)) {
                 return true;
             }
         }

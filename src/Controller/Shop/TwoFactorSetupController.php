@@ -25,9 +25,9 @@ use Twig\Environment;
 
 class TwoFactorSetupController implements TwoFactorSetupControllerInterface
 {
-    public const SESSION_PENDING_SECRET = 'three_brs_two_factor_pending_secret';
+    public const SESSION_PENDING_SECRET = 'three_brs_shop_two_factor_pending_secret';
 
-    public const SESSION_PLAIN_RECOVERY_CODES = 'three_brs_two_factor_plain_recovery_codes';
+    public const SESSION_PLAIN_RECOVERY_CODES = 'three_brs_shop_two_factor_plain_recovery_codes';
 
     public function __construct(
         private TokenStorageInterface $tokenStorage,

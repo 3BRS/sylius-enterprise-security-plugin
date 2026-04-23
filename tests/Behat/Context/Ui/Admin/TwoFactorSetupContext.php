@@ -202,7 +202,10 @@ class TwoFactorSetupContext implements Context
     public function theAdministratorShouldHaveNoRecoveryCodes(): void
     {
         $user = $this->findAdminUser('admin@example.com');
-        Assert::same($this->recoveryCodeRepository->findAllByAdminUser($user), []);
+        Assert::same(
+            $this->entityManager->getRepository(AdminUserRecoveryCode::class)->findBy(['adminUser' => $user]),
+            [],
+        );
     }
 
     private function findAdminUser(string $email): AdminUserInterface&TwoFactorAuthAdminUserInterface
