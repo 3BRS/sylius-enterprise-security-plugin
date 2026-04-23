@@ -90,8 +90,8 @@ class PasswordChangeNotificationContext implements Context
         $this->session->visit($this->router->generate('sylius_shop_password_reset', ['_locale' => 'en_US', 'token' => $token]));
 
         $page = $this->session->getPage();
-        $page->find('css', '[data-test-new-password]')?->setValue($newPassword);
-        $page->find('css', '[data-test-confirm-password]')?->setValue($newPassword);
-        $page->find('css', '[data-test-button="reset"]')?->press();
+        $page->find('css', '[data-test-password-reset-new]')?->setValue($newPassword);
+        $page->find('css', '[data-test-password-reset-confirmation]')?->setValue($newPassword);
+        $page->pressButton('Reset');
     }
 }

@@ -54,14 +54,6 @@ class PasswordChangeNotificationContext implements Context
     }
 
     /**
-     * @When the administrator :email password is changed to :password directly
-     */
-    public function theAdministratorPasswordIsChangedDirectly(string $email, string $password): void
-    {
-        $this->theAdministratorHasThePasswordSetDirectly($email, $password);
-    }
-
-    /**
      * @Then a password change notification email should have been sent to admin :email
      */
     public function aPasswordChangeNotificationEmailShouldHaveBeenSentToAdmin(string $email): void
@@ -100,13 +92,5 @@ class PasswordChangeNotificationContext implements Context
     public function iChangeTheirPasswordTo(string $password): void
     {
         $this->session->getPage()->find('css', '#sylius_admin_admin_user_plainPassword')?->setValue($password);
-    }
-
-    /**
-     * @When I save my changes
-     */
-    public function iSaveMyChanges(): void
-    {
-        $this->session->getPage()->find('css', '[data-test-update-changes-button]')?->click();
     }
 }
