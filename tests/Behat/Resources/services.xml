@@ -56,5 +56,26 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
 		</service>
+
+		<service id="three_brs.behat.context.ui.shop.password_change_notification"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasswordChangeNotificationContext">
+			<argument type="service" id="sylius.email_sender"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="sylius.security.password_updater"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="sylius.repository.shop_user"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.password_change_notification"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PasswordChangeNotificationContext">
+			<argument type="service" id="sylius.email_sender"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="sylius.security.password_updater"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="router"/>
+		</service>
 	</services>
 </container>
