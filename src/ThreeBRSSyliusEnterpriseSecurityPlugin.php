@@ -28,5 +28,18 @@ class ThreeBRSSyliusEnterpriseSecurityPlugin extends Bundle implements PrependEx
                 ],
             ],
         ]);
+
+        $container->prependExtensionConfig('doctrine', [
+            'orm' => [
+                'mappings' => [
+                    'ThreeBRSSyliusEnterpriseSecurityPlugin' => [
+                        'type' => 'attribute',
+                        'dir' => __DIR__ . '/Entity',
+                        'prefix' => 'ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity',
+                        'alias' => 'ThreeBRSSyliusEnterpriseSecurityPlugin',
+                    ],
+                ],
+            ],
+        ]);
     }
 }

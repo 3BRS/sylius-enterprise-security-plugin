@@ -1,4 +1,8 @@
 three_brs:
+    password_expiration:
+        changed_successfully: 'Your password has been changed successfully.'
+    password_history:
+        reused: 'This password has been used recently. Please choose a different password.'
     password_policy:
         min_length: 'Password must be at least {{ limit }} characters long.'
         max_length: 'Password must not exceed {{ limit }} characters.'

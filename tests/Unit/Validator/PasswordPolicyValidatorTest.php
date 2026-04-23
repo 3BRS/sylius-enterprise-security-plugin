@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicy;
@@ -63,7 +64,7 @@ class PasswordPolicyValidatorTest extends TestCase
             $adminRequireSpecialChars,
         );
 
-        $validator = new PasswordPolicyValidator($customerPolicy, $adminPolicy);
+        $validator = new PasswordPolicyValidator($customerPolicy, $adminPolicy, $this->createStub(TokenStorageInterface::class));
         $validator->initialize($this->context);
 
         return $validator;

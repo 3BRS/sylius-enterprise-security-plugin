@@ -2,6 +2,20 @@ imports:
     - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/config.{yml,yaml}" }
 
 three_brs_sylius_enterprise_security:
+    password_history:
+        customer:
+            enabled: true
+            count: 5
+        admin:
+            enabled: true
+            count: 10
+    password_expiration:
+        customer:
+            enabled: true
+            days: 90
+        admin:
+            enabled: true
+            days: 60
     password_policy:
         customer:
             min_length: 8

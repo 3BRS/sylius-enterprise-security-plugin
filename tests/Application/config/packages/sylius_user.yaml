@@ -1,0 +1,10 @@
+sylius_user:
+    resources:
+        admin:
+            user:
+                classes:
+                    model: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUser
+        shop:
+            user:
+                classes:
+                    model: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\ShopUser

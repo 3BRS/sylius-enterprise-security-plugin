@@ -1,0 +1,2 @@
+three_brs_enterprise_security:
+    resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/routes.yaml"
