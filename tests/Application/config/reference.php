@@ -3378,6 +3378,14 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             days?: int|Param, // Default: 60
  *         },
  *     },
+ *     password_change_notification?: array{
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *         admin?: array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *     },
  *     password_policy?: array{
  *         customer?: array{
  *             min_length?: int|Param, // Default: 8
