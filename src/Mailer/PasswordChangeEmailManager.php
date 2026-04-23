@@ -15,17 +15,11 @@ class PasswordChangeEmailManager implements PasswordChangeEmailManagerInterface
     public function __construct(
         private SenderInterface $emailSender,
         private UrlGeneratorInterface $router,
-        private bool $customerEnabled,
-        private bool $adminEnabled,
     ) {
     }
 
     public function sendCustomerPasswordChangedEmail(ShopUserInterface $user, ?Request $request, bool $initiatedByUser): void
     {
-        if (!$this->customerEnabled) {
-            return;
-        }
-
         $email = $user->getEmail();
         if ($email === null) {
             return;
@@ -34,16 +28,12 @@ class PasswordChangeEmailManager implements PasswordChangeEmailManagerInterface
         $this->emailSender->send(
             code: Emails::CUSTOMER_PASSWORD_CHANGED,
             recipients: [$email],
-            data: $this->buildEmailData($request, $initiatedByUser, 'sylius_shop_account_change_password'),
+            data: $this->buildEmailData($request, $initiatedByUser, 'sylius_shop_request_password_reset_token'),
         );
     }
 
     public function sendAdminPasswordChangedEmail(AdminUserInterface $user, ?Request $request, bool $initiatedByUser): void
     {
-        if (!$this->adminEnabled) {
-            return;
-        }
-
         $email = $user->getEmail();
         if ($email === null) {
             return;
@@ -52,7 +42,7 @@ class PasswordChangeEmailManager implements PasswordChangeEmailManagerInterface
         $this->emailSender->send(
             code: Emails::ADMIN_PASSWORD_CHANGED,
             recipients: [$email],
-            data: $this->buildEmailData($request, $initiatedByUser, 'sylius_admin_login'),
+            data: $this->buildEmailData($request, $initiatedByUser, 'sylius_admin_request_password_reset'),
         );
     }
 
@@ -60,7 +50,7 @@ class PasswordChangeEmailManager implements PasswordChangeEmailManagerInterface
     private function buildEmailData(?Request $request, bool $initiatedByUser, string $secureRoute): array
     {
         return [
-            'timestamp' => new \DateTimeImmutable(),
+            'timestamp' => new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
             'ipAddress' => $request?->getClientIp(),
             'userAgent' => $request?->headers->get('User-Agent'),
             'initiatedByUser' => $initiatedByUser,

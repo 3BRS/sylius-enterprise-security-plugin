@@ -10,8 +10,8 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordHistoryListener;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordChangeNotificationListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserPasswordHistoryListener;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManager;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicy;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordHistoryValidator;
@@ -90,7 +90,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     /** @param array<string, array<string, mixed>> $config */
     private function registerPasswordChangeNotification(ContainerBuilder $container, array $config): void
     {
-        $container->getDefinition(PasswordChangeEmailManager::class)
+        $container->getDefinition(PasswordChangeNotificationListener::class)
             ->setArgument('$customerEnabled', $config['customer']['enabled'])
             ->setArgument('$adminEnabled', $config['admin']['enabled'])
         ;

@@ -10,6 +10,7 @@ use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,11 +27,17 @@ class PasswordChangeNotificationListenerTest extends TestCase
         PasswordChangeEmailManagerInterface $emailManager,
         ?RequestStack $requestStack = null,
         ?TokenStorageInterface $tokenStorage = null,
+        bool $customerEnabled = true,
+        bool $adminEnabled = true,
+        ?LoggerInterface $logger = null,
     ): PasswordChangeNotificationListener {
         return new PasswordChangeNotificationListener(
             $emailManager,
             $requestStack ?? $this->requestStackWithRequest(),
             $tokenStorage ?? $this->tokenStorageWithUser(null),
+            $customerEnabled,
+            $adminEnabled,
+            $logger,
         );
     }
 
@@ -125,6 +132,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
     public function testMarksInitiatedByUserWhenCurrentUserMatchesTarget(): void
     {
         $shopUser = $this->createStub(ShopUserInterface::class);
+        $shopUser->method('getUserIdentifier')->willReturn('john@example.com');
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
@@ -140,7 +148,10 @@ class PasswordChangeNotificationListenerTest extends TestCase
     public function testMarksNotInitiatedByUserWhenCurrentUserDiffersFromTarget(): void
     {
         $targetUser = $this->createStub(ShopUserInterface::class);
+        $targetUser->method('getUserIdentifier')->willReturn('john@example.com');
+
         $adminUser = $this->createStub(AdminUserInterface::class);
+        $adminUser->method('getUserIdentifier')->willReturn('admin@example.com');
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
@@ -156,6 +167,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
     public function testMarksNotInitiatedByUserWhenNoAuthenticatedUser(): void
     {
         $shopUser = $this->createStub(ShopUserInterface::class);
+        $shopUser->method('getUserIdentifier')->willReturn('john@example.com');
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
@@ -204,9 +216,10 @@ class PasswordChangeNotificationListenerTest extends TestCase
         $listener->postFlush($this->createPostFlushEvent());
     }
 
-    public function testMarksInitiatedByUserDuringForcePasswordChangeRoute(): void
+    public function testForcePasswordChangeRouteAloneDoesNotMarkAsInitiated(): void
     {
         $adminUser = $this->createStub(AdminUserInterface::class);
+        $adminUser->method('getUserIdentifier')->willReturn('admin@example.com');
 
         $request = new Request();
         $request->attributes->set('_route', 'three_brs_admin_force_password_change');
@@ -214,7 +227,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
             ->method('sendAdminPasswordChangedEmail')
-            ->with($adminUser, self::anything(), true)
+            ->with($adminUser, self::anything(), false)
         ;
 
         $listener = $this->createListener($emailManager, requestStack: $this->requestStackWithRequest($request));
@@ -254,6 +267,57 @@ class PasswordChangeNotificationListenerTest extends TestCase
 
         $listener = $this->createListener($emailManager);
         $listener->onFlush(new OnFlushEventArgs($this->entityManagerWithUpdates([$adminUser, $adminUser], ['password' => ['old', 'new']])));
+        $listener->postFlush($this->createPostFlushEvent());
+    }
+
+    public function testSkipsCustomerWhenCustomerDisabled(): void
+    {
+        $shopUser = $this->createStub(ShopUserInterface::class);
+
+        $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
+        $emailManager->expects(self::never())->method(self::anything());
+
+        $listener = $this->createListener($emailManager, customerEnabled: false);
+        $listener->onFlush(new OnFlushEventArgs($this->entityManagerWithUpdates([$shopUser], ['password' => ['old', 'new']])));
+        $listener->postFlush($this->createPostFlushEvent());
+    }
+
+    public function testSkipsAdminWhenAdminDisabled(): void
+    {
+        $adminUser = $this->createStub(AdminUserInterface::class);
+
+        $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
+        $emailManager->expects(self::never())->method(self::anything());
+
+        $listener = $this->createListener($emailManager, adminEnabled: false);
+        $listener->onFlush(new OnFlushEventArgs($this->entityManagerWithUpdates([$adminUser], ['password' => ['old', 'new']])));
+        $listener->postFlush($this->createPostFlushEvent());
+    }
+
+    public function testBothDisabledShortCircuitsOnFlush(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('getUnitOfWork');
+
+        $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
+        $emailManager->expects(self::never())->method(self::anything());
+
+        $listener = $this->createListener($emailManager, customerEnabled: false, adminEnabled: false);
+        $listener->onFlush(new OnFlushEventArgs($em));
+    }
+
+    public function testLogsAndContinuesWhenEmailManagerThrows(): void
+    {
+        $adminUser = $this->createStub(AdminUserInterface::class);
+
+        $emailManager = $this->createStub(PasswordChangeEmailManagerInterface::class);
+        $emailManager->method('sendAdminPasswordChangedEmail')->willThrowException(new \RuntimeException('SMTP down'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+
+        $listener = $this->createListener($emailManager, logger: $logger);
+        $listener->onFlush(new OnFlushEventArgs($this->entityManagerWithUpdates([$adminUser], ['password' => ['old', 'new']])));
         $listener->postFlush($this->createPostFlushEvent());
     }
 }

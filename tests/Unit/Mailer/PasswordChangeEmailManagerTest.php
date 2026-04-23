@@ -20,10 +20,8 @@ class PasswordChangeEmailManagerTest extends TestCase
     private function createManager(
         SenderInterface $sender,
         UrlGeneratorInterface $router,
-        bool $customerEnabled = true,
-        bool $adminEnabled = true,
     ): PasswordChangeEmailManager {
-        return new PasswordChangeEmailManager($sender, $router, $customerEnabled, $adminEnabled);
+        return new PasswordChangeEmailManager($sender, $router);
     }
 
     private function shopUserWithEmail(string $email): ShopUserInterface
@@ -58,7 +56,7 @@ class PasswordChangeEmailManagerTest extends TestCase
         return $user;
     }
 
-    public function testSendCustomerEmailWhenEnabled(): void
+    public function testSendCustomerEmail(): void
     {
         $sender = $this->createMock(SenderInterface::class);
         $sender->expects(self::once())
@@ -67,15 +65,6 @@ class PasswordChangeEmailManagerTest extends TestCase
         ;
 
         $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
-        $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
-    }
-
-    public function testSendCustomerEmailDoesNothingWhenDisabled(): void
-    {
-        $sender = $this->createMock(SenderInterface::class);
-        $sender->expects(self::never())->method('send');
-
-        $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class), customerEnabled: false);
         $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
     }
 
@@ -88,7 +77,7 @@ class PasswordChangeEmailManagerTest extends TestCase
         $manager->sendCustomerPasswordChangedEmail($this->shopUserWithNoEmail(), null, false);
     }
 
-    public function testSendAdminEmailWhenEnabled(): void
+    public function testSendAdminEmail(): void
     {
         $sender = $this->createMock(SenderInterface::class);
         $sender->expects(self::once())
@@ -97,15 +86,6 @@ class PasswordChangeEmailManagerTest extends TestCase
         ;
 
         $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
-        $manager->sendAdminPasswordChangedEmail($this->adminUserWithEmail('admin@example.com'), null, false);
-    }
-
-    public function testSendAdminEmailDoesNothingWhenDisabled(): void
-    {
-        $sender = $this->createMock(SenderInterface::class);
-        $sender->expects(self::never())->method('send');
-
-        $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class), adminEnabled: false);
         $manager->sendAdminPasswordChangedEmail($this->adminUserWithEmail('admin@example.com'), null, false);
     }
 
@@ -160,8 +140,8 @@ class PasswordChangeEmailManagerTest extends TestCase
         $router = $this->createMock(UrlGeneratorInterface::class);
         $router->expects(self::once())
             ->method('generate')
-            ->with('sylius_shop_account_change_password', [], UrlGeneratorInterface::ABSOLUTE_URL)
-            ->willReturn('https://example.com/en_US/account/change-password')
+            ->with('sylius_shop_request_password_reset_token', [], UrlGeneratorInterface::ABSOLUTE_URL)
+            ->willReturn('https://example.com/en_US/forgotten-password')
         ;
 
         $capturedData = [];
@@ -175,7 +155,7 @@ class PasswordChangeEmailManagerTest extends TestCase
         $manager = $this->createManager($sender, $router);
         $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
 
-        self::assertSame('https://example.com/en_US/account/change-password', $capturedData['secureAccountUrl']);
+        self::assertSame('https://example.com/en_US/forgotten-password', $capturedData['secureAccountUrl']);
         self::assertFalse($capturedData['initiatedByUser']);
     }
 
@@ -199,13 +179,13 @@ class PasswordChangeEmailManagerTest extends TestCase
         self::assertTrue($capturedData['initiatedByUser']);
     }
 
-    public function testAdminEmailUsesAdminLoginRouteForSecureUrl(): void
+    public function testAdminEmailUsesAdminPasswordResetRouteForSecureUrl(): void
     {
         $router = $this->createMock(UrlGeneratorInterface::class);
         $router->expects(self::once())
             ->method('generate')
-            ->with('sylius_admin_login', [], UrlGeneratorInterface::ABSOLUTE_URL)
-            ->willReturn('https://example.com/admin/login')
+            ->with('sylius_admin_request_password_reset', [], UrlGeneratorInterface::ABSOLUTE_URL)
+            ->willReturn('https://example.com/admin/forgotten-password')
         ;
 
         $capturedData = [];
@@ -219,6 +199,23 @@ class PasswordChangeEmailManagerTest extends TestCase
         $manager = $this->createManager($sender, $router);
         $manager->sendAdminPasswordChangedEmail($this->adminUserWithEmail('admin@example.com'), null, false);
 
-        self::assertSame('https://example.com/admin/login', $capturedData['secureAccountUrl']);
+        self::assertSame('https://example.com/admin/forgotten-password', $capturedData['secureAccountUrl']);
+    }
+
+    public function testTimestampIsInUtc(): void
+    {
+        $capturedData = [];
+        $sender = $this->createStub(SenderInterface::class);
+        $sender->method('send')->willReturnCallback(
+            function (string $code, array $recipients, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            },
+        );
+
+        $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
+        $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
+
+        self::assertInstanceOf(\DateTimeImmutable::class, $capturedData['timestamp']);
+        self::assertSame('UTC', $capturedData['timestamp']->getTimezone()->getName());
     }
 }
