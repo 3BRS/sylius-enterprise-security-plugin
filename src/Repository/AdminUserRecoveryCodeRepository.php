@@ -4,16 +4,22 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
-use Doctrine\ORM\EntityRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCodeInterface;
 
 /**
- * @extends EntityRepository<AdminUserRecoveryCode>
+ * @extends ServiceEntityRepository<AdminUserRecoveryCode>
  */
-class AdminUserRecoveryCodeRepository extends EntityRepository implements AdminUserRecoveryCodeRepositoryInterface
+class AdminUserRecoveryCodeRepository extends ServiceEntityRepository implements AdminUserRecoveryCodeRepositoryInterface
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, AdminUserRecoveryCode::class);
+    }
+
     public function findUnusedByAdminUserAndHash(AdminUserInterface $user, string $codeHash): ?AdminUserRecoveryCodeInterface
     {
         return $this->createQueryBuilder('c')

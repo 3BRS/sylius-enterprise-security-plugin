@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
-use Doctrine\ORM\EntityRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerPasswordHistory;
 
 /**
- * @extends EntityRepository<CustomerPasswordHistory>
+ * @extends ServiceEntityRepository<CustomerPasswordHistory>
  */
-class CustomerPasswordHistoryRepository extends EntityRepository implements CustomerPasswordHistoryRepositoryInterface
+class CustomerPasswordHistoryRepository extends ServiceEntityRepository implements CustomerPasswordHistoryRepositoryInterface
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, CustomerPasswordHistory::class);
+    }
+
     public function findRecentByShopUser(ShopUserInterface $user, int $count): array
     {
         return $this->createQueryBuilder('h')

@@ -25,14 +25,16 @@ services:
         decorates: validator
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepository:
-        factory: ['@doctrine.orm.entity_manager', 'getRepository']
         arguments:
-            $className: ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerPasswordHistory
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryRepository:
-        factory: ['@doctrine.orm.entity_manager', 'getRepository']
         arguments:
-            $className: ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasswordHistory
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryChecker:
         arguments:
@@ -114,14 +116,16 @@ services:
             - { name: 'sylius_fixtures.fixture' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository:
-        factory: ['@doctrine.orm.entity_manager', 'getRepository']
         arguments:
-            $className: ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerRecoveryCode
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository:
-        factory: ['@doctrine.orm.entity_manager', 'getRepository']
         arguments:
-            $className: ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator: ~
 

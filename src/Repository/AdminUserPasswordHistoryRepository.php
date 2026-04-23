@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
-use Doctrine\ORM\EntityRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasswordHistory;
 
 /**
- * @extends EntityRepository<AdminUserPasswordHistory>
+ * @extends ServiceEntityRepository<AdminUserPasswordHistory>
  */
-class AdminUserPasswordHistoryRepository extends EntityRepository implements AdminUserPasswordHistoryRepositoryInterface
+class AdminUserPasswordHistoryRepository extends ServiceEntityRepository implements AdminUserPasswordHistoryRepositoryInterface
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, AdminUserPasswordHistory::class);
+    }
+
     public function findRecentByAdminUser(AdminUserInterface $user, int $count): array
     {
         return $this->createQueryBuilder('h')
