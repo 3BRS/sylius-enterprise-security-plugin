@@ -78,3 +78,67 @@ three_brs_admin_two_factor_recovery_challenge:
     path: /admin/2fa/recovery
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRecoveryChallengeController
     methods: [GET, POST]
+
+three_brs_shop_oauth_initiate:
+    path: /oauth/{provider}/start
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthInitiateController
+    methods: [GET]
+    requirements:
+        provider: '[a-z_]+'
+
+three_brs_shop_oauth_callback:
+    path: /oauth/{provider}/callback
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthCallbackController
+    methods: [GET, POST]
+    requirements:
+        provider: '[a-z_]+'
+
+three_brs_shop_oauth_confirm_link:
+    path: /oauth/confirm-link
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthConfirmLinkController
+    methods: [GET, POST]
+
+three_brs_shop_social_account_unlink:
+    path: /account/oauth/{provider}/unlink
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountUnlinkController
+    methods: [POST]
+    requirements:
+        provider: '[a-z_]+'
+
+three_brs_admin_oauth_initiate:
+    path: /admin/oauth/{provider}/start
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthInitiateController
+    methods: [GET]
+    requirements:
+        provider: '[a-z_]+'
+
+three_brs_admin_oauth_callback:
+    path: /admin/oauth/{provider}/callback
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthCallbackController
+    methods: [GET, POST]
+    requirements:
+        provider: '[a-z_]+'
+
+three_brs_admin_oauth_confirm_link:
+    path: /admin/oauth/confirm-link
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthConfirmLinkController
+    methods: [GET, POST]
+
+three_brs_admin_social_account_unlink:
+    path: /admin/oauth/{provider}/unlink
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountUnlinkController
+    methods: [POST]
+    requirements:
+        provider: '[a-z_]+'
+
+three_brs_admin_social_accounts:
+    path: /admin/social-accounts
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController
+    methods: [GET]
+
+three_brs_shop_social_accounts:
+    path: /{_locale}/account/social-accounts
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountsController
+    methods: [GET]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'

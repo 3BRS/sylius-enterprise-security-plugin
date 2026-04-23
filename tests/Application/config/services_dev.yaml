@@ -1,0 +1,29 @@
+services:
+    # Pre-seed the fake OAuth state so the dev flow works end-to-end on
+    # localhost without real Google/Apple credentials. Clicking the social-login
+    # button redirects back through the fake provider and logs the user in as
+    # these default identities.
+    Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState:
+        public: true
+        calls:
+            - [seedUserInfo, ['google', 'dev-google-123', 'dev.google@example.com', 'Dev', 'Google']]
+            - [seedUserInfo, ['apple', 'dev-apple-123', 'dev.apple@example.com', 'Dev', 'Apple']]
+
+    # Override the real Google OAuth provider with a fake one in dev so the
+    # buttons appear and the flow works without external credentials.
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\GoogleOAuthProvider:
+        class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
+        arguments:
+            $name: 'google'
+            $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
+        tags:
+            - { name: 'three_brs.oauth_provider' }
+
+    # Override the real Apple OAuth provider with a fake one in dev.
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\AppleOAuthProvider:
+        class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
+        arguments:
+            $name: 'apple'
+            $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
+        tags:
+            - { name: 'three_brs.oauth_provider' }

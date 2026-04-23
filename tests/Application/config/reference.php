@@ -3599,6 +3599,38 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             require_special_characters?: bool|Param, // Default: true
  *         },
  *     },
+ *     oauth?: array{
+ *         customer?: array{
+ *             google?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 client_id?: scalar|Param|null, // Default: null
+ *                 client_secret?: scalar|Param|null, // Default: null
+ *             },
+ *             apple?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 client_id?: scalar|Param|null, // Default: null
+ *                 team_id?: scalar|Param|null, // Default: null
+ *                 key_id?: scalar|Param|null, // Default: null
+ *                 private_key_path?: scalar|Param|null, // Default: null
+ *             },
+ *         },
+ *         admin?: array{
+ *             default_locale?: scalar|Param|null, // Default: "en_US"
+ *             auto_register_allowed_email_domains?: list<scalar|Param|null>,
+ *             google?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 client_id?: scalar|Param|null, // Default: null
+ *                 client_secret?: scalar|Param|null, // Default: null
+ *             },
+ *             apple?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 client_id?: scalar|Param|null, // Default: null
+ *                 team_id?: scalar|Param|null, // Default: null
+ *                 key_id?: scalar|Param|null, // Default: null
+ *                 private_key_path?: scalar|Param|null, // Default: null
+ *             },
+ *         },
+ *     },
  * }
  * @psalm-type WhiteOctoberPagerfantaConfig = array{ // Deprecated: The "white_october_pagerfanta" configuration node is deprecated, migrate your configuration to the "babdev_pagerfanta" configuration node.
  *     exceptions_strategy?: array{

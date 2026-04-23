@@ -89,3 +89,18 @@ sylius_fixtures:
                     options:
                         shop_users: []
                         admin_users: []
+
+                three_brs_social_account_link:
+                    options:
+                        shop_users:
+                            - email: strong@example.com
+                              links:
+                                  - provider: google
+                                    provider_user_id: google-demo-customer-1
+                                    email: strong@example.com
+                        admin_users:
+                            - email: sylius@example.com
+                              links:
+                                  - provider: google
+                                    provider_user_id: google-demo-admin-1
+                                    email: sylius@example.com

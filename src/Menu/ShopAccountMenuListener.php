@@ -18,4 +18,15 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
             ->setLabelAttribute('icon', 'tabler:shield-lock')
         ;
     }
+
+    public function addSocialAccountsItem(MenuBuilderEvent $event): void
+    {
+        $menu = $event->getMenu();
+
+        $menu
+            ->addChild('social_accounts', ['route' => 'three_brs_shop_social_accounts'])
+            ->setLabel('three_brs.ui.social_login.menu_item')
+            ->setLabelAttribute('icon', 'tabler:user-circle')
+        ;
+    }
 }

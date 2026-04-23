@@ -12,7 +12,10 @@
         "scheb/2fa-totp": "^7.13",
         "spomky-labs/otphp": "^11.4",
         "endroid/qr-code": "^6.0",
-        "scheb/2fa-trusted-device": "^7.13"
+        "scheb/2fa-trusted-device": "^7.13",
+        "league/oauth2-client": "^2.7",
+        "league/oauth2-google": "^4.0",
+        "patrickbussmann/oauth2-apple": "^0.4"
     },
     "require-dev": {
         "behat/behat": "^v3.19.0",

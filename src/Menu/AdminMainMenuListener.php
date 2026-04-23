@@ -22,4 +22,19 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             ->setLabelAttribute('icon', 'tabler:shield-lock')
         ;
     }
+
+    public function addSocialAccountsItem(MenuBuilderEvent $event): void
+    {
+        $configuration = $event->getMenu()->getChild('configuration');
+
+        if ($configuration === null) {
+            return;
+        }
+
+        $configuration
+            ->addChild('social_accounts', ['route' => 'three_brs_admin_social_accounts'])
+            ->setLabel('three_brs.ui.social_login.menu_item')
+            ->setLabelAttribute('icon', 'tabler:user-circle')
+        ;
+    }
 }

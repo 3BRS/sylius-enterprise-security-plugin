@@ -51,3 +51,15 @@ three_brs_sylius_enterprise_security:
             require_lowercase: true
             require_numbers: true
             require_special_characters: true
+    oauth:
+        customer:
+            google:
+                enabled: true
+                client_id: '%env(GOOGLE_CUSTOMER_CLIENT_ID)%'
+                client_secret: '%env(GOOGLE_CUSTOMER_CLIENT_SECRET)%'
+        admin:
+            auto_register_allowed_email_domains: [example.com]
+            google:
+                enabled: true
+                client_id: '%env(GOOGLE_ADMIN_CLIENT_ID)%'
+                client_secret: '%env(GOOGLE_ADMIN_CLIENT_SECRET)%'
