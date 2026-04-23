@@ -97,58 +97,6 @@ class PasswordHistoryValidatorTest extends TestCase
         $this->createValidator()->validate('', new PasswordHistory());
     }
 
-    public function testBuildsViolationWhenShopUserPasswordWasReused(): void
-    {
-        $user = $this->shopUser();
-
-        $checker = $this->createMock(PasswordHistoryCheckerInterface::class);
-        $checker->method('wasPasswordUsedByShopUser')
-            ->with($user, 'oldPass', 5)
-            ->willReturn(true);
-
-        $this->context->method('getObject')->willReturn($user);
-        $this->context->expects(self::once())
-            ->method('buildViolation')
-            ->willReturn($this->violationBuilder);
-
-        $this->createValidator(checker: $checker, customerCount: 5)
-            ->validate('oldPass', new PasswordHistory());
-    }
-
-    public function testSkipsShopUserValidationWhenCustomerDisabled(): void
-    {
-        $checker = $this->createMock(PasswordHistoryCheckerInterface::class);
-        $checker->expects(self::never())->method('wasPasswordUsedByShopUser');
-
-        $this->context->method('getObject')->willReturn($this->shopUser());
-        $this->context->expects(self::never())->method('buildViolation');
-
-        $this->createValidator(checker: $checker, customerEnabled: false)
-            ->validate('oldPass', new PasswordHistory());
-    }
-
-    public function testSkipsShopUserValidationWhenUserHasNoId(): void
-    {
-        $checker = $this->createMock(PasswordHistoryCheckerInterface::class);
-        $checker->expects(self::never())->method('wasPasswordUsedByShopUser');
-
-        $this->context->method('getObject')->willReturn($this->shopUser(id: null));
-        $this->context->expects(self::never())->method('buildViolation');
-
-        $this->createValidator(checker: $checker)->validate('oldPass', new PasswordHistory());
-    }
-
-    public function testDoesNothingWhenShopUserPasswordNotInHistory(): void
-    {
-        $checker = $this->createStub(PasswordHistoryCheckerInterface::class);
-        $checker->method('wasPasswordUsedByShopUser')->willReturn(false);
-
-        $this->context->method('getObject')->willReturn($this->shopUser());
-        $this->context->expects(self::never())->method('buildViolation');
-
-        $this->createValidator(checker: $checker)->validate('newPass', new PasswordHistory());
-    }
-
     public function testBuildsViolationWhenAdminUserPasswordWasReused(): void
     {
         $user = $this->adminUser();

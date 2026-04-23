@@ -40,12 +40,6 @@ class PasswordHistoryValidator extends ConstraintValidator implements PasswordHi
         $object = $this->context->getObject();
         $plainPassword = (string) $value;
 
-        if ($object instanceof ShopUserInterface) {
-            $this->validateForShopUser($object, $plainPassword, $constraint);
-
-            return;
-        }
-
         if ($object instanceof AdminUserInterface) {
             $this->validateForAdminUser($object, $plainPassword, $constraint);
 
@@ -59,7 +53,7 @@ class PasswordHistoryValidator extends ConstraintValidator implements PasswordHi
         }
 
         throw new ConstraintDefinitionException(sprintf(
-            'The %s constraint can only be applied to ShopUserInterface, AdminUserInterface or ChangePassword objects; got %s.',
+            'The %s constraint can only be applied to AdminUserInterface or ChangePassword objects; got %s.',
             PasswordHistory::class,
             $object::class,
         ));

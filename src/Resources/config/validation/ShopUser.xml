@@ -12,11 +12,6 @@
                     <value>sylius</value>
                 </option>
             </constraint>
-            <constraint name="ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordHistory">
-                <option name="groups">
-                    <value>sylius</value>
-                </option>
-            </constraint>
         </property>
     </class>
 </constraint-mapping>
