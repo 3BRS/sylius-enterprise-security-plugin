@@ -111,6 +111,24 @@ three_brs_sylius_enterprise_security:
             days: 60
 ```
 
+### Password Change Notifications
+
+- Sends an email notification whenever a user's password is changed
+- Covers all flows: account settings change, forgot-password reset, admin-forced change, and admin editing another user's password
+- Detection is Doctrine-based — the listener catches password updates at flush time regardless of which flow triggered them
+- Email contains timestamp, IP address, user agent, and (when the change was not initiated by the user) a secure-account link
+- `initiatedByUser` is derived from the current security token: when the authenticated user matches the user whose password changed, the secure-account link is omitted
+- Configurable independently for customers and admins (enable/disable)
+
+```yaml
+three_brs_sylius_enterprise_security:
+    password_change_notification:
+        customer:
+            enabled: true
+        admin:
+            enabled: true
+```
+
 ## Installation
 
 1. Run `composer require 3brs/sylius-enterprise-security-plugin`.
