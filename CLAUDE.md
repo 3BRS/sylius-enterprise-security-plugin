@@ -10,3 +10,14 @@ The interface is placed in the same directory or in an `Interface/` subdirectory
 ## No `final` classes
 Never use the `final` keyword on any class.
 The project must remain extensible — plugin users need to be able to extend classes and modify behavior.
+
+## Service arguments — named, not positional
+In `services.yaml` the `arguments:` section must always use named arguments matching the constructor parameter names, e.g.:
+
+```yaml
+arguments:
+    $customerRepository: '@...'
+    $adminRepository: '@...'
+```
+
+Never use positional arguments (`- '@...'`). Names must exactly match the `__construct()` parameters of the class.

@@ -53,7 +53,6 @@ cache:
 	./bin-docker/php ./bin/console cache:clear
 	@make var
 
-static: fix static-only
 
 static-only:
 	@make ecs

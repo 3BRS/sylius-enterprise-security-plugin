@@ -87,7 +87,11 @@ jobs:
                     php bin/console doctrine:schema:update --env=test --no-interaction --complete --force
 
             -   name: PHPStan
-                run: vendor/bin/phpstan analyse
+                env:
+                    DATABASE_URL: "mysql://root:pass_root@127.0.0.1:3306/sylius_test?serverVersion=8.0&charset=utf8mb4"
+                run: |
+                    touch .env
+                    vendor/bin/phpstan analyse
 
             -   name: ECS
                 run: vendor/bin/ecs check

@@ -22,11 +22,20 @@ parameters:
             # False positive on lowest phpstan-symfony (2.0.3): NodeBuilder generics not fully stubbed.
             # NodeBuilder::arrayNode() exists at runtime — code is correct.
             identifier: class.notFound
-            path: src/DependencyInjection/Configuration.php
+            paths:
+                - src/DependencyInjection/Configuration.php
+                - src/Fixture/PasswordHistoryFixture.php
+                - src/Fixture/PasswordExpirationFixture.php
         -
             # Same root cause: ArrayNodeDefinition generic TParent not resolved on lowest phpstan-symfony.
             identifier: missingType.generics
-            path: src/DependencyInjection/Configuration.php
+            paths:
+                - src/DependencyInjection/Configuration.php
+                - src/Fixture/PasswordHistoryFixture.php
+                - src/Fixture/PasswordExpirationFixture.php
+
+    doctrine:
+        objectManagerLoader: tests/phpstan_object_manager.php
 
     symfony:
         containerXmlPath: tests/Application/var/cache/test/Tests_ThreeBRS_SyliusEnterpriseSecurityPlugin_KernelTestDebugContainer.xml

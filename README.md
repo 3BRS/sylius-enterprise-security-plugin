@@ -72,6 +72,45 @@ three_brs_sylius_enterprise_security:
             require_special_characters: true
 ```
 
+### Password History
+
+- Prevents users from reusing recent passwords
+- Configurable number of previous passwords to remember per user type
+- Separate history tables for customers (`three_brs_customer_password_history`) and admins (`three_brs_admin_user_password_history`)
+
+### Defaults for password history
+
+```yaml
+three_brs_sylius_enterprise_security:
+    password_history:
+        customer:
+            enabled: false
+            count: 5
+        admin:
+            enabled: false
+            count: 10
+```
+
+### Password Expiration
+
+- Forces password change after a configurable number of days
+- Supports `force_change` flag to immediately require a password change on next login
+- Admin users are redirected to a dedicated change-password page; shop users to the standard change-password flow
+- Configurable independently for customers and admins
+
+### Defaults for password expiration
+
+```yaml
+three_brs_sylius_enterprise_security:
+    password_expiration:
+        customer:
+            enabled: false
+            days: 90
+        admin:
+            enabled: false
+            days: 60
+```
+
 ## Installation
 
 1. Run `composer require 3brs/sylius-enterprise-security-plugin`.
