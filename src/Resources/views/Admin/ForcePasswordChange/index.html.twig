@@ -1,0 +1,32 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.force_password_change'|trans }}{% endblock %}
+
+{% block body_class %}d-flex flex-column{% endblock %}
+
+{% block body %}
+    <div class="page page-center">
+        <div class="container container-tight py-4">
+            <div class="card card-md">
+                <div class="card-body">
+                    <h2 class="h2 text-center mb-2">{{ 'three_brs.ui.force_password_change'|trans }}</h2>
+                    <p class="text-muted text-center mb-4">{{ 'three_brs.ui.force_password_change_description'|trans }}</p>
+
+                    {% form_theme form '@SyliusAdmin/shared/form_theme.html.twig' %}
+                    {{ form_start(form, { action: path('three_brs_admin_force_password_change'), method: 'POST' }) }}
+                        {{ form_row(form.currentPassword) }}
+                        {{ form_row(form.newPassword) }}
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-primary w-100">
+                                {{ 'three_brs.ui.change_password'|trans }}
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                    <div class="text-center text-muted mt-3">
+                        <a href="{{ path('sylius_admin_logout') }}">{{ 'sylius.ui.logout'|trans }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,11 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_admin.admin_user.update.content.form.sections.account':
+            force_password_change:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/form/sections/account/force_password_change.html.twig'
+                priority: -100
+
+        'sylius_admin.admin_user.create.content.form.sections.account':
+            force_password_change:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/form/sections/account/force_password_change.html.twig'
+                priority: -100
