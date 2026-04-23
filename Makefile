@@ -1,7 +1,7 @@
 .PHONY: run up down init var ci
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
-export COMPOSE_FILE := compose.yml
+export COMPOSE_FILE := compose.yml:compose.override.yaml
 
 run: init
 
