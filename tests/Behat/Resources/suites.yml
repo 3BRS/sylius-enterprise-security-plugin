@@ -7,3 +7,5 @@ imports:
     - suites/shop_password_expiration.yml
     - suites/admin_password_history.yml
     - suites/admin_password_expiration.yml
+    - suites/shop_password_change_notification.yml
+    - suites/admin_password_change_notification.yml
