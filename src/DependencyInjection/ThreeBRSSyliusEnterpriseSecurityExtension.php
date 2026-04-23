@@ -7,15 +7,35 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\DependencyInjection;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordHistoryListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserPasswordHistoryListener;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManager;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicy;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordHistoryValidator;
 
-class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension
+class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements PrependExtensionInterface
 {
+    public function prepend(ContainerBuilder $container): void
+    {
+        $container->prependExtensionConfig('sylius_mailer', [
+            'emails' => [
+                'three_brs_customer_password_changed' => [
+                    'subject' => 'three_brs.emails.customer_password_changed.subject',
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/customerPasswordChanged.html.twig',
+                    'enabled' => true,
+                ],
+                'three_brs_admin_password_changed' => [
+                    'subject' => 'three_brs.emails.admin_password_changed.subject',
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/adminPasswordChanged.html.twig',
+                    'enabled' => true,
+                ],
+            ],
+        ]);
+    }
+
     public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
@@ -27,6 +47,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension
         $this->registerPasswordPolicies($container, $config['password_policy']);
         $this->registerPasswordHistory($container, $config['password_history']);
         $this->registerPasswordExpiration($container, $config['password_expiration']);
+        $this->registerPasswordChangeNotification($container, $config['password_change_notification']);
     }
 
     public function getAlias(): string
@@ -63,6 +84,15 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension
             ->setArgument('$customerDays', $config['customer']['days'])
             ->setArgument('$adminEnabled', $config['admin']['enabled'])
             ->setArgument('$adminDays', $config['admin']['days'])
+        ;
+    }
+
+    /** @param array<string, array<string, mixed>> $config */
+    private function registerPasswordChangeNotification(ContainerBuilder $container, array $config): void
+    {
+        $container->getDefinition(PasswordChangeEmailManager::class)
+            ->setArgument('$customerEnabled', $config['customer']['enabled'])
+            ->setArgument('$adminEnabled', $config['admin']['enabled'])
         ;
     }
 

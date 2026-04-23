@@ -16,6 +16,11 @@ three_brs_sylius_enterprise_security:
         admin:
             enabled: true
             days: 60
+    password_change_notification:
+        customer:
+            enabled: true
+        admin:
+            enabled: true
     password_policy:
         customer:
             min_length: 8

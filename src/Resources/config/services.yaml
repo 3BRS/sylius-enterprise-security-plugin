@@ -4,6 +4,22 @@ services:
         autoconfigure: false
         public: false
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManager:
+        arguments:
+            $emailSender: '@sylius.email_sender'
+            $router: '@router'
+            $customerEnabled: false
+            $adminEnabled: false
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordChangeNotificationListener:
+        arguments:
+            $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManager'
+            $requestStack: '@request_stack'
+            $tokenStorage: '@security.token_storage'
+        tags:
+            - { name: 'doctrine.event_listener', event: 'onFlush' }
+            - { name: 'doctrine.event_listener', event: 'postFlush' }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator:
         arguments:
             $inner: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator.inner'
