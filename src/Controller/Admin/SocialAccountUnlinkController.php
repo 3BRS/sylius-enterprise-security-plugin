@@ -11,16 +11,18 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuardInterface;
 
 class SocialAccountUnlinkController implements SocialAccountUnlinkControllerInterface
 {
+    use FlashHelperTrait;
+
     public function __construct(
         private Security $security,
         private AdminUserSocialAccountLinkRepositoryInterface $linkRepository,
@@ -50,7 +52,7 @@ class SocialAccountUnlinkController implements SocialAccountUnlinkControllerInte
                 'admin_id' => $user->getId(),
                 'ip' => $request->getClientIp(),
             ]);
-            $this->flash($request, 'error', 'three_brs.ui.social_login.cannot_unlink_last_method');
+            $this->addFlashMessage($request, 'error', 'three_brs.ui.social_login.cannot_unlink_last_method');
 
             return new RedirectResponse($this->router->generate('three_brs_admin_social_accounts'));
         }
@@ -64,17 +66,9 @@ class SocialAccountUnlinkController implements SocialAccountUnlinkControllerInte
                 'admin_id' => $user->getId(),
                 'ip' => $request->getClientIp(),
             ]);
-            $this->flash($request, 'success', 'three_brs.ui.social_login.unlinked');
+            $this->addFlashMessage($request, 'success', 'three_brs.ui.social_login.unlinked');
         }
 
         return new RedirectResponse($this->router->generate('three_brs_admin_social_accounts'));
-    }
-
-    private function flash(Request $request, string $type, string $message): void
-    {
-        $session = $request->getSession();
-        if ($session instanceof FlashBagAwareSessionInterface) {
-            $session->getFlashBag()->add($type, $message);
-        }
     }
 }

@@ -69,6 +69,7 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
         return in_array($domain, $normalized, true);
     }
 
+    /** @internal Callers must gate with {@see canAutoRegister()} before invoking. */
     public function registerAndLink(OAuthUserInfoInterface $info): AdminUserInterface
     {
         $email = $info->getEmail();
@@ -84,7 +85,6 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
         $adminUser->setLastName($info->getLastName());
         $adminUser->setEnabled(true);
         $adminUser->setLocaleCode($this->defaultLocale);
-        $adminUser->setPlainPassword(bin2hex(random_bytes(24)));
         $adminUser->addRole('ROLE_ADMINISTRATION_ACCESS');
 
         $this->entityManager->persist($adminUser);

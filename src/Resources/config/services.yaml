@@ -288,8 +288,6 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountsController:
         arguments:
-            $tokenStorage: '@security.token_storage'
-            $router: '@router'
             $twig: '@twig'
         tags:
             - { name: 'controller.service_arguments' }
@@ -301,8 +299,6 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController:
         arguments:
-            $tokenStorage: '@security.token_storage'
-            $router: '@router'
             $twig: '@twig'
         tags:
             - { name: 'controller.service_arguments' }

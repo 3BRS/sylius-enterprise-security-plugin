@@ -9,12 +9,12 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
-use Symfony\Component\Security\Http\Util\TargetPathTrait;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FirewallRedirectTrait;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfo;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandlerInterface;
@@ -22,7 +22,8 @@ use Twig\Environment;
 
 class OAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
 {
-    use TargetPathTrait;
+    use FirewallRedirectTrait;
+    use FlashHelperTrait;
 
     protected const FIREWALL_NAME = 'shop';
 
@@ -73,9 +74,7 @@ class OAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
                     $session->remove(OAuthCallbackController::CONFIRM_PENDING_SESSION_KEY);
 
                     if ($existing->getShopUser()->getId() !== $user->getId()) {
-                        if ($session instanceof FlashBagAwareSessionInterface) {
-                            $session->getFlashBag()->add('error', 'three_brs.ui.social_login.already_linked_other_account');
-                        }
+                        $this->addFlashMessage($request, 'error', 'three_brs.ui.social_login.already_linked_other_account');
 
                         return new RedirectResponse($this->router->generate('sylius_shop_login'));
                     }
@@ -100,11 +99,9 @@ class OAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
                 ]);
 
                 $this->authenticate($request, $user);
-                if ($session instanceof FlashBagAwareSessionInterface) {
-                    $session->getFlashBag()->add('success', 'three_brs.ui.social_login.linked');
-                }
+                $this->addFlashMessage($request, 'success', 'three_brs.ui.social_login.linked');
 
-                return new RedirectResponse($this->resolveRedirectUrl($request));
+                return new RedirectResponse($this->resolveRedirectUrl($request, static::FIREWALL_NAME, $this->router->generate('sylius_shop_account_dashboard')));
             }
         }
 
@@ -126,17 +123,5 @@ class OAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
         if ($request->hasSession()) {
             $request->getSession()->set('_security_' . static::FIREWALL_NAME, serialize($token));
         }
-    }
-
-    private function resolveRedirectUrl(Request $request): string
-    {
-        if ($request->hasSession()) {
-            $targetPath = $this->getTargetPath($request->getSession(), static::FIREWALL_NAME);
-            if (is_string($targetPath) && $targetPath !== '') {
-                return $targetPath;
-            }
-        }
-
-        return $this->router->generate('sylius_shop_account_dashboard');
     }
 }

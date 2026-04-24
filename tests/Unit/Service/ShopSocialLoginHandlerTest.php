@@ -124,7 +124,7 @@ class ShopSocialLoginHandlerTest extends TestCase
         $shopUser = $this->createMock(ShopUserInterface::class);
         $shopUser->expects($this->once())->method('setCustomer')->with($customer);
         $shopUser->expects($this->once())->method('setEnabled')->with(true);
-        $shopUser->expects($this->once())->method('setPlainPassword');
+        $shopUser->expects($this->never())->method('setPlainPassword');
 
         $customerFactory = $this->createStub(FactoryInterface::class);
         $customerFactory->method('createNew')->willReturn($customer);

@@ -58,6 +58,7 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
         return $info->isEmailVerified() !== false;
     }
 
+    /** @internal Callers must gate with {@see canAutoRegister()} before invoking. */
     public function registerAndLink(OAuthUserInfoInterface $info): ShopUserInterface
     {
         $email = $info->getEmail();
@@ -75,7 +76,6 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
         $shopUser = $this->shopUserFactory->createNew();
         $shopUser->setCustomer($customer);
         $shopUser->setEnabled(true);
-        $shopUser->setPlainPassword(bin2hex(random_bytes(24)));
 
         $this->entityManager->persist($customer);
         $this->entityManager->persist($shopUser);

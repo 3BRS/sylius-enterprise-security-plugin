@@ -70,7 +70,7 @@ class AdminSocialLoginHandlerTest extends TestCase
         $admin->expects($this->once())->method('setFirstName')->with('John');
         $admin->expects($this->once())->method('setLastName')->with('Doe');
         $admin->expects($this->once())->method('setEnabled')->with(true);
-        $admin->expects($this->once())->method('setPlainPassword');
+        $admin->expects($this->never())->method('setPlainPassword');
         $admin->expects($this->once())->method('addRole')->with('ROLE_ADMINISTRATION_ACCESS');
 
         $adminFactory = $this->createStub(FactoryInterface::class);
