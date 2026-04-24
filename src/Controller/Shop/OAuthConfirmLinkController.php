@@ -28,13 +28,13 @@ class OAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
     protected const FIREWALL_NAME = 'shop';
 
     public function __construct(
-        private ShopSocialLoginHandlerInterface $handler,
-        private UserPasswordHasherInterface $passwordHasher,
-        private TokenStorageInterface $tokenStorage,
-        private RouterInterface $router,
-        private Environment $twig,
-        private CustomerSocialAccountLinkRepositoryInterface $linkRepository,
-        private LoggerInterface $logger,
+        protected ShopSocialLoginHandlerInterface $handler,
+        protected UserPasswordHasherInterface $passwordHasher,
+        protected TokenStorageInterface $tokenStorage,
+        protected RouterInterface $router,
+        protected Environment $twig,
+        protected CustomerSocialAccountLinkRepositoryInterface $linkRepository,
+        protected LoggerInterface $logger,
     ) {
     }
 
@@ -115,7 +115,7 @@ class OAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
         ));
     }
 
-    private function authenticate(Request $request, ShopUserInterface $user): void
+    protected function authenticate(Request $request, ShopUserInterface $user): void
     {
         $token = new PostAuthenticationToken($user, static::FIREWALL_NAME, $user->getRoles());
         $this->tokenStorage->setToken($token);

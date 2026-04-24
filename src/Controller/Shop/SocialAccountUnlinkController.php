@@ -24,13 +24,13 @@ class SocialAccountUnlinkController implements SocialAccountUnlinkControllerInte
     use FlashHelperTrait;
 
     public function __construct(
-        private Security $security,
-        private CustomerSocialAccountLinkRepositoryInterface $linkRepository,
-        private LastAuthMethodGuardInterface $guard,
-        private EntityManagerInterface $entityManager,
-        private CsrfTokenManagerInterface $csrfTokenManager,
-        private RouterInterface $router,
-        private LoggerInterface $logger,
+        protected Security $security,
+        protected CustomerSocialAccountLinkRepositoryInterface $linkRepository,
+        protected LastAuthMethodGuardInterface $guard,
+        protected EntityManagerInterface $entityManager,
+        protected CsrfTokenManagerInterface $csrfTokenManager,
+        protected RouterInterface $router,
+        protected LoggerInterface $logger,
     ) {
     }
 

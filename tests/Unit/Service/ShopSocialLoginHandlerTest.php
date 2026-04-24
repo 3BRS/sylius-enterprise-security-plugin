@@ -65,7 +65,7 @@ class ShopSocialLoginHandlerTest extends TestCase
         $customerRepository = $this->createMock(CustomerRepositoryInterface::class);
         $customerRepository->expects($this->once())
             ->method('findOneBy')
-            ->with(['email' => 'a@b.com'])
+            ->with(['emailCanonical' => 'a@b.com'])
             ->willReturn($customer);
 
         $handler = new ShopSocialLoginHandler(

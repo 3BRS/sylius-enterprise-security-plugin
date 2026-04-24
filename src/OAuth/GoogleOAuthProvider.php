@@ -15,12 +15,12 @@ class GoogleOAuthProvider implements GoogleOAuthProviderInterface
     public const NAME = 'google';
 
     public function __construct(
-        private bool $customerEnabled,
-        private ?string $customerClientId,
-        private ?string $customerClientSecret,
-        private bool $adminEnabled,
-        private ?string $adminClientId,
-        private ?string $adminClientSecret,
+        protected bool $customerEnabled,
+        protected ?string $customerClientId,
+        protected ?string $customerClientSecret,
+        protected bool $adminEnabled,
+        protected ?string $adminClientId,
+        protected ?string $adminClientSecret,
     ) {
     }
 
@@ -93,14 +93,14 @@ class GoogleOAuthProvider implements GoogleOAuthProviderInterface
         );
     }
 
-    private function assertGroup(string $group): void
+    protected function assertGroup(string $group): void
     {
         if (!in_array($group, ['customer', 'admin'], true)) {
             throw new OAuthProviderException('Group must be "customer" or "admin".');
         }
     }
 
-    private function buildClient(string $group, string $redirectUri): Google
+    protected function buildClient(string $group, string $redirectUri): Google
     {
         if ($group === 'customer') {
             if (!$this->isEnabledForCustomer()) {

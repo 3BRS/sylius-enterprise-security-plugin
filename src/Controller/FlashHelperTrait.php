@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 
 trait FlashHelperTrait
 {
-    private function addFlashMessage(Request $request, string $type, string $message): void
+    protected function addFlashMessage(Request $request, string $type, string $message): void
     {
         $session = $request->getSession();
         if ($session instanceof FlashBagAwareSessionInterface) {

@@ -7,12 +7,12 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth;
 class OAuthUserInfo implements OAuthUserInfoInterface
 {
     public function __construct(
-        private readonly string $provider,
-        private readonly string $providerUserId,
-        private readonly ?string $email,
-        private readonly ?string $firstName = null,
-        private readonly ?string $lastName = null,
-        private readonly ?bool $emailVerified = null,
+        protected readonly string $provider,
+        protected readonly string $providerUserId,
+        protected readonly ?string $email,
+        protected readonly ?string $firstName = null,
+        protected readonly ?string $lastName = null,
+        protected readonly ?bool $emailVerified = null,
     ) {
     }
 

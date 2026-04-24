@@ -161,7 +161,7 @@ class SocialLoginContext implements Context
             ));
         }
 
-        $admin = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
+        $admin = $this->adminUserRepository->findOneByEmail(strtolower($email));
         Assert::notNull($admin, sprintf('Admin "%s" not found after social login.', $email));
     }
 
@@ -182,7 +182,7 @@ class SocialLoginContext implements Context
     public function theAdminShouldExist(string $email): void
     {
         $this->entityManager->clear();
-        $admin = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
+        $admin = $this->adminUserRepository->findOneByEmail(strtolower($email));
         Assert::notNull($admin, sprintf('Admin "%s" was not created.', $email));
     }
 
@@ -200,7 +200,7 @@ class SocialLoginContext implements Context
 
     private function findAdmin(string $email): AdminUserInterface
     {
-        $admin = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
+        $admin = $this->adminUserRepository->findOneByEmail(strtolower($email));
         Assert::notNull($admin, sprintf('Admin "%s" not found.', $email));
         Assert::isInstanceOf($admin, AdminUserInterface::class);
 

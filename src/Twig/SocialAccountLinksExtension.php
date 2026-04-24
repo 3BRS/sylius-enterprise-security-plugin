@@ -14,8 +14,8 @@ use Twig\TwigFunction;
 class SocialAccountLinksExtension extends AbstractExtension implements SocialAccountLinksExtensionInterface
 {
     public function __construct(
-        private CustomerSocialAccountLinkRepositoryInterface $customerLinkRepository,
-        private AdminUserSocialAccountLinkRepositoryInterface $adminLinkRepository,
+        protected CustomerSocialAccountLinkRepositoryInterface $customerLinkRepository,
+        protected AdminUserSocialAccountLinkRepositoryInterface $adminLinkRepository,
     ) {
     }
 

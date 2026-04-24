@@ -64,7 +64,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     }
 
     /** @param array<string, mixed> $config */
-    private function registerOAuth(ContainerBuilder $container, array $config): void
+    protected function registerOAuth(ContainerBuilder $container, array $config): void
     {
         foreach (['customer', 'admin'] as $group) {
             $google = $config[$group]['google'];

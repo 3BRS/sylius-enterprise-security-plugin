@@ -9,7 +9,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\Exception\OAuthProviderExcepti
 class OAuthProviderRegistry implements OAuthProviderRegistryInterface
 {
     /** @var array<string, OAuthProviderInterface> */
-    private array $providers = [];
+    protected array $providers = [];
 
     /**
      * @param iterable<OAuthProviderInterface> $providers

@@ -17,26 +17,26 @@ class CustomerSocialAccountLink implements CustomerSocialAccountLinkInterface
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    protected ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: ShopUserInterface::class)]
     #[ORM\JoinColumn(name: 'shop_user_id', referencedColumnName: 'id', onDelete: 'CASCADE', nullable: false)]
-    private ShopUserInterface $shopUser;
+    protected ShopUserInterface $shopUser;
 
     #[ORM\Column(name: 'provider', type: 'string', length: 32, nullable: false)]
-    private string $provider;
+    protected string $provider;
 
     #[ORM\Column(name: 'provider_user_id', type: 'string', length: 255, nullable: false)]
-    private string $providerUserId;
+    protected string $providerUserId;
 
     #[ORM\Column(name: 'email', type: 'string', length: 255, nullable: true)]
-    private ?string $email = null;
+    protected ?string $email = null;
 
     #[ORM\Column(name: 'linked_at', type: 'datetime_immutable', nullable: false)]
-    private \DateTimeImmutable $linkedAt;
+    protected \DateTimeImmutable $linkedAt;
 
     #[ORM\Column(name: 'last_used_at', type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $lastUsedAt = null;
+    protected ?\DateTimeImmutable $lastUsedAt = null;
 
     public function __construct()
     {

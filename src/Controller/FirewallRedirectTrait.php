@@ -11,7 +11,7 @@ trait FirewallRedirectTrait
 {
     use TargetPathTrait;
 
-    private function resolveRedirectUrl(Request $request, string $firewallName, string $defaultUrl): string
+    protected function resolveRedirectUrl(Request $request, string $firewallName, string $defaultUrl): string
     {
         if (!$request->hasSession()) {
             return $defaultUrl;

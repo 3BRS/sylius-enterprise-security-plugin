@@ -12,8 +12,8 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLink
 class LastAuthMethodGuard implements LastAuthMethodGuardInterface
 {
     public function __construct(
-        private CustomerSocialAccountLinkRepositoryInterface $customerLinkRepository,
-        private AdminUserSocialAccountLinkRepositoryInterface $adminLinkRepository,
+        protected CustomerSocialAccountLinkRepositoryInterface $customerLinkRepository,
+        protected AdminUserSocialAccountLinkRepositoryInterface $adminLinkRepository,
     ) {
     }
 
@@ -49,7 +49,7 @@ class LastAuthMethodGuard implements LastAuthMethodGuardInterface
         return $total > 1;
     }
 
-    private function hasUsablePassword(?string $password): bool
+    protected function hasUsablePassword(?string $password): bool
     {
         return $password !== null && $password !== '';
     }

@@ -12,7 +12,7 @@ use Twig\TwigFunction;
 class SocialProvidersExtension extends AbstractExtension implements SocialProvidersExtensionInterface
 {
     public function __construct(
-        private OAuthProviderRegistryInterface $registry,
+        protected OAuthProviderRegistryInterface $registry,
     ) {
     }
 

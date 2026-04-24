@@ -46,8 +46,8 @@ class AdminSocialLoginHandlerTest extends TestCase
 
         $repository = $this->createMock(UserRepositoryInterface::class);
         $repository->expects($this->once())
-            ->method('findOneBy')
-            ->with(['emailCanonical' => 'a@b.com'])
+            ->method('findOneByEmail')
+            ->with('a@b.com')
             ->willReturn($admin);
 
         $handler = new AdminSocialLoginHandler(

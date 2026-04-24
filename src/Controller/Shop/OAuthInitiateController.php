@@ -18,8 +18,8 @@ class OAuthInitiateController implements OAuthInitiateControllerInterface
     public const INTENT_SESSION_KEY = 'three_brs_oauth_intent_customer';
 
     public function __construct(
-        private OAuthProviderRegistryInterface $registry,
-        private RouterInterface $router,
+        protected OAuthProviderRegistryInterface $registry,
+        protected RouterInterface $router,
     ) {
     }
 

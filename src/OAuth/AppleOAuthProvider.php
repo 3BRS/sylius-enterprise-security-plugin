@@ -15,16 +15,16 @@ class AppleOAuthProvider implements AppleOAuthProviderInterface
     public const NAME = 'apple';
 
     public function __construct(
-        private bool $customerEnabled,
-        private ?string $customerClientId,
-        private ?string $customerTeamId,
-        private ?string $customerKeyId,
-        private ?string $customerPrivateKeyPath,
-        private bool $adminEnabled,
-        private ?string $adminClientId,
-        private ?string $adminTeamId,
-        private ?string $adminKeyId,
-        private ?string $adminPrivateKeyPath,
+        protected bool $customerEnabled,
+        protected ?string $customerClientId,
+        protected ?string $customerTeamId,
+        protected ?string $customerKeyId,
+        protected ?string $customerPrivateKeyPath,
+        protected bool $adminEnabled,
+        protected ?string $adminClientId,
+        protected ?string $adminTeamId,
+        protected ?string $adminKeyId,
+        protected ?string $adminPrivateKeyPath,
     ) {
     }
 
@@ -109,14 +109,14 @@ class AppleOAuthProvider implements AppleOAuthProviderInterface
         );
     }
 
-    private function assertGroup(string $group): void
+    protected function assertGroup(string $group): void
     {
         if (!in_array($group, ['customer', 'admin'], true)) {
             throw new OAuthProviderException('Group must be "customer" or "admin".');
         }
     }
 
-    private function buildClient(string $group, string $redirectUri): Apple
+    protected function buildClient(string $group, string $redirectUri): Apple
     {
         if ($group === 'customer') {
             if (!$this->isEnabledForCustomer()) {

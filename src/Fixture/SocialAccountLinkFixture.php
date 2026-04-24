@@ -22,9 +22,9 @@ class SocialAccountLinkFixture extends AbstractFixture implements SocialAccountL
      * @param UserRepositoryInterface<\Sylius\Component\User\Model\UserInterface>         $adminUserRepository
      */
     public function __construct(
-        private CustomerRepositoryInterface $customerRepository,
-        private UserRepositoryInterface $adminUserRepository,
-        private EntityManagerInterface $entityManager,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected UserRepositoryInterface $adminUserRepository,
+        protected EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -37,7 +37,7 @@ class SocialAccountLinkFixture extends AbstractFixture implements SocialAccountL
     public function load(array $options): void
     {
         foreach ($options['shop_users'] as $entry) {
-            $customer = $this->customerRepository->findOneBy(['email' => $entry['email']]);
+            $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower((string) $entry['email'])]);
             if (!$customer instanceof CustomerInterface) {
                 continue;
             }
@@ -58,7 +58,7 @@ class SocialAccountLinkFixture extends AbstractFixture implements SocialAccountL
         }
 
         foreach ($options['admin_users'] as $entry) {
-            $adminUser = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower((string) $entry['email'])]);
+            $adminUser = $this->adminUserRepository->findOneByEmail(strtolower((string) $entry['email']));
             if (!$adminUser instanceof AdminUserInterface) {
                 continue;
             }

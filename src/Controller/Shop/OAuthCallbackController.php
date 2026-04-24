@@ -30,12 +30,12 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
     protected const FIREWALL_NAME = 'shop';
 
     public function __construct(
-        private OAuthProviderRegistryInterface $registry,
-        private ShopSocialLoginHandlerInterface $handler,
-        private RouterInterface $router,
-        private TokenStorageInterface $tokenStorage,
-        private Security $security,
-        private LoggerInterface $logger,
+        protected OAuthProviderRegistryInterface $registry,
+        protected ShopSocialLoginHandlerInterface $handler,
+        protected RouterInterface $router,
+        protected TokenStorageInterface $tokenStorage,
+        protected Security $security,
+        protected LoggerInterface $logger,
     ) {
     }
 
@@ -74,7 +74,7 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
         return $this->handleLoginIntent($request, $info);
     }
 
-    private function handleLinkIntent(Request $request, OAuthUserInfoInterface $info): Response
+    protected function handleLinkIntent(Request $request, OAuthUserInfoInterface $info): Response
     {
         $currentUser = $this->security->getUser();
         if (!$currentUser instanceof ShopUserInterface) {
@@ -104,7 +104,7 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
         return new RedirectResponse($this->router->generate('three_brs_shop_social_accounts'));
     }
 
-    private function handleLoginIntent(Request $request, OAuthUserInfoInterface $info): Response
+    protected function handleLoginIntent(Request $request, OAuthUserInfoInterface $info): Response
     {
         $existing = $this->handler->findExistingLinkUser($info);
         if ($existing !== null) {
@@ -150,7 +150,7 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
         return new RedirectResponse($this->resolveRedirectUrl($request, static::FIREWALL_NAME, $this->router->generate('sylius_shop_account_dashboard')));
     }
 
-    private function authenticate(Request $request, ShopUserInterface $user): void
+    protected function authenticate(Request $request, ShopUserInterface $user): void
     {
         $token = new PostAuthenticationToken($user, static::FIREWALL_NAME, $user->getRoles());
         $this->tokenStorage->setToken($token);
@@ -161,7 +161,7 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
     }
 
     /** @param array<string, mixed> $extra */
-    private function auditLog(string $event, OAuthUserInfoInterface $info, Request $request, array $extra = []): void
+    protected function auditLog(string $event, OAuthUserInfoInterface $info, Request $request, array $extra = []): void
     {
         $this->logger->info(sprintf('three_brs.social_login.shop.%s', $event), array_merge([
             'provider' => $info->getProvider(),

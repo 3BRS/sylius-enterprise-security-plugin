@@ -10,7 +10,7 @@ use Twig\Environment;
 class SocialAccountsController implements SocialAccountsControllerInterface
 {
     public function __construct(
-        private Environment $twig,
+        protected Environment $twig,
     ) {
     }
 

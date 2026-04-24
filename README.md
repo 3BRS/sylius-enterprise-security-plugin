@@ -166,8 +166,8 @@ three_brs_sylius_enterprise_security:
 
 ### Social Login (OAuth)
 
-- Google and Apple OAuth sign-in for shop customers and admin users, independently configurable per group
-- Extensible provider abstraction (`OAuthProviderInterface` + registry) — additional providers (Facebook, Microsoft, …) can be added by implementing a single interface and tagging with `three_brs.oauth_provider`
+- Google and Apple OAuth sign-in for shop customers and admin users. Each provider is enabled/disabled and configured independently per group, so shop and admin can use entirely separate OAuth clients (different client IDs, consent screens, redirect URIs) — useful when the shop-facing app and the internal admin app are registered as two different applications on the provider side. Sign-in buttons are rendered on the shop login/register pages and on the admin login page; clicking one redirects the user to the provider, and on callback the plugin either logs them into an existing linked account, prompts for password confirmation to link an existing local account with a matching email, or auto-registers a new account (subject to the rules below).
+- Extensible provider abstraction — additional providers (Facebook, Microsoft, GitHub, LinkedIn, …) can be added without forking the plugin. Implement `OAuthProviderInterface` (five methods: `getName()`, `isEnabledForCustomer()`, `isEnabledForAdmin()`, `getAuthorizationUrl()`, `fetchUserInfo()`) and register the service with the tag `three_brs.oauth_provider`. `OAuthProviderRegistry` collects all tagged services and exposes them to the login controllers and Twig templates, so your new provider automatically appears as a sign-in button and gets its callback route wired up — no changes to routing, controllers or templates are needed. `fetchUserInfo()` must return an `OAuthUserInfoInterface` (email, first/last name, provider user ID, email-verified flag) which the plugin then uses uniformly across the link / register / login flow.
 - Social accounts are stored as separate link entities (`three_brs_customer_social_account_link`, `three_brs_admin_user_social_account_link`) — multiple providers per user supported
 - Email-match flow: when an OAuth identity's email matches an existing local account, the user is prompted to confirm their password before the link is created (prevents account takeover)
 - Auto-registration: if the email is unknown, a new account is created and the social identity linked automatically. For admin users, auto-registration creates accounts with `ROLE_ADMINISTRATION_ACCESS` — access can be revoked by another admin disabling the user
@@ -210,6 +210,8 @@ Callback URLs to register with the providers:
 - Admin: `https://<your-domain>/admin/oauth/{provider}/callback`
 
 > **Admin auto-registration:** by default `auto_register_allowed_email_domains` is empty and admin auto-registration is **disabled** — an unknown OAuth identity hitting the admin login will be rejected. Add your corporate domain(s) to opt in. Auto-created admins receive `ROLE_ADMINISTRATION_ACCESS` and the configured `default_locale`.
+>
+> **Warning:** `auto_register_allowed_email_domains` should include **only domains you fully control**. Anyone with a working email address in a whitelisted domain can auto-create an admin account with full `ROLE_ADMINISTRATION_ACCESS`. For external/shared domains (e.g. `gmail.com`) or when fine-grained control is needed, leave the whitelist empty — admins must then be created manually before their first OAuth login.
 
 #### Google Cloud setup
 

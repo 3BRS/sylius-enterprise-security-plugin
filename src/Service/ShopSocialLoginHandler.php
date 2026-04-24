@@ -21,11 +21,11 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
      * @param FactoryInterface<ShopUserInterface>            $shopUserFactory
      */
     public function __construct(
-        private CustomerRepositoryInterface $customerRepository,
-        private FactoryInterface $customerFactory,
-        private FactoryInterface $shopUserFactory,
-        private CustomerSocialAccountLinkRepositoryInterface $linkRepository,
-        private EntityManagerInterface $entityManager,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected FactoryInterface $customerFactory,
+        protected FactoryInterface $shopUserFactory,
+        protected CustomerSocialAccountLinkRepositoryInterface $linkRepository,
+        protected EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -38,7 +38,7 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
 
     public function findUserByEmail(string $email): ?ShopUserInterface
     {
-        $customer = $this->customerRepository->findOneBy(['email' => $email]);
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         if (!$customer instanceof CustomerInterface) {
             return null;
         }
@@ -105,7 +105,7 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
         $this->entityManager->flush();
     }
 
-    private function createLink(ShopUserInterface $user, OAuthUserInfoInterface $info): CustomerSocialAccountLink
+    protected function createLink(ShopUserInterface $user, OAuthUserInfoInterface $info): CustomerSocialAccountLink
     {
         $link = new CustomerSocialAccountLink();
         $link->setShopUser($user);

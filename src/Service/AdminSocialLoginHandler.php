@@ -20,12 +20,12 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
      * @param list<string>                                $allowedEmailDomains
      */
     public function __construct(
-        private UserRepositoryInterface $adminUserRepository,
-        private FactoryInterface $adminUserFactory,
-        private AdminUserSocialAccountLinkRepositoryInterface $linkRepository,
-        private EntityManagerInterface $entityManager,
-        private array $allowedEmailDomains,
-        private string $defaultLocale,
+        protected UserRepositoryInterface $adminUserRepository,
+        protected FactoryInterface $adminUserFactory,
+        protected AdminUserSocialAccountLinkRepositoryInterface $linkRepository,
+        protected EntityManagerInterface $entityManager,
+        protected array $allowedEmailDomains,
+        protected string $defaultLocale,
     ) {
     }
 
@@ -38,7 +38,7 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
 
     public function findUserByEmail(string $email): ?AdminUserInterface
     {
-        $user = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
+        $user = $this->adminUserRepository->findOneByEmail(strtolower($email));
 
         return $user instanceof AdminUserInterface ? $user : null;
     }
@@ -114,7 +114,7 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
         $this->entityManager->flush();
     }
 
-    private function createLink(AdminUserInterface $user, OAuthUserInfoInterface $info): AdminUserSocialAccountLink
+    protected function createLink(AdminUserInterface $user, OAuthUserInfoInterface $info): AdminUserSocialAccountLink
     {
         $link = new AdminUserSocialAccountLink();
         $link->setAdminUser($user);
