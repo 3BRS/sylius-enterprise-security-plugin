@@ -9,52 +9,41 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\UserAgentParserInterface;
 
 class PasswordChangeEmailManager implements PasswordChangeEmailManagerInterface
 {
     public function __construct(
         private SenderInterface $emailSender,
         private UrlGeneratorInterface $router,
+        private UserAgentParserInterface $userAgentParser,
     ) {
     }
 
-    public function sendCustomerPasswordChangedEmail(ShopUserInterface $user, ?Request $request, bool $initiatedByUser): void
-    {
+    public function sendPasswordChangedEmail(
+        ShopUserInterface|AdminUserInterface $user,
+        ?Request $request,
+        bool $initiatedByUser,
+    ): void {
         $email = $user->getEmail();
         if ($email === null) {
             return;
         }
 
-        $this->emailSender->send(
-            code: Emails::CUSTOMER_PASSWORD_CHANGED,
-            recipients: [$email],
-            data: $this->buildEmailData($request, $initiatedByUser, 'sylius_shop_request_password_reset_token'),
-        );
-    }
-
-    public function sendAdminPasswordChangedEmail(AdminUserInterface $user, ?Request $request, bool $initiatedByUser): void
-    {
-        $email = $user->getEmail();
-        if ($email === null) {
-            return;
-        }
+        $secureRoute = $user instanceof AdminUserInterface
+            ? 'sylius_admin_request_password_reset'
+            : 'sylius_shop_request_password_reset_token';
 
         $this->emailSender->send(
-            code: Emails::ADMIN_PASSWORD_CHANGED,
+            code: Emails::PASSWORD_CHANGED,
             recipients: [$email],
-            data: $this->buildEmailData($request, $initiatedByUser, 'sylius_admin_request_password_reset'),
+            data: [
+                'timestamp' => new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
+                'ipAddress' => $request?->getClientIp(),
+                'device' => $this->userAgentParser->describe($request?->headers->get('User-Agent')),
+                'initiatedByUser' => $initiatedByUser,
+                'secureAccountUrl' => $initiatedByUser ? null : $this->router->generate($secureRoute, [], UrlGeneratorInterface::ABSOLUTE_URL),
+            ],
         );
-    }
-
-    /** @return array<string, mixed> */
-    private function buildEmailData(?Request $request, bool $initiatedByUser, string $secureRoute): array
-    {
-        return [
-            'timestamp' => new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
-            'ipAddress' => $request?->getClientIp(),
-            'userAgent' => $request?->headers->get('User-Agent'),
-            'initiatedByUser' => $initiatedByUser,
-            'secureAccountUrl' => $initiatedByUser ? null : $this->router->generate($secureRoute, [], UrlGeneratorInterface::ABSOLUTE_URL),
-        ];
     }
 }

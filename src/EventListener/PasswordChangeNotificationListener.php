@@ -87,11 +87,7 @@ class PasswordChangeNotificationListener implements PasswordChangeNotificationLi
             $initiatedByUser = $this->isInitiatedByUser($currentUser, $user, $selfInitiatedRoute);
 
             try {
-                if ($user instanceof ShopUserInterface) {
-                    $this->emailManager->sendCustomerPasswordChangedEmail($user, $request, $initiatedByUser);
-                } elseif ($user instanceof AdminUserInterface) {
-                    $this->emailManager->sendAdminPasswordChangedEmail($user, $request, $initiatedByUser);
-                }
+                $this->emailManager->sendPasswordChangedEmail($user, $request, $initiatedByUser);
             } catch (\Exception $exception) {
                 $this->logger->error('Failed to send password change notification email.', [
                     'exception' => $exception,

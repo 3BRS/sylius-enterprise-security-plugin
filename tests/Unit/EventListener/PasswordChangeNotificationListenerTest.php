@@ -88,7 +88,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
         $shopUser = $this->createStub(ShopUserInterface::class);
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
-        $emailManager->expects(self::once())->method('sendCustomerPasswordChangedEmail');
+        $emailManager->expects(self::once())->method('sendPasswordChangedEmail');
 
         $listener = $this->createListener($emailManager);
         $listener->onFlush(new OnFlushEventArgs($this->entityManagerWithUpdates([$shopUser], ['password' => ['old', 'new']])));
@@ -100,7 +100,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
         $adminUser = $this->createStub(AdminUserInterface::class);
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
-        $emailManager->expects(self::once())->method('sendAdminPasswordChangedEmail');
+        $emailManager->expects(self::once())->method('sendPasswordChangedEmail');
 
         $listener = $this->createListener($emailManager);
         $listener->onFlush(new OnFlushEventArgs($this->entityManagerWithUpdates([$adminUser], ['password' => ['old', 'new']])));
@@ -136,7 +136,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
-            ->method('sendCustomerPasswordChangedEmail')
+            ->method('sendPasswordChangedEmail')
             ->with($shopUser, self::anything(), true)
         ;
 
@@ -155,7 +155,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
-            ->method('sendCustomerPasswordChangedEmail')
+            ->method('sendPasswordChangedEmail')
             ->with($targetUser, self::anything(), false)
         ;
 
@@ -171,7 +171,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
-            ->method('sendCustomerPasswordChangedEmail')
+            ->method('sendPasswordChangedEmail')
             ->with($shopUser, self::anything(), false)
         ;
 
@@ -189,7 +189,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
-            ->method('sendCustomerPasswordChangedEmail')
+            ->method('sendPasswordChangedEmail')
             ->with($shopUser, self::anything(), true)
         ;
 
@@ -207,7 +207,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
-            ->method('sendAdminPasswordChangedEmail')
+            ->method('sendPasswordChangedEmail')
             ->with($adminUser, self::anything(), true)
         ;
 
@@ -226,7 +226,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
         $emailManager->expects(self::once())
-            ->method('sendAdminPasswordChangedEmail')
+            ->method('sendPasswordChangedEmail')
             ->with($adminUser, self::anything(), false)
         ;
 
@@ -250,7 +250,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
         $adminUser = $this->createStub(AdminUserInterface::class);
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
-        $emailManager->expects(self::once())->method('sendAdminPasswordChangedEmail');
+        $emailManager->expects(self::once())->method('sendPasswordChangedEmail');
 
         $listener = $this->createListener($emailManager);
         $listener->onFlush(new OnFlushEventArgs($this->entityManagerWithUpdates([$adminUser], ['password' => ['old', 'new']])));
@@ -263,7 +263,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
         $adminUser = $this->createStub(AdminUserInterface::class);
 
         $emailManager = $this->createMock(PasswordChangeEmailManagerInterface::class);
-        $emailManager->expects(self::once())->method('sendAdminPasswordChangedEmail');
+        $emailManager->expects(self::once())->method('sendPasswordChangedEmail');
 
         $listener = $this->createListener($emailManager);
         $listener->onFlush(new OnFlushEventArgs($this->entityManagerWithUpdates([$adminUser, $adminUser], ['password' => ['old', 'new']])));
@@ -311,7 +311,7 @@ class PasswordChangeNotificationListenerTest extends TestCase
         $adminUser = $this->createStub(AdminUserInterface::class);
 
         $emailManager = $this->createStub(PasswordChangeEmailManagerInterface::class);
-        $emailManager->method('sendAdminPasswordChangedEmail')->willThrowException(new \RuntimeException('SMTP down'));
+        $emailManager->method('sendPasswordChangedEmail')->willThrowException(new \RuntimeException('SMTP down'));
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');

@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManager;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\UserAgentParserInterface;
 
 #[CoversClass(PasswordChangeEmailManager::class)]
 class PasswordChangeEmailManagerTest extends TestCase
@@ -20,8 +21,14 @@ class PasswordChangeEmailManagerTest extends TestCase
     private function createManager(
         SenderInterface $sender,
         UrlGeneratorInterface $router,
+        ?UserAgentParserInterface $userAgentParser = null,
     ): PasswordChangeEmailManager {
-        return new PasswordChangeEmailManager($sender, $router);
+        if ($userAgentParser === null) {
+            $userAgentParser = $this->createStub(UserAgentParserInterface::class);
+            $userAgentParser->method('describe')->willReturn(null);
+        }
+
+        return new PasswordChangeEmailManager($sender, $router, $userAgentParser);
     }
 
     private function shopUserWithEmail(string $email): ShopUserInterface
@@ -56,51 +63,51 @@ class PasswordChangeEmailManagerTest extends TestCase
         return $user;
     }
 
-    public function testSendCustomerEmail(): void
+    public function testSendShopUserEmail(): void
     {
         $sender = $this->createMock(SenderInterface::class);
         $sender->expects(self::once())
             ->method('send')
-            ->with(Emails::CUSTOMER_PASSWORD_CHANGED, ['john@example.com'], self::callback(static fn ($value): bool => is_array($value)))
+            ->with(Emails::PASSWORD_CHANGED, ['john@example.com'], self::callback(static fn ($value): bool => is_array($value)))
         ;
 
         $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
-        $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
+        $manager->sendPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
     }
 
-    public function testSendCustomerEmailDoesNothingWhenUserHasNoEmail(): void
+    public function testSendShopUserEmailDoesNothingWhenUserHasNoEmail(): void
     {
         $sender = $this->createMock(SenderInterface::class);
         $sender->expects(self::never())->method('send');
 
         $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
-        $manager->sendCustomerPasswordChangedEmail($this->shopUserWithNoEmail(), null, false);
+        $manager->sendPasswordChangedEmail($this->shopUserWithNoEmail(), null, false);
     }
 
-    public function testSendAdminEmail(): void
+    public function testSendAdminUserEmail(): void
     {
         $sender = $this->createMock(SenderInterface::class);
         $sender->expects(self::once())
             ->method('send')
-            ->with(Emails::ADMIN_PASSWORD_CHANGED, ['admin@example.com'], self::callback(static fn ($value): bool => is_array($value)))
+            ->with(Emails::PASSWORD_CHANGED, ['admin@example.com'], self::callback(static fn ($value): bool => is_array($value)))
         ;
 
         $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
-        $manager->sendAdminPasswordChangedEmail($this->adminUserWithEmail('admin@example.com'), null, false);
+        $manager->sendPasswordChangedEmail($this->adminUserWithEmail('admin@example.com'), null, false);
     }
 
-    public function testSendAdminEmailDoesNothingWhenUserHasNoEmail(): void
+    public function testSendAdminUserEmailDoesNothingWhenUserHasNoEmail(): void
     {
         $sender = $this->createMock(SenderInterface::class);
         $sender->expects(self::never())->method('send');
 
         $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
-        $manager->sendAdminPasswordChangedEmail($this->adminUserWithNoEmail(), null, false);
+        $manager->sendPasswordChangedEmail($this->adminUserWithNoEmail(), null, false);
     }
 
-    public function testEmailDataContainsIpAndUserAgentFromRequest(): void
+    public function testEmailDataContainsIpFromRequest(): void
     {
-        $request = Request::create('/', 'GET', [], [], [], ['REMOTE_ADDR' => '1.2.3.4', 'HTTP_USER_AGENT' => 'TestBrowser/1.0']);
+        $request = Request::create('/', 'GET', [], [], [], ['REMOTE_ADDR' => '1.2.3.4']);
 
         $capturedData = [];
         $sender = $this->createStub(SenderInterface::class);
@@ -111,14 +118,13 @@ class PasswordChangeEmailManagerTest extends TestCase
         );
 
         $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
-        $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), $request, false);
+        $manager->sendPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), $request, false);
 
         self::assertSame('1.2.3.4', $capturedData['ipAddress']);
-        self::assertSame('TestBrowser/1.0', $capturedData['userAgent']);
         self::assertInstanceOf(\DateTimeImmutable::class, $capturedData['timestamp']);
     }
 
-    public function testEmailDataHasNullIpAndUserAgentWithoutRequest(): void
+    public function testEmailDataHasNullIpWithoutRequest(): void
     {
         $capturedData = [];
         $sender = $this->createStub(SenderInterface::class);
@@ -129,10 +135,35 @@ class PasswordChangeEmailManagerTest extends TestCase
         );
 
         $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
-        $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
+        $manager->sendPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
 
         self::assertNull($capturedData['ipAddress']);
-        self::assertNull($capturedData['userAgent']);
+        self::assertNull($capturedData['device']);
+    }
+
+    public function testEmailDataContainsParsedDeviceFromRequest(): void
+    {
+        $request = Request::create('/', 'GET', [], [], [], ['HTTP_USER_AGENT' => 'raw-ua']);
+
+        $parser = $this->createMock(UserAgentParserInterface::class);
+        $parser->expects(self::once())
+            ->method('describe')
+            ->with('raw-ua')
+            ->willReturn('Chrome on macOS')
+        ;
+
+        $capturedData = [];
+        $sender = $this->createStub(SenderInterface::class);
+        $sender->method('send')->willReturnCallback(
+            function (string $code, array $recipients, array $data) use (&$capturedData): void {
+                $capturedData = $data;
+            },
+        );
+
+        $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class), $parser);
+        $manager->sendPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), $request, false);
+
+        self::assertSame('Chrome on macOS', $capturedData['device']);
     }
 
     public function testSecureAccountUrlIsGeneratedWhenNotInitiatedByUser(): void
@@ -153,7 +184,7 @@ class PasswordChangeEmailManagerTest extends TestCase
         );
 
         $manager = $this->createManager($sender, $router);
-        $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
+        $manager->sendPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
 
         self::assertSame('https://example.com/en_US/forgotten-password', $capturedData['secureAccountUrl']);
         self::assertFalse($capturedData['initiatedByUser']);
@@ -173,7 +204,7 @@ class PasswordChangeEmailManagerTest extends TestCase
         );
 
         $manager = $this->createManager($sender, $router);
-        $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, true);
+        $manager->sendPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, true);
 
         self::assertNull($capturedData['secureAccountUrl']);
         self::assertTrue($capturedData['initiatedByUser']);
@@ -197,7 +228,7 @@ class PasswordChangeEmailManagerTest extends TestCase
         );
 
         $manager = $this->createManager($sender, $router);
-        $manager->sendAdminPasswordChangedEmail($this->adminUserWithEmail('admin@example.com'), null, false);
+        $manager->sendPasswordChangedEmail($this->adminUserWithEmail('admin@example.com'), null, false);
 
         self::assertSame('https://example.com/admin/forgotten-password', $capturedData['secureAccountUrl']);
     }
@@ -213,7 +244,7 @@ class PasswordChangeEmailManagerTest extends TestCase
         );
 
         $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class));
-        $manager->sendCustomerPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
+        $manager->sendPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
 
         self::assertInstanceOf(\DateTimeImmutable::class, $capturedData['timestamp']);
         self::assertSame('UTC', $capturedData['timestamp']->getTimezone()->getName());
