@@ -8,7 +8,5 @@ interface Emails
 {
     public const PASSWORD_CHANGED = 'three_brs_password_changed';
 
-    public const CUSTOMER_MAGIC_LINK = 'three_brs_customer_magic_link';
-
-    public const ADMIN_MAGIC_LINK = 'three_brs_admin_magic_link';
+    public const MAGIC_LINK = 'three_brs_magic_link';
 }

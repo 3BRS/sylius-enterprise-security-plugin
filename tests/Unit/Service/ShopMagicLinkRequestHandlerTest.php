@@ -25,7 +25,10 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $customerRepo->expects(self::never())->method('findOneBy');
 
         $tokenRepo = $this->createStub(CustomerMagicLinkTokenRepositoryInterface::class);
-        $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
+
+        $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
+        $generator->expects(self::never())->method('generatePlainToken');
+
         $mailer = $this->createMock(CustomerMagicLinkEmailManagerInterface::class);
         $mailer->expects(self::never())->method('sendMagicLink');
 
@@ -36,7 +39,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
 
         $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, false, 300, 3, 900);
 
-        $handler->request('john@example.com', '127.0.0.1');
+        $handler->request('john@example.com');
     }
 
     public function testEmptyEmailDoesNothing(): void
@@ -45,7 +48,11 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $customerRepo->expects(self::never())->method('findOneBy');
 
         $tokenRepo = $this->createStub(CustomerMagicLinkTokenRepositoryInterface::class);
+
         $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
+        $generator->method('generatePlainToken')->willReturn('plain-token');
+        $generator->method('hash')->willReturn('hashed-token');
+
         $mailer = $this->createMock(CustomerMagicLinkEmailManagerInterface::class);
         $mailer->expects(self::never())->method('sendMagicLink');
 
@@ -53,10 +60,11 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $em->expects(self::never())->method('flush');
 
         $clock = $this->createStub(ClockInterface::class);
+        $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
 
         $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
 
-        $handler->request('', '127.0.0.1');
+        $handler->request('');
     }
 
     public function testUnknownEmailDoesNothing(): void
@@ -68,6 +76,9 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $tokenRepo->expects(self::never())->method('countRecentForShopUser');
 
         $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
+        $generator->method('generatePlainToken')->willReturn('plain-token');
+        $generator->method('hash')->willReturn('hashed-token');
+
         $mailer = $this->createMock(CustomerMagicLinkEmailManagerInterface::class);
         $mailer->expects(self::never())->method('sendMagicLink');
 
@@ -75,10 +86,11 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $em->expects(self::never())->method('flush');
 
         $clock = $this->createStub(ClockInterface::class);
+        $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
 
         $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
 
-        $handler->request('nobody@example.com', '127.0.0.1');
+        $handler->request('nobody@example.com');
     }
 
     public function testRateLimitBlocksSending(): void
@@ -93,8 +105,9 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $tokenRepo = $this->createMock(CustomerMagicLinkTokenRepositoryInterface::class);
         $tokenRepo->expects(self::once())->method('countRecentForShopUser')->willReturn(3);
 
-        $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
-        $generator->expects(self::never())->method('generatePlainToken');
+        $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
+        $generator->method('generatePlainToken')->willReturn('plain-token');
+        $generator->method('hash')->willReturn('hashed-token');
 
         $mailer = $this->createMock(CustomerMagicLinkEmailManagerInterface::class);
         $mailer->expects(self::never())->method('sendMagicLink');
@@ -107,7 +120,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
 
         $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
 
-        $handler->request('john@example.com', '127.0.0.1');
+        $handler->request('john@example.com');
     }
 
     public function testKnownEmailDispatchesMagicLink(): void
@@ -141,6 +154,6 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
 
         $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
 
-        $handler->request('john@example.com', '127.0.0.1');
+        $handler->request('john@example.com');
     }
 }

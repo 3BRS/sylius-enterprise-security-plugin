@@ -524,10 +524,6 @@ services:
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManager'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
-            $enabled: false
-            $expirationSeconds: 300
-            $rateLimitMax: 3
-            $rateLimitWindowSeconds: 900
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler:
         arguments:
@@ -537,10 +533,6 @@ services:
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManager'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
-            $enabled: false
-            $expirationSeconds: 300
-            $rateLimitMax: 3
-            $rateLimitWindowSeconds: 900
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\MagicLinkRequestType:
         tags:
@@ -562,6 +554,7 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $tokenStorage: '@security.token_storage'
             $eventDispatcher: '@security.event_dispatcher.shop'
+            $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
             $router: '@router'
             $clock: '@clock'
             $logger: '@logger'
@@ -585,6 +578,7 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $tokenStorage: '@security.token_storage'
             $eventDispatcher: '@security.event_dispatcher.admin'
+            $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.admin'
             $router: '@router'
             $clock: '@clock'
             $logger: '@logger'

@@ -113,6 +113,27 @@ class MagicLinkContext implements Context
     }
 
     /**
+     * @Given :count magic link tokens have recently been issued for :email
+     */
+    public function magicLinkTokensHaveRecentlyBeenIssuedFor(int $count, string $email): void
+    {
+        for ($i = 0; $i < $count; $i++) {
+            $this->createToken($email, sprintf('shop-recent-%d', $i), new \DateTimeImmutable('+5 minutes'), null);
+        }
+    }
+
+    /**
+     * @Then exactly :count magic link tokens should exist for :email
+     */
+    public function exactlyMagicLinkTokensShouldExistFor(int $count, string $email): void
+    {
+        $this->entityManager->clear();
+        $user = $this->findShopUser($email);
+        $actual = $this->tokenRepository->countRecentForShopUser($user, new \DateTimeImmutable('-1 hour'));
+        Assert::same($actual, $count, sprintf('Expected exactly %d magic link tokens for "%s", got %d.', $count, $email, $actual));
+    }
+
+    /**
      * @Then I should see a magic link invalid-or-expired error
      */
     public function iShouldSeeAMagicLinkInvalidOrExpiredError(): void

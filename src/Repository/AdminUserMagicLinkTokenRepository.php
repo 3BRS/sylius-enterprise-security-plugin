@@ -42,15 +42,4 @@ class AdminUserMagicLinkTokenRepository extends ServiceEntityRepository implemen
             ->getSingleScalarResult()
         ;
     }
-
-    public function deleteExpiredBefore(\DateTimeImmutable $threshold): int
-    {
-        return $this->createQueryBuilder('t')
-            ->delete()
-            ->where('t.expiresAt < :threshold')
-            ->setParameter('threshold', $threshold)
-            ->getQuery()
-            ->execute()
-        ;
-    }
 }

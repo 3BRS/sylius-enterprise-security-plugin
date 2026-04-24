@@ -31,14 +31,9 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
                     'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/passwordChanged.html.twig',
                     'enabled' => true,
                 ],
-                'three_brs_customer_magic_link' => [
-                    'subject' => 'three_brs.emails.customer_magic_link.subject',
-                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/customerMagicLink.html.twig',
-                    'enabled' => true,
-                ],
-                'three_brs_admin_magic_link' => [
-                    'subject' => 'three_brs.emails.admin_magic_link.subject',
-                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/adminMagicLink.html.twig',
+                'three_brs_magic_link' => [
+                    'subject' => 'three_brs.emails.magic_link.subject',
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/magicLink.html.twig',
                     'enabled' => true,
                 ],
             ],

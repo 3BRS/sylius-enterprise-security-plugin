@@ -24,7 +24,10 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $userRepo->expects(self::never())->method('findOneBy');
 
         $tokenRepo = $this->createStub(AdminUserMagicLinkTokenRepositoryInterface::class);
-        $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
+
+        $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
+        $generator->expects(self::never())->method('generatePlainToken');
+
         $mailer = $this->createMock(AdminUserMagicLinkEmailManagerInterface::class);
         $mailer->expects(self::never())->method('sendMagicLink');
 
@@ -35,7 +38,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
 
         $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, false, 300, 3, 900);
 
-        $handler->request('admin@example.com', '127.0.0.1');
+        $handler->request('admin@example.com');
     }
 
     public function testUnknownEmailDoesNothing(): void
@@ -47,31 +50,8 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $tokenRepo->expects(self::never())->method('countRecentForAdminUser');
 
         $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
-        $mailer = $this->createMock(AdminUserMagicLinkEmailManagerInterface::class);
-        $mailer->expects(self::never())->method('sendMagicLink');
-
-        $em = $this->createMock(EntityManagerInterface::class);
-        $em->expects(self::never())->method('flush');
-
-        $clock = $this->createStub(ClockInterface::class);
-
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
-
-        $handler->request('nobody@example.com', '127.0.0.1');
-    }
-
-    public function testRateLimitBlocksSending(): void
-    {
-        $user = $this->createStub(AdminUserInterface::class);
-
-        $userRepo = $this->createStub(UserRepositoryInterface::class);
-        $userRepo->method('findOneBy')->willReturn($user);
-
-        $tokenRepo = $this->createMock(AdminUserMagicLinkTokenRepositoryInterface::class);
-        $tokenRepo->expects(self::once())->method('countRecentForAdminUser')->willReturn(3);
-
-        $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
-        $generator->expects(self::never())->method('generatePlainToken');
+        $generator->method('generatePlainToken')->willReturn('plain-token');
+        $generator->method('hash')->willReturn('hashed-token');
 
         $mailer = $this->createMock(AdminUserMagicLinkEmailManagerInterface::class);
         $mailer->expects(self::never())->method('sendMagicLink');
@@ -84,7 +64,35 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
 
         $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
 
-        $handler->request('admin@example.com', '127.0.0.1');
+        $handler->request('nobody@example.com');
+    }
+
+    public function testRateLimitBlocksSending(): void
+    {
+        $user = $this->createStub(AdminUserInterface::class);
+
+        $userRepo = $this->createStub(UserRepositoryInterface::class);
+        $userRepo->method('findOneBy')->willReturn($user);
+
+        $tokenRepo = $this->createMock(AdminUserMagicLinkTokenRepositoryInterface::class);
+        $tokenRepo->expects(self::once())->method('countRecentForAdminUser')->willReturn(3);
+
+        $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
+        $generator->method('generatePlainToken')->willReturn('plain-token');
+        $generator->method('hash')->willReturn('hashed-token');
+
+        $mailer = $this->createMock(AdminUserMagicLinkEmailManagerInterface::class);
+        $mailer->expects(self::never())->method('sendMagicLink');
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('flush');
+
+        $clock = $this->createStub(ClockInterface::class);
+        $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
+
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
+
+        $handler->request('admin@example.com');
     }
 
     public function testKnownEmailDispatchesMagicLink(): void
@@ -116,6 +124,6 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
 
         $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
 
-        $handler->request('ADMIN@example.com', '127.0.0.1');
+        $handler->request('ADMIN@example.com');
     }
 }

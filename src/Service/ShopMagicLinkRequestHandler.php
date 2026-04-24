@@ -32,34 +32,32 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
     ) {
     }
 
-    public function request(string $email, ?string $ip): void
+    public function request(string $email): void
     {
         if (!$this->enabled) {
             return;
         }
 
-        if ($email === '') {
-            return;
-        }
+        // Generate and hash token regardless of whether the email is known —
+        // keeps the CPU work constant so response time does not leak account existence.
+        $plainToken = $this->tokenGenerator->generatePlainToken();
+        $tokenHash = $this->tokenGenerator->hash($plainToken);
+        $now = $this->clock->now();
 
         $user = $this->findUserByEmail($email);
         if ($user === null) {
             return;
         }
 
-        $now = $this->clock->now();
         $windowStart = $now->sub(new \DateInterval('PT' . $this->rateLimitWindowSeconds . 'S'));
         if ($this->tokenRepository->countRecentForShopUser($user, $windowStart) >= $this->rateLimitMax) {
             return;
         }
 
-        $plainToken = $this->tokenGenerator->generatePlainToken();
-
         $token = new CustomerMagicLinkToken();
         $token->setShopUser($user);
-        $token->setTokenHash($this->tokenGenerator->hash($plainToken));
+        $token->setTokenHash($tokenHash);
         $token->setExpiresAt($now->add(new \DateInterval('PT' . $this->expirationSeconds . 'S')));
-        $token->setRequestedIp($ip);
 
         $this->entityManager->persist($token);
         $this->entityManager->flush();
@@ -69,6 +67,10 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
 
     private function findUserByEmail(string $email): ?ShopUserInterface
     {
+        if ($email === '') {
+            return null;
+        }
+
         $customer = $this->customerRepository->findOneBy(['email' => $email]);
         if (!$customer instanceof CustomerInterface) {
             return null;

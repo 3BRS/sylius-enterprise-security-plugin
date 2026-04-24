@@ -37,3 +37,10 @@ Feature: Admin magic link login
         Given a used admin magic link token "admin-used-1" exists for "admin@example.com"
         When I follow the admin magic link "admin-used-1"
         Then I should see an admin magic link invalid-or-expired error
+
+    @ui
+    Scenario: Rate limit blocks additional admin requests within the window
+        Given 3 admin magic link tokens have recently been issued for "admin@example.com"
+        When I request an admin magic link for "admin@example.com"
+        Then I should see an admin magic link request confirmation
+        And exactly 3 admin magic link tokens should exist for "admin@example.com"

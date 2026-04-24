@@ -30,12 +30,13 @@ class CustomerMagicLinkEmailManager implements CustomerMagicLinkEmailManagerInte
         );
 
         $this->emailSender->send(
-            code: Emails::CUSTOMER_MAGIC_LINK,
+            code: Emails::MAGIC_LINK,
             recipients: [$email],
             data: [
                 'user' => $user,
                 'magicLinkUrl' => $magicLinkUrl,
                 'expirationMinutes' => (int) ceil($expirationSeconds / 60),
+                'group' => 'customer',
             ],
         );
     }

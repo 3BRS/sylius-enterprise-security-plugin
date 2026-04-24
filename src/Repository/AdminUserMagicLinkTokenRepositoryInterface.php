@@ -12,6 +12,4 @@ interface AdminUserMagicLinkTokenRepositoryInterface
     public function findOneByTokenHash(string $tokenHash): ?AdminUserMagicLinkTokenInterface;
 
     public function countRecentForAdminUser(AdminUserInterface $user, \DateTimeImmutable $since): int;
-
-    public function deleteExpiredBefore(\DateTimeImmutable $threshold): int;
 }

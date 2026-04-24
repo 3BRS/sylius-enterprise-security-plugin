@@ -9,6 +9,7 @@ use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorTokenInterface;
+use Scheb\TwoFactorBundle\Security\Http\Authentication\AuthenticationRequiredHandlerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,6 +38,7 @@ class MagicLinkVerifyController implements MagicLinkVerifyControllerInterface
         private EntityManagerInterface $entityManager,
         private TokenStorageInterface $tokenStorage,
         private EventDispatcherInterface $eventDispatcher,
+        private AuthenticationRequiredHandlerInterface $twoFactorHandler,
         private RouterInterface $router,
         private ClockInterface $clock,
         private LoggerInterface $logger,
@@ -48,6 +50,13 @@ class MagicLinkVerifyController implements MagicLinkVerifyControllerInterface
     {
         if (!$this->enabled) {
             throw new NotFoundHttpException();
+        }
+
+        // Post-2FA redirect-back idempotency: scheb/2fa's prepare_on_login saves the
+        // current URL as the post-2FA target_path, so once 2FA succeeds the user lands
+        // back here. At that point the magic link has already done its job.
+        if ($this->isFullyAuthenticatedShopUser($this->tokenStorage->getToken())) {
+            return new RedirectResponse($this->resolveRedirectUrl($request, static::FIREWALL_NAME, $this->router->generate('sylius_shop_account_dashboard')));
         }
 
         $magicLink = $this->verifier->verify($token);
@@ -72,13 +81,18 @@ class MagicLinkVerifyController implements MagicLinkVerifyControllerInterface
 
         $authenticatedToken = $this->authenticate($request, $user);
 
-        $response = new RedirectResponse($this->resolveRedirectUrl($request, static::FIREWALL_NAME, $this->router->generate('sylius_shop_account_dashboard')));
-
         if ($authenticatedToken instanceof TwoFactorTokenInterface) {
-            return new RedirectResponse($this->router->generate('2fa_login'));
+            return $this->twoFactorHandler->onAuthenticationRequired($request, $authenticatedToken);
         }
 
-        return $response;
+        return new RedirectResponse($this->resolveRedirectUrl($request, static::FIREWALL_NAME, $this->router->generate('sylius_shop_account_dashboard')));
+    }
+
+    private function isFullyAuthenticatedShopUser(?TokenInterface $token): bool
+    {
+        return $token !== null &&
+            !$token instanceof TwoFactorTokenInterface &&
+            $token->getUser() instanceof ShopUserInterface;
     }
 
     private function authenticate(Request $request, ShopUserInterface $user): TokenInterface

@@ -109,6 +109,27 @@ class MagicLinkContext implements Context
     }
 
     /**
+     * @Given :count admin magic link tokens have recently been issued for :email
+     */
+    public function adminMagicLinkTokensHaveRecentlyBeenIssuedFor(int $count, string $email): void
+    {
+        for ($i = 0; $i < $count; $i++) {
+            $this->createToken($email, sprintf('admin-recent-%d', $i), new \DateTimeImmutable('+5 minutes'), null);
+        }
+    }
+
+    /**
+     * @Then exactly :count admin magic link tokens should exist for :email
+     */
+    public function exactlyAdminMagicLinkTokensShouldExistFor(int $count, string $email): void
+    {
+        $this->entityManager->clear();
+        $user = $this->findAdminUser($email);
+        $actual = $this->tokenRepository->countRecentForAdminUser($user, new \DateTimeImmutable('-1 hour'));
+        Assert::same($actual, $count, sprintf('Expected exactly %d admin magic link tokens for "%s", got %d.', $count, $email, $actual));
+    }
+
+    /**
      * @Then I should see an admin magic link invalid-or-expired error
      */
     public function iShouldSeeAnAdminMagicLinkInvalidOrExpiredError(): void

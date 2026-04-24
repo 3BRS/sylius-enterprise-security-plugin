@@ -15,6 +15,7 @@ three_brs:
             subject: 'Your admin sign-in link'
             title: 'Sign in to the admin panel'
         magic_link:
+            subject: 'Your sign-in link'
             intro: 'Use the button below to sign in. No password is required.'
             button: 'Sign in'
             expires_in: 'This link will expire in %minutes% minutes.'

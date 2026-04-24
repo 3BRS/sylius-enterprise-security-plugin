@@ -27,8 +27,4 @@ interface AdminUserMagicLinkTokenInterface
     public function setUsedAt(?\DateTimeImmutable $usedAt): void;
 
     public function getCreatedAt(): \DateTimeImmutable;
-
-    public function getRequestedIp(): ?string;
-
-    public function setRequestedIp(?string $requestedIp): void;
 }

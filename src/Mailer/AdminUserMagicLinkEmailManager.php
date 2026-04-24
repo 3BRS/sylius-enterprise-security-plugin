@@ -30,12 +30,13 @@ class AdminUserMagicLinkEmailManager implements AdminUserMagicLinkEmailManagerIn
         );
 
         $this->emailSender->send(
-            code: Emails::ADMIN_MAGIC_LINK,
+            code: Emails::MAGIC_LINK,
             recipients: [$email],
             data: [
                 'user' => $user,
                 'magicLinkUrl' => $magicLinkUrl,
                 'expirationMinutes' => (int) ceil($expirationSeconds / 60),
+                'group' => 'admin',
             ],
         );
     }

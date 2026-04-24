@@ -12,6 +12,4 @@ interface CustomerMagicLinkTokenRepositoryInterface
     public function findOneByTokenHash(string $tokenHash): ?CustomerMagicLinkTokenInterface;
 
     public function countRecentForShopUser(ShopUserInterface $user, \DateTimeImmutable $since): int;
-
-    public function deleteExpiredBefore(\DateTimeImmutable $threshold): int;
 }

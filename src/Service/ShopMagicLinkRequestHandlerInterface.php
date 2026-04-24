@@ -6,5 +6,5 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 
 interface ShopMagicLinkRequestHandlerInterface
 {
-    public function request(string $email, ?string $ip): void;
+    public function request(string $email): void;
 }

@@ -40,7 +40,7 @@ class MagicLinkRequestController implements MagicLinkRequestControllerInterface
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var array{email: string} $data */
             $data = $form->getData();
-            $this->handler->request($data['email'], $request->getClientIp());
+            $this->handler->request($data['email']);
 
             $this->addFlashMessage($request, 'success', 'three_brs.ui.magic_link.request_sent');
 

@@ -35,9 +35,6 @@ class CustomerMagicLinkToken implements CustomerMagicLinkTokenInterface
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable', nullable: false)]
     private \DateTimeImmutable $createdAt;
 
-    #[ORM\Column(name: 'requested_ip', type: 'string', length: 45, nullable: true)]
-    private ?string $requestedIp = null;
-
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -91,15 +88,5 @@ class CustomerMagicLinkToken implements CustomerMagicLinkTokenInterface
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    public function getRequestedIp(): ?string
-    {
-        return $this->requestedIp;
-    }
-
-    public function setRequestedIp(?string $requestedIp): void
-    {
-        $this->requestedIp = $requestedIp;
     }
 }
