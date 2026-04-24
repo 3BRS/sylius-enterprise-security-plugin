@@ -9,9 +9,89 @@ services:
             $inner: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator.inner'
         decorates: validator
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepository:
+        factory: ['@doctrine.orm.entity_manager', 'getRepository']
+        arguments:
+            - ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerPasswordHistory
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryRepository:
+        factory: ['@doctrine.orm.entity_manager', 'getRepository']
+        arguments:
+            - ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasswordHistory
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryChecker:
+        arguments:
+            $customerRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepository'
+            $adminRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryRepository'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordHistoryValidator:
+        arguments:
+            $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryChecker'
+            $tokenStorage: '@security.token_storage'
+        tags:
+            - { name: 'validator.constraint_validator', alias: 'three_brs.validator.password_history' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserPasswordHistoryListener:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepository'
+            $logger: '@logger'
+        tags:
+            - { name: 'doctrine.event_listener', event: 'onFlush' }
+            - { name: 'doctrine.event_listener', event: 'postFlush' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordHistoryListener:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryRepository'
+            $logger: '@logger'
+        tags:
+            - { name: 'doctrine.event_listener', event: 'onFlush' }
+            - { name: 'doctrine.event_listener', event: 'postFlush' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordExpirationListener:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker'
+            $router: '@router'
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\ForcePasswordChangeController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $passwordHasher: '@security.password_hasher'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $router: '@router'
+            $twig: '@twig'
+            $formFactory: '@form.factory'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension\AdminUserTypeExtension:
+        tags:
+            - { name: 'form.type_extension' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\PasswordHistoryFixture:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\PasswordExpirationFixture:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator:
         arguments:
             $customerPolicy: '@three_brs.password_policy.customer'
             $adminPolicy: '@three_brs.password_policy.admin'
+            $tokenStorage: '@security.token_storage'
         tags:
             - { name: 'validator.constraint_validator', alias: 'three_brs.validator.password_policy' }

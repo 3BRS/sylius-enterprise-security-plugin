@@ -1,0 +1,4 @@
+three_brs_admin_force_password_change:
+    path: /admin/force-password-change
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\ForcePasswordChangeController
+    methods: [GET, POST]

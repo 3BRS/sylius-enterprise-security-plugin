@@ -3358,6 +3358,26 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     graphs_to_adapters_mapping?: array<string, scalar|Param|null>,
  * }
  * @psalm-type ThreeBrsSyliusEnterpriseSecurityConfig = array{
+ *     password_history?: array{
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             count?: int|Param, // Default: 5
+ *         },
+ *         admin?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             count?: int|Param, // Default: 10
+ *         },
+ *     },
+ *     password_expiration?: array{
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             days?: int|Param, // Default: 90
+ *         },
+ *         admin?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             days?: int|Param, // Default: 60
+ *         },
+ *     },
  *     password_policy?: array{
  *         customer?: array{
  *             min_length?: int|Param, // Default: 8

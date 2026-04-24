@@ -26,5 +26,35 @@
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.customer"/>
 		</service>
+
+		<service id="three_brs.behat.context.ui.shop.password_history"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasswordHistoryContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.password_expiration"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasswordExpirationContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.password_history"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PasswordHistoryContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.password_expiration"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PasswordExpirationContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
+		</service>
 	</services>
 </container>

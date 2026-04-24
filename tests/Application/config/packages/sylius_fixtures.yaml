@@ -54,3 +54,33 @@ sylius_fixtures:
                                 password: "NoNumbers!!"
                                 first_name: NoNumbers
                                 enabled: true
+                            customer_with_history:
+                                email: history@example.com
+                                password: "CurrentPass1!"
+                                first_name: History
+                                enabled: true
+                            customer_expired:
+                                email: expired@example.com
+                                password: "ExpiredPass1!"
+                                first_name: Expired
+                                enabled: true
+
+                three_brs_password_history:
+                    options:
+                        shop_users:
+                            - email: history@example.com
+                              passwords:
+                                  - "OldPass1!"
+                                  - "OldPass2!"
+                        admin_users:
+                            - email: sylius@example.com
+                              passwords:
+                                  - "OldAdminPass1!"
+                                  - "OldAdminPass2!"
+
+                three_brs_password_expiration:
+                    options:
+                        shop_users:
+                            - email: expired@example.com
+                              password_changed_days_ago: 100
+                        admin_users: []

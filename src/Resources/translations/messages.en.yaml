@@ -1,0 +1,8 @@
+three_brs:
+    form:
+        admin_user:
+            force_password_change: 'Force password change on next login'
+    ui:
+        force_password_change: 'Password Change Required'
+        force_password_change_description: 'Your password has expired or an administrator has requested you to change it. Please set a new password to continue.'
+        change_password: 'Change Password'
