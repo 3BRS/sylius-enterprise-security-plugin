@@ -1,0 +1,30 @@
+{% extends '@SyliusShop/shared/layout/base.html.twig' %}
+
+{% block title %}{{ 'three_brs.ui.magic_link.request_title'|trans }} | {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="container mb-auto">
+        <div class="row my-4 justify-content-center">
+            <div class="col-12 col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="h4 mb-3">{{ 'three_brs.ui.magic_link.request_title'|trans }}</h1>
+                        <p>{{ 'three_brs.ui.magic_link.request_intro'|trans }}</p>
+
+                        {{ form_start(form, {'action': path('three_brs_shop_magic_link_request'), 'attr': {'id': 'three_brs_magic_link_request_form', 'novalidate': 'novalidate'}}) }}
+                            <div class="mb-3">
+                                {{ form_label(form.email) }}
+                                {{ form_widget(form.email, {'attr': {'class': 'form-control', 'autocomplete': 'email', 'autofocus': 'autofocus', 'id': 'three_brs_magic_link_request_email'}}) }}
+                                {{ form_errors(form.email) }}
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="three_brs_magic_link_request_submit">
+                                {{ 'three_brs.ui.magic_link.request_submit'|trans }}
+                            </button>
+                            {{ form_rest(form) }}
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

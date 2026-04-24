@@ -18,3 +18,5 @@ imports:
     - suites/shop_two_factor_trusted_device.yml
     - suites/shop_social_login.yml
     - suites/admin_social_login.yml
+    - suites/shop_magic_link.yml
+    - suites/admin_magic_link.yml

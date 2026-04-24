@@ -21,3 +21,15 @@ arguments:
 ```
 
 Never use positional arguments (`- '@...'`). Names must exactly match the `__construct()` parameters of the class.
+
+## No inline FQCN — always `use` imports
+Never reference classes by their fully qualified name inline in PHP code (e.g. `throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException()`, `: \Some\Namespace\Thing`, `is_a($x, 'Some\\Namespace\\Thing')`).
+Always add a `use` statement at the top of the file and reference the short class name:
+
+```php
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+throw new NotFoundHttpException();
+```
+
+Applies to `throw new …`, `new …`, parameter/return type hints, `instanceof`, class-string references, and anywhere else a class is named. Use `instanceof` with an imported class, not `is_a()` with a namespace string.

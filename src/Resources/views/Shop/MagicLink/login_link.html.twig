@@ -1,0 +1,7 @@
+{% if three_brs_magic_link_enabled('customer') %}
+    <div class="three-brs-magic-link mt-2 text-center">
+        <a href="{{ path('three_brs_shop_magic_link_request') }}" id="three_brs_magic_link_login_link" data-test-three-brs-magic-link-login>
+            {{ 'three_brs.ui.magic_link.request_link'|trans }}
+        </a>
+    </div>
+{% endif %}

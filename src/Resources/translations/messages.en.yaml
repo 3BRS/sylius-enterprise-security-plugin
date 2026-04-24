@@ -8,6 +8,17 @@ three_brs:
             ip_address: 'IP Address'
             not_you_warning: 'If you did not make this change, your account may be compromised. Please secure your account immediately.'
             secure_account: 'Secure My Account'
+        customer_magic_link:
+            subject: 'Your sign-in link'
+            title: 'Sign in to your account'
+        admin_magic_link:
+            subject: 'Your admin sign-in link'
+            title: 'Sign in to the admin panel'
+        magic_link:
+            intro: 'Use the button below to sign in. No password is required.'
+            button: 'Sign in'
+            expires_in: 'This link will expire in %minutes% minutes.'
+            ignore_if_not_requested: 'If you did not request this email, you can safely ignore it.'
     form:
         admin_user:
             force_password_change: 'Force password change on next login'
@@ -62,3 +73,11 @@ three_brs:
             confirm_and_link: 'Confirm and link account'
             invalid_password: 'Invalid password.'
             unlink_confirm: 'Are you sure you want to unlink this social account?'
+        magic_link:
+            request_title: 'Sign in with a magic link'
+            request_intro: 'Enter your email address and we will send you a link to sign in without a password.'
+            request_submit: 'Send magic link'
+            request_link: 'Sign in with a magic link'
+            email: 'Email'
+            request_sent: 'If an account exists for the email you entered, a sign-in link has been sent.'
+            invalid_or_expired: 'This magic link is invalid or has expired. Request a new one to sign in.'

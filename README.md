@@ -289,6 +289,45 @@ Apple Sign In requires a paid Apple Developer account and a **public HTTPS** red
    ```
 4. Flip `enabled: true` for the relevant group. The plugin generates Apple's ES256 `client_secret` JWT at runtime — you don't store a long-lived secret.
 
+### Magic Link Login
+
+- Passwordless sign-in for shop customers and admin users, independently configurable per group
+- User submits their email, the plugin generates a single-use token, stores only its SHA-256 hash, and emails a link (`/magic-link/verify/{token}` for shop, `/admin/magic-link/verify/{token}` for admin)
+- Following the link signs the user in and marks the token as used — one-time use only
+- Separate link (like "Forgotten password?") is rendered on the shop and admin login pages via Sylius twig hooks; no markup changes required in your theme
+- Tokens live in dedicated tables (`three_brs_customer_magic_link_token`, `three_brs_admin_user_magic_link_token`) — only hashes are stored, plain tokens exist only in the email
+- Anti-enumeration: the request endpoint always responds with the same neutral confirmation whether the email is known, unknown, disabled, or rate-limited — no information about account existence leaks
+- Rate limiting per user: configurable count within a sliding window (defaults to 3 requests / 15 minutes)
+- 2FA-aware: if the authenticated user has `scheb/2fa` enabled, the verify controller dispatches `AuthenticationTokenCreatedEvent` on the firewall event dispatcher so scheb wraps the token and redirects to the 2FA challenge — the magic link does **not** bypass the second factor
+- Fixture (`three_brs_magic_link`) to preload tokens for demo/testing
+
+```yaml
+three_brs_sylius_enterprise_security:
+    magic_link:
+        customer:
+            enabled: false
+            expiration_seconds: 300      # 5 minutes
+            rate_limit_max: 3
+            rate_limit_window_seconds: 900  # 15 minutes
+        admin:
+            enabled: false
+            expiration_seconds: 300
+            rate_limit_max: 3
+            rate_limit_window_seconds: 900
+```
+
+Expose the request and verify endpoints as public in your firewall access control (the verify controller authenticates internally):
+
+```yaml
+# config/packages/security.yaml
+security:
+    access_control:
+        - { path: ^/magic-link$, role: PUBLIC_ACCESS }
+        - { path: ^/magic-link/verify/, role: PUBLIC_ACCESS }
+        - { path: "%sylius.security.admin_regex%/magic-link$", role: PUBLIC_ACCESS }
+        - { path: "%sylius.security.admin_regex%/magic-link/verify/", role: PUBLIC_ACCESS }
+```
+
 ## Installation
 
 1. Run `composer require 3brs/sylius-enterprise-security-plugin`.

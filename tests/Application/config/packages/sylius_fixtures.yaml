@@ -90,6 +90,11 @@ sylius_fixtures:
                         shop_users: []
                         admin_users: []
 
+                three_brs_magic_link:
+                    options:
+                        shop_users: []
+                        admin_users: []
+
                 three_brs_social_account_link:
                     options:
                         shop_users:

@@ -63,3 +63,14 @@ three_brs_sylius_enterprise_security:
                 enabled: true
                 client_id: '%env(GOOGLE_ADMIN_CLIENT_ID)%'
                 client_secret: '%env(GOOGLE_ADMIN_CLIENT_SECRET)%'
+    magic_link:
+        customer:
+            enabled: true
+            expiration_seconds: 300
+            rate_limit_max: 3
+            rate_limit_window_seconds: 900
+        admin:
+            enabled: true
+            expiration_seconds: 300
+            rate_limit_max: 3
+            rate_limit_window_seconds: 900

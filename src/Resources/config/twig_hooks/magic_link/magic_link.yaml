@@ -1,0 +1,11 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_shop.account.login.content.login_container':
+            three_brs_magic_link_login:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/MagicLink/login_link.html.twig'
+                priority: 40
+
+        'sylius_admin.security.login.page.content':
+            three_brs_magic_link_login:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/MagicLink/login_link.html.twig'
+                priority: -90

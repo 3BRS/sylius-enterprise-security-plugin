@@ -13,3 +13,6 @@ three_brs:
             not_logged_in: 'You must be logged in to link a social account.'
             missing_email: 'The provider did not share an email address, cannot continue.'
             auto_register_refused: 'Self-registration through this social provider is not allowed. Please contact an administrator.'
+        magic_link:
+            request_sent: 'If an account exists for the email you entered, a sign-in link has been sent.'
+            invalid_or_expired: 'This magic link is invalid or has expired. Request a new one to sign in.'

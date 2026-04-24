@@ -173,5 +173,23 @@
 			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
 		</service>
+
+		<service id="three_brs.behat.context.ui.shop.magic_link"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\MagicLinkContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.magic_link"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\MagicLinkContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepository"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
 	</services>
 </container>

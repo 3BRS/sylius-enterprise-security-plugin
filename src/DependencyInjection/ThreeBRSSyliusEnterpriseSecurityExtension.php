@@ -14,7 +14,9 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordChangeNotifica
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserPasswordHistoryListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicy;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordHistoryValidator;
 
@@ -27,6 +29,16 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
                 'three_brs_password_changed' => [
                     'subject' => 'three_brs.emails.password_changed.subject',
                     'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/passwordChanged.html.twig',
+                    'enabled' => true,
+                ],
+                'three_brs_customer_magic_link' => [
+                    'subject' => 'three_brs.emails.customer_magic_link.subject',
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/customerMagicLink.html.twig',
+                    'enabled' => true,
+                ],
+                'three_brs_admin_magic_link' => [
+                    'subject' => 'three_brs.emails.admin_magic_link.subject',
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/adminMagicLink.html.twig',
                     'enabled' => true,
                 ],
             ],
@@ -61,6 +73,28 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerPasswordChangeNotification($container, $config['password_change_notification']);
         $this->registerTwoFactorAuthentication($container, $config['two_factor_authentication']);
         $this->registerOAuth($container, $config['oauth']);
+        $this->registerMagicLink($container, $config['magic_link']);
+    }
+
+    /** @param array<string, array<string, mixed>> $config */
+    private function registerMagicLink(ContainerBuilder $container, array $config): void
+    {
+        $container->getDefinition(ShopMagicLinkRequestHandler::class)
+            ->setArgument('$enabled', $config['customer']['enabled'])
+            ->setArgument('$expirationSeconds', $config['customer']['expiration_seconds'])
+            ->setArgument('$rateLimitMax', $config['customer']['rate_limit_max'])
+            ->setArgument('$rateLimitWindowSeconds', $config['customer']['rate_limit_window_seconds'])
+        ;
+
+        $container->getDefinition(AdminMagicLinkRequestHandler::class)
+            ->setArgument('$enabled', $config['admin']['enabled'])
+            ->setArgument('$expirationSeconds', $config['admin']['expiration_seconds'])
+            ->setArgument('$rateLimitMax', $config['admin']['rate_limit_max'])
+            ->setArgument('$rateLimitWindowSeconds', $config['admin']['rate_limit_window_seconds'])
+        ;
+
+        $container->setParameter('three_brs.magic_link.customer.enabled', $config['customer']['enabled']);
+        $container->setParameter('three_brs.magic_link.admin.enabled', $config['admin']['enabled']);
     }
 
     /** @param array<string, mixed> $config */
