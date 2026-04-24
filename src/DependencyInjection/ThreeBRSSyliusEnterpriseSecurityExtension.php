@@ -63,7 +63,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     }
 
     /** @param array<string, mixed> $config */
-    private function registerTwoFactorAuthentication(ContainerBuilder $container, array $config): void
+    protected function registerTwoFactorAuthentication(ContainerBuilder $container, array $config): void
     {
         $container->getDefinition(TwoFactorEnforcementChecker::class)
             ->setArgument('$customerMode', TwoFactorMode::from($config['customer']['mode']))

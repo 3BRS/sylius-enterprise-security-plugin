@@ -24,14 +24,14 @@ class TwoFactorRegenerateRecoveryCodesController implements TwoFactorRegenerateR
     public const CSRF_TOKEN_ID = 'three_brs_shop_two_factor_regenerate';
 
     public function __construct(
-        private TokenStorageInterface $tokenStorage,
-        private EntityManagerInterface $entityManager,
-        private CustomerRecoveryCodeRepositoryInterface $recoveryCodeRepository,
-        private RecoveryCodeGeneratorInterface $recoveryGenerator,
-        private CsrfTokenManagerInterface $csrfTokenManager,
-        private RouterInterface $router,
-        private bool $recoveryCodesEnabled,
-        private int $recoveryCodesCount,
+        protected TokenStorageInterface $tokenStorage,
+        protected EntityManagerInterface $entityManager,
+        protected CustomerRecoveryCodeRepositoryInterface $recoveryCodeRepository,
+        protected RecoveryCodeGeneratorInterface $recoveryGenerator,
+        protected CsrfTokenManagerInterface $csrfTokenManager,
+        protected RouterInterface $router,
+        protected bool $recoveryCodesEnabled,
+        protected int $recoveryCodesCount,
     ) {
     }
 

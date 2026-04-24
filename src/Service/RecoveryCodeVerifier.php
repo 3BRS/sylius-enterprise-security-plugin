@@ -14,11 +14,11 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepos
 class RecoveryCodeVerifier implements RecoveryCodeVerifierInterface
 {
     public function __construct(
-        private CustomerRecoveryCodeRepositoryInterface $customerRepository,
-        private AdminUserRecoveryCodeRepositoryInterface $adminRepository,
-        private RecoveryCodeGeneratorInterface $generator,
-        private EntityManagerInterface $entityManager,
-        private ClockInterface $clock,
+        protected CustomerRecoveryCodeRepositoryInterface $customerRepository,
+        protected AdminUserRecoveryCodeRepositoryInterface $adminRepository,
+        protected RecoveryCodeGeneratorInterface $generator,
+        protected EntityManagerInterface $entityManager,
+        protected ClockInterface $clock,
     ) {
     }
 

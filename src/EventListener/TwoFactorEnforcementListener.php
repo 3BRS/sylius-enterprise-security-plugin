@@ -47,9 +47,9 @@ class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterf
     ];
 
     public function __construct(
-        private TokenStorageInterface $tokenStorage,
-        private TwoFactorEnforcementCheckerInterface $checker,
-        private RouterInterface $router,
+        protected TokenStorageInterface $tokenStorage,
+        protected TwoFactorEnforcementCheckerInterface $checker,
+        protected RouterInterface $router,
     ) {
     }
 
@@ -99,7 +99,7 @@ class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterf
         }
     }
 
-    private function isExcludedRoute(string $route): bool
+    protected function isExcludedRoute(string $route): bool
     {
         if (in_array($route, static::EXCLUDED_ROUTES, true)) {
             return true;
@@ -114,7 +114,7 @@ class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterf
         return false;
     }
 
-    private function addFlash(Request $request): void
+    protected function addFlash(Request $request): void
     {
         $session = $request->hasSession() ? $request->getSession() : null;
         if ($session instanceof FlashBagAwareSessionInterface) {

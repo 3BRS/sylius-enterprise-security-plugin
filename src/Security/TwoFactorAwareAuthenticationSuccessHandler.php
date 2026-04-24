@@ -14,8 +14,8 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerI
 class TwoFactorAwareAuthenticationSuccessHandler implements TwoFactorAwareAuthenticationSuccessHandlerInterface
 {
     public function __construct(
-        private AuthenticationRequiredHandlerInterface $twoFactorAuthenticationRequiredHandler,
-        private AuthenticationSuccessHandlerInterface $defaultSuccessHandler,
+        protected AuthenticationRequiredHandlerInterface $twoFactorAuthenticationRequiredHandler,
+        protected AuthenticationSuccessHandlerInterface $defaultSuccessHandler,
     ) {
     }
 

@@ -13,8 +13,8 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
 class TwoFactorEnforcementChecker implements TwoFactorEnforcementCheckerInterface
 {
     public function __construct(
-        private TwoFactorMode $customerMode,
-        private TwoFactorMode $adminMode,
+        protected TwoFactorMode $customerMode,
+        protected TwoFactorMode $adminMode,
     ) {
     }
 

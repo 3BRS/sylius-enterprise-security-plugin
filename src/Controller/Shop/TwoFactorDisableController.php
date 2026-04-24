@@ -22,11 +22,11 @@ class TwoFactorDisableController implements TwoFactorDisableControllerInterface
     public const CSRF_TOKEN_ID = 'three_brs_shop_two_factor_disable';
 
     public function __construct(
-        private TokenStorageInterface $tokenStorage,
-        private EntityManagerInterface $entityManager,
-        private CustomerRecoveryCodeRepositoryInterface $recoveryCodeRepository,
-        private CsrfTokenManagerInterface $csrfTokenManager,
-        private RouterInterface $router,
+        protected TokenStorageInterface $tokenStorage,
+        protected EntityManagerInterface $entityManager,
+        protected CustomerRecoveryCodeRepositoryInterface $recoveryCodeRepository,
+        protected CsrfTokenManagerInterface $csrfTokenManager,
+        protected RouterInterface $router,
     ) {
     }
 

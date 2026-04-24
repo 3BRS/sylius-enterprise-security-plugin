@@ -15,9 +15,9 @@ use Twig\Environment;
 class TwoFactorRecoveryCodesController implements TwoFactorRecoveryCodesControllerInterface
 {
     public function __construct(
-        private TokenStorageInterface $tokenStorage,
-        private RouterInterface $router,
-        private Environment $twig,
+        protected TokenStorageInterface $tokenStorage,
+        protected RouterInterface $router,
+        protected Environment $twig,
     ) {
     }
 

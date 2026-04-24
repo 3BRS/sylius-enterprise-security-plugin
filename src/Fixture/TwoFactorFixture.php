@@ -25,11 +25,11 @@ class TwoFactorFixture extends AbstractFixture implements TwoFactorFixtureInterf
      * @param UserRepositoryInterface<\Sylius\Component\User\Model\UserInterface>         $adminUserRepository
      */
     public function __construct(
-        private CustomerRepositoryInterface $customerRepository,
-        private UserRepositoryInterface $adminUserRepository,
-        private EntityManagerInterface $entityManager,
-        private TotpSecretGeneratorInterface $totpGenerator,
-        private RecoveryCodeGeneratorInterface $recoveryGenerator,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected UserRepositoryInterface $adminUserRepository,
+        protected EntityManagerInterface $entityManager,
+        protected TotpSecretGeneratorInterface $totpGenerator,
+        protected RecoveryCodeGeneratorInterface $recoveryGenerator,
     ) {
     }
 
@@ -76,7 +76,7 @@ class TwoFactorFixture extends AbstractFixture implements TwoFactorFixtureInterf
     }
 
     /** @param array<int, mixed> $codes */
-    private function createCustomerRecoveryCodes(ShopUserInterface&TwoFactorAuthShopUserInterface $user, array $codes): void
+    protected function createCustomerRecoveryCodes(ShopUserInterface&TwoFactorAuthShopUserInterface $user, array $codes): void
     {
         foreach ($codes as $plain) {
             $record = new CustomerRecoveryCode();
@@ -87,7 +87,7 @@ class TwoFactorFixture extends AbstractFixture implements TwoFactorFixtureInterf
     }
 
     /** @param array<int, mixed> $codes */
-    private function createAdminRecoveryCodes(AdminUserInterface&TwoFactorAuthAdminUserInterface $user, array $codes): void
+    protected function createAdminRecoveryCodes(AdminUserInterface&TwoFactorAuthAdminUserInterface $user, array $codes): void
     {
         foreach ($codes as $plain) {
             $record = new AdminUserRecoveryCode();

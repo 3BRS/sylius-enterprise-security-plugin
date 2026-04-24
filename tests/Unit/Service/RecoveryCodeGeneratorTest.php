@@ -35,7 +35,7 @@ class RecoveryCodeGeneratorTest extends TestCase
 
         $codes = $generator->generate(3);
         foreach ($codes as $code) {
-            self::assertMatchesRegularExpression('/^[A-Z0-9]{5}-[A-Z0-9]{5}$/', $code);
+            self::assertMatchesRegularExpression('/^[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$/', $code);
         }
     }
 

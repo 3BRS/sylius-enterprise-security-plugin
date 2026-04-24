@@ -27,9 +27,9 @@ class RecoveryCodeGenerator implements RecoveryCodeGeneratorInterface
 
     protected function generateSingle(): string
     {
-        $raw = bin2hex(random_bytes(5));
+        $raw = bin2hex(random_bytes(8));
 
-        return strtoupper(substr($raw, 0, 5) . '-' . substr($raw, 5, 5));
+        return strtoupper(implode('-', str_split($raw, 4)));
     }
 
     protected function normalize(string $code): string

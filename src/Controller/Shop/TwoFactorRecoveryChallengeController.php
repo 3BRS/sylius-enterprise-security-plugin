@@ -24,10 +24,10 @@ class TwoFactorRecoveryChallengeController implements TwoFactorRecoveryChallenge
     protected const FIREWALL_NAME = 'shop';
 
     public function __construct(
-        private TokenStorageInterface $tokenStorage,
-        private RecoveryCodeVerifierInterface $recoveryCodeVerifier,
-        private RouterInterface $router,
-        private Environment $twig,
+        protected TokenStorageInterface $tokenStorage,
+        protected RecoveryCodeVerifierInterface $recoveryCodeVerifier,
+        protected RouterInterface $router,
+        protected Environment $twig,
     ) {
     }
 
@@ -65,7 +65,7 @@ class TwoFactorRecoveryChallengeController implements TwoFactorRecoveryChallenge
         ));
     }
 
-    private function resolveRedirectUrl(Request $request): string
+    protected function resolveRedirectUrl(Request $request): string
     {
         if ($request->hasSession()) {
             $targetPath = $this->getTargetPath($request->getSession(), static::FIREWALL_NAME);

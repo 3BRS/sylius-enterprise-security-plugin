@@ -175,6 +175,30 @@ scheb_two_factor:
         issuer: '%three_brs.two_factor.issuer%'
 ```
 
+On the **shop firewall**, replace Sylius' default `form_login.success_handler` (`sylius.authentication.success_handler`) with the plugin's 2FA-aware wrapper. The default Sylius handler returns a `JsonResponse` on XHR and redirects straight to the target path without checking for a `TwoFactorTokenInterface`, which produces a broken UX during 2FA challenges:
+
+```yaml
+# config/packages/security.yaml
+security:
+    firewalls:
+        shop:
+            form_login:
+                success_handler: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler.shop
+            two_factor:
+                auth_form_path: /2fa
+                check_path: /2fa_check
+                prepare_on_login: true
+                prepare_on_access_denied: true
+        admin:
+            two_factor:
+                auth_form_path: /admin/2fa
+                check_path: /admin/2fa_check
+                prepare_on_login: true
+                prepare_on_access_denied: true
+```
+
+The admin firewall does not need a custom `success_handler` — Sylius does not override it there, so the default Symfony handler is used and scheb's `TwoFactorAccessListener` transparently redirects authenticated-but-not-yet-verified admins to `/admin/2fa` on the next request.
+
 ## Installation
 
 1. Run `composer require 3brs/sylius-enterprise-security-plugin`.

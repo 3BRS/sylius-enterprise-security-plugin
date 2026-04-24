@@ -30,19 +30,19 @@ class TwoFactorSetupController implements TwoFactorSetupControllerInterface
     public const SESSION_PLAIN_RECOVERY_CODES = 'three_brs_admin_two_factor_plain_recovery_codes';
 
     public function __construct(
-        private TokenStorageInterface $tokenStorage,
-        private TotpSecretGeneratorInterface $totpGenerator,
-        private QrCodeGeneratorInterface $qrGenerator,
-        private RecoveryCodeGeneratorInterface $recoveryGenerator,
-        private EntityManagerInterface $entityManager,
-        private FormFactoryInterface $formFactory,
-        private RouterInterface $router,
-        private Environment $twig,
-        private TranslatorInterface $translator,
-        private CsrfTokenManagerInterface $csrfTokenManager,
-        private string $issuer,
-        private bool $recoveryCodesEnabled,
-        private int $recoveryCodesCount,
+        protected TokenStorageInterface $tokenStorage,
+        protected TotpSecretGeneratorInterface $totpGenerator,
+        protected QrCodeGeneratorInterface $qrGenerator,
+        protected RecoveryCodeGeneratorInterface $recoveryGenerator,
+        protected EntityManagerInterface $entityManager,
+        protected FormFactoryInterface $formFactory,
+        protected RouterInterface $router,
+        protected Environment $twig,
+        protected TranslatorInterface $translator,
+        protected CsrfTokenManagerInterface $csrfTokenManager,
+        protected string $issuer,
+        protected bool $recoveryCodesEnabled,
+        protected int $recoveryCodesCount,
     ) {
     }
 

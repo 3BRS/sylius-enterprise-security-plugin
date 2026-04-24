@@ -15,20 +15,20 @@ class CustomerRecoveryCode implements CustomerRecoveryCodeInterface
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    protected ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: ShopUserInterface::class, fetch: 'EAGER')]
+    #[ORM\ManyToOne(targetEntity: ShopUserInterface::class)]
     #[ORM\JoinColumn(name: 'shop_user_id', referencedColumnName: 'id', onDelete: 'CASCADE', nullable: false)]
-    private ShopUserInterface $shopUser;
+    protected ShopUserInterface $shopUser;
 
     #[ORM\Column(name: 'code_hash', type: 'string', length: 64, nullable: false)]
-    private string $codeHash;
+    protected string $codeHash;
 
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable', nullable: false)]
-    private \DateTimeImmutable $createdAt;
+    protected \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'used_at', type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $usedAt = null;
+    protected ?\DateTimeImmutable $usedAt = null;
 
     public function __construct()
     {
