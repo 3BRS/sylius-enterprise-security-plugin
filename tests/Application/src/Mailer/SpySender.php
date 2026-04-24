@@ -8,7 +8,14 @@ use Sylius\Component\Mailer\Sender\SenderInterface;
 
 class SpySender implements SenderInterface
 {
-    /** @var array<int, array{code: string, recipients: array<string>}> */
+    /**
+     * Static so state is shared across kernel reboots during Behat UI scenarios:
+     * the context-held instance and the instance resolved inside an HTTP request
+     * would otherwise diverge, and emails sent during the request would not be
+     * visible to the assertion that runs afterwards in the context.
+     *
+     * @var array<int, array{code: string, recipients: array<string>}>
+     */
     private static array $sentEmails = [];
 
     public function send(

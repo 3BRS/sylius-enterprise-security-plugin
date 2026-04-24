@@ -22,14 +22,9 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     {
         $container->prependExtensionConfig('sylius_mailer', [
             'emails' => [
-                'three_brs_customer_password_changed' => [
-                    'subject' => 'three_brs.emails.customer_password_changed.subject',
-                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/customerPasswordChanged.html.twig',
-                    'enabled' => true,
-                ],
-                'three_brs_admin_password_changed' => [
-                    'subject' => 'three_brs.emails.admin_password_changed.subject',
-                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/adminPasswordChanged.html.twig',
+                'three_brs_password_changed' => [
+                    'subject' => 'three_brs.emails.password_changed.subject',
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/passwordChanged.html.twig',
                     'enabled' => true,
                 ],
             ],

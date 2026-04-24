@@ -10,7 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 interface PasswordChangeEmailManagerInterface
 {
-    public function sendCustomerPasswordChangedEmail(ShopUserInterface $user, ?Request $request, bool $initiatedByUser): void;
-
-    public function sendAdminPasswordChangedEmail(AdminUserInterface $user, ?Request $request, bool $initiatedByUser): void;
+    public function sendPasswordChangedEmail(
+        ShopUserInterface|AdminUserInterface $user,
+        ?Request $request,
+        bool $initiatedByUser,
+    ): void;
 }
