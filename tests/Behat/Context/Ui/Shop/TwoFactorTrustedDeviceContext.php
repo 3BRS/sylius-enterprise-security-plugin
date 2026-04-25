@@ -10,11 +10,14 @@ use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\StableTotpCodeTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthShopUserInterface;
 use Webmozart\Assert\Assert;
 
 class TwoFactorTrustedDeviceContext implements Context
 {
+    use StableTotpCodeTrait;
+
     private ?string $knownSecret = null;
 
     public function __construct(
@@ -43,7 +46,7 @@ class TwoFactorTrustedDeviceContext implements Context
     public function iSubmitAValidTotpChallengeCodeTrustingThisDevice(): void
     {
         Assert::notNull($this->knownSecret, 'Known secret was not stored.');
-        $code = TOTP::createFromSecret($this->knownSecret)->now();
+        $code = $this->generateStableTotpCode($this->knownSecret);
 
         $page = $this->session->getPage();
         $input = $page->find('css', '[data-test-two-factor-auth-code]');
