@@ -18,16 +18,17 @@ class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterf
      * @param UserRepositoryInterface<AdminUserInterface> $adminUserRepository
      */
     public function __construct(
-        private UserRepositoryInterface $adminUserRepository,
-        private AdminUserMagicLinkTokenRepositoryInterface $tokenRepository,
-        private MagicLinkTokenGeneratorInterface $tokenGenerator,
-        private AdminUserMagicLinkEmailManagerInterface $emailManager,
-        private EntityManagerInterface $entityManager,
-        private ClockInterface $clock,
-        private bool $enabled,
-        private int $expirationSeconds,
-        private int $rateLimitMax,
-        private int $rateLimitWindowSeconds,
+        protected UserRepositoryInterface $adminUserRepository,
+        protected AdminUserMagicLinkTokenRepositoryInterface $tokenRepository,
+        protected MagicLinkTokenGeneratorInterface $tokenGenerator,
+        protected AdminUserMagicLinkEmailManagerInterface $emailManager,
+        protected EntityManagerInterface $entityManager,
+        protected ClockInterface $clock,
+        protected TimingPaddingInterface $timingPadding,
+        protected bool $enabled,
+        protected int $expirationSeconds,
+        protected int $rateLimitMax,
+        protected int $rateLimitWindowSeconds,
     ) {
     }
 
@@ -45,11 +46,17 @@ class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterf
 
         $user = $this->findUserByEmail($email);
         if ($user === null) {
+            // Pad the response time so an attacker cannot tell that the email is unknown
+            // by measuring how much faster the request returned than the happy path.
+            $this->timingPadding->pad();
+
             return;
         }
 
         $windowStart = $now->sub(new \DateInterval('PT' . $this->rateLimitWindowSeconds . 'S'));
         if ($this->tokenRepository->countRecentForAdminUser($user, $windowStart) >= $this->rateLimitMax) {
+            $this->timingPadding->pad();
+
             return;
         }
 
@@ -64,7 +71,7 @@ class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterf
         $this->emailManager->sendMagicLink($user, $plainToken, $this->expirationSeconds);
     }
 
-    private function findUserByEmail(string $email): ?AdminUserInterface
+    protected function findUserByEmail(string $email): ?AdminUserInterface
     {
         if ($email === '') {
             return null;

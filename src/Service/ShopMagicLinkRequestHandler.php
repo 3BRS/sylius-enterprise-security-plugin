@@ -19,16 +19,17 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
      * @param CustomerRepositoryInterface<CustomerInterface> $customerRepository
      */
     public function __construct(
-        private CustomerRepositoryInterface $customerRepository,
-        private CustomerMagicLinkTokenRepositoryInterface $tokenRepository,
-        private MagicLinkTokenGeneratorInterface $tokenGenerator,
-        private CustomerMagicLinkEmailManagerInterface $emailManager,
-        private EntityManagerInterface $entityManager,
-        private ClockInterface $clock,
-        private bool $enabled,
-        private int $expirationSeconds,
-        private int $rateLimitMax,
-        private int $rateLimitWindowSeconds,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected CustomerMagicLinkTokenRepositoryInterface $tokenRepository,
+        protected MagicLinkTokenGeneratorInterface $tokenGenerator,
+        protected CustomerMagicLinkEmailManagerInterface $emailManager,
+        protected EntityManagerInterface $entityManager,
+        protected ClockInterface $clock,
+        protected TimingPaddingInterface $timingPadding,
+        protected bool $enabled,
+        protected int $expirationSeconds,
+        protected int $rateLimitMax,
+        protected int $rateLimitWindowSeconds,
     ) {
     }
 
@@ -46,11 +47,17 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
 
         $user = $this->findUserByEmail($email);
         if ($user === null) {
+            // Pad the response time so an attacker cannot tell that the email is unknown
+            // by measuring how much faster the request returned than the happy path.
+            $this->timingPadding->pad();
+
             return;
         }
 
         $windowStart = $now->sub(new \DateInterval('PT' . $this->rateLimitWindowSeconds . 'S'));
         if ($this->tokenRepository->countRecentForShopUser($user, $windowStart) >= $this->rateLimitMax) {
+            $this->timingPadding->pad();
+
             return;
         }
 
@@ -65,7 +72,7 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
         $this->emailManager->sendMagicLink($user, $plainToken, $this->expirationSeconds);
     }
 
-    private function findUserByEmail(string $email): ?ShopUserInterface
+    protected function findUserByEmail(string $email): ?ShopUserInterface
     {
         if ($email === '') {
             return null;

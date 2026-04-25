@@ -17,11 +17,11 @@ use Webmozart\Assert\Assert;
 class MagicLinkContext implements Context
 {
     public function __construct(
-        private Session $session,
-        private CustomerRepositoryInterface $customerRepository,
-        private CustomerMagicLinkTokenRepositoryInterface $tokenRepository,
-        private MagicLinkTokenGeneratorInterface $tokenGenerator,
-        private EntityManagerInterface $entityManager,
+        protected Session $session,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected CustomerMagicLinkTokenRepositoryInterface $tokenRepository,
+        protected MagicLinkTokenGeneratorInterface $tokenGenerator,
+        protected EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -154,7 +154,7 @@ class MagicLinkContext implements Context
         Assert::notNull($customer, sprintf('Customer "%s" not found.', $email));
     }
 
-    private function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void
+    protected function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void
     {
         $user = $this->findShopUser($email);
 
@@ -170,7 +170,7 @@ class MagicLinkContext implements Context
         $this->entityManager->flush();
     }
 
-    private function findShopUser(string $email): ShopUserInterface
+    protected function findShopUser(string $email): ShopUserInterface
     {
         $customer = $this->customerRepository->findOneBy(['email' => $email]);
         Assert::notNull($customer, sprintf('Customer "%s" not found.', $email));

@@ -10,8 +10,8 @@ use Twig\TwigFunction;
 class MagicLinkExtension extends AbstractExtension implements MagicLinkExtensionInterface
 {
     public function __construct(
-        private bool $customerEnabled,
-        private bool $adminEnabled,
+        protected bool $customerEnabled,
+        protected bool $adminEnabled,
     ) {
     }
 

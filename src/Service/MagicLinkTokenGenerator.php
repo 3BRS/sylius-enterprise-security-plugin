@@ -6,7 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 
 class MagicLinkTokenGenerator implements MagicLinkTokenGeneratorInterface
 {
-    private const TOKEN_BYTES = 32;
+    protected const TOKEN_BYTES = 32;
 
     public function generatePlainToken(): string
     {

@@ -14,6 +14,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManage
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGeneratorInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TimingPaddingInterface;
 
 #[CoversClass(AdminMagicLinkRequestHandler::class)]
 class AdminMagicLinkRequestHandlerTest extends TestCase
@@ -36,12 +37,15 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
 
         $clock = $this->createStub(ClockInterface::class);
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, false, 300, 3, 900);
+        $timingPadding = $this->createMock(TimingPaddingInterface::class);
+        $timingPadding->expects(self::never())->method('pad');
+
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, false, 300, 3, 900);
 
         $handler->request('admin@example.com');
     }
 
-    public function testUnknownEmailDoesNothing(): void
+    public function testUnknownEmailPadsResponseTime(): void
     {
         $userRepo = $this->createMock(UserRepositoryInterface::class);
         $userRepo->expects(self::once())->method('findOneBy')->willReturn(null);
@@ -62,12 +66,15 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
+        $timingPadding = $this->createMock(TimingPaddingInterface::class);
+        $timingPadding->expects(self::once())->method('pad');
+
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
 
         $handler->request('nobody@example.com');
     }
 
-    public function testRateLimitBlocksSending(): void
+    public function testRateLimitBlocksSendingAndPadsResponseTime(): void
     {
         $user = $this->createStub(AdminUserInterface::class);
 
@@ -90,12 +97,15 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
+        $timingPadding = $this->createMock(TimingPaddingInterface::class);
+        $timingPadding->expects(self::once())->method('pad');
+
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
 
         $handler->request('admin@example.com');
     }
 
-    public function testKnownEmailDispatchesMagicLink(): void
+    public function testKnownEmailDispatchesMagicLinkAndDoesNotPad(): void
     {
         $user = $this->createStub(AdminUserInterface::class);
 
@@ -122,7 +132,10 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, true, 300, 3, 900);
+        $timingPadding = $this->createMock(TimingPaddingInterface::class);
+        $timingPadding->expects(self::never())->method('pad');
+
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
 
         $handler->request('ADMIN@example.com');
     }

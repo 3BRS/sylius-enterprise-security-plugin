@@ -34,15 +34,15 @@ class MagicLinkVerifyController implements MagicLinkVerifyControllerInterface
     protected const FIREWALL_NAME = 'shop';
 
     public function __construct(
-        private CustomerMagicLinkTokenVerifierInterface $verifier,
-        private EntityManagerInterface $entityManager,
-        private TokenStorageInterface $tokenStorage,
-        private EventDispatcherInterface $eventDispatcher,
-        private AuthenticationRequiredHandlerInterface $twoFactorHandler,
-        private RouterInterface $router,
-        private ClockInterface $clock,
-        private LoggerInterface $logger,
-        private bool $enabled,
+        protected CustomerMagicLinkTokenVerifierInterface $verifier,
+        protected EntityManagerInterface $entityManager,
+        protected TokenStorageInterface $tokenStorage,
+        protected EventDispatcherInterface $eventDispatcher,
+        protected AuthenticationRequiredHandlerInterface $twoFactorHandler,
+        protected RouterInterface $router,
+        protected ClockInterface $clock,
+        protected LoggerInterface $logger,
+        protected bool $enabled,
     ) {
     }
 
@@ -88,14 +88,14 @@ class MagicLinkVerifyController implements MagicLinkVerifyControllerInterface
         return new RedirectResponse($this->resolveRedirectUrl($request, static::FIREWALL_NAME, $this->router->generate('sylius_shop_account_dashboard')));
     }
 
-    private function isFullyAuthenticatedShopUser(?TokenInterface $token): bool
+    protected function isFullyAuthenticatedShopUser(?TokenInterface $token): bool
     {
         return $token !== null &&
             !$token instanceof TwoFactorTokenInterface &&
             $token->getUser() instanceof ShopUserInterface;
     }
 
-    private function authenticate(Request $request, ShopUserInterface $user): TokenInterface
+    protected function authenticate(Request $request, ShopUserInterface $user): TokenInterface
     {
         $userIdentifier = $user->getUserIdentifier();
         $passport = new SelfValidatingPassport(new UserBadge($userIdentifier, static fn () => $user));

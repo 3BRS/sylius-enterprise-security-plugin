@@ -23,10 +23,10 @@ class MagicLinkFixture extends AbstractFixture implements MagicLinkFixtureInterf
      * @param UserRepositoryInterface<\Sylius\Component\User\Model\UserInterface> $adminUserRepository
      */
     public function __construct(
-        private CustomerRepositoryInterface $customerRepository,
-        private UserRepositoryInterface $adminUserRepository,
-        private EntityManagerInterface $entityManager,
-        private MagicLinkTokenGeneratorInterface $tokenGenerator,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected UserRepositoryInterface $adminUserRepository,
+        protected EntityManagerInterface $entityManager,
+        protected MagicLinkTokenGeneratorInterface $tokenGenerator,
     ) {
     }
 

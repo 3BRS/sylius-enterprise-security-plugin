@@ -17,11 +17,11 @@ use Webmozart\Assert\Assert;
 class MagicLinkContext implements Context
 {
     public function __construct(
-        private Session $session,
-        private UserRepositoryInterface $adminUserRepository,
-        private AdminUserMagicLinkTokenRepositoryInterface $tokenRepository,
-        private MagicLinkTokenGeneratorInterface $tokenGenerator,
-        private EntityManagerInterface $entityManager,
+        protected Session $session,
+        protected UserRepositoryInterface $adminUserRepository,
+        protected AdminUserMagicLinkTokenRepositoryInterface $tokenRepository,
+        protected MagicLinkTokenGeneratorInterface $tokenGenerator,
+        protected EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -150,7 +150,7 @@ class MagicLinkContext implements Context
         Assert::notNull($user, sprintf('Administrator "%s" not found.', $email));
     }
 
-    private function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void
+    protected function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void
     {
         $user = $this->findAdminUser($email);
 
@@ -166,7 +166,7 @@ class MagicLinkContext implements Context
         $this->entityManager->flush();
     }
 
-    private function findAdminUser(string $email): AdminUserInterface
+    protected function findAdminUser(string $email): AdminUserInterface
     {
         $user = $this->adminUserRepository->findOneBy(['email' => $email]);
         Assert::notNull($user, sprintf('Administrator "%s" not found.', $email));

@@ -11,9 +11,9 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRe
 class AdminUserMagicLinkTokenVerifier implements AdminUserMagicLinkTokenVerifierInterface
 {
     public function __construct(
-        private AdminUserMagicLinkTokenRepositoryInterface $repository,
-        private MagicLinkTokenGeneratorInterface $generator,
-        private ClockInterface $clock,
+        protected AdminUserMagicLinkTokenRepositoryInterface $repository,
+        protected MagicLinkTokenGeneratorInterface $generator,
+        protected ClockInterface $clock,
     ) {
     }
 

@@ -20,11 +20,11 @@ class MagicLinkRequestController implements MagicLinkRequestControllerInterface
     use FlashHelperTrait;
 
     public function __construct(
-        private ShopMagicLinkRequestHandlerInterface $handler,
-        private FormFactoryInterface $formFactory,
-        private RouterInterface $router,
-        private Environment $twig,
-        private bool $enabled,
+        protected ShopMagicLinkRequestHandlerInterface $handler,
+        protected FormFactoryInterface $formFactory,
+        protected RouterInterface $router,
+        protected Environment $twig,
+        protected bool $enabled,
     ) {
     }
 

@@ -11,9 +11,9 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRep
 class CustomerMagicLinkTokenVerifier implements CustomerMagicLinkTokenVerifierInterface
 {
     public function __construct(
-        private CustomerMagicLinkTokenRepositoryInterface $repository,
-        private MagicLinkTokenGeneratorInterface $generator,
-        private ClockInterface $clock,
+        protected CustomerMagicLinkTokenRepositoryInterface $repository,
+        protected MagicLinkTokenGeneratorInterface $generator,
+        protected ClockInterface $clock,
     ) {
     }
 

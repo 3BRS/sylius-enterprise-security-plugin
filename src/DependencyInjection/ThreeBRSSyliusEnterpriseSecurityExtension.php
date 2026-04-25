@@ -72,7 +72,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     }
 
     /** @param array<string, array<string, mixed>> $config */
-    private function registerMagicLink(ContainerBuilder $container, array $config): void
+    protected function registerMagicLink(ContainerBuilder $container, array $config): void
     {
         $container->getDefinition(ShopMagicLinkRequestHandler::class)
             ->setArgument('$enabled', $config['customer']['enabled'])

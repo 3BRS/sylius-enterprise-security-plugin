@@ -11,8 +11,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class AdminUserMagicLinkEmailManager implements AdminUserMagicLinkEmailManagerInterface
 {
     public function __construct(
-        private SenderInterface $emailSender,
-        private UrlGeneratorInterface $router,
+        protected SenderInterface $emailSender,
+        protected UrlGeneratorInterface $router,
     ) {
     }
 
