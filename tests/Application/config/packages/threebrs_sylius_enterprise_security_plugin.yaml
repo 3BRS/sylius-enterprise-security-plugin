@@ -74,3 +74,11 @@ three_brs_sylius_enterprise_security:
             expiration_seconds: 300
             rate_limit_max: 3
             rate_limit_window_seconds: 900
+    passkey:
+        rp_id: localhost
+        rp_name: 'Sylius Test Shop'
+        skip_2fa_when_user_verified: false
+        customer:
+            enabled: true
+        admin:
+            enabled: true

@@ -20,3 +20,5 @@ imports:
     - suites/admin_social_login.yml
     - suites/shop_magic_link.yml
     - suites/admin_magic_link.yml
+    - suites/shop_passkey.yml
+    - suites/admin_passkey.yml

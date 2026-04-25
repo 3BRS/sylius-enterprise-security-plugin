@@ -11,6 +11,20 @@ The interface is placed in the same directory or in an `Interface/` subdirectory
 Never use the `final` keyword on any class.
 The project must remain extensible — plugin users need to be able to extend classes and modify behavior.
 
+## Use `protected`, never `private`
+For the same extensibility reason, use `protected` (not `private`) for **all** members in classes that can realistically be extended — properties, methods, constants, constructor-promoted parameters. Applies to controllers, entities, services, repositories, event listeners, fixtures, Twig extensions, traits, etc.
+
+```php
+public function __construct(
+    protected SomeServiceInterface $service,   // not `private`
+) {}
+
+protected function helperMethod(): void { … }   // not `private`
+protected const CONSTANT = 1;                    // not `private`
+```
+
+Exceptions where `private` is acceptable: DI `Configuration.php` node-building methods (internal Sylius pattern), enum-like constructs where semantics requires it.
+
 ## Service arguments — named, not positional
 In `services.yaml` the `arguments:` section must always use named arguments matching the constructor parameter names, e.g.:
 
@@ -45,3 +59,14 @@ $adminUser = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolow
 ```
 
 Applies to services, fixtures, controllers, Behat contexts, and unit-test stubs/mocks asserting `findOneBy(...)` arguments. The Sylius repository helper `findOneByEmail($email)` already canonicalizes internally, so passing `strtolower($email)` to it is also fine.
+
+## PR/commit comments — defaults must match `Configuration.php`
+When writing PR descriptions, README sections, or any comments about default values of configuration options, the stated defaults must exactly reflect what is declared in `src/DependencyInjection/Configuration.php`.
+
+For example, if the config tree has:
+
+```php
+->booleanNode('enabled')->defaultFalse()->end()
+```
+
+then the PR/README must say the default is `false` — never invent or paraphrase a different default. Always cross-check `Configuration.php` (`defaultFalse()`, `defaultTrue()`, `defaultValue(...)`) before stating defaults anywhere.

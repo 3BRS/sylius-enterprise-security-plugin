@@ -12,4 +12,8 @@ interface LastAuthMethodGuardInterface
     public function canUnlinkSocialForShopUser(ShopUserInterface $user, string $provider): bool;
 
     public function canUnlinkSocialForAdminUser(AdminUserInterface $user, string $provider): bool;
+
+    public function canRemovePasskeyForShopUser(ShopUserInterface $user): bool;
+
+    public function canRemovePasskeyForAdminUser(AdminUserInterface $user): bool;
 }

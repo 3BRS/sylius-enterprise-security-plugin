@@ -15,7 +15,8 @@
         "scheb/2fa-trusted-device": "^7.13",
         "league/oauth2-client": "^2.7",
         "league/oauth2-google": "^4.0",
-        "patrickbussmann/oauth2-apple": "^0.4"
+        "patrickbussmann/oauth2-apple": "^0.4",
+        "web-auth/webauthn-lib": "^5.0"
     },
     "require-dev": {
         "behat/behat": "^v3.19.0",

@@ -3613,6 +3613,17 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             rate_limit_window_seconds?: int|Param, // Default: 900
  *         },
  *     },
+ *     passkey?: array{
+ *         rp_id?: scalar|Param|null, // Default: null
+ *         rp_name?: scalar|Param|null, // Default: null
+ *         skip_2fa_when_user_verified?: bool|Param, // Default: false
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *         admin?: array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *     },
  *     oauth?: array{
  *         customer?: array{
  *             google?: array{

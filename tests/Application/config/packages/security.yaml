@@ -146,6 +146,11 @@ security:
         - { path: ^/magic-link$, role: PUBLIC_ACCESS }
         - { path: ^/magic-link/verify/, role: PUBLIC_ACCESS }
 
+        - { path: ^/passkey/login/options$, role: PUBLIC_ACCESS }
+        - { path: ^/passkey/login/verify$, role: PUBLIC_ACCESS }
+        - { path: "%sylius.security.admin_regex%/passkey/login/options$", role: PUBLIC_ACCESS }
+        - { path: "%sylius.security.admin_regex%/passkey/login/verify$", role: PUBLIC_ACCESS }
+
         - { path: "%sylius.security.shop_regex%/register", role: PUBLIC_ACCESS }
         - { path: "%sylius.security.shop_regex%/verify", role: PUBLIC_ACCESS }
 

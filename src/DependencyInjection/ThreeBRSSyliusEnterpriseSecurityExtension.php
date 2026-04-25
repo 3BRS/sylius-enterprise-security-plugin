@@ -68,6 +68,29 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerTwoFactorAuthentication($container, $config['two_factor_authentication']);
         $this->registerOAuth($container, $config['oauth']);
         $this->registerMagicLink($container, $config['magic_link']);
+        $this->registerPasskey($container, $config['passkey']);
+    }
+
+    /** @param array<string, mixed> $config */
+    protected function registerPasskey(ContainerBuilder $container, array $config): void
+    {
+        $customerEnabled = (bool) $config['customer']['enabled'];
+        $adminEnabled = (bool) $config['admin']['enabled'];
+
+        $rpId = (string) ($config['rp_id'] ?? '');
+        $rpName = (string) ($config['rp_name'] ?? '');
+
+        if (($customerEnabled || $adminEnabled) && ($rpId === '' || $rpName === '')) {
+            throw new \InvalidArgumentException(
+                'three_brs_sylius_enterprise_security.passkey: rp_id and rp_name must be configured when passkey is enabled for customer or admin.',
+            );
+        }
+
+        $container->setParameter('three_brs.passkey.customer.enabled', $customerEnabled);
+        $container->setParameter('three_brs.passkey.admin.enabled', $adminEnabled);
+        $container->setParameter('three_brs.passkey.rp_id', $rpId);
+        $container->setParameter('three_brs.passkey.rp_name', $rpName);
+        $container->setParameter('three_brs.passkey.skip_2fa_when_user_verified', (bool) $config['skip_2fa_when_user_verified']);
     }
 
     /** @param array<string, array<string, mixed>> $config */
