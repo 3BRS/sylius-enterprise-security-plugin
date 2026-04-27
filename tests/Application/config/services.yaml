@@ -9,3 +9,4 @@ services:
         arguments:
             $inner: '@.inner'
         decorates: property_info.phpstan_extractor
+        decoration_on_invalid: ignore
