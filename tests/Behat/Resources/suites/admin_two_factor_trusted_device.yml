@@ -3,6 +3,7 @@ default:
         admin_two_factor_trusted_device:
             contexts:
                 - sylius.behat.context.hook.doctrine_orm
+                - three_brs.behat.context.hook.rate_limiter_cache
                 - sylius.behat.context.setup.admin_user
                 - sylius.behat.context.setup.admin_security
                 - sylius.behat.context.transform.shared_storage

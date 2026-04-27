@@ -1,0 +1,81 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.lockout.customers_title'|trans }}{% endblock %}
+
+{% block body %}
+    {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
+
+    <div class="page-wrapper">
+        {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
+
+        <div class="page-header" data-sticky-header>
+            <div class="container-xl">
+                {{ breadcrumbs([
+                    { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'three_brs.ui.lockout.customers_title', active: true },
+                ]) }}
+                <div class="row mt-3 row-gap-2">
+                    <div class="col-12">
+                        {{ header.h1('three_brs.ui.lockout.customers_title'|trans) }}
+                        <p class="text-secondary mb-0">{{ 'three_brs.ui.lockout.customers_intro'|trans }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include '@SyliusAdmin/shared/crud/common/content/flashes.html.twig' %}
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="card">
+                    <div class="card-body">
+                        {% if users|length > 0 %}
+                            <div class="table-responsive">
+                                <table class="table table-vcenter" data-test-three-brs-locked-customers>
+                                    <thead>
+                                        <tr>
+                                            <th>{{ 'three_brs.ui.lockout.email'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.lockout.failed_attempts'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.lockout.locked_at'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.lockout.lockout_until'|trans }}</th>
+                                            <th class="text-end"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in users %}
+                                            <tr>
+                                                <td>{{ user.username }}</td>
+                                                <td>{{ user.failedLoginAttempts }}</td>
+                                                <td>{{ user.lockedAt ? user.lockedAt|date('Y-m-d H:i') : '-' }}</td>
+                                                <td>{{ user.lockoutUntil ? user.lockoutUntil|date('Y-m-d H:i') : 'three_brs.ui.lockout.manual_only'|trans }}</td>
+                                                <td class="text-end">
+                                                    <form method="POST" action="{{ path('three_brs_admin_locked_customer_unlock', {'id': user.id}) }}">
+                                                        <button type="submit"
+                                                                class="btn btn-outline-primary"
+                                                                data-test-three-brs-unlock-customer="{{ user.id }}">
+                                                            {{ 'three_brs.ui.lockout.unlock'|trans }}
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="empty py-4">
+                                <div class="empty-icon">
+                                    <i class="icon ti ti-lock-open fs-1"></i>
+                                </div>
+                                <p class="empty-title">{{ 'three_brs.ui.lockout.no_locked_customers'|trans }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

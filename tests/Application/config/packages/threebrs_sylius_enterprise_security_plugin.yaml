@@ -67,13 +67,9 @@ three_brs_sylius_enterprise_security:
         customer:
             enabled: true
             expiration_seconds: 300
-            rate_limit_max: 3
-            rate_limit_window_seconds: 900
         admin:
             enabled: true
             expiration_seconds: 300
-            rate_limit_max: 3
-            rate_limit_window_seconds: 900
     passkey:
         rp_id: localhost
         rp_name: 'Sylius Test Shop'
@@ -82,3 +78,45 @@ three_brs_sylius_enterprise_security:
             enabled: true
         admin:
             enabled: true
+    account_lockout:
+        customer:
+            enabled: true
+            max_attempts: 5
+            lockout_duration: 900
+            auto_unlock_after: 900
+        admin:
+            enabled: true
+            max_attempts: 3
+            lockout_duration: 1800
+            auto_unlock_after: 1800
+    rate_limit:
+        customer:
+            login:
+                enabled: true
+                limit: 5
+                interval: '15 minutes'
+            password_reset:
+                enabled: true
+                limit: 3
+                interval: '1 hour'
+            register:
+                enabled: true
+                limit: 5
+                interval: '1 hour'
+            magic_link:
+                enabled: true
+                limit: 3
+                interval: '15 minutes'
+        admin:
+            login:
+                enabled: true
+                limit: 5
+                interval: '15 minutes'
+            password_reset:
+                enabled: true
+                limit: 3
+                interval: '1 hour'
+            magic_link:
+                enabled: true
+                limit: 3
+                interval: '15 minutes'

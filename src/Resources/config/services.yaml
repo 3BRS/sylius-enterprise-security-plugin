@@ -298,10 +298,14 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\AdminMainMenuListener:
         arguments:
             $passkeyEnabled: '%three_brs.passkey.admin.enabled%'
+            $customerLockoutEnabled: '%three_brs.account_lockout.customer.enabled%'
+            $adminLockoutEnabled: '%three_brs.account_lockout.admin.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addPasskeyItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addLockedCustomersItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addLockedAdminsItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController:
         arguments:
@@ -837,3 +841,143 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
         tags:
             - { name: 'sylius_fixtures.fixture' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\LockoutFixture:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
+
+    three_brs.lockout.policy.customer:
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy
+        arguments:
+            $enabled: '%three_brs.account_lockout.customer.enabled%'
+            $maxAttempts: '%three_brs.account_lockout.customer.max_attempts%'
+            $lockoutDuration: '%three_brs.account_lockout.customer.lockout_duration%'
+            $autoUnlockAfter: '%three_brs.account_lockout.customer.auto_unlock_after%'
+
+    three_brs.lockout.policy.admin:
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy
+        arguments:
+            $enabled: '%three_brs.account_lockout.admin.enabled%'
+            $maxAttempts: '%three_brs.account_lockout.admin.max_attempts%'
+            $lockoutDuration: '%three_brs.account_lockout.admin.lockout_duration%'
+            $autoUnlockAfter: '%three_brs.account_lockout.admin.auto_unlock_after%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager:
+        arguments:
+            $policy: '@three_brs.lockout.policy.customer'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $clock: '@clock'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManagerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager:
+        arguments:
+            $policy: '@three_brs.lockout.policy.admin'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $clock: '@clock'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManagerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\ShopUserLockoutChecker:
+        arguments:
+            $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager'
+        tags:
+            - { name: 'security.user_checker.shop' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\AdminUserLockoutChecker:
+        arguments:
+            $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager'
+        tags:
+            - { name: 'security.user_checker.admin' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserLoginAttemptListener:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager'
+        tags:
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginFailureEvent', method: 'onLoginFailure' }
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserLoginAttemptListener:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager'
+        tags:
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginFailureEvent', method: 'onLoginFailure' }
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard:
+        arguments:
+            $limiterLocator: !abstract 'set by RateLimiterServiceLocatorPass'
+            $enabledMap:
+                customer.login: '%three_brs.rate_limit.customer.login.enabled%'
+                customer.password_reset: '%three_brs.rate_limit.customer.password_reset.enabled%'
+                customer.register: '%three_brs.rate_limit.customer.register.enabled%'
+                customer.magic_link: '%three_brs.rate_limit.customer.magic_link.enabled%'
+                admin.login: '%three_brs.rate_limit.admin.login.enabled%'
+                admin.password_reset: '%three_brs.rate_limit.admin.password_reset.enabled%'
+                admin.magic_link: '%three_brs.rate_limit.admin.magic_link.enabled%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\RateLimitListener:
+        arguments:
+            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard'
+            $router: '@router'
+        tags:
+            # Priority 16: after Symfony RouterListener (priority 32) so `_route`
+            # is populated, but before Security firewall listeners (priority 8).
+            - { name: 'kernel.event_listener', event: 'kernel.request', priority: 16 }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepository:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $shopUserClass: '%sylius.model.shop_user.class%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepository:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $adminUserClass: '%sylius.model.admin_user.class%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedCustomersController:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepository'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedAdminsController:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepository'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\UnlockCustomerController:
+        arguments:
+            $shopUserRepository: '@sylius.repository.shop_user'
+            $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\UnlockAdminController:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }

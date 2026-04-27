@@ -389,6 +389,73 @@ After installing the plugin, run `bin/console assets:install` so the bundled `pa
 >
 > **`rp_id` must match the host the user is on.** For e.g. `https://shop.example.com`, `rp_id` should be `shop.example.com` (or `example.com` if you want passkeys to work on subdomains too). A mismatch causes silent registration / login failures in the browser.
 
+### Account Lockout & Rate Limiting
+
+Brute-force protection covering both account-level lockout (per user, persistent) and request-level rate limiting (per IP, ephemeral). Independently configurable per group (customer / admin).
+
+**Account Lockout** — locks the user account after a configurable number of consecutive failed sign-in attempts.
+
+- Failed-attempts counter on the user entity (`failedLoginAttempts`, `lockedAt`, `lockoutUntil`, `lastFailedLoginAt`) — added via `LockableShopUserTrait` / `LockableAdminUserTrait`
+- Counter resets on successful login
+- **Auto-unlock** after `auto_unlock_after` seconds (set to `null` for manual-only)
+- **Manual unlock** by admin from `/admin/locked-customers` and `/admin/locked-admins` (sub-menu under Configuration)
+- Both unlock methods can coexist — auto-unlock fires first when `lockoutUntil` is reached, admin can override manually any time
+- Locked users see *"Account is locked. Try again later or contact an administrator."* on login attempt — generic on purpose, no timer leak
+
+**Rate Limiting** — built on Symfony Rate Limiter (`fixed_window` policy, IP-based for most actions, IP+username for login). Plugin auto-registers `framework.rate_limiter.three_brs_<group>_<action>` services for every enabled combination, no manual `framework.yaml` wiring needed.
+
+Throttled endpoints:
+
+| Action | Customer | Admin |
+|---|---|---|
+| Login | ✓ (`sylius_shop_login_check`) | ✓ (`sylius_admin_login_check`) |
+| Password reset | ✓ (`sylius_shop_request_password_reset_token`) | ✓ (`sylius_admin_request_password_reset`) |
+| Register | ✓ (`sylius_shop_register`) | — *(admin has no self-registration)* |
+| Magic link | ✓ (`three_brs_shop_magic_link_request`) | ✓ (`three_brs_admin_magic_link_request`) |
+
+Exceeding the limit returns HTTP 429 and a flash message.
+
+```yaml
+three_brs_sylius_enterprise_security:
+    account_lockout:
+        customer:
+            enabled: false
+            max_attempts: 5
+            lockout_duration: 900       # seconds the account stays in the locked state
+            auto_unlock_after: 900      # seconds; set to ~ for manual-unlock-only
+        admin:
+            enabled: false
+            max_attempts: 3
+            lockout_duration: 1800
+            auto_unlock_after: 1800
+    rate_limit:
+        customer:
+            login:           { enabled: false, limit: 5, interval: '15 minutes' }
+            password_reset:  { enabled: false, limit: 3, interval: '1 hour' }
+            register:        { enabled: false, limit: 5, interval: '1 hour' }
+            magic_link:      { enabled: false, limit: 3, interval: '15 minutes' }
+        admin:
+            login:           { enabled: false, limit: 5, interval: '15 minutes' }
+            password_reset:  { enabled: false, limit: 3, interval: '1 hour' }
+            magic_link:      { enabled: false, limit: 3, interval: '15 minutes' }
+```
+
+Add the lockout fields to your `ShopUser` and `AdminUser` entities (same pattern as 2FA / password expiration):
+
+```php
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserTrait;
+
+class ShopUser extends BaseShopUser implements LockableShopUserInterface
+{
+    use LockableShopUserTrait;
+}
+```
+
+Plugin adds **Locked customers** and **Locked administrators** entries to the admin Configuration sub-menu automatically — both shown only when lockout is enabled for that group.
+
+> **Trusted proxies:** rate limiter keys include `Request::getClientIp()`. If your Sylius runs behind a load balancer or reverse proxy, configure `framework.trusted_proxies` and `framework.trusted_headers` so the real client IP is used (otherwise all requests look like they come from the proxy and the limit triggers immediately).
+
 ## Installation
 
 1. Run `composer require 3brs/sylius-enterprise-security-plugin`.

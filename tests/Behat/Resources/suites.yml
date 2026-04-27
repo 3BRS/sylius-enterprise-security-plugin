@@ -24,3 +24,6 @@ imports:
     - suites/admin_passkey.yml
     - suites/shop_passkey_ceremony.yml
     - suites/admin_passkey_ceremony.yml
+    - suites/shop_lockout.yml
+    - suites/admin_lockout.yml
+    - suites/shop_rate_limit.yml

@@ -3603,14 +3603,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         customer?: array{
  *             enabled?: bool|Param, // Default: false
  *             expiration_seconds?: int|Param, // Default: 300
- *             rate_limit_max?: int|Param, // Default: 3
- *             rate_limit_window_seconds?: int|Param, // Default: 900
  *         },
  *         admin?: array{
  *             enabled?: bool|Param, // Default: false
  *             expiration_seconds?: int|Param, // Default: 300
- *             rate_limit_max?: int|Param, // Default: 3
- *             rate_limit_window_seconds?: int|Param, // Default: 900
  *         },
  *     },
  *     passkey?: array{
@@ -3622,6 +3618,61 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         },
  *         admin?: array{
  *             enabled?: bool|Param, // Default: false
+ *         },
+ *     },
+ *     account_lockout?: array{
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             max_attempts?: int|Param, // Default: 5
+ *             lockout_duration?: int|Param, // Default: 900
+ *             auto_unlock_after?: int|Param, // Default: null
+ *         },
+ *         admin?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             max_attempts?: int|Param, // Default: 3
+ *             lockout_duration?: int|Param, // Default: 1800
+ *             auto_unlock_after?: int|Param, // Default: null
+ *         },
+ *     },
+ *     rate_limit?: array{
+ *         customer?: array{
+ *             login?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 limit?: int|Param, // Default: 5
+ *                 interval?: scalar|Param|null, // Default: "15 minutes"
+ *             },
+ *             password_reset?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 limit?: int|Param, // Default: 3
+ *                 interval?: scalar|Param|null, // Default: "1 hour"
+ *             },
+ *             register?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 limit?: int|Param, // Default: 5
+ *                 interval?: scalar|Param|null, // Default: "1 hour"
+ *             },
+ *             magic_link?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 limit?: int|Param, // Default: 3
+ *                 interval?: scalar|Param|null, // Default: "15 minutes"
+ *             },
+ *         },
+ *         admin?: array{
+ *             login?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 limit?: int|Param, // Default: 5
+ *                 interval?: scalar|Param|null, // Default: "15 minutes"
+ *             },
+ *             password_reset?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 limit?: int|Param, // Default: 3
+ *                 interval?: scalar|Param|null, // Default: "1 hour"
+ *             },
+ *             magic_link?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 limit?: int|Param, // Default: 3
+ *                 interval?: scalar|Param|null, // Default: "15 minutes"
+ *             },
  *         },
  *     },
  *     oauth?: array{
