@@ -249,7 +249,9 @@ Callback URLs to register with the providers:
 
 > **Admin auto-registration:** by default `auto_register_allowed_email_domains` is empty and admin auto-registration is **disabled** — an unknown OAuth identity hitting the admin login is rejected. Add your corporate domain(s) to opt in. Auto-created admins receive `ROLE_ADMINISTRATION_ACCESS` and the configured `default_locale`.
 >
-> **Warning:** `auto_register_allowed_email_domains` should include **only domains you fully control**. Anyone with a working email address in a whitelisted domain can auto-create an admin account with full `ROLE_ADMINISTRATION_ACCESS`. For external/shared domains (e.g. `gmail.com`) or when fine-grained control is needed, leave the whitelist empty — admins must then be created manually before their first OAuth login.
+> **Warning:** the `allowed_email_domains` whitelist should include **only domains you fully control**.
+> Anyone with a working email in these domains can auto-create an admin account with full `ROLE_ADMINISTRATION_ACCESS`.
+> For external/shared domains or when fine-grained control is needed, leave the whitelist empty — admins will need to be created manually before their first OAuth login.
 
 #### Google Cloud setup
 
