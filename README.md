@@ -164,16 +164,54 @@ three_brs_sylius_enterprise_security:
 
 `trusted_device` is global (scheb-wide) and shared between shop and admin firewalls — scheb's JWT-cookie trusted-device implementation supports only a single lifetime.
 
+```yaml
+# config/packages/scheb_2fa.yaml
+scheb_two_factor:
+    trusted_device:
+        enabled: '%three_brs.two_factor.trusted_device_enabled%'
+        lifetime: '%three_brs.two_factor.trusted_device_lifetime%'
+        key: '%env(THREE_BRS_TWO_FACTOR_TRUSTED_DEVICE_KEY)%' # required, >=256-bit secret for JWT HMAC-SHA256
+    totp:
+        issuer: '%three_brs.two_factor.issuer%'
+```
+
+On the **shop firewall**, replace Sylius' default `form_login.success_handler` (`sylius.authentication.success_handler`) with the plugin's 2FA-aware wrapper. The default Sylius handler returns a `JsonResponse` on XHR and redirects straight to the target path without checking for a `TwoFactorTokenInterface`, which produces a broken UX during 2FA challenges:
+
+```yaml
+# config/packages/security.yaml
+security:
+    firewalls:
+        shop:
+            form_login:
+                success_handler: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler.shop
+            two_factor:
+                auth_form_path: /2fa
+                check_path: /2fa_check
+                prepare_on_login: true
+                prepare_on_access_denied: true
+        admin:
+            two_factor:
+                auth_form_path: /admin/2fa
+                check_path: /admin/2fa_check
+                prepare_on_login: true
+                prepare_on_access_denied: true
+```
+
+The admin firewall does not need a custom `success_handler` — Sylius does not override it there, so the default Symfony handler is used and scheb's `TwoFactorAccessListener` transparently redirects authenticated-but-not-yet-verified admins to `/admin/2fa` on the next request.
+
 ### Social Login (OAuth)
 
-- Google and Apple OAuth sign-in for shop customers and admin users. Each provider is enabled/disabled and configured independently per group, so shop and admin can use entirely separate OAuth clients (different client IDs, consent screens, redirect URIs) — useful when the shop-facing app and the internal admin app are registered as two different applications on the provider side. Sign-in buttons are rendered on the shop login/register pages and on the admin login page; clicking one redirects the user to the provider, and on callback the plugin either logs them into an existing linked account, prompts for password confirmation to link an existing local account with a matching email, or auto-registers a new account (subject to the rules below).
-- Extensible provider abstraction — additional providers (Facebook, Microsoft, GitHub, LinkedIn, …) can be added without forking the plugin. Implement `OAuthProviderInterface` (five methods: `getName()`, `isEnabledForCustomer()`, `isEnabledForAdmin()`, `getAuthorizationUrl()`, `fetchUserInfo()`) and register the service with the tag `three_brs.oauth_provider`. `OAuthProviderRegistry` collects all tagged services and exposes them to the login controllers and Twig templates, so your new provider automatically appears as a sign-in button and gets its callback route wired up — no changes to routing, controllers or templates are needed. `fetchUserInfo()` must return an `OAuthUserInfoInterface` (email, first/last name, provider user ID, email-verified flag) which the plugin then uses uniformly across the link / register / login flow.
-- Social accounts are stored as separate link entities (`three_brs_customer_social_account_link`, `three_brs_admin_user_social_account_link`) — multiple providers per user supported
-- Email-match flow: when an OAuth identity's email matches an existing local account, the user is prompted to confirm their password before the link is created (prevents account takeover)
-- Auto-registration: if the email is unknown, a new account is created and the social identity linked automatically. For admin users, auto-registration creates accounts with `ROLE_ADMINISTRATION_ACCESS` — access can be revoked by another admin disabling the user
-- Link/unlink from the account page. A `LastAuthMethodGuard` refuses to unlink the last remaining sign-in method (password or another social link)
-- Apple specifics handled: JWT ES256 `client_secret` generated at runtime from `team_id`/`key_id`/private key, `form_post` callback, first-auth-only name persisted, private relay emails accepted as-is
-- Fixture (`three_brs_social_account_link`) to preload social links for demo/testing
+- **Google and Apple sign-in** for shop customers and admin users — sign-in buttons are rendered on the shop login + register pages and on the admin login page
+- **Independent shop/admin configuration** — each provider is enabled and configured separately for the shop and admin groups, so you can register two distinct OAuth clients (different client IDs, consent screens, redirect URIs). Useful when the shop-facing app and the internal admin app live as separate applications on the provider side
+- **Three callback flows** depending on what the plugin finds for the OAuth identity's email:
+  - existing linked account → straight log-in
+  - email matches a local account → password confirmation prompt before the link is created (prevents account takeover)
+  - email is unknown → a new account is auto-registered and the social identity linked (admin auto-registration is gated by an email-domain whitelist; see below)
+- **Multiple providers per user** — links live in dedicated entities (`three_brs_customer_social_account_link`, `three_brs_admin_user_social_account_link`)
+- **Link / unlink from the account page** — `LastAuthMethodGuard` refuses to unlink the last remaining sign-in method (password or another social link), so a user can never lock themselves out
+- **Extensible provider registry** — add Facebook, Microsoft, GitHub, … without forking the plugin. Implement `OAuthProviderInterface` (`getName`, `isEnabledForCustomer`, `isEnabledForAdmin`, `getAuthorizationUrl`, `fetchUserInfo`) and tag the service with `three_brs.oauth_provider`. `OAuthProviderRegistry` collects every tagged provider and the login controllers / Twig templates pick them up automatically — no routing, controller or template changes needed. `fetchUserInfo()` returns an `OAuthUserInfoInterface` (email, first/last name, provider user ID, email-verified flag) used uniformly across the link / register / login flow
+- **Apple specifics handled** — JWT ES256 `client_secret` generated at runtime from `team_id` / `key_id` / private key, `form_post` callback, first-auth-only name persisted, private relay emails accepted as-is
+- **Fixture** (`three_brs_social_account_link`) to preload social links for demo/testing
 
 ```yaml
 three_brs_sylius_enterprise_security:
@@ -209,7 +247,7 @@ Callback URLs to register with the providers:
 - Shop: `https://<your-domain>/oauth/{provider}/callback`
 - Admin: `https://<your-domain>/admin/oauth/{provider}/callback`
 
-> **Admin auto-registration:** by default `auto_register_allowed_email_domains` is empty and admin auto-registration is **disabled** — an unknown OAuth identity hitting the admin login will be rejected. Add your corporate domain(s) to opt in. Auto-created admins receive `ROLE_ADMINISTRATION_ACCESS` and the configured `default_locale`.
+> **Admin auto-registration:** by default `auto_register_allowed_email_domains` is empty and admin auto-registration is **disabled** — an unknown OAuth identity hitting the admin login is rejected. Add your corporate domain(s) to opt in. Auto-created admins receive `ROLE_ADMINISTRATION_ACCESS` and the configured `default_locale`.
 >
 > **Warning:** `auto_register_allowed_email_domains` should include **only domains you fully control**. Anyone with a working email address in a whitelisted domain can auto-create an admin account with full `ROLE_ADMINISTRATION_ACCESS`. For external/shared domains (e.g. `gmail.com`) or when fine-grained control is needed, leave the whitelist empty — admins must then be created manually before their first OAuth login.
 
@@ -248,41 +286,6 @@ Apple Sign In requires a paid Apple Developer account and a **public HTTPS** red
    # path is configured in yaml: %kernel.project_dir%/config/secrets/apple_private_key.p8
    ```
 4. Flip `enabled: true` for the relevant group. The plugin generates Apple's ES256 `client_secret` JWT at runtime — you don't store a long-lived secret.
-
-```yaml
-# config/packages/scheb_2fa.yaml
-scheb_two_factor:
-    trusted_device:
-        enabled: '%three_brs.two_factor.trusted_device_enabled%'
-        lifetime: '%three_brs.two_factor.trusted_device_lifetime%'
-        key: '%env(THREE_BRS_TWO_FACTOR_TRUSTED_DEVICE_KEY)%' # required, >=256-bit secret for JWT HMAC-SHA256
-    totp:
-        issuer: '%three_brs.two_factor.issuer%'
-```
-
-On the **shop firewall**, replace Sylius' default `form_login.success_handler` (`sylius.authentication.success_handler`) with the plugin's 2FA-aware wrapper. The default Sylius handler returns a `JsonResponse` on XHR and redirects straight to the target path without checking for a `TwoFactorTokenInterface`, which produces a broken UX during 2FA challenges:
-
-```yaml
-# config/packages/security.yaml
-security:
-    firewalls:
-        shop:
-            form_login:
-                success_handler: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler.shop
-            two_factor:
-                auth_form_path: /2fa
-                check_path: /2fa_check
-                prepare_on_login: true
-                prepare_on_access_denied: true
-        admin:
-            two_factor:
-                auth_form_path: /admin/2fa
-                check_path: /admin/2fa_check
-                prepare_on_login: true
-                prepare_on_access_denied: true
-```
-
-The admin firewall does not need a custom `success_handler` — Sylius does not override it there, so the default Symfony handler is used and scheb's `TwoFactorAccessListener` transparently redirects authenticated-but-not-yet-verified admins to `/admin/2fa` on the next request.
 
 ## Installation
 
