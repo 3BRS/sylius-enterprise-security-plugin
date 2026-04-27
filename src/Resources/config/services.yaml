@@ -282,9 +282,12 @@ services:
             - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\ShopAccountMenuListener:
+        arguments:
+            $passkeyEnabled: '%three_brs.passkey.customer.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addPasskeyItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountsController:
         arguments:
@@ -293,9 +296,12 @@ services:
             - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\AdminMainMenuListener:
+        arguments:
+            $passkeyEnabled: '%three_brs.passkey.admin.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addPasskeyItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController:
         arguments:

@@ -24,10 +24,6 @@ interface CustomerPasskeyCredentialInterface
     /** @param array<string, mixed> $credentialSource */
     public function setCredentialSource(array $credentialSource): void;
 
-    public function getAaguid(): ?string;
-
-    public function setAaguid(?string $aaguid): void;
-
     public function getLabel(): string;
 
     public function setLabel(string $label): void;

@@ -170,7 +170,6 @@ class CustomerPasskeyAssertionVerifierTest extends TestCase
 
         $result = $verifier->verify('{}', 'shop.example.com');
 
-        self::assertSame($stored, $result->getCredential());
         self::assertSame($shopUser, $result->getUser());
         self::assertTrue($result->isUserVerified());
     }

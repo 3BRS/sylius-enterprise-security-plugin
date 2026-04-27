@@ -128,7 +128,6 @@ class AdminPasskeyRegistrationVerifierTest extends TestCase
         self::assertSame($adminUser, $credential->getAdminUser());
         self::assertSame('admin-credential-id', $credential->getCredentialId());
         self::assertSame(['source' => 'admin-normalized'], $credential->getCredentialSource());
-        self::assertSame($aaguid->toRfc4122(), $credential->getAaguid());
         self::assertSame('YubiKey', $credential->getLabel());
     }
 }

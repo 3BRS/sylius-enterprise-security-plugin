@@ -170,7 +170,6 @@ class AdminPasskeyAssertionVerifierTest extends TestCase
 
         $result = $verifier->verify('{}', 'admin.example.com');
 
-        self::assertSame($stored, $result->getCredential());
         self::assertSame($adminUser, $result->getUser());
         self::assertFalse($result->isUserVerified());
     }

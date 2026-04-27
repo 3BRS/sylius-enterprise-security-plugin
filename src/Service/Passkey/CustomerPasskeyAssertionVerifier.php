@@ -62,7 +62,7 @@ class CustomerPasskeyAssertionVerifier implements CustomerPasskeyAssertionVerifi
         $user = $this->resolveUser($stored);
         $userVerified = $response->authenticatorData->isUserVerified();
 
-        return new PasskeyAssertionResult($stored, $user, $userVerified);
+        return new PasskeyAssertionResult($user, $userVerified);
     }
 
     protected function resolveUser(CustomerPasskeyCredentialInterface $credential): object

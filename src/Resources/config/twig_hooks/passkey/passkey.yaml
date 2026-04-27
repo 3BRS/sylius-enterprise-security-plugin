@@ -3,7 +3,7 @@ sylius_twig_hooks:
         'sylius_shop.account.login.content.login_container':
             three_brs_passkey_login:
                 template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/Passkey/login_button.html.twig'
-                priority: 30
+                priority: 45
 
         'sylius_admin.security.login.page.content':
             three_brs_passkey_login:

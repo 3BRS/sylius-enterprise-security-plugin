@@ -128,7 +128,6 @@ class CustomerPasskeyRegistrationVerifierTest extends TestCase
         self::assertSame($shopUser, $credential->getShopUser());
         self::assertSame('credential-id-bytes', $credential->getCredentialId());
         self::assertSame(['source' => 'normalized'], $credential->getCredentialSource());
-        self::assertSame($aaguid->toRfc4122(), $credential->getAaguid());
         self::assertSame('My Passkey', $credential->getLabel());
     }
 }

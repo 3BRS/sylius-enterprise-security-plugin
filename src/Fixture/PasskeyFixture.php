@@ -54,7 +54,6 @@ class PasskeyFixture extends AbstractFixture implements PasskeyFixtureInterface
                 $credentialId = (string) $credentialEntry['credential_id'];
                 $credential->setCredentialId($credentialId);
                 $credential->setLabel((string) $credentialEntry['label']);
-                $credential->setAaguid(Uuid::v4()->toRfc4122());
                 $credential->setCredentialSource($this->buildPlaceholderSource($credentialId, (string) $shopUser->getId()));
 
                 $this->entityManager->persist($credential);
@@ -73,7 +72,6 @@ class PasskeyFixture extends AbstractFixture implements PasskeyFixtureInterface
                 $credentialId = (string) $credentialEntry['credential_id'];
                 $credential->setCredentialId($credentialId);
                 $credential->setLabel((string) $credentialEntry['label']);
-                $credential->setAaguid(Uuid::v4()->toRfc4122());
                 $credential->setCredentialSource($this->buildPlaceholderSource($credentialId, (string) $adminUser->getId()));
 
                 $this->entityManager->persist($credential);

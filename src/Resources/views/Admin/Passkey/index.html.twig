@@ -1,86 +1,123 @@
 {% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
 
-{% block title %}{{ 'three_brs.ui.passkey.menu_item'|trans }} | {{ parent() }}{% endblock %}
+{% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.passkey.menu_item'|trans }}{% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
-        <div class="my-4">
-            <h1>{{ 'three_brs.ui.passkey.title'|trans }}</h1>
-            <p class="text-muted mb-0">{{ 'three_brs.ui.passkey.intro'|trans }}</p>
-        </div>
+    {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
 
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
-                    <div>
-                        <h2 class="h5 mb-1">{{ 'three_brs.ui.passkey.add_new'|trans }}</h2>
-                        <p class="text-muted small mb-0">{{ 'three_brs.ui.passkey.add_new_hint'|trans }}</p>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <input type="text"
-                               class="form-control"
-                               id="three_brs_passkey_label_input"
-                               placeholder="{{ 'three_brs.ui.passkey.label_placeholder'|trans }}"
-                               maxlength="64"
-                               style="max-width: 240px;">
-                        <button type="button"
-                                class="btn btn-primary"
-                                id="three_brs_passkey_register_button"
-                                data-test-three-brs-passkey-register
-                                data-options-url="{{ path('three_brs_admin_passkey_register_options') }}"
-                                data-verify-url="{{ path('three_brs_admin_passkey_register_verify') }}"
-                                data-list-url="{{ path('three_brs_admin_passkey_index') }}">
-                            {{ 'three_brs.ui.passkey.register'|trans }}
-                        </button>
+    <div class="page-wrapper">
+        {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
+
+        <div class="page-header" data-sticky-header>
+            <div class="container-xl">
+                {{ breadcrumbs([
+                    { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'three_brs.ui.passkey.menu_item', active: true },
+                ]) }}
+                <div class="row mt-3 row-gap-2">
+                    <div class="col-12">
+                        {{ header.h1('three_brs.ui.passkey.title'|trans) }}
+                        <p class="text-secondary mb-0">{{ 'three_brs.ui.passkey.intro'|trans }}</p>
                     </div>
                 </div>
-                <p id="three_brs_passkey_unsupported_notice" class="text-warning small mt-2 mb-0 d-none">
-                    {{ 'three_brs.ui.passkey.browser_unsupported'|trans }}
-                </p>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h2 class="h5 mb-0">{{ 'three_brs.ui.passkey.your_passkeys'|trans }}</h2>
-            </div>
-            <div class="card-body">
-                {% if credentials|length > 0 %}
-                    <ul class="list-group list-group-flush" data-test-three-brs-passkey-list>
-                        {% for credential in credentials %}
-                            <li class="list-group-item px-0 py-3">
-                                <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
-                                    <div>
-                                        <div class="fw-semibold fs-5">{{ credential.label }}</div>
-                                        <div class="text-muted small">
-                                            {{ 'three_brs.ui.passkey.added'|trans }}: {{ credential.createdAt|date('Y-m-d H:i') }}
-                                            {% if credential.lastUsedAt %}
-                                                · {{ 'three_brs.ui.passkey.last_used'|trans }}: {{ credential.lastUsedAt|date('Y-m-d H:i') }}
-                                            {% endif %}
+        {% include '@SyliusAdmin/shared/crud/common/content/flashes.html.twig' %}
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                            <div>
+                                <h2 class="h5 mb-1">{{ 'three_brs.ui.passkey.add_new'|trans }}</h2>
+                                <p class="text-secondary small mb-0">{{ 'three_brs.ui.passkey.add_new_hint'|trans }}</p>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="text"
+                                       class="form-control"
+                                       id="three_brs_passkey_label_input"
+                                       placeholder="{{ 'three_brs.ui.passkey.label_placeholder'|trans }}"
+                                       maxlength="64"
+                                       style="max-width: 240px;">
+                                <button type="button"
+                                        class="btn btn-primary"
+                                        id="three_brs_passkey_register_button"
+                                        data-test-three-brs-passkey-register
+                                        data-options-url="{{ path('three_brs_admin_passkey_register_options') }}"
+                                        data-verify-url="{{ path('three_brs_admin_passkey_register_verify') }}"
+                                        data-list-url="{{ path('three_brs_admin_passkey_index') }}"
+                                        data-cancelled-message="{{ 'three_brs.ui.passkey.registration_cancelled'|trans }}"
+                                        data-error-message="{{ 'three_brs.ui.passkey.registration_failed'|trans }}">
+                                    {{ 'three_brs.ui.passkey.register'|trans }}
+                                </button>
+                            </div>
+                        </div>
+                        <p id="three_brs_passkey_unsupported_notice" class="text-warning small mt-2 mb-0 d-none">
+                            {{ 'three_brs.ui.passkey.browser_unsupported'|trans }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ 'three_brs.ui.passkey.your_passkeys'|trans }}</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if credentials|length > 0 %}
+                            <div class="list-group list-group-flush" data-test-three-brs-passkey-list>
+                                {% for credential in credentials %}
+                                    <div class="list-group-item px-0 py-3">
+                                        <div class="row align-items-center g-3">
+                                            <div class="col-auto">
+                                                <span class="avatar avatar-md bg-secondary-lt">
+                                                    <i class="icon ti ti-fingerprint fs-2"></i>
+                                                </span>
+                                            </div>
+                                            <div class="col">
+                                                <div class="fw-semibold fs-3">{{ credential.label }}</div>
+                                                <div class="text-secondary small">
+                                                    {{ 'three_brs.ui.passkey.added'|trans }}: {{ credential.createdAt|date('Y-m-d H:i') }}
+                                                    {% if credential.lastUsedAt %}
+                                                        · {{ 'three_brs.ui.passkey.last_used'|trans }}: {{ credential.lastUsedAt|date('Y-m-d H:i') }}
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <form method="POST"
+                                                      action="{{ path('three_brs_admin_passkey_delete', {'id': credential.id}) }}"
+                                                      onsubmit="return confirm('{{ 'three_brs.ui.passkey.delete_confirm'|trans|e('js') }}');">
+                                                    <button type="submit"
+                                                            class="btn btn-outline-danger"
+                                                            data-test-three-brs-passkey-delete="{{ credential.id }}">
+                                                        {{ 'three_brs.ui.passkey.delete'|trans }}
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
-                                    <form method="POST"
-                                          action="{{ path('three_brs_admin_passkey_delete', {'id': credential.id}) }}"
-                                          onsubmit="return confirm('{{ 'three_brs.ui.passkey.delete_confirm'|trans|e('js') }}');">
-                                        <button type="submit"
-                                                class="btn btn-outline-danger"
-                                                data-test-three-brs-passkey-delete="{{ credential.id }}">
-                                            {{ 'three_brs.ui.passkey.delete'|trans }}
-                                        </button>
-                                    </form>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty py-4">
+                                <div class="empty-icon">
+                                    <i class="icon ti ti-fingerprint-off fs-1"></i>
                                 </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="text-center py-4">
-                        <p class="text-muted mb-1 fw-semibold">{{ 'three_brs.ui.passkey.none_yet'|trans }}</p>
-                        <p class="text-muted small mb-0">{{ 'three_brs.ui.passkey.none_yet_subtitle'|trans }}</p>
+                                <p class="empty-title">{{ 'three_brs.ui.passkey.none_yet'|trans }}</p>
+                                <p class="empty-subtitle text-secondary">
+                                    {{ 'three_brs.ui.passkey.none_yet_subtitle'|trans }}
+                                </p>
+                            </div>
+                        {% endif %}
                     </div>
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="{{ asset('bundles/threebrssyliusenterprisesecurity/js/passkey.js') }}"></script>
+    <script src="{{ asset('bundles/threebrssyliusenterprisesecurityplugin/js/passkey.js') }}"></script>
 {% endblock %}

@@ -338,8 +338,9 @@ security:
 - 2FA-aware (default safe): the verify controller dispatches `AuthenticationTokenCreatedEvent` on the firewall event dispatcher so scheb wraps the token and redirects to the 2FA challenge — passkeys do **not** bypass the second factor by default.
 - Optional UV bypass: if `passkey.skip_2fa_when_user_verified: true`, passkeys with the `userVerified` flag set (i.e. authenticator required biometrics or PIN) are accepted as multi-factor on their own and skip the scheb 2FA challenge.
 - Last-auth-method protection: the existing `LastAuthMethodGuard` is extended to count passkeys, social links and password together; the user cannot remove the last sign-in method on their account.
-- Frontend JavaScript (`bundles/threebrssyliusenterprisesecurity/js/passkey.js`) handles `navigator.credentials.create()` / `get()` and the JSON dance with the server. Browsers without the WebAuthn API see a hidden / disabled UI instead of a broken button.
+- Frontend JavaScript (`bundles/threebrssyliusenterprisesecurityplugin/js/passkey.js`) handles `navigator.credentials.create()` / `get()` and the JSON dance with the server. Browsers without the WebAuthn API see a hidden / disabled UI instead of a broken button.
 - Sylius twig hooks render a "Sign in with a passkey" button on the shop and admin login pages — no theme changes required.
+- Plugin adds a **Passkeys** entry to the shop account menu (`sylius.menu.shop.account`) and to the admin **Configuration** sub-menu (`sylius.menu.admin.main`) automatically — both shown only when the feature is enabled for that group.
 - Fixture (`three_brs_passkey`) to preload placeholder credentials for demo/testing of list/remove flows.
 
 ```yaml

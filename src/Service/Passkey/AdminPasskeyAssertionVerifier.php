@@ -62,7 +62,7 @@ class AdminPasskeyAssertionVerifier implements AdminPasskeyAssertionVerifierInte
         $user = $this->resolveUser($stored);
         $userVerified = $response->authenticatorData->isUserVerified();
 
-        return new PasskeyAssertionResult($stored, $user, $userVerified);
+        return new PasskeyAssertionResult($user, $userVerified);
     }
 
     protected function resolveUser(AdminUserPasskeyCredentialInterface $credential): object

@@ -36,7 +36,9 @@
                                         data-test-three-brs-passkey-register
                                         data-options-url="{{ path('three_brs_shop_passkey_register_options') }}"
                                         data-verify-url="{{ path('three_brs_shop_passkey_register_verify') }}"
-                                        data-list-url="{{ path('three_brs_shop_passkey_index') }}">
+                                        data-list-url="{{ path('three_brs_shop_passkey_index') }}"
+                                        data-cancelled-message="{{ 'three_brs.ui.passkey.registration_cancelled'|trans }}"
+                                        data-error-message="{{ 'three_brs.ui.passkey.registration_failed'|trans }}">
                                     {{ 'three_brs.ui.passkey.register'|trans }}
                                 </button>
                             </div>
@@ -91,5 +93,5 @@
         </div>
     </div>
 
-    <script src="{{ asset('bundles/threebrssyliusenterprisesecurity/js/passkey.js') }}"></script>
+    <script src="{{ asset('bundles/threebrssyliusenterprisesecurityplugin/js/passkey.js') }}"></script>
 {% endblock %}

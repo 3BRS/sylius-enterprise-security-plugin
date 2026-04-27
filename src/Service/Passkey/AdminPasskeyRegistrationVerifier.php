@@ -45,7 +45,6 @@ class AdminPasskeyRegistrationVerifier implements AdminPasskeyRegistrationVerifi
         $credential->setAdminUser($user);
         $credential->setCredentialId($source->publicKeyCredentialId);
         $credential->setCredentialSource($this->serializer->normalize($source));
-        $credential->setAaguid($source->aaguid->toRfc4122());
         $credential->setLabel($label);
 
         return $credential;

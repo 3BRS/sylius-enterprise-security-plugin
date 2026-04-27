@@ -31,9 +31,6 @@ class CustomerPasskeyCredential implements CustomerPasskeyCredentialInterface
     #[ORM\Column(name: 'credential_source', type: 'json', nullable: false)]
     protected array $credentialSource;
 
-    #[ORM\Column(name: 'aaguid', type: 'string', length: 36, nullable: true)]
-    protected ?string $aaguid = null;
-
     #[ORM\Column(name: 'label', type: 'string', length: 64, nullable: false)]
     protected string $label;
 
@@ -87,16 +84,6 @@ class CustomerPasskeyCredential implements CustomerPasskeyCredentialInterface
     public function setCredentialSource(array $credentialSource): void
     {
         $this->credentialSource = $credentialSource;
-    }
-
-    public function getAaguid(): ?string
-    {
-        return $this->aaguid;
-    }
-
-    public function setAaguid(?string $aaguid): void
-    {
-        $this->aaguid = $aaguid;
     }
 
     public function getLabel(): string

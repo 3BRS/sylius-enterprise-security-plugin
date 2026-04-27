@@ -96,6 +96,20 @@
         });
     }
 
+    function isUserCancellation(error) {
+        return error && (error.name === 'NotAllowedError' || error.name === 'AbortError');
+    }
+
+    function showError(button, error, cancelledAttr, errorAttr) {
+        var message;
+        if (isUserCancellation(error)) {
+            message = button.getAttribute(cancelledAttr) || 'Operation cancelled.';
+        } else {
+            message = button.getAttribute(errorAttr) || 'Operation failed.';
+        }
+        window.alert(message);
+    }
+
     async function registerPasskey(button) {
         var optionsUrl = button.getAttribute('data-options-url');
         var verifyUrl = button.getAttribute('data-verify-url');
@@ -127,7 +141,7 @@
             window.location.href = listUrl;
         } catch (error) {
             button.disabled = false;
-            window.alert(error.message || 'Passkey registration failed.');
+            showError(button, error, 'data-cancelled-message', 'data-error-message');
         }
     }
 
@@ -160,7 +174,7 @@
             window.location.href = result.redirect || fallbackUrl;
         } catch (error) {
             button.disabled = false;
-            window.alert(error.message || 'Passkey login failed.');
+            showError(button, error, 'data-cancelled-message', 'data-error-message');
         }
     }
 

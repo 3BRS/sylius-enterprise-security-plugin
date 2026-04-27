@@ -11,4 +11,6 @@ interface AdminMainMenuListenerInterface
     public function addTwoFactorItem(MenuBuilderEvent $event): void;
 
     public function addSocialAccountsItem(MenuBuilderEvent $event): void;
+
+    public function addPasskeyItem(MenuBuilderEvent $event): void;
 }

@@ -45,14 +45,13 @@ class PasskeyContext implements Context
         $credential->setAdminUser($adminUser);
         $credential->setCredentialId($credentialId);
         $credential->setLabel($label);
-        $credential->setAaguid(Uuid::v4()->toRfc4122());
         $credential->setCredentialSource([
             'publicKeyCredentialId' => base64_encode($credentialId),
             'type' => 'public-key',
             'transports' => ['usb'],
             'attestationType' => 'none',
             'trustPath' => ['type' => 'Webauthn\\TrustPath\\EmptyTrustPath'],
-            'aaguid' => $credential->getAaguid(),
+            'aaguid' => Uuid::v4()->toRfc4122(),
             'credentialPublicKey' => '',
             'userHandle' => base64_encode((string) $adminUser->getId()),
             'counter' => 0,
