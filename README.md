@@ -308,14 +308,12 @@ three_brs_sylius_enterprise_security:
         customer:
             enabled: false
             expiration_seconds: 300      # 5 minutes
-            rate_limit_max: 3
-            rate_limit_window_seconds: 900  # 15 minutes
         admin:
             enabled: false
             expiration_seconds: 300
-            rate_limit_max: 3
-            rate_limit_window_seconds: 900
 ```
+
+> Magic-link rate limiting (default 3 requests / 15 minutes) is configured separately via the centralized `rate_limit.{customer,admin}.magic_link.{enabled,limit,interval}` block — see [Account Lockout & Rate Limiting](#account-lockout--rate-limiting) below.
 
 Expose the request and verify endpoints as public in your firewall access control (the verify controller authenticates internally):
 
@@ -402,18 +400,20 @@ Brute-force protection covering both account-level lockout (per user, persistent
 - Both unlock methods can coexist — auto-unlock fires first when `lockoutUntil` is reached, admin can override manually any time
 - Locked users see *"Account is locked. Try again later or contact an administrator."* on login attempt — generic on purpose, no timer leak
 
-**Rate Limiting** — built on Symfony Rate Limiter (`fixed_window` policy, IP-based for most actions, IP+username for login). Plugin auto-registers `framework.rate_limiter.three_brs_<group>_<action>` services for every enabled combination, no manual `framework.yaml` wiring needed.
+**Rate Limiting** — built on Symfony Rate Limiter (`fixed_window` policy). Plugin auto-registers `framework.rate_limiter.three_brs_<group>_<action>` services for every enabled combination, no manual `framework.yaml` wiring needed.
 
 Throttled endpoints:
 
-| Action | Customer | Admin |
-|---|---|---|
-| Login | ✓ (`sylius_shop_login_check`) | ✓ (`sylius_admin_login_check`) |
-| Password reset | ✓ (`sylius_shop_request_password_reset_token`) | ✓ (`sylius_admin_request_password_reset`) |
-| Register | ✓ (`sylius_shop_register`) | — *(admin has no self-registration)* |
-| Magic link | ✓ (`three_brs_shop_magic_link_request`) | ✓ (`three_brs_admin_magic_link_request`) |
+| Action | Customer | Admin | Rate-limit key | Why this key |
+|---|---|---|---|---|
+| Login | ✓ (`sylius_shop_login_check`) | ✓ (`sylius_admin_login_check`) | **username** | Same key as account lockout — admin manual unlock can deterministically reset it |
+| Password reset | ✓ (`sylius_shop_request_password_reset_token`) | ✓ (`sylius_admin_request_password_reset`) | **client IP** | Anti-enumeration — attacker rotating emails per IP is still throttled |
+| Register | ✓ (`sylius_shop_register`) | — *(admin has no self-registration)* | **client IP** | Anti-fake-account-creation |
+| Magic link | ✓ (`three_brs_shop_magic_link_request`) | ✓ (`three_brs_admin_magic_link_request`) | **client IP** | Anti-spam — protects email recipient from being mailed by an abusive sender |
 
 Exceeding the limit returns HTTP 429 and a flash message.
+
+> **Admin manual unlock & rate limit reset:** when an admin clicks *Unlock* on a locked account, the plugin clears **both** the DB lockout state **and** the `customer/admin login` rate-limit counter for that user — so the user can immediately sign in instead of seeing 429 until the rate-limit window expires. The IP-based limits (password reset, register, magic link) are intentionally *not* reset, since they protect against abuse from an IP, not the legitimate user — and the admin doesn't know which IP triggered the limit.
 
 ```yaml
 three_brs_sylius_enterprise_security:
@@ -421,12 +421,10 @@ three_brs_sylius_enterprise_security:
         customer:
             enabled: false
             max_attempts: 5
-            lockout_duration: 900       # seconds the account stays in the locked state
             auto_unlock_after: 900      # seconds; set to ~ for manual-unlock-only
         admin:
             enabled: false
             max_attempts: 3
-            lockout_duration: 1800
             auto_unlock_after: 1800
     rate_limit:
         customer:

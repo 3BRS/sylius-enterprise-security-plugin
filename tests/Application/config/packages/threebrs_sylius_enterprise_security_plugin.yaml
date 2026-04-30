@@ -82,12 +82,10 @@ three_brs_sylius_enterprise_security:
         customer:
             enabled: true
             max_attempts: 5
-            lockout_duration: 900
             auto_unlock_after: 900
         admin:
             enabled: true
             max_attempts: 3
-            lockout_duration: 1800
             auto_unlock_after: 1800
     rate_limit:
         customer:

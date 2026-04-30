@@ -34,7 +34,10 @@ class ShopUserLoginAttemptListener implements ShopUserLoginAttemptListenerInterf
             return;
         }
 
-        $customer = $this->customerRepository->findOneBy(['email' => strtolower($identifier)]);
+        // Sylius shop login is email-only: the username field on ShopUser is
+        // auto-populated from the customer's email by Sylius's
+        // DefaultUsernameORMListener, so we always look up by customer email.
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($identifier)]);
         if (!$customer instanceof CustomerInterface) {
             return;
         }

@@ -15,9 +15,10 @@ class RateLimitListener implements RateLimitListenerInterface
 {
     /**
      * Map of route name → [group, action, fallbackRedirectRoute, usernameField (optional)].
-     * usernameField is the request field whose value is used to compose the rate-limit key
-     * (login uses IP+username, others use IP only). fallbackRedirectRoute is the route used
-     * when the Referer header is missing or points to a different host.
+     * When usernameField is provided, the rate-limit key is the username only — gives admin
+     * unlock a deterministic key to reset. Otherwise the key falls back to the client IP.
+     * fallbackRedirectRoute is the route used when the Referer header is missing or points
+     * to a different host.
      *
      * @var array<string, array{0: string, 1: string, 2: string, 3?: string}>
      */
@@ -85,9 +86,9 @@ class RateLimitListener implements RateLimitListenerInterface
      */
     protected function resolveRedirectTarget(Request $request, string $fallbackRoute): string
     {
-        $referer = (string) $request->headers->get('Referer', '');
+        $referer = $request->headers->get('Referer', '');
         if ($referer !== '') {
-            $refererHost = parse_url($referer, PHP_URL_HOST);
+            $refererHost = parse_url($referer, \PHP_URL_HOST);
             if ($refererHost === $request->getHost()) {
                 return $referer;
             }

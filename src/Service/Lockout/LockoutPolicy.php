@@ -9,7 +9,6 @@ class LockoutPolicy implements LockoutPolicyInterface
     public function __construct(
         protected bool $enabled,
         protected int $maxAttempts,
-        protected int $lockoutDuration,
         protected ?int $autoUnlockAfter,
     ) {
     }
@@ -22,11 +21,6 @@ class LockoutPolicy implements LockoutPolicyInterface
     public function getMaxAttempts(): int
     {
         return $this->maxAttempts;
-    }
-
-    public function getLockoutDuration(): int
-    {
-        return $this->lockoutDuration;
     }
 
     public function getAutoUnlockAfter(): ?int

@@ -10,7 +10,5 @@ interface LockoutPolicyInterface
 
     public function getMaxAttempts(): int;
 
-    public function getLockoutDuration(): int;
-
     public function getAutoUnlockAfter(): ?int;
 }

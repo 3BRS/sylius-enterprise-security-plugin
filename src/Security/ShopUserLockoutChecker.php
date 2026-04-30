@@ -29,5 +29,8 @@ class ShopUserLockoutChecker implements ShopUserLockoutCheckerInterface
 
     public function checkPostAuth(UserInterface $user): void
     {
+        // Lockout state is fully resolved in checkPreAuth — by the time the password
+        // verifier accepts the credentials, we already know the account is unlocked.
+        // No post-auth check needed.
     }
 }

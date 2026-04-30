@@ -3624,13 +3624,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         customer?: array{
  *             enabled?: bool|Param, // Default: false
  *             max_attempts?: int|Param, // Default: 5
- *             lockout_duration?: int|Param, // Default: 900
  *             auto_unlock_after?: int|Param, // Default: null
  *         },
  *         admin?: array{
  *             enabled?: bool|Param, // Default: false
  *             max_attempts?: int|Param, // Default: 3
- *             lockout_duration?: int|Param, // Default: 1800
  *             auto_unlock_after?: int|Param, // Default: null
  *         },
  *     },

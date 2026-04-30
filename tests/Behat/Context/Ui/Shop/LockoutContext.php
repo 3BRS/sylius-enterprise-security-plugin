@@ -7,10 +7,12 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
+use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManagerInterface;
 use Webmozart\Assert\Assert;
 
 class LockoutContext implements Context
@@ -20,6 +22,8 @@ class LockoutContext implements Context
         protected CustomerRepositoryInterface $customerRepository,
         protected EntityManagerInterface $entityManager,
         protected UrlGeneratorInterface $router,
+        protected ShopUserLockoutManagerInterface $lockoutManager,
+        protected SharedStorageInterface $sharedStorage,
     ) {
     }
 
@@ -32,7 +36,7 @@ class LockoutContext implements Context
 
         $page = $this->session->getPage();
         $page->fillField('_username', $email);
-        $page->fillField('_password', $password);
+        $page->fillField('_password', $this->retrieveSecurePassword($password));
         $page->pressButton('Login');
     }
 
@@ -58,14 +62,47 @@ class LockoutContext implements Context
     }
 
     /**
-     * @Given customer :email has :count failed login attempts
+     * @Given customer :email was locked but the lockout has already expired
      */
-    public function customerHasFailedAttempts(string $email, int $count): void
+    public function customerLockoutExpired(string $email): void
     {
         $user = $this->loadShopUser($email);
-        $user->setFailedLoginAttempts($count);
-        $user->setLastFailedLoginAt(new \DateTimeImmutable());
+        $past = new \DateTimeImmutable('-1 hour');
+        $user->setLockedAt($past);
+        $user->setLockoutUntil($past->modify('+15 minutes')); // still in the past
+        $user->setFailedLoginAttempts(5);
         $this->entityManager->flush();
+    }
+
+    /**
+     * @When the locked customer :email is unlocked by an administrator
+     *
+     * Calls the lockout manager directly to simulate the admin clicking
+     * "Unlock" in /admin/locked-customers — same code path, no need to
+     * pull admin contexts into a shop suite.
+     */
+    public function customerIsUnlockedByAdministrator(string $email): void
+    {
+        $this->lockoutManager->unlock($this->loadShopUser($email));
+    }
+
+    /**
+     * @Then I should not see the too-many-requests message
+     */
+    public function iShouldNotSeeTooManyRequests(): void
+    {
+        $content = (string) $this->session->getPage()->getContent();
+        Assert::notContains($content, 'three_brs.rate_limit.too_many_requests', 'Unexpected rate-limit error.');
+        Assert::notContains($content, 'Too many requests', 'Unexpected rate-limit error.');
+    }
+
+    /**
+     * @Then I should be signed in to the shop as :email
+     */
+    public function iShouldBeSignedInAs(string $email): void
+    {
+        $url = $this->session->getCurrentUrl();
+        Assert::notContains($url, '/login', sprintf('Expected to be off the login page after sign-in, got "%s".', $url));
     }
 
     /**
@@ -91,17 +128,6 @@ class LockoutContext implements Context
     }
 
     /**
-     * @Then the failed attempt counter for customer :email should be :count
-     */
-    public function failedAttemptCounterShouldBe(string $email, int $count): void
-    {
-        $user = $this->loadShopUser($email);
-        $this->entityManager->refresh($user);
-
-        Assert::same($user->getFailedLoginAttempts(), $count);
-    }
-
-    /**
      * @Then I should see the locked-account message
      *
      * Sylius/Symfony renders a generic "Invalid credentials" message for all
@@ -123,5 +149,24 @@ class LockoutContext implements Context
         Assert::isInstanceOf($user, LockableShopUserInterface::class);
 
         return $user;
+    }
+
+    /**
+     * Sylius's `there is a customer account ... identified by ...` step replaces
+     * the configured password with a random hex string and stashes the original
+     * → secret mapping in shared storage. To submit the *real* password from a
+     * Behat step, we look up the secret via that mapping.
+     */
+    protected function retrieveSecurePassword(string $password): string
+    {
+        $scenarioSetupPassword = $this->sharedStorage->has('scenario_setup_password')
+            ? $this->sharedStorage->get('scenario_setup_password')
+            : null;
+
+        if ($scenarioSetupPassword === $password && $this->sharedStorage->has('password')) {
+            return (string) $this->sharedStorage->get('password');
+        }
+
+        return $password;
     }
 }

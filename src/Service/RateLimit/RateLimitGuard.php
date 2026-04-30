@@ -51,14 +51,34 @@ class RateLimitGuard implements RateLimitGuardInterface
         }
     }
 
-    protected function buildKey(Request $request, ?string $userIdentifier): string
+    public function reset(string $group, string $action, string $userIdentifier): void
     {
-        $ip = $request->getClientIp() ?? 'unknown';
-        if ($userIdentifier !== null && $userIdentifier !== '') {
-            return $ip . ':' . strtolower($userIdentifier);
+        if (!$this->isEnabled($group, $action)) {
+            return;
         }
 
-        return $ip;
+        $limiterId = sprintf('limiter.three_brs_%s_%s', $group, $action);
+        if (!$this->limiterLocator->has($limiterId)) {
+            return;
+        }
+
+        /** @var RateLimiterFactory $factory */
+        $factory = $this->limiterLocator->get($limiterId);
+        $factory->create(strtolower($userIdentifier))->reset();
+    }
+
+    /**
+     * When the route provides a username (login forms), key only on that — gives admin
+     * unlock a deterministic key to reset. For routes without a username (register,
+     * password reset, magic-link request), key on IP — anti-enumeration / anti-spam.
+     */
+    protected function buildKey(Request $request, ?string $userIdentifier): string
+    {
+        if ($userIdentifier !== null && $userIdentifier !== '') {
+            return strtolower($userIdentifier);
+        }
+
+        return $request->getClientIp() ?? 'unknown';
     }
 
     protected function mapKey(string $group, string $action): string

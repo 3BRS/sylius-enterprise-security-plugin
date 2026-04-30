@@ -9,8 +9,11 @@ use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManagerInterface;
@@ -19,16 +22,24 @@ class UnlockCustomerController implements UnlockCustomerControllerInterface
 {
     use FlashHelperTrait;
 
+    protected const CSRF_TOKEN_ID = 'three_brs_unlock_user';
+
     /** @param UserRepositoryInterface<ShopUserInterface> $shopUserRepository */
     public function __construct(
         protected UserRepositoryInterface $shopUserRepository,
         protected ShopUserLockoutManagerInterface $lockoutManager,
         protected RouterInterface $router,
+        protected CsrfTokenManagerInterface $csrfTokenManager,
     ) {
     }
 
     public function __invoke(Request $request, int $id): Response
     {
+        $token = (string) $request->request->get('_csrf_token', '');
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken(self::CSRF_TOKEN_ID, $token))) {
+            throw new BadRequestHttpException('Invalid CSRF token.');
+        }
+
         $user = $this->shopUserRepository->find($id);
         if (!$user instanceof LockableShopUserInterface) {
             throw new NotFoundHttpException();

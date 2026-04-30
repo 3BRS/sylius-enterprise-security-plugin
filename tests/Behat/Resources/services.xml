@@ -240,6 +240,8 @@
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="router"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.lockout"

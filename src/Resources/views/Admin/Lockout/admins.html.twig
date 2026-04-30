@@ -53,6 +53,7 @@
                                                 <td>{{ user.lockoutUntil ? user.lockoutUntil|date('Y-m-d H:i') : 'three_brs.ui.lockout.manual_only'|trans }}</td>
                                                 <td class="text-end">
                                                     <form method="POST" action="{{ path('three_brs_admin_locked_admin_unlock', {'id': user.id}) }}">
+                                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_unlock_user') }}">
                                                         <button type="submit"
                                                                 class="btn btn-outline-primary"
                                                                 data-test-three-brs-unlock-admin="{{ user.id }}">

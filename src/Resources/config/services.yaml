@@ -855,7 +855,6 @@ services:
         arguments:
             $enabled: '%three_brs.account_lockout.customer.enabled%'
             $maxAttempts: '%three_brs.account_lockout.customer.max_attempts%'
-            $lockoutDuration: '%three_brs.account_lockout.customer.lockout_duration%'
             $autoUnlockAfter: '%three_brs.account_lockout.customer.auto_unlock_after%'
 
     three_brs.lockout.policy.admin:
@@ -863,7 +862,6 @@ services:
         arguments:
             $enabled: '%three_brs.account_lockout.admin.enabled%'
             $maxAttempts: '%three_brs.account_lockout.admin.max_attempts%'
-            $lockoutDuration: '%three_brs.account_lockout.admin.lockout_duration%'
             $autoUnlockAfter: '%three_brs.account_lockout.admin.auto_unlock_after%'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager:
@@ -871,6 +869,7 @@ services:
             $policy: '@three_brs.lockout.policy.customer'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
+            $rateLimitGuard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManagerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager
@@ -880,6 +879,7 @@ services:
             $policy: '@three_brs.lockout.policy.admin'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
+            $rateLimitGuard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManagerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager
@@ -971,6 +971,7 @@ services:
             $shopUserRepository: '@sylius.repository.shop_user'
             $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager'
             $router: '@router'
+            $csrfTokenManager: '@security.csrf.token_manager'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -979,5 +980,6 @@ services:
             $adminUserRepository: '@sylius.repository.admin_user'
             $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager'
             $router: '@router'
+            $csrfTokenManager: '@security.csrf.token_manager'
         tags:
             - { name: 'controller.service_arguments' }

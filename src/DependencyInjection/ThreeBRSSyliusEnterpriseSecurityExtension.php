@@ -114,7 +114,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
             $groupConfig = $config[$group];
             $container->setParameter(sprintf('three_brs.account_lockout.%s.enabled', $group), (bool) $groupConfig['enabled']);
             $container->setParameter(sprintf('three_brs.account_lockout.%s.max_attempts', $group), (int) $groupConfig['max_attempts']);
-            $container->setParameter(sprintf('three_brs.account_lockout.%s.lockout_duration', $group), (int) $groupConfig['lockout_duration']);
             $container->setParameter(
                 sprintf('three_brs.account_lockout.%s.auto_unlock_after', $group),
                 $groupConfig['auto_unlock_after'] === null ? null : (int) $groupConfig['auto_unlock_after'],

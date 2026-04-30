@@ -6,7 +6,9 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
+use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface;
 
 class AdminUserLockoutManager implements AdminUserLockoutManagerInterface
 {
@@ -14,6 +16,7 @@ class AdminUserLockoutManager implements AdminUserLockoutManagerInterface
         protected LockoutPolicyInterface $policy,
         protected EntityManagerInterface $entityManager,
         protected ClockInterface $clock,
+        protected RateLimitGuardInterface $rateLimitGuard,
     ) {
     }
 
@@ -82,5 +85,21 @@ class AdminUserLockoutManager implements AdminUserLockoutManagerInterface
         $user->setLockoutUntil(null);
 
         $this->entityManager->flush();
+
+        // Without clearing the rate-limit counter, an unlocked admin would still be
+        // blocked at HTTP layer until the rate-limit window expires — making admin
+        // unlock effectively useless. Reset for both username and email since either
+        // could have been used as the form's _username field.
+        if ($user instanceof AdminUserInterface) {
+            $username = $user->getUsername();
+            if ($username !== null && $username !== '') {
+                $this->rateLimitGuard->reset('admin', 'login', $username);
+            }
+
+            $email = $user->getEmail();
+            if ($email !== null && $email !== '' && $email !== $username) {
+                $this->rateLimitGuard->reset('admin', 'login', $email);
+            }
+        }
     }
 }

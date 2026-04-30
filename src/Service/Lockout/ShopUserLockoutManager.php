@@ -6,7 +6,9 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
+use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface;
 
 class ShopUserLockoutManager implements ShopUserLockoutManagerInterface
 {
@@ -14,6 +16,7 @@ class ShopUserLockoutManager implements ShopUserLockoutManagerInterface
         protected LockoutPolicyInterface $policy,
         protected EntityManagerInterface $entityManager,
         protected ClockInterface $clock,
+        protected RateLimitGuardInterface $rateLimitGuard,
     ) {
     }
 
@@ -82,5 +85,17 @@ class ShopUserLockoutManager implements ShopUserLockoutManagerInterface
         $user->setLockoutUntil(null);
 
         $this->entityManager->flush();
+
+        // Without clearing the rate-limit counter, an unlocked user would still be
+        // blocked at HTTP layer until the rate-limit window expires — making admin
+        // unlock effectively useless. Sylius shop login is email-only (the
+        // username field on ShopUser is auto-mirrored from the customer email by
+        // DefaultUsernameORMListener), so resetting the email key is sufficient.
+        if ($user instanceof ShopUserInterface) {
+            $email = $user->getEmail();
+            if ($email !== null && $email !== '') {
+                $this->rateLimitGuard->reset('customer', 'login', $email);
+            }
+        }
     }
 }

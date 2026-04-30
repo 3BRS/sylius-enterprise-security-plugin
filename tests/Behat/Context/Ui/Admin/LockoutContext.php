@@ -61,17 +61,6 @@ class LockoutContext implements Context
     }
 
     /**
-     * @Given admin :email has :count failed login attempts
-     */
-    public function adminHasFailedAttempts(string $email, int $count): void
-    {
-        $user = $this->loadAdminUser($email);
-        $user->setFailedLoginAttempts($count);
-        $user->setLastFailedLoginAt(new \DateTimeImmutable());
-        $this->entityManager->flush();
-    }
-
-    /**
      * @Then admin :email should be locked
      */
     public function adminShouldBeLocked(string $email): void
@@ -167,6 +156,7 @@ class LockoutContext implements Context
         $user->setFailedLoginAttempts(5);
         $this->entityManager->flush();
     }
+
 
     /**
      * @Then customer :email should not be locked

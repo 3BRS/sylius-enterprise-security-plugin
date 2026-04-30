@@ -11,17 +11,18 @@ use Psr\Clock\ClockInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface;
 
 #[CoversClass(ShopUserLockoutManager::class)]
 class ShopUserLockoutManagerTest extends TestCase
 {
     public function testRecordFailureNoOpsWhenPolicyDisabled(): void
     {
-        $policy = new LockoutPolicy(enabled: false, maxAttempts: 3, lockoutDuration: 60, autoUnlockAfter: 60);
+        $policy = new LockoutPolicy(enabled: false, maxAttempts: 3, autoUnlockAfter: 60);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::never())->method('flush');
 
-        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'));
+        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
 
         $manager->recordFailure($user);
@@ -31,11 +32,11 @@ class ShopUserLockoutManagerTest extends TestCase
 
     public function testRecordFailureIncrementsCounter(): void
     {
-        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, lockoutDuration: 60, autoUnlockAfter: 60);
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())->method('flush');
 
-        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'));
+        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
 
         $manager->recordFailure($user);
@@ -46,11 +47,11 @@ class ShopUserLockoutManagerTest extends TestCase
 
     public function testRecordFailureLocksAccountAtThreshold(): void
     {
-        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, lockoutDuration: 60, autoUnlockAfter: 90);
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 90);
         $em = $this->createStub(EntityManagerInterface::class);
 
         $now = new \DateTimeImmutable('2026-04-27 10:00:00');
-        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'));
+        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
         $user->setFailedLoginAttempts(2);
 
@@ -63,10 +64,10 @@ class ShopUserLockoutManagerTest extends TestCase
 
     public function testRecordFailureManualOnlyKeepsLockoutUntilNull(): void
     {
-        $policy = new LockoutPolicy(enabled: true, maxAttempts: 2, lockoutDuration: 60, autoUnlockAfter: null);
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 2, autoUnlockAfter: null);
         $em = $this->createStub(EntityManagerInterface::class);
 
-        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'));
+        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
         $user->setFailedLoginAttempts(1);
 
@@ -78,8 +79,8 @@ class ShopUserLockoutManagerTest extends TestCase
 
     public function testIsLockedReturnsFalseWhenPolicyDisabled(): void
     {
-        $policy = new LockoutPolicy(enabled: false, maxAttempts: 3, lockoutDuration: 60, autoUnlockAfter: 60);
-        $manager = new ShopUserLockoutManager($policy, $this->createStub(EntityManagerInterface::class), $this->fixedClock('2026-04-27 10:00:00'));
+        $policy = new LockoutPolicy(enabled: false, maxAttempts: 3, autoUnlockAfter: 60);
+        $manager = new ShopUserLockoutManager($policy, $this->createStub(EntityManagerInterface::class), $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
         $user->setLockedAt(new \DateTimeImmutable('2026-04-27 09:00:00'));
 
@@ -88,11 +89,11 @@ class ShopUserLockoutManagerTest extends TestCase
 
     public function testIsLockedAutoUnlocksWhenLockoutUntilIsInThePast(): void
     {
-        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, lockoutDuration: 60, autoUnlockAfter: 60);
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())->method('flush');
 
-        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:30:00'));
+        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:30:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
         $user->setLockedAt(new \DateTimeImmutable('2026-04-27 10:00:00'));
         $user->setLockoutUntil(new \DateTimeImmutable('2026-04-27 10:15:00'));
@@ -105,8 +106,8 @@ class ShopUserLockoutManagerTest extends TestCase
 
     public function testIsLockedReturnsTrueWhenLockoutUntilIsInTheFuture(): void
     {
-        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, lockoutDuration: 60, autoUnlockAfter: 60);
-        $manager = new ShopUserLockoutManager($policy, $this->createStub(EntityManagerInterface::class), $this->fixedClock('2026-04-27 10:30:00'));
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
+        $manager = new ShopUserLockoutManager($policy, $this->createStub(EntityManagerInterface::class), $this->fixedClock('2026-04-27 10:30:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
         $user->setLockedAt(new \DateTimeImmutable('2026-04-27 10:00:00'));
         $user->setLockoutUntil(new \DateTimeImmutable('2026-04-27 11:00:00'));
@@ -116,11 +117,11 @@ class ShopUserLockoutManagerTest extends TestCase
 
     public function testRecordSuccessResetsLockoutState(): void
     {
-        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, lockoutDuration: 60, autoUnlockAfter: 60);
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())->method('flush');
 
-        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'));
+        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
         $user->setFailedLoginAttempts(2);
         $user->setLastFailedLoginAt(new \DateTimeImmutable('2026-04-27 09:55:00'));
@@ -133,11 +134,11 @@ class ShopUserLockoutManagerTest extends TestCase
 
     public function testUnlockClearsAllLockoutState(): void
     {
-        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, lockoutDuration: 60, autoUnlockAfter: 60);
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())->method('flush');
 
-        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'));
+        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
         $user->setFailedLoginAttempts(5);
         $user->setLockedAt(new \DateTimeImmutable());
