@@ -456,6 +456,98 @@ Plugin adds **Locked customers** and **Locked administrators** entries to the ad
 
 > **Trusted proxies:** for password reset, registration, and magic-link rate limits the key is `Request::getClientIp()` (login rate limits use the submitted username so admin unlock can clear them deterministically). If your Sylius runs behind a load balancer or reverse proxy, configure `framework.trusted_proxies` and `framework.trusted_headers` so the real client IP is used — otherwise all non-login requests look like they come from the proxy and the limit triggers immediately.
 
+### Session Management & Login Notifications
+
+Active session listing with manual revocation, plus optional email notifications when a user signs in from a previously unseen device. Independently configurable per group (customer / admin).
+
+**Session Management** — every successful sign-in (after a user passes any 2FA or recovery-code challenge) is recorded as a row in `three_brs_customer_session` / `three_brs_admin_user_session` with the User-Agent, IP address, optional country/city (from a pluggable GeoIP provider), the PHP session ID, plus `created_at`, `last_activity_at`, and `revoked_at` timestamps.
+
+- **Listing UI** — customers see their active sessions at `/{_locale}/account/sessions` (Active sessions item in the account menu); admins see them at `/admin/account/sessions` (Sessions item under Configuration). Each row shows the parsed browser + OS, IP, location, last-activity time, and a "current" marker on the row matching the request's session ID.
+- **Revoke individual session** — a POST form per row marks `revoked_at` on a single record (the *current* session is intentionally non-revocable from the list to avoid users locking themselves out by accident; sign out instead).
+- **Revoke all other sessions** — a top-level POST flips `revoked_at` on every active record except the current one.
+- **Activity tracking** — a `kernel.request` listener updates `last_activity_at` on every authenticated request, throttled to **once per 60 seconds** per session to avoid write-amplification on hot pages.
+- **Revocation enforcement** — a higher-priority `kernel.request` listener checks the current request's session ID against the store on every authenticated request; if the row is `revoked_at IS NOT NULL`, the listener invalidates the PHP session, clears the security token, and redirects to the corresponding login page. So a revoked session signs the user out on their *next* request, no separate logout call needed.
+
+**Login Notifications** — on a successful sign-in, the plugin computes a fingerprint from `sha256(User-Agent + '|' + client IP)`. If that fingerprint isn't already stored in `three_brs_customer_known_device` / `three_brs_admin_user_known_device` for the user, the plugin persists it and sends a `three_brs_login_notification` email containing the time, parsed browser/OS, IP, and (if a GeoIP provider is wired up) country and city. Subsequent logins from the same UA + IP combination are treated as a known device and produce no email.
+
+**GeoIP integration** — pluggable via `ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface`. The default binding is `NullGeoIpLookup`, which returns `null` for every lookup (no hard dependency on MaxMind, no DB downloads). To plug in a real provider:
+
+1. **Add a GeoIP library** (the plugin doesn't ship one to keep the dependency footprint small). Typical pick is `composer require geoip2/geoip2`; download the free `GeoLite2-City.mmdb` from [MaxMind](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) and store it somewhere readable, e.g. `var/geoip/GeoLite2-City.mmdb`.
+
+2. **Implement the interface** in your application:
+   ```php
+   namespace App\Service;
+
+   use GeoIp2\Database\Reader;
+   use GeoIp2\Exception\AddressNotFoundException;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpResult;
+
+   class MaxMindGeoIpLookup implements GeoIpLookupInterface
+   {
+       public function __construct(protected string $databasePath) {}
+
+       public function lookup(?string $ipAddress): ?GeoIpResult
+       {
+           if ($ipAddress === null || $ipAddress === '') {
+               return null;
+           }
+           try {
+               $record = (new Reader($this->databasePath))->city($ipAddress);
+               return new GeoIpResult($record->country->isoCode, $record->city->name);
+           } catch (AddressNotFoundException) {
+               return null;
+           }
+       }
+   }
+   ```
+
+3. **Register the service and point the config at it:**
+   ```yaml
+   # config/services.yaml
+   services:
+       App\Service\MaxMindGeoIpLookup:
+           arguments:
+               $databasePath: '%kernel.project_dir%/var/geoip/GeoLite2-City.mmdb'
+   ```
+   ```yaml
+   # config/packages/threebrs_sylius_enterprise_security_plugin.yaml
+   three_brs_sylius_enterprise_security:
+       session_management:
+           geoip_service: App\Service\MaxMindGeoIpLookup   # service ID
+   ```
+
+The plugin's Extension reads `session_management.geoip_service` and replaces the default `NullGeoIpLookup` alias with your service ID — both the customer and admin trackers then call it transparently. For local development the plugin ships a `FakeGeoIpLookup` (`tests/Application/src/Service/FakeGeoIpLookup.php`, wired in `services_dev.yaml`) that maps Docker bridge / RFC5737 ranges to canned city names so the Active Sessions UI is populated when clicking around the dev shop without a real MaxMind DB.
+
+**User-Agent parsing** — uses `matomo/device-detector` to extract a human-readable browser name and operating system for both the session list UI and the login-notification email body.
+
+```yaml
+three_brs_sylius_enterprise_security:
+    session_management:
+        geoip_service: ~          # service ID of a GeoIpLookupInterface implementation, or null for no GeoIP
+        customer:
+            enabled: false
+        admin:
+            enabled: false
+    login_notifications:
+        customer:
+            enabled: false
+        admin:
+            enabled: false
+```
+
+Defaults (cross-checked against `Configuration.php`):
+
+- `session_management.geoip_service`: **`null`** (no GeoIP lookups; UI shows `—` for country/city)
+- `session_management.customer.enabled`: **`false`**
+- `session_management.admin.enabled`: **`false`**
+- `login_notifications.customer.enabled`: **`false`**
+- `login_notifications.admin.enabled`: **`false`**
+
+No entity changes are required on `ShopUser` or `AdminUser` — sessions and known devices live in their own tables and reference the user via foreign key. Plugin adds an **Active sessions** entry to the shop account menu and a **Sessions** entry to the admin Configuration sub-menu automatically — both shown only when session management is enabled for that group.
+
+> **Trusted proxies:** the device fingerprint and the stored IP both use `Request::getClientIp()`. The same trusted-proxy caveat as for rate limiting applies — without `framework.trusted_proxies` configured, all sessions appear to come from the same proxy IP and the new-device check effectively de-duplicates by User-Agent only.
+
 ## Installation
 
 1. Run `composer require 3brs/sylius-enterprise-security-plugin`.

@@ -1,0 +1,105 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.session.admin_title'|trans }}{% endblock %}
+
+{% block body %}
+    {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
+
+    <div class="page-wrapper">
+        {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
+
+        <div class="page-header" data-sticky-header>
+            <div class="container-xl">
+                {{ breadcrumbs([
+                    { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'three_brs.ui.session.admin_title', active: true },
+                ]) }}
+                <div class="row mt-3 row-gap-2">
+                    <div class="col-12 d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                        <div>
+                            {{ header.h1('three_brs.ui.session.admin_title'|trans) }}
+                            <p class="text-secondary mb-0">{{ 'three_brs.ui.session.admin_intro'|trans }}</p>
+                        </div>
+                        {% if rows|length > 1 %}
+                            <form method="POST"
+                                  action="{{ path('three_brs_admin_sessions_revoke_others') }}"
+                                  onsubmit="return confirm('{{ 'three_brs.ui.session.revoke_others_confirm'|trans|e('js') }}');">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_revoke_other_sessions') }}">
+                                <button type="submit"
+                                        class="btn btn-outline-danger"
+                                        data-test-three-brs-revoke-other-sessions>
+                                    {{ 'three_brs.ui.session.revoke_others'|trans }}
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include '@SyliusAdmin/shared/crud/common/content/flashes.html.twig' %}
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="card">
+                    <div class="card-body">
+                        {% if rows|length > 0 %}
+                            <div class="table-responsive">
+                                <table class="table table-vcenter" data-test-three-brs-session-list>
+                                    <thead>
+                                        <tr>
+                                            <th>{{ 'three_brs.ui.session.device'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.session.ip'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.session.location'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.session.last_activity'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.session.signed_in'|trans }}</th>
+                                            <th class="text-end"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in rows %}
+                                            <tr data-test-three-brs-session="{{ row.session.id }}">
+                                                <td>
+                                                    {{ row.userAgent.browser ?: 'three_brs.ui.session.unknown_browser'|trans }}{% if row.userAgent.operatingSystem %} ({{ row.userAgent.operatingSystem }}){% endif %}
+                                                    {% if row.isCurrent %}
+                                                        <span class="badge bg-success ms-2" data-test-three-brs-session-current>{{ 'three_brs.ui.session.current'|trans }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ row.session.ipAddress ?: '—' }}</td>
+                                                <td>{{ row.session.city ? row.session.city ~ ', ' : '' }}{{ row.session.country ?: '—' }}</td>
+                                                <td>{{ row.session.lastActivityAt|date('Y-m-d H:i') }}</td>
+                                                <td>{{ row.session.createdAt|date('Y-m-d H:i') }}</td>
+                                                <td class="text-end">
+                                                    {% if not row.isCurrent %}
+                                                        <form method="POST" action="{{ path('three_brs_admin_session_revoke', {'id': row.session.id}) }}">
+                                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_revoke_session') }}">
+                                                            <button type="submit"
+                                                                    class="btn btn-outline-danger"
+                                                                    data-test-three-brs-revoke-session="{{ row.session.id }}">
+                                                                {{ 'three_brs.ui.session.revoke'|trans }}
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="empty py-4">
+                                <div class="empty-icon">
+                                    <i class="icon ti ti-device-desktop fs-1"></i>
+                                </div>
+                                <p class="empty-title">{{ 'three_brs.ui.session.none'|trans }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

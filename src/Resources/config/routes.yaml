@@ -257,3 +257,42 @@ three_brs_admin_locked_admin_unlock:
     methods: [POST]
     requirements:
         id: '\d+'
+
+three_brs_shop_sessions:
+    path: /{_locale}/account/sessions
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SessionsController
+    methods: [GET]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+
+three_brs_shop_sessions_revoke_others:
+    path: /{_locale}/account/sessions/revoke-others
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SessionRevokeOthersController
+    methods: [POST]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+
+three_brs_shop_session_revoke:
+    path: /{_locale}/account/sessions/{id}/revoke
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SessionRevokeController
+    methods: [POST]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+        id: '\d+'
+
+three_brs_admin_sessions:
+    path: /admin/account/sessions
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SessionsController
+    methods: [GET]
+
+three_brs_admin_sessions_revoke_others:
+    path: /admin/account/sessions/revoke-others
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SessionRevokeOthersController
+    methods: [POST]
+
+three_brs_admin_session_revoke:
+    path: /admin/account/sessions/{id}/revoke
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SessionRevokeController
+    methods: [POST]
+    requirements:
+        id: '\d+'

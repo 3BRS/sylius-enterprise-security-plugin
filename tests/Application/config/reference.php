@@ -3673,6 +3673,23 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             },
  *         },
  *     },
+ *     session_management?: array{
+ *         geoip_service?: scalar|Param|null, // Default: null
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *         admin?: array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *     },
+ *     login_notifications?: array{
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *         admin?: array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *     },
  *     oauth?: array{
  *         customer?: array{
  *             google?: array{

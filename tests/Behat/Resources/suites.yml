@@ -28,3 +28,5 @@ imports:
     - suites/admin_lockout.yml
     - suites/shop_rate_limit.yml
     - suites/admin_rate_limit.yml
+    - suites/shop_session_management.yml
+    - suites/admin_session_management.yml

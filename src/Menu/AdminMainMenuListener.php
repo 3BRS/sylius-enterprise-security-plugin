@@ -12,6 +12,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
         protected bool $passkeyEnabled,
         protected bool $customerLockoutEnabled,
         protected bool $adminLockoutEnabled,
+        protected bool $sessionManagementAdminEnabled,
     ) {
     }
 
@@ -99,6 +100,25 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             ->addChild('locked_admins', ['route' => 'three_brs_admin_locked_admins'])
             ->setLabel('three_brs.ui.lockout.admins_menu_item')
             ->setLabelAttribute('icon', 'tabler:lock-off')
+        ;
+    }
+
+    public function addSessionsItem(MenuBuilderEvent $event): void
+    {
+        if (!$this->sessionManagementAdminEnabled) {
+            return;
+        }
+
+        $configuration = $event->getMenu()->getChild('configuration');
+
+        if ($configuration === null) {
+            return;
+        }
+
+        $configuration
+            ->addChild('three_brs_sessions', ['route' => 'three_brs_admin_sessions'])
+            ->setLabel('three_brs.ui.session.menu_item')
+            ->setLabelAttribute('icon', 'tabler:devices')
         ;
     }
 }

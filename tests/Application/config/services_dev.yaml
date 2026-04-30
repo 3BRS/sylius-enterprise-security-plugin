@@ -27,3 +27,10 @@ services:
             $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
         tags:
             - { name: 'three_brs.oauth_provider' }
+
+    # Dev-only fake GeoIP lookup so the Active Sessions UI shows location
+    # information for Docker/local IPs without requiring a MaxMind database.
+    Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\FakeGeoIpLookup: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface:
+        alias: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\FakeGeoIpLookup

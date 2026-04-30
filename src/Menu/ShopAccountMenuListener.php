@@ -10,6 +10,7 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 {
     public function __construct(
         protected bool $passkeyEnabled,
+        protected bool $sessionManagementEnabled,
     ) {
     }
 
@@ -47,6 +48,21 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
             ->addChild('passkey', ['route' => 'three_brs_shop_passkey_index'])
             ->setLabel('three_brs.ui.passkey.menu_item')
             ->setLabelAttribute('icon', 'tabler:fingerprint')
+        ;
+    }
+
+    public function addSessionsItem(MenuBuilderEvent $event): void
+    {
+        if (!$this->sessionManagementEnabled) {
+            return;
+        }
+
+        $menu = $event->getMenu();
+
+        $menu
+            ->addChild('sessions', ['route' => 'three_brs_shop_sessions'])
+            ->setLabel('three_brs.ui.session.menu_item')
+            ->setLabelAttribute('icon', 'tabler:devices')
         ;
     }
 }

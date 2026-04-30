@@ -16,6 +16,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicy;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordHistoryValidator;
@@ -33,6 +34,11 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
                 ],
                 'three_brs_magic_link' => [
                     'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/magicLink.html.twig',
+                    'enabled' => true,
+                ],
+                'three_brs_login_notification' => [
+                    'subject' => 'three_brs.emails.login_notification.subject',
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/loginNotification.html.twig',
                     'enabled' => true,
                 ],
             ],
@@ -105,6 +111,27 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerPasskey($container, $config['passkey']);
         $this->registerAccountLockout($container, $config['account_lockout']);
         $this->registerRateLimit($container, $config['rate_limit']);
+        $this->registerSessionManagement($container, $config['session_management']);
+        $this->registerLoginNotifications($container, $config['login_notifications']);
+    }
+
+    /** @param array<string, mixed> $config */
+    protected function registerSessionManagement(ContainerBuilder $container, array $config): void
+    {
+        $container->setParameter('three_brs.session_management.customer.enabled', (bool) $config['customer']['enabled']);
+        $container->setParameter('three_brs.session_management.admin.enabled', (bool) $config['admin']['enabled']);
+
+        $geoipService = $config['geoip_service'];
+        if ($geoipService !== null && $geoipService !== '') {
+            $container->setAlias(GeoIpLookupInterface::class, (string) $geoipService);
+        }
+    }
+
+    /** @param array<string, array<string, mixed>> $config */
+    protected function registerLoginNotifications(ContainerBuilder $container, array $config): void
+    {
+        $container->setParameter('three_brs.login_notifications.customer.enabled', (bool) $config['customer']['enabled']);
+        $container->setParameter('three_brs.login_notifications.admin.enabled', (bool) $config['admin']['enabled']);
     }
 
     /** @param array<string, array<string, mixed>> $config */
