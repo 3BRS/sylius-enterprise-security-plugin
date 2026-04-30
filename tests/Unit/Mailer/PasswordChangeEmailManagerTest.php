@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManager;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\UserAgentParserInterface;
 
 #[CoversClass(PasswordChangeEmailManager::class)]
 class PasswordChangeEmailManagerTest extends TestCase
@@ -21,14 +20,8 @@ class PasswordChangeEmailManagerTest extends TestCase
     private function createManager(
         SenderInterface $sender,
         UrlGeneratorInterface $router,
-        ?UserAgentParserInterface $userAgentParser = null,
     ): PasswordChangeEmailManager {
-        if ($userAgentParser === null) {
-            $userAgentParser = $this->createStub(UserAgentParserInterface::class);
-            $userAgentParser->method('describe')->willReturn(null);
-        }
-
-        return new PasswordChangeEmailManager($sender, $router, $userAgentParser);
+        return new PasswordChangeEmailManager($sender, $router);
     }
 
     private function shopUserWithEmail(string $email): ShopUserInterface
@@ -138,32 +131,6 @@ class PasswordChangeEmailManagerTest extends TestCase
         $manager->sendPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), null, false);
 
         self::assertNull($capturedData['ipAddress']);
-        self::assertNull($capturedData['device']);
-    }
-
-    public function testEmailDataContainsParsedDeviceFromRequest(): void
-    {
-        $request = Request::create('/', 'GET', [], [], [], ['HTTP_USER_AGENT' => 'raw-ua']);
-
-        $parser = $this->createMock(UserAgentParserInterface::class);
-        $parser->expects(self::once())
-            ->method('describe')
-            ->with('raw-ua')
-            ->willReturn('Chrome on macOS')
-        ;
-
-        $capturedData = [];
-        $sender = $this->createStub(SenderInterface::class);
-        $sender->method('send')->willReturnCallback(
-            function (string $code, array $recipients, array $data) use (&$capturedData): void {
-                $capturedData = $data;
-            },
-        );
-
-        $manager = $this->createManager($sender, $this->createStub(UrlGeneratorInterface::class), $parser);
-        $manager->sendPasswordChangedEmail($this->shopUserWithEmail('john@example.com'), $request, false);
-
-        self::assertSame('Chrome on macOS', $capturedData['device']);
     }
 
     public function testSecureAccountUrlIsGeneratedWhenNotInitiatedByUser(): void
