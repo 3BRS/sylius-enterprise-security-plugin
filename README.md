@@ -411,7 +411,7 @@ Throttled endpoints:
 | Register | ✓ (`sylius_shop_register`) | — *(admin has no self-registration)* | **client IP** | Anti-fake-account-creation |
 | Magic link | ✓ (`three_brs_shop_magic_link_request`) | ✓ (`three_brs_admin_magic_link_request`) | **client IP** | Anti-spam — protects email recipient from being mailed by an abusive sender |
 
-Exceeding the limit returns HTTP 429 and a flash message.
+When the limit is exceeded the listener catches the throttle internally and redirects back to the form (Referer if same-host, otherwise the canonical entry route) with a `three_brs.rate_limit.too_many_requests` error flash — so the user lands on the page they tried to submit instead of a bare 429 error page.
 
 > **Admin manual unlock & rate limit reset:** when an admin clicks *Unlock* on a locked account, the plugin clears **both** the DB lockout state **and** the `customer/admin login` rate-limit counter for that user — so the user can immediately sign in instead of seeing 429 until the rate-limit window expires. The IP-based limits (password reset, register, magic link) are intentionally *not* reset, since they protect against abuse from an IP, not the legitimate user — and the admin doesn't know which IP triggered the limit.
 
@@ -421,11 +421,11 @@ three_brs_sylius_enterprise_security:
         customer:
             enabled: false
             max_attempts: 5
-            auto_unlock_after: 900      # seconds; set to ~ for manual-unlock-only
+            auto_unlock_after: ~        # seconds; ~ (default) means manual-unlock-only
         admin:
             enabled: false
             max_attempts: 3
-            auto_unlock_after: 1800
+            auto_unlock_after: ~
     rate_limit:
         customer:
             login:           { enabled: false, limit: 5, interval: '15 minutes' }
