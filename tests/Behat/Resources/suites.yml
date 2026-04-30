@@ -22,3 +22,5 @@ imports:
     - suites/admin_magic_link.yml
     - suites/shop_passkey.yml
     - suites/admin_passkey.yml
+    - suites/shop_passkey_ceremony.yml
+    - suites/admin_passkey_ceremony.yml
