@@ -116,7 +116,7 @@ three_brs_sylius_enterprise_security:
 - Sends an email notification whenever a user's password is changed
 - Covers all flows: account settings change, forgot-password reset, admin-forced change, and admin editing another user's password
 - Detection is Doctrine-based — the listener catches password updates at flush time regardless of which flow triggered them
-- Email contains timestamp, IP address, device info (parsed from User-Agent, e.g. "Chrome on macOS") when available, and a secure-account link when the change was not initiated by the user
+- Email contains timestamp, IP address (when available), and a secure-account link when the change was not initiated by the user
 - `initiatedByUser` is derived from the current security token: when the authenticated user matches the user whose password changed, the secure-account link is omitted
 - Configurable independently for customers and admins (enable/disable)
 

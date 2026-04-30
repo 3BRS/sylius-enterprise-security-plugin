@@ -4,13 +4,10 @@ services:
         autoconfigure: false
         public: false
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\UserAgentParser: ~
-
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManager:
         arguments:
             $emailSender: '@sylius.email_sender'
             $router: '@router'
-            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\UserAgentParser'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordChangeNotificationListener:
         arguments:

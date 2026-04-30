@@ -6,7 +6,6 @@ three_brs:
             intro: 'Your account password was recently changed. Here are the details:'
             timestamp: 'Date & Time'
             ip_address: 'IP Address'
-            device: 'Device'
             not_you_warning: 'If you did not make this change, your account may be compromised. Please secure your account immediately.'
             secure_account: 'Secure My Account'
     form:

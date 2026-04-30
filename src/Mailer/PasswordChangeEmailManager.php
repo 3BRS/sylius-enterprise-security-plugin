@@ -9,14 +9,12 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\UserAgentParserInterface;
 
 class PasswordChangeEmailManager implements PasswordChangeEmailManagerInterface
 {
     public function __construct(
         private SenderInterface $emailSender,
         private UrlGeneratorInterface $router,
-        private UserAgentParserInterface $userAgentParser,
     ) {
     }
 
@@ -40,7 +38,6 @@ class PasswordChangeEmailManager implements PasswordChangeEmailManagerInterface
             data: [
                 'timestamp' => new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
                 'ipAddress' => $request?->getClientIp(),
-                'device' => $this->userAgentParser->describe($request?->headers->get('User-Agent')),
                 'initiatedByUser' => $initiatedByUser,
                 'secureAccountUrl' => $initiatedByUser ? null : $this->router->generate($secureRoute, [], UrlGeneratorInterface::ABSOLUTE_URL),
             ],
