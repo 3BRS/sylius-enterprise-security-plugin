@@ -6,5 +6,5 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 
 interface TimingPaddingInterface
 {
-    public function pad(): void;
+    public function padTo(float $startedAt): void;
 }

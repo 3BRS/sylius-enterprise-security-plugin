@@ -12,7 +12,7 @@ trait StableTotpCodeTrait
      * Returns a TOTP code that is still valid by the time the form reaches the server.
      * If we are within 3 s of the 30-second window rollover, wait until the next
      * window starts so the generation and the server-side verify happen in the same window.
-     * Without this, suite jitter (e.g. RandomUsleepTimingPadding from the magic-link
+     * Without this, suite jitter (e.g. DeadlineTimingPadding from the magic-link
      * handlers) can push code generation across a window boundary and the server-side
      * verify (which uses no leeway) rejects the code, causing flaky failures.
      */

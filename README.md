@@ -297,6 +297,7 @@ Apple Sign In requires a paid Apple Developer account and a **public HTTPS** red
 - Separate link (like "Forgotten password?") is rendered on the shop and admin login pages via Sylius twig hooks; no markup changes required in your theme
 - Tokens live in dedicated tables (`three_brs_customer_magic_link_token`, `three_brs_admin_user_magic_link_token`) — only hashes are stored, plain tokens exist only in the email
 - Anti-enumeration: the request endpoint always responds with the same neutral confirmation whether the email is known, unknown, disabled, or rate-limited — no information about account existence leaks
+- Timing-attack mitigation: every code path is padded to a fixed wall-clock deadline (`DeadlineTimingPadding`, default 800 ms) so response time does not leak account existence either — known/unknown/rate-limited requests all return at the same time. Tune by decorating the `ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding` service with a different `$targetSeconds` if your SMTP transport is slower than the default deadline
 - Rate limiting per user: configurable count within a sliding window (defaults to 3 requests / 15 minutes)
 - 2FA-aware: if the authenticated user has `scheb/2fa` enabled, the verify controller dispatches `AuthenticationTokenCreatedEvent` on the firewall event dispatcher so scheb wraps the token and redirects to the 2FA challenge — the magic link does **not** bypass the second factor
 - Fixture (`three_brs_magic_link`) to preload tokens for demo/testing

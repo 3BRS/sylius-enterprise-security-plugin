@@ -38,7 +38,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $clock = $this->createStub(ClockInterface::class);
 
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
-        $timingPadding->expects(self::never())->method('pad');
+        $timingPadding->expects(self::never())->method('padTo');
 
         $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, false, 300, 3, 900);
 
@@ -67,7 +67,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
 
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
-        $timingPadding->expects(self::once())->method('pad');
+        $timingPadding->expects(self::once())->method('padTo');
 
         $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
 
@@ -98,14 +98,14 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
 
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
-        $timingPadding->expects(self::once())->method('pad');
+        $timingPadding->expects(self::once())->method('padTo');
 
         $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
 
         $handler->request('admin@example.com');
     }
 
-    public function testKnownEmailDispatchesMagicLinkAndDoesNotPad(): void
+    public function testKnownEmailDispatchesMagicLinkAndPadsResponseTime(): void
     {
         $user = $this->createStub(AdminUserInterface::class);
 
@@ -133,7 +133,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
 
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
-        $timingPadding->expects(self::never())->method('pad');
+        $timingPadding->expects(self::once())->method('padTo');
 
         $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
 

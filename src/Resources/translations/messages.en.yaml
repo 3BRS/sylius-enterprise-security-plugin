@@ -80,5 +80,3 @@ three_brs:
             request_submit: 'Send magic link'
             request_link: 'Sign in with a magic link'
             email: 'Email'
-            request_sent: 'If an account exists for the email you entered, a sign-in link has been sent.'
-            invalid_or_expired: 'This magic link is invalid or has expired. Request a new one to sign in.'

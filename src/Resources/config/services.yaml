@@ -516,7 +516,7 @@ services:
             $emailSender: '@sylius.email_sender'
             $router: '@router'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RandomUsleepTimingPadding: ~
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding: ~
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler:
         arguments:
@@ -526,7 +526,7 @@ services:
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManager'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
-            $timingPadding: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RandomUsleepTimingPadding'
+            $timingPadding: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler:
         arguments:
@@ -536,7 +536,7 @@ services:
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManager'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
-            $timingPadding: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RandomUsleepTimingPadding'
+            $timingPadding: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\MagicLinkRequestType:
         tags:

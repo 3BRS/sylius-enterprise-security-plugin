@@ -39,37 +39,38 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
             return;
         }
 
-        // Generate and hash token regardless of whether the email is known —
-        // keeps the CPU work constant so response time does not leak account existence.
-        $plainToken = $this->tokenGenerator->generatePlainToken();
-        $tokenHash = $this->tokenGenerator->hash($plainToken);
-        $now = $this->clock->now();
+        // Pad every code path to the same wall-clock deadline so an attacker
+        // cannot tell whether the email exists, was rate-limited, or got the
+        // full happy path (DB write + SMTP send) by measuring response time.
+        $startedAt = microtime(true);
 
-        $user = $this->findUserByEmail($email);
-        if ($user === null) {
-            // Pad the response time so an attacker cannot tell that the email is unknown
-            // by measuring how much faster the request returned than the happy path.
-            $this->timingPadding->pad();
+        try {
+            $plainToken = $this->tokenGenerator->generatePlainToken();
+            $tokenHash = $this->tokenGenerator->hash($plainToken);
+            $now = $this->clock->now();
 
-            return;
+            $user = $this->findUserByEmail($email);
+            if ($user === null) {
+                return;
+            }
+
+            $windowStart = $now->sub(new \DateInterval('PT' . $this->rateLimitWindowSeconds . 'S'));
+            if ($this->tokenRepository->countRecentForShopUser($user, $windowStart) >= $this->rateLimitMax) {
+                return;
+            }
+
+            $token = new CustomerMagicLinkToken();
+            $token->setShopUser($user);
+            $token->setTokenHash($tokenHash);
+            $token->setExpiresAt($now->add(new \DateInterval('PT' . $this->expirationSeconds . 'S')));
+
+            $this->entityManager->persist($token);
+            $this->entityManager->flush();
+
+            $this->emailManager->sendMagicLink($user, $plainToken, $this->expirationSeconds);
+        } finally {
+            $this->timingPadding->padTo($startedAt);
         }
-
-        $windowStart = $now->sub(new \DateInterval('PT' . $this->rateLimitWindowSeconds . 'S'));
-        if ($this->tokenRepository->countRecentForShopUser($user, $windowStart) >= $this->rateLimitMax) {
-            $this->timingPadding->pad();
-
-            return;
-        }
-
-        $token = new CustomerMagicLinkToken();
-        $token->setShopUser($user);
-        $token->setTokenHash($tokenHash);
-        $token->setExpiresAt($now->add(new \DateInterval('PT' . $this->expirationSeconds . 'S')));
-
-        $this->entityManager->persist($token);
-        $this->entityManager->flush();
-
-        $this->emailManager->sendMagicLink($user, $plainToken, $this->expirationSeconds);
     }
 
     protected function findUserByEmail(string $email): ?ShopUserInterface

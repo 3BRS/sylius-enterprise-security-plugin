@@ -20,17 +20,6 @@ sylius_fixtures:
                         locales:
                             - en_US
 
-                admin_user:
-                    options:
-                        custom:
-                            sylius:
-                                username: sylius
-                                password: sylius
-                                email: sylius@example.com
-                                first_name: Sylius
-                                last_name: Admin
-                                api: true
-
                 shop_user:
                     options:
                         custom:
