@@ -8,14 +8,49 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
+use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface;
+
+/** @internal */
+interface TestLockableAdminUser extends LockableAdminUserInterface, AdminUserInterface
+{
+}
 
 #[CoversClass(AdminUserLockoutManager::class)]
 class AdminUserLockoutManagerTest extends TestCase
 {
+    public function testRecordFailureNoOpsWhenPolicyDisabled(): void
+    {
+        $policy = new LockoutPolicy(enabled: false, maxAttempts: 3, autoUnlockAfter: 60);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('flush');
+
+        $manager = new AdminUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
+        $user = $this->createUser();
+
+        $manager->recordFailure($user);
+
+        self::assertSame(0, $user->getFailedLoginAttempts());
+    }
+
+    public function testRecordFailureIncrementsCounter(): void
+    {
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::once())->method('flush');
+
+        $manager = new AdminUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
+        $user = $this->createUser();
+
+        $manager->recordFailure($user);
+
+        self::assertSame(1, $user->getFailedLoginAttempts());
+        self::assertNull($user->getLockedAt());
+    }
+
     public function testRecordFailureLocksAccountAtThreshold(): void
     {
         $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 1800);
@@ -33,6 +68,31 @@ class AdminUserLockoutManagerTest extends TestCase
         self::assertEquals($now->modify('+1800 seconds'), $user->getLockoutUntil());
     }
 
+    public function testRecordFailureManualOnlyKeepsLockoutUntilNull(): void
+    {
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 2, autoUnlockAfter: null);
+        $em = $this->createStub(EntityManagerInterface::class);
+
+        $manager = new AdminUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
+        $user = $this->createUser();
+        $user->setFailedLoginAttempts(1);
+
+        $manager->recordFailure($user);
+
+        self::assertNotNull($user->getLockedAt());
+        self::assertNull($user->getLockoutUntil());
+    }
+
+    public function testIsLockedReturnsFalseWhenPolicyDisabled(): void
+    {
+        $policy = new LockoutPolicy(enabled: false, maxAttempts: 3, autoUnlockAfter: 60);
+        $manager = new AdminUserLockoutManager($policy, $this->createStub(EntityManagerInterface::class), $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
+        $user = $this->createUser();
+        $user->setLockedAt(new \DateTimeImmutable('2026-04-27 09:00:00'));
+
+        self::assertFalse($manager->isLocked($user));
+    }
+
     public function testIsLockedAutoUnlocksWhenLockoutUntilIsInThePast(): void
     {
         $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
@@ -47,6 +107,18 @@ class AdminUserLockoutManagerTest extends TestCase
 
         self::assertFalse($manager->isLocked($user));
         self::assertNull($user->getLockedAt());
+        self::assertSame(0, $user->getFailedLoginAttempts());
+    }
+
+    public function testIsLockedReturnsTrueWhenLockoutUntilIsInTheFuture(): void
+    {
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
+        $manager = new AdminUserLockoutManager($policy, $this->createStub(EntityManagerInterface::class), $this->fixedClock('2026-04-27 10:30:00'), $this->createStub(RateLimitGuardInterface::class));
+        $user = $this->createUser();
+        $user->setLockedAt(new \DateTimeImmutable('2026-04-27 10:00:00'));
+        $user->setLockoutUntil(new \DateTimeImmutable('2026-04-27 11:00:00'));
+
+        self::assertTrue($manager->isLocked($user));
     }
 
     public function testRecordSuccessResetsLockoutState(): void
@@ -58,10 +130,78 @@ class AdminUserLockoutManagerTest extends TestCase
         $manager = new AdminUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
         $user->setFailedLoginAttempts(2);
+        $user->setLastFailedLoginAt(new \DateTimeImmutable('2026-04-27 09:55:00'));
 
         $manager->recordSuccess($user);
 
         self::assertSame(0, $user->getFailedLoginAttempts());
+        self::assertNull($user->getLastFailedLoginAt());
+    }
+
+    public function testUnlockClearsAllLockoutState(): void
+    {
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::once())->method('flush');
+
+        $manager = new AdminUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
+        $user = $this->createUser();
+        $user->setFailedLoginAttempts(5);
+        $user->setLockedAt(new \DateTimeImmutable());
+        $user->setLockoutUntil(new \DateTimeImmutable());
+
+        $manager->unlock($user);
+
+        self::assertSame(0, $user->getFailedLoginAttempts());
+        self::assertNull($user->getLockedAt());
+        self::assertNull($user->getLockoutUntil());
+    }
+
+    public function testUnlockResetsRateLimitForBothUsernameAndEmail(): void
+    {
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
+        $em = $this->createStub(EntityManagerInterface::class);
+
+        $user = $this->createStub(TestLockableAdminUser::class);
+        $user->method('getUsername')->willReturn('admin-user');
+        $user->method('getEmail')->willReturn('admin@example.com');
+
+        $rateLimitGuard = $this->createMock(RateLimitGuardInterface::class);
+        $matcher = self::exactly(2);
+        $rateLimitGuard->expects($matcher)
+            ->method('reset')
+            ->willReturnCallback(function (string $group, string $action, string $userIdentifier) use ($matcher) {
+                self::assertSame('admin', $group);
+                self::assertSame('login', $action);
+                match ($matcher->numberOfInvocations()) {
+                    1 => self::assertSame('admin-user', $userIdentifier),
+                    2 => self::assertSame('admin@example.com', $userIdentifier),
+                    default => self::fail('Unexpected reset call.'),
+                };
+            })
+        ;
+
+        $manager = new AdminUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $rateLimitGuard);
+        $manager->unlock($user);
+    }
+
+    public function testUnlockResetsRateLimitOnlyOnceWhenUsernameEqualsEmail(): void
+    {
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
+        $em = $this->createStub(EntityManagerInterface::class);
+
+        $user = $this->createStub(TestLockableAdminUser::class);
+        $user->method('getUsername')->willReturn('admin@example.com');
+        $user->method('getEmail')->willReturn('admin@example.com');
+
+        $rateLimitGuard = $this->createMock(RateLimitGuardInterface::class);
+        $rateLimitGuard->expects(self::once())
+            ->method('reset')
+            ->with('admin', 'login', 'admin@example.com')
+        ;
+
+        $manager = new AdminUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $rateLimitGuard);
+        $manager->unlock($user);
     }
 
     protected function createUser(): LockableAdminUserInterface

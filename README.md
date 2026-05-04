@@ -404,16 +404,16 @@ Brute-force protection covering both account-level lockout (per user, persistent
 
 Throttled endpoints:
 
-| Action | Customer | Admin | Rate-limit key | Why this key |
-|---|---|---|---|---|
-| Login | ✓ (`sylius_shop_login_check`) | ✓ (`sylius_admin_login_check`) | **username** | Same key as account lockout — admin manual unlock can deterministically reset it |
-| Password reset | ✓ (`sylius_shop_request_password_reset_token`) | ✓ (`sylius_admin_request_password_reset`) | **client IP** | Anti-enumeration — attacker rotating emails per IP is still throttled |
-| Register | ✓ (`sylius_shop_register`) | — *(admin has no self-registration)* | **client IP** | Anti-fake-account-creation |
-| Magic link | ✓ (`three_brs_shop_magic_link_request`) | ✓ (`three_brs_admin_magic_link_request`) | **client IP** | Anti-spam — protects email recipient from being mailed by an abusive sender |
+| Action | Customer | Admin |
+|---|---|---|
+| Login | ✓ | ✓ |
+| Password reset | ✓ | ✓ |
+| Register | ✓ | — *(admin has no self-registration)* |
+| Magic link | ✓ | ✓ |
 
-When the limit is exceeded the listener catches the throttle internally and redirects back to the form (Referer if same-host, otherwise the canonical entry route) with a `three_brs.rate_limit.too_many_requests` error flash — so the user lands on the page they tried to submit instead of a bare 429 error page.
+When the limit is exceeded the user is redirected back to the form with a `three_brs.rate_limit.too_many_requests` error flash.
 
-> **Admin manual unlock & rate limit reset:** when an admin clicks *Unlock* on a locked account, the plugin clears **both** the DB lockout state **and** the `customer/admin login` rate-limit counter for that user — so the user can immediately sign in instead of seeing 429 until the rate-limit window expires. The IP-based limits (password reset, register, magic link) are intentionally *not* reset, since they protect against abuse from an IP, not the legitimate user — and the admin doesn't know which IP triggered the limit.
+> **Admin manual unlock:** clicking *Unlock* on a locked account clears the DB lockout state and the login rate-limit counter for that user, so they can sign in immediately.
 
 ```yaml
 three_brs_sylius_enterprise_security:

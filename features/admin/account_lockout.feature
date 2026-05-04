@@ -21,3 +21,9 @@ Feature: Admin account lockout
         Given admin "admin@example.com" is locked
         When I try to sign in to the admin panel with email "admin@example.com" and password "Password1!"
         Then I should see the locked-account message
+
+    @ui
+    Scenario: Lockout auto-expires when lockoutUntil is in the past
+        Given admin "admin@example.com" was locked but the lockout has already expired
+        When I try to sign in to the admin panel with email "admin@example.com" and password "Password1!"
+        Then admin "admin@example.com" should not be locked

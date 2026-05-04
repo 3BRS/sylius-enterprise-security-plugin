@@ -79,8 +79,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $customerRepo = $this->createMock(CustomerRepositoryInterface::class);
         $customerRepo->expects(self::once())->method('findOneBy')->willReturn(null);
 
-        $tokenRepo = $this->createMock(CustomerMagicLinkTokenRepositoryInterface::class);
-        $tokenRepo->expects(self::never())->method('countRecentForShopUser');
+        $tokenRepo = $this->createStub(CustomerMagicLinkTokenRepositoryInterface::class);
 
         $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
         $generator->method('generatePlainToken')->willReturn('plain-token');
@@ -116,7 +115,6 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
             ->willReturn($customer);
 
         $tokenRepo = $this->createStub(CustomerMagicLinkTokenRepositoryInterface::class);
-        $tokenRepo->method('countRecentForShopUser')->willReturn(0);
 
         $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
         $generator->expects(self::once())->method('generatePlainToken')->willReturn('plain-token');

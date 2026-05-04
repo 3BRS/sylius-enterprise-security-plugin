@@ -30,11 +30,16 @@ class UnlockCustomerController implements UnlockCustomerControllerInterface
         protected ShopUserLockoutManagerInterface $lockoutManager,
         protected RouterInterface $router,
         protected CsrfTokenManagerInterface $csrfTokenManager,
+        protected bool $enabled,
     ) {
     }
 
     public function __invoke(Request $request, int $id): Response
     {
+        if (!$this->enabled) {
+            throw new NotFoundHttpException();
+        }
+
         $token = (string) $request->request->get('_csrf_token', '');
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken(self::CSRF_TOKEN_ID, $token))) {
             throw new BadRequestHttpException('Invalid CSRF token.');

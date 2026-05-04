@@ -956,6 +956,7 @@ services:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepository'
             $twig: '@twig'
+            $enabled: '%three_brs.account_lockout.customer.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -963,6 +964,7 @@ services:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepository'
             $twig: '@twig'
+            $enabled: '%three_brs.account_lockout.admin.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -972,6 +974,7 @@ services:
             $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager'
             $router: '@router'
             $csrfTokenManager: '@security.csrf.token_manager'
+            $enabled: '%three_brs.account_lockout.customer.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -981,5 +984,6 @@ services:
             $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager'
             $router: '@router'
             $csrfTokenManager: '@security.csrf.token_manager'
+            $enabled: '%three_brs.account_lockout.admin.enabled%'
         tags:
             - { name: 'controller.service_arguments' }

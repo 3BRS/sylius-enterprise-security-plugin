@@ -47,7 +47,7 @@
                                     <tbody>
                                         {% for user in users %}
                                             <tr>
-                                                <td>{{ user.username }}</td>
+                                                <td>{{ user.email }}</td>
                                                 <td>{{ user.failedLoginAttempts }}</td>
                                                 <td>{{ user.lockedAt ? user.lockedAt|date('Y-m-d H:i') : '-' }}</td>
                                                 <td>{{ user.lockoutUntil ? user.lockoutUntil|date('Y-m-d H:i') : 'three_brs.ui.lockout.manual_only'|trans }}</td>

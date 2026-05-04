@@ -9,6 +9,7 @@ use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Sylius\Component\User\Model\UserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
@@ -17,7 +18,7 @@ use Webmozart\Assert\Assert;
 
 class LockoutContext implements Context
 {
-    /** @param UserRepositoryInterface<\Sylius\Component\User\Model\UserInterface> $adminUserRepository */
+    /** @param UserRepositoryInterface<UserInterface> $adminUserRepository */
     public function __construct(
         protected Session $session,
         protected UserRepositoryInterface $adminUserRepository,
@@ -56,6 +57,19 @@ class LockoutContext implements Context
         $now = new \DateTimeImmutable();
         $user->setLockedAt($now);
         $user->setLockoutUntil($now->modify('+30 minutes'));
+        $user->setFailedLoginAttempts(3);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * @Given admin :email was locked but the lockout has already expired
+     */
+    public function adminLockoutExpired(string $email): void
+    {
+        $user = $this->loadAdminUser($email);
+        $past = new \DateTimeImmutable('-1 hour');
+        $user->setLockedAt($past);
+        $user->setLockoutUntil($past->modify('+30 minutes'));
         $user->setFailedLoginAttempts(3);
         $this->entityManager->flush();
     }

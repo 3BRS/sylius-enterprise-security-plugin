@@ -10,7 +10,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerMagicLinkToken;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGeneratorInterface;
 use Webmozart\Assert\Assert;
 
@@ -19,7 +18,6 @@ class MagicLinkContext implements Context
     public function __construct(
         protected Session $session,
         protected CustomerRepositoryInterface $customerRepository,
-        protected CustomerMagicLinkTokenRepositoryInterface $tokenRepository,
         protected MagicLinkTokenGeneratorInterface $tokenGenerator,
         protected EntityManagerInterface $entityManager,
     ) {
@@ -90,7 +88,7 @@ class MagicLinkContext implements Context
     {
         $this->entityManager->clear();
         $user = $this->findShopUser($email);
-        $count = $this->tokenRepository->countRecentForShopUser($user, new \DateTimeImmutable('-1 hour'));
+        $count = $this->countTokensFor($user);
         Assert::greaterThan($count, 0, sprintf('No magic link token stored for "%s".', $email));
     }
 
@@ -108,7 +106,7 @@ class MagicLinkContext implements Context
         if (!$user instanceof ShopUserInterface) {
             return;
         }
-        $count = $this->tokenRepository->countRecentForShopUser($user, new \DateTimeImmutable('-1 hour'));
+        $count = $this->countTokensFor($user);
         Assert::same($count, 0, sprintf('Unexpected magic link token stored for "%s".', $email));
     }
 
@@ -129,7 +127,7 @@ class MagicLinkContext implements Context
     {
         $this->entityManager->clear();
         $user = $this->findShopUser($email);
-        $actual = $this->tokenRepository->countRecentForShopUser($user, new \DateTimeImmutable('-1 hour'));
+        $actual = $this->countTokensFor($user);
         Assert::same($actual, $count, sprintf('Expected exactly %d magic link tokens for "%s", got %d.', $count, $email, $actual));
     }
 
@@ -180,5 +178,10 @@ class MagicLinkContext implements Context
         Assert::isInstanceOf($user, ShopUserInterface::class);
 
         return $user;
+    }
+
+    protected function countTokensFor(ShopUserInterface $user): int
+    {
+        return $this->entityManager->getRepository(CustomerMagicLinkToken::class)->count(['shopUser' => $user]);
     }
 }

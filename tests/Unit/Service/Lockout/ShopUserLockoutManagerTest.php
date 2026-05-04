@@ -8,10 +8,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
+use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface;
+
+/** @internal */
+interface TestLockableShopUser extends LockableShopUserInterface, ShopUserInterface
+{
+}
 
 #[CoversClass(ShopUserLockoutManager::class)]
 class ShopUserLockoutManagerTest extends TestCase
@@ -149,6 +155,39 @@ class ShopUserLockoutManagerTest extends TestCase
         self::assertSame(0, $user->getFailedLoginAttempts());
         self::assertNull($user->getLockedAt());
         self::assertNull($user->getLockoutUntil());
+    }
+
+    public function testUnlockResetsRateLimitForCustomerEmail(): void
+    {
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
+        $em = $this->createStub(EntityManagerInterface::class);
+
+        $user = $this->createStub(TestLockableShopUser::class);
+        $user->method('getEmail')->willReturn('alice@example.com');
+
+        $rateLimitGuard = $this->createMock(RateLimitGuardInterface::class);
+        $rateLimitGuard->expects(self::once())
+            ->method('reset')
+            ->with('customer', 'login', 'alice@example.com')
+        ;
+
+        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $rateLimitGuard);
+        $manager->unlock($user);
+    }
+
+    public function testUnlockSkipsRateLimitResetWhenEmailIsEmpty(): void
+    {
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
+        $em = $this->createStub(EntityManagerInterface::class);
+
+        $user = $this->createStub(TestLockableShopUser::class);
+        $user->method('getEmail')->willReturn(null);
+
+        $rateLimitGuard = $this->createMock(RateLimitGuardInterface::class);
+        $rateLimitGuard->expects(self::never())->method('reset');
+
+        $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $rateLimitGuard);
+        $manager->unlock($user);
     }
 
     protected function createUser(): LockableShopUserInterface

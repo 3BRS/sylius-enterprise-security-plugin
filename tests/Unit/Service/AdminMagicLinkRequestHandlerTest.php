@@ -50,8 +50,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $userRepo = $this->createMock(UserRepositoryInterface::class);
         $userRepo->expects(self::once())->method('findOneBy')->willReturn(null);
 
-        $tokenRepo = $this->createMock(AdminUserMagicLinkTokenRepositoryInterface::class);
-        $tokenRepo->expects(self::never())->method('countRecentForAdminUser');
+        $tokenRepo = $this->createStub(AdminUserMagicLinkTokenRepositoryInterface::class);
 
         $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
         $generator->method('generatePlainToken')->willReturn('plain-token');
@@ -85,7 +84,6 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
             ->willReturn($user);
 
         $tokenRepo = $this->createStub(AdminUserMagicLinkTokenRepositoryInterface::class);
-        $tokenRepo->method('countRecentForAdminUser')->willReturn(0);
 
         $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
         $generator->expects(self::once())->method('generatePlainToken')->willReturn('plain-token');

@@ -178,7 +178,6 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\MagicLinkContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.customer"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
@@ -187,7 +186,6 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\MagicLinkContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.admin_user"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepository"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
@@ -257,6 +255,14 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\RateLimitContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.rate_limit"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\RateLimitContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="router"/>
 		</service>
