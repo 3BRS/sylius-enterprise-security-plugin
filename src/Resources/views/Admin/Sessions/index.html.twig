@@ -74,7 +74,9 @@
                                                 <td>{{ row.session.createdAt|date('Y-m-d H:i') }}</td>
                                                 <td class="text-end">
                                                     {% if not row.isCurrent %}
-                                                        <form method="POST" action="{{ path('three_brs_admin_session_revoke', {'id': row.session.id}) }}">
+                                                        <form method="POST"
+                                                              action="{{ path('three_brs_admin_session_revoke', {'id': row.session.id}) }}"
+                                                              onsubmit="return confirm('{{ 'three_brs.ui.session.revoke_confirm'|trans|e('js') }}');">
                                                             <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_revoke_session') }}">
                                                             <button type="submit"
                                                                     class="btn btn-outline-danger"

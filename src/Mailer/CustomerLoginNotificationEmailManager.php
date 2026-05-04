@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer;
 
+use DateTimeImmutable;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentInfo;
@@ -17,7 +18,7 @@ class CustomerLoginNotificationEmailManager implements CustomerLoginNotification
 
     public function sendNewDeviceNotification(
         ShopUserInterface $user,
-        \DateTimeImmutable $loggedInAt,
+        DateTimeImmutable $loggedInAt,
         ?string $ipAddress,
         ?string $country,
         ?string $city,

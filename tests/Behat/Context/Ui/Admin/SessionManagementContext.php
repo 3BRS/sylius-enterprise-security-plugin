@@ -7,10 +7,12 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Context\Ui\Admin\Helper\SecurePasswordTrait;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
+use Sylius\Component\User\Model\UserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
@@ -22,7 +24,7 @@ class SessionManagementContext implements Context
 {
     use SecurePasswordTrait;
 
-    /** @param UserRepositoryInterface<\Sylius\Component\User\Model\UserInterface> $adminUserRepository */
+    /** @param UserRepositoryInterface<UserInterface> $adminUserRepository */
     public function __construct(
         protected Session $session,
         protected UserRepositoryInterface $adminUserRepository,
@@ -36,14 +38,6 @@ class SessionManagementContext implements Context
 
     #[BeforeScenario]
     public function resetSentEmails(): void
-    {
-        $this->spySender->reset();
-    }
-
-    /**
-     * @Given all login notification emails are cleared
-     */
-    public function allLoginNotificationEmailsAreCleared(): void
     {
         $this->spySender->reset();
     }
@@ -69,6 +63,33 @@ class SessionManagementContext implements Context
             $this->spySender->hasSentEmailToRecipient($email),
             sprintf('Expected login notification email for "%s", none was sent.', $email),
         );
+    }
+
+    /**
+     * @Then no login notification email should have been sent to :email
+     */
+    public function noLoginNotificationEmailShouldHaveBeenSentTo(string $email): void
+    {
+        Assert::false(
+            $this->spySender->hasSentEmailToRecipient($email),
+            sprintf('Expected no login notification email for "%s", but one was sent.', $email),
+        );
+    }
+
+    /**
+     * @When login notification emails are cleared again
+     */
+    public function loginNotificationEmailsAreClearedAgain(): void
+    {
+        $this->spySender->reset();
+    }
+
+    /**
+     * @When I sign out from the admin panel
+     */
+    public function iSignOutFromTheAdminPanel(): void
+    {
+        $this->session->visit($this->router->generate('sylius_admin_logout'));
     }
 
     /**
@@ -130,6 +151,17 @@ class SessionManagementContext implements Context
     }
 
     /**
+     * @When I revoke all other admin sessions
+     */
+    public function iRevokeAllOtherAdminSessions(): void
+    {
+        $page = $this->session->getPage();
+        $button = $page->find('css', '[data-test-three-brs-revoke-other-sessions]');
+        Assert::notNull($button, 'Revoke-other-sessions button not found.');
+        $button->click();
+    }
+
+    /**
      * @Then the admin session :sessionId should be revoked
      */
     public function theAdminSessionShouldBeRevoked(string $sessionId): void
@@ -150,7 +182,7 @@ class SessionManagementContext implements Context
         Assert::notEmpty($sessions, sprintf('No active sessions found for admin "%s".', $email));
 
         foreach ($sessions as $record) {
-            $record->setRevokedAt(new \DateTimeImmutable());
+            $record->setRevokedAt(new DateTimeImmutable());
         }
         $this->entityManager->flush();
         $this->entityManager->clear();

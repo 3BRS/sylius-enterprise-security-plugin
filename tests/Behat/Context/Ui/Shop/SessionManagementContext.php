@@ -7,6 +7,7 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Context\Ui\Admin\Helper\SecurePasswordTrait;
 use Sylius\Behat\Service\SharedStorageInterface;
@@ -35,14 +36,6 @@ class SessionManagementContext implements Context
 
     #[BeforeScenario]
     public function resetSentEmails(): void
-    {
-        $this->spySender->reset();
-    }
-
-    /**
-     * @Given all login notification emails are cleared
-     */
-    public function allLoginNotificationEmailsAreCleared(): void
     {
         $this->spySender->reset();
     }
@@ -156,6 +149,17 @@ class SessionManagementContext implements Context
     }
 
     /**
+     * @When I revoke all other shop sessions
+     */
+    public function iRevokeAllOtherShopSessions(): void
+    {
+        $page = $this->session->getPage();
+        $button = $page->find('css', '[data-test-three-brs-revoke-other-sessions]');
+        Assert::notNull($button, 'Revoke-other-sessions button not found.');
+        $button->click();
+    }
+
+    /**
      * @Then the shop session :sessionId should be revoked
      */
     public function theShopSessionShouldBeRevoked(string $sessionId): void
@@ -176,7 +180,7 @@ class SessionManagementContext implements Context
         Assert::notEmpty($sessions, sprintf('No active sessions found for "%s".', $email));
 
         foreach ($sessions as $record) {
-            $record->setRevokedAt(new \DateTimeImmutable());
+            $record->setRevokedAt(new DateTimeImmutable());
         }
         $this->entityManager->flush();
         $this->entityManager->clear();

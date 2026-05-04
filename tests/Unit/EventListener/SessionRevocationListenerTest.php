@@ -100,6 +100,29 @@ class SessionRevocationListenerTest extends TestCase
         self::assertSame('/admin/login', $response->getTargetUrl());
     }
 
+    public function testDoesNotRedirectActiveAdminSession(): void
+    {
+        $session = new AdminUserSession();
+        $session->setSessionId('admin-1');
+
+        $adminRepository = $this->createStub(AdminUserSessionRepositoryInterface::class);
+        $adminRepository->method('findOneBySessionId')->willReturn($session);
+
+        $event = $this->makeEvent('admin-1', $this->createStub(AdminUserInterface::class));
+
+        $listener = new SessionRevocationListener(
+            $event->getRequest()->attributes->get('_test_token_storage'),
+            $this->createStub(CustomerSessionRepositoryInterface::class),
+            $adminRepository,
+            $this->makeRouter('/admin/login'),
+            true,
+            true,
+        );
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
     public function testSkipsWhenBothFlagsAreOff(): void
     {
         $event = $this->makeEvent('sess-1', $this->createStub(ShopUserInterface::class));

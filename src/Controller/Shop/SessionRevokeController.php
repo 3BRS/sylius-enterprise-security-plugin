@@ -56,6 +56,11 @@ class SessionRevokeController implements SessionRevokeControllerInterface
             throw new NotFoundHttpException();
         }
 
+        $currentSessionId = $request->hasSession() ? $request->getSession()->getId() : '';
+        if ($currentSessionId !== '' && $session->getSessionId() === $currentSessionId) {
+            throw new BadRequestHttpException('Cannot revoke the current session. Sign out instead.');
+        }
+
         $this->tracker->revoke($session);
         $this->addFlashMessage($request, 'success', 'three_brs.session.revoked');
 

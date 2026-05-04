@@ -15,7 +15,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentInfo;
 #[CoversClass(AdminUserLoginNotificationEmailManager::class)]
 class AdminUserLoginNotificationEmailManagerTest extends TestCase
 {
-    public function testSendsEmailWithAdminGroup(): void
+    public function testSendsEmailWithExpectedDataPayload(): void
     {
         $sender = $this->createMock(SenderInterface::class);
         $sender->expects(self::once())
@@ -23,7 +23,15 @@ class AdminUserLoginNotificationEmailManagerTest extends TestCase
             ->with(
                 Emails::LOGIN_NOTIFICATION,
                 ['admin@example.com'],
-                self::callback(static fn (array $data): bool => $data['group'] === 'admin'),
+                self::callback(static fn (array $data): bool =>
+                    $data['group'] === 'admin'
+                    && $data['ipAddress'] === '1.2.3.4'
+                    && $data['country'] === 'CZ'
+                    && $data['city'] === 'Prague'
+                    && $data['browser'] === 'Firefox'
+                    && $data['operatingSystem'] === 'Linux'
+                    && $data['deviceType'] === 'desktop'
+                ),
             )
         ;
 
@@ -34,10 +42,10 @@ class AdminUserLoginNotificationEmailManagerTest extends TestCase
         $manager->sendNewDeviceNotification(
             $user,
             new \DateTimeImmutable('2026-04-30 10:00:00'),
-            null,
-            null,
-            null,
-            new UserAgentInfo(null, null, null),
+            '1.2.3.4',
+            'CZ',
+            'Prague',
+            new UserAgentInfo('Firefox', 'Linux', 'desktop'),
         );
     }
 

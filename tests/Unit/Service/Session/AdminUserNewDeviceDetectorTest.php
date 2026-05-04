@@ -27,13 +27,14 @@ class AdminUserNewDeviceDetectorTest extends TestCase
         self::assertTrue($detector->checkAndRemember($this->createStub(AdminUserInterface::class), 'fp-1'));
     }
 
-    public function testReturnsFalseForKnownFingerprint(): void
+    public function testReturnsFalseAndSkipsPersistForKnownFingerprint(): void
     {
         $repository = $this->createStub(AdminUserKnownDeviceRepositoryInterface::class);
         $repository->method('existsForAdminUser')->willReturn(true);
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::never())->method('persist');
+        $em->expects(self::never())->method('flush');
 
         $detector = new AdminUserNewDeviceDetector($repository, $em);
         self::assertFalse($detector->checkAndRemember($this->createStub(AdminUserInterface::class), 'fp-1'));

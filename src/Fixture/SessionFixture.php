@@ -10,6 +10,7 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Sylius\Component\User\Model\UserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserKnownDevice;
@@ -20,8 +21,8 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
 class SessionFixture extends AbstractFixture implements SessionFixtureInterface
 {
     /**
-     * @param CustomerRepositoryInterface<CustomerInterface>                      $customerRepository
-     * @param UserRepositoryInterface<\Sylius\Component\User\Model\UserInterface> $adminUserRepository
+     * @param CustomerRepositoryInterface<CustomerInterface> $customerRepository
+     * @param UserRepositoryInterface<UserInterface>         $adminUserRepository
      */
     public function __construct(
         protected CustomerRepositoryInterface $customerRepository,

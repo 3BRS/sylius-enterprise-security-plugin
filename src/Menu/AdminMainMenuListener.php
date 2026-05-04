@@ -12,7 +12,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
         protected bool $passkeyEnabled,
         protected bool $customerLockoutEnabled,
         protected bool $adminLockoutEnabled,
-        protected bool $sessionManagementAdminEnabled,
+        protected bool $sessionManagementEnabled,
     ) {
     }
 
@@ -105,7 +105,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
 
     public function addSessionsItem(MenuBuilderEvent $event): void
     {
-        if (!$this->sessionManagementAdminEnabled) {
+        if (!$this->sessionManagementEnabled) {
             return;
         }
 

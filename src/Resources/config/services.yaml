@@ -302,7 +302,7 @@ services:
             $passkeyEnabled: '%three_brs.passkey.admin.enabled%'
             $customerLockoutEnabled: '%three_brs.account_lockout.customer.enabled%'
             $adminLockoutEnabled: '%three_brs.account_lockout.admin.enabled%'
-            $sessionManagementAdminEnabled: '%three_brs.session_management.admin.enabled%'
+            $sessionManagementEnabled: '%three_brs.session_management.admin.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }
@@ -1098,6 +1098,7 @@ services:
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManager'
             $fingerprintGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator'
             $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
             $clock: '@clock'
             $sessionTrackingEnabled: '%three_brs.session_management.customer.enabled%'
             $loginNotificationsEnabled: '%three_brs.login_notifications.customer.enabled%'
@@ -1111,6 +1112,7 @@ services:
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManager'
             $fingerprintGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator'
             $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
             $clock: '@clock'
             $sessionTrackingEnabled: '%three_brs.session_management.admin.enabled%'
             $loginNotificationsEnabled: '%three_brs.login_notifications.admin.enabled%'

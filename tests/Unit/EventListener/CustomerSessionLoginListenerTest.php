@@ -17,6 +17,8 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerSessionLoginLi
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerNewDeviceDetectorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpResult;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentInfo;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParserInterface;
@@ -64,15 +66,29 @@ class CustomerSessionLoginListenerTest extends TestCase
         $listener->onLoginSuccess($this->makeEvent($user));
     }
 
-    public function testSendsNotificationOnNewDevice(): void
+    public function testSendsNotificationOnNewDeviceWithGeoIpLocation(): void
     {
         $user = $this->createStub(ShopUserInterface::class);
 
         $detector = $this->createStub(CustomerNewDeviceDetectorInterface::class);
         $detector->method('checkAndRemember')->willReturn(true);
 
+        $geoIpLookup = $this->createStub(GeoIpLookupInterface::class);
+        $geoIpLookup->method('lookup')->willReturn(new GeoIpResult('US', 'New York'));
+
         $emailManager = $this->createMock(CustomerLoginNotificationEmailManagerInterface::class);
-        $emailManager->expects(self::once())->method('sendNewDeviceNotification');
+        $emailManager
+            ->expects(self::once())
+            ->method('sendNewDeviceNotification')
+            ->with(
+                $user,
+                self::isInstanceOf(\DateTimeImmutable::class),
+                '127.0.0.1',
+                'US',
+                'New York',
+                self::isInstanceOf(UserAgentInfo::class),
+            )
+        ;
 
         $listener = $this->makeListener(
             $this->createStub(CustomerSessionTrackerInterface::class),
@@ -80,6 +96,42 @@ class CustomerSessionLoginListenerTest extends TestCase
             false,
             true,
             $detector,
+            $geoIpLookup,
+        );
+        $listener->onLoginSuccess($this->makeEvent($user));
+    }
+
+    public function testSendsNotificationOnNewDeviceWithoutGeoIpWhenLookupReturnsNull(): void
+    {
+        $user = $this->createStub(ShopUserInterface::class);
+
+        $detector = $this->createStub(CustomerNewDeviceDetectorInterface::class);
+        $detector->method('checkAndRemember')->willReturn(true);
+
+        $geoIpLookup = $this->createStub(GeoIpLookupInterface::class);
+        $geoIpLookup->method('lookup')->willReturn(null);
+
+        $emailManager = $this->createMock(CustomerLoginNotificationEmailManagerInterface::class);
+        $emailManager
+            ->expects(self::once())
+            ->method('sendNewDeviceNotification')
+            ->with(
+                $user,
+                self::isInstanceOf(\DateTimeImmutable::class),
+                '127.0.0.1',
+                null,
+                null,
+                self::isInstanceOf(UserAgentInfo::class),
+            )
+        ;
+
+        $listener = $this->makeListener(
+            $this->createStub(CustomerSessionTrackerInterface::class),
+            $emailManager,
+            false,
+            true,
+            $detector,
+            $geoIpLookup,
         );
         $listener->onLoginSuccess($this->makeEvent($user));
     }
@@ -110,6 +162,7 @@ class CustomerSessionLoginListenerTest extends TestCase
         bool $sessionTrackingEnabled,
         bool $loginNotificationsEnabled,
         ?CustomerNewDeviceDetectorInterface $detector = null,
+        ?GeoIpLookupInterface $geoIpLookup = null,
     ): CustomerSessionLoginListener {
         $fingerprintGenerator = $this->createStub(SessionFingerprintGeneratorInterface::class);
         $fingerprintGenerator->method('generate')->willReturn('fp-1');
@@ -126,6 +179,7 @@ class CustomerSessionLoginListenerTest extends TestCase
             $emailManager,
             $fingerprintGenerator,
             $userAgentParser,
+            $geoIpLookup ?? $this->createStub(GeoIpLookupInterface::class),
             $clock,
             $sessionTrackingEnabled,
             $loginNotificationsEnabled,

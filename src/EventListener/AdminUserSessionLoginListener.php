@@ -11,6 +11,7 @@ use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserNewDeviceDetectorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTrackerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParserInterface;
 
@@ -22,6 +23,7 @@ class AdminUserSessionLoginListener implements AdminUserSessionLoginListenerInte
         protected AdminUserLoginNotificationEmailManagerInterface $emailManager,
         protected SessionFingerprintGeneratorInterface $fingerprintGenerator,
         protected UserAgentParserInterface $userAgentParser,
+        protected GeoIpLookupInterface $geoIpLookup,
         protected ClockInterface $clock,
         protected bool $sessionTrackingEnabled,
         protected bool $loginNotificationsEnabled,
@@ -54,12 +56,13 @@ class AdminUserSessionLoginListener implements AdminUserSessionLoginListenerInte
             $fingerprint = $this->fingerprintGenerator->generate($userAgent, $ipAddress);
             $isNewDevice = $this->newDeviceDetector->checkAndRemember($user, $fingerprint);
             if ($isNewDevice) {
+                $geo = $this->geoIpLookup->lookup($ipAddress);
                 $this->emailManager->sendNewDeviceNotification(
                     $user,
                     $this->clock->now(),
                     $ipAddress,
-                    null,
-                    null,
+                    $geo?->countryCode,
+                    $geo?->city,
                     $this->userAgentParser->parse($userAgent),
                 );
             }

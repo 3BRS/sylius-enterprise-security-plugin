@@ -1,4 +1,4 @@
-@shop @session_management @ui
+@shop @session_management
 Feature: Customer session management
     In order to be aware of and control where my account is signed in
     As a customer
@@ -7,7 +7,6 @@ Feature: Customer session management
     Background:
         Given the store operates on a single channel in "United States"
         And there is a customer account "alice@example.com" identified by "Password1!"
-        And all login notification emails are cleared
 
     @ui
     Scenario: Customer sees their current session in the list after logging in
@@ -36,6 +35,16 @@ Feature: Customer session management
         And I visit my active sessions page
         And I revoke the other shop session "other-shop-session"
         Then the shop session "other-shop-session" should be revoked
+
+    @ui
+    Scenario: Customer revokes all other sessions at once and only the current one remains active
+        Given the customer "alice@example.com" has another active session "other-shop-session-a"
+        And the customer "alice@example.com" has another active session "other-shop-session-b"
+        When I sign in with email "alice@example.com" and password "Password1!"
+        And I visit my active sessions page
+        And I revoke all other shop sessions
+        Then the shop session "other-shop-session-a" should be revoked
+        And the shop session "other-shop-session-b" should be revoked
 
     @ui
     Scenario: Customer is signed out when their current session is revoked externally
