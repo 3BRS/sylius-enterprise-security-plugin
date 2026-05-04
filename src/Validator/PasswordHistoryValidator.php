@@ -13,17 +13,16 @@ use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryCheckerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordHistory;
 
 class PasswordHistoryValidator extends ConstraintValidator implements PasswordHistoryValidatorInterface
 {
     public function __construct(
-        private PasswordHistoryCheckerInterface $checker,
-        private TokenStorageInterface $tokenStorage,
-        private bool $customerEnabled,
-        private int $customerCount,
-        private bool $adminEnabled,
-        private int $adminCount,
+        protected PasswordHistoryCheckerInterface $checker,
+        protected TokenStorageInterface $tokenStorage,
+        protected SettingsProviderInterface $settings,
     ) {
     }
 
@@ -59,35 +58,41 @@ class PasswordHistoryValidator extends ConstraintValidator implements PasswordHi
         ));
     }
 
-    private function validateForShopUser(ShopUserInterface $user, string $plainPassword, PasswordHistory $constraint): void
+    protected function validateForShopUser(ShopUserInterface $user, string $plainPassword, PasswordHistory $constraint): void
     {
-        if (!$this->customerEnabled || $user->getId() === null) {
+        $enabled = $this->settings->getBool('password_history.enabled', SettingsScope::CUSTOMER);
+        $count = $this->settings->getInt('password_history.count', SettingsScope::CUSTOMER);
+
+        if (!$enabled || $user->getId() === null) {
             return;
         }
 
-        if ($this->checker->wasPasswordUsedByShopUser($user, $plainPassword, $this->customerCount)) {
+        if ($this->checker->wasPasswordUsedByShopUser($user, $plainPassword, $count)) {
             $this->context->buildViolation($constraint->message)
-                ->setParameter('{{ count }}', (string) $this->customerCount)
+                ->setParameter('{{ count }}', (string) $count)
                 ->addViolation()
             ;
         }
     }
 
-    private function validateForAdminUser(AdminUserInterface $user, string $plainPassword, PasswordHistory $constraint): void
+    protected function validateForAdminUser(AdminUserInterface $user, string $plainPassword, PasswordHistory $constraint): void
     {
-        if (!$this->adminEnabled || $user->getId() === null) {
+        $enabled = $this->settings->getBool('password_history.enabled', SettingsScope::ADMIN);
+        $count = $this->settings->getInt('password_history.count', SettingsScope::ADMIN);
+
+        if (!$enabled || $user->getId() === null) {
             return;
         }
 
-        if ($this->checker->wasPasswordUsedByAdminUser($user, $plainPassword, $this->adminCount)) {
+        if ($this->checker->wasPasswordUsedByAdminUser($user, $plainPassword, $count)) {
             $this->context->buildViolation($constraint->message)
-                ->setParameter('{{ count }}', (string) $this->adminCount)
+                ->setParameter('{{ count }}', (string) $count)
                 ->addViolation()
             ;
         }
     }
 
-    private function validateFromTokenStorage(string $plainPassword, PasswordHistory $constraint): void
+    protected function validateFromTokenStorage(string $plainPassword, PasswordHistory $constraint): void
     {
         $token = $this->tokenStorage->getToken();
         if ($token === null) {

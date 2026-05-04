@@ -18,6 +18,8 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AbstractPasswordHistor
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordHistoryListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 /** @internal test double: admin user with expiration tracking */
 interface TestAdminUserForHistory extends AdminUserInterface, PasswordExpirationAdminUserInterface
@@ -33,10 +35,17 @@ class AdminUserPasswordHistoryListenerTest extends TestCase
         bool $enabled = true,
         int $count = 10,
     ): AdminUserPasswordHistoryListener {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($enabled): bool {
+            return $path === 'password_history.enabled' && $scope === SettingsScope::ADMIN ? $enabled : false;
+        });
+        $settings->method('getInt')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($count): int {
+            return $path === 'password_history.count' && $scope === SettingsScope::ADMIN ? $count : 0;
+        });
+
         return new AdminUserPasswordHistoryListener(
             $repository ?? $this->createStub(AdminUserPasswordHistoryRepositoryInterface::class),
-            $enabled,
-            $count,
+            $settings,
         );
     }
 

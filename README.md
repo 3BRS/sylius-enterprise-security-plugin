@@ -529,6 +529,31 @@ If you'd rather use a different provider (IP2Location, an online API, an interna
 >
 > **Trusted proxies:** the device fingerprint and the stored IP both use `Request::getClientIp()`. The same trusted-proxy caveat as for rate limiting applies — without `framework.trusted_proxies` configured, all sessions appear to come from the same proxy IP and the new-device check effectively de-duplicates by User-Agent only.
 
+### Centralized Security Settings UI
+
+A single admin page consolidates configuration for every security feature shipped with the plugin. Administrators can change password policy, lockout thresholds, expiration days, two-factor mode and notification toggles without editing YAML or restarting the container — values are persisted in `three_brs_security_setting` and applied on the next request.
+
+- **Admin route**: `/admin/security-settings` (item *Security settings* in the admin Configuration menu).
+- **Scopes**: separate `Customers` and `Administrators` views, plus an internal `global` scope for values that have no scope dimension (2FA issuer, trusted-device window, passkey relying-party data, GeoIP service ID).
+- **Storage**: one row per `(path, scope)` pair, value stored as JSON. The `SettingsProvider` reads the table once per request, in-memory cached, and falls back to YAML defaults when a row is missing — so plugins keep working out of the box and the install command is opt-in.
+- **Runtime applied**: `PasswordPolicyValidator`, `PasswordHistoryValidator`, `PasswordExpirationChecker`, `PasswordChangeNotificationListener`, `TwoFactorEnforcementChecker`, lockout policies, menu listeners and Twig extensions read live values via `SettingsProviderInterface` / `PolicyFactoryInterface` / `FeatureToggleInterface`. Compile-time-only values (passkey `rp_id` / `rp_name`, GeoIP service ID, Symfony rate limiter parameters, OAuth client secrets) keep coming from YAML — these are surfaced in the UI as read-only or kept out of the UI on purpose.
+- **Tabs in the UI**: Password policy, Password history, Password expiration, Password change notification, Two-factor authentication, Magic link, Passkey, Account lockout, Session management, Login notifications.
+- **Allowed / Enforced / Disabled**: the `Two-factor authentication` tab exposes the existing tri-state mode (`disabled` / `optional` (allowed) / `enforced`); other features are policies or notifications and use a single `enabled` toggle plus their parameters.
+- **Fixture**: `three_brs_security_settings` (Sylius fixture) writes the YAML defaults into the table on a fresh install. By default it resets the table; set `options.reset: false` to merge instead. Per-scope `overrides` allow seeding non-default values from fixtures.
+
+```yaml
+sylius_fixtures:
+    suites:
+        default:
+            fixtures:
+                three_brs_security_settings:
+                    options:
+                        reset: true
+                        overrides: {}
+```
+
+OAuth secrets (`client_id`, `client_secret`, Apple `private_key_path`) intentionally stay in YAML / `.env.local` — keeping them out of the database avoids leaking them through admin UI display, DB dumps and audit logs. The OAuth tab in the UI exposes only the `enabled` toggle and non-secret metadata. Same rationale for passkey `rp_id` / `rp_name` (browser API requires they match the served domain) and the GeoIP service ID (a Symfony service alias resolved at compile time).
+
 ## Installation
 
 1. Run `composer require 3brs/sylius-enterprise-security-plugin`.

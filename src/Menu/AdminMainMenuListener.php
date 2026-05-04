@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu;
 
 use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggleInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class AdminMainMenuListener implements AdminMainMenuListenerInterface
 {
     public function __construct(
-        protected bool $passkeyEnabled,
-        protected bool $customerLockoutEnabled,
-        protected bool $adminLockoutEnabled,
-        protected bool $sessionManagementEnabled,
+        protected FeatureToggleInterface $features,
     ) {
     }
 
@@ -48,7 +47,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
 
     public function addPasskeyItem(MenuBuilderEvent $event): void
     {
-        if (!$this->passkeyEnabled) {
+        if (!$this->features->isEnabled('passkey', SettingsScope::ADMIN)) {
             return;
         }
 
@@ -67,7 +66,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
 
     public function addLockedCustomersItem(MenuBuilderEvent $event): void
     {
-        if (!$this->customerLockoutEnabled) {
+        if (!$this->features->isEnabled('account_lockout', SettingsScope::CUSTOMER)) {
             return;
         }
 
@@ -86,7 +85,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
 
     public function addLockedAdminsItem(MenuBuilderEvent $event): void
     {
-        if (!$this->adminLockoutEnabled) {
+        if (!$this->features->isEnabled('account_lockout', SettingsScope::ADMIN)) {
             return;
         }
 
@@ -105,7 +104,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
 
     public function addSessionsItem(MenuBuilderEvent $event): void
     {
-        if (!$this->sessionManagementEnabled) {
+        if (!$this->features->isEnabled('session_management', SettingsScope::ADMIN)) {
             return;
         }
 
@@ -119,6 +118,21 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             ->addChild('three_brs_sessions', ['route' => 'three_brs_admin_sessions'])
             ->setLabel('three_brs.ui.session.menu_item')
             ->setLabelAttribute('icon', 'tabler:devices')
+        ;
+    }
+
+    public function addSecuritySettingsItem(MenuBuilderEvent $event): void
+    {
+        $configuration = $event->getMenu()->getChild('configuration');
+
+        if ($configuration === null) {
+            return;
+        }
+
+        $configuration
+            ->addChild('three_brs_security_settings', ['route' => 'three_brs_admin_security_settings_index'])
+            ->setLabel('three_brs.ui.security_settings.menu_item')
+            ->setLabelAttribute('icon', 'tabler:shield-check')
         ;
     }
 }

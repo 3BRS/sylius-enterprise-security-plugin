@@ -297,5 +297,12 @@
 			<argument type="service" id="sylius.email_sender"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
 		</service>
+
+		<service id="three_brs.behat.context.ui.admin.security_settings"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\SecuritySettingsContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
+		</service>
 	</services>
 </container>

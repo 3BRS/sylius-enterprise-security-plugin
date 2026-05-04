@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 #[CoversClass(PasswordExpirationChecker::class)]
 class PasswordExpirationCheckerTest extends TestCase
@@ -19,7 +21,29 @@ class PasswordExpirationCheckerTest extends TestCase
         bool $adminEnabled = true,
         int $adminDays = 60,
     ): PasswordExpirationChecker {
-        return new PasswordExpirationChecker($customerEnabled, $customerDays, $adminEnabled, $adminDays);
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerEnabled, $adminEnabled): bool {
+            if ($path === 'password_expiration.enabled' && $scope === SettingsScope::CUSTOMER) {
+                return $customerEnabled;
+            }
+            if ($path === 'password_expiration.enabled' && $scope === SettingsScope::ADMIN) {
+                return $adminEnabled;
+            }
+
+            return false;
+        });
+        $settings->method('getInt')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerDays, $adminDays): int {
+            if ($path === 'password_expiration.days' && $scope === SettingsScope::CUSTOMER) {
+                return $customerDays;
+            }
+            if ($path === 'password_expiration.days' && $scope === SettingsScope::ADMIN) {
+                return $adminDays;
+            }
+
+            return 0;
+        });
+
+        return new PasswordExpirationChecker($settings);
     }
 
     private function shopUser(

@@ -6,14 +6,13 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class PasswordExpirationChecker implements PasswordExpirationCheckerInterface
 {
     public function __construct(
-        private bool $customerEnabled,
-        private int $customerDays,
-        private bool $adminEnabled,
-        private int $adminDays,
+        protected SettingsProviderInterface $settings,
     ) {
     }
 
@@ -23,7 +22,7 @@ class PasswordExpirationChecker implements PasswordExpirationCheckerInterface
             return true;
         }
 
-        if (!$this->customerEnabled) {
+        if (!$this->settings->getBool('password_expiration.enabled', SettingsScope::CUSTOMER)) {
             return false;
         }
 
@@ -32,7 +31,8 @@ class PasswordExpirationChecker implements PasswordExpirationCheckerInterface
             return true;
         }
 
-        $expiresAt = $changedAt->modify(sprintf('+%d days', $this->customerDays));
+        $days = $this->settings->getInt('password_expiration.days', SettingsScope::CUSTOMER);
+        $expiresAt = $changedAt->modify(sprintf('+%d days', $days));
 
         return new \DateTimeImmutable() > $expiresAt;
     }
@@ -43,7 +43,7 @@ class PasswordExpirationChecker implements PasswordExpirationCheckerInterface
             return true;
         }
 
-        if (!$this->adminEnabled) {
+        if (!$this->settings->getBool('password_expiration.enabled', SettingsScope::ADMIN)) {
             return false;
         }
 
@@ -52,7 +52,8 @@ class PasswordExpirationChecker implements PasswordExpirationCheckerInterface
             return true;
         }
 
-        $expiresAt = $changedAt->modify(sprintf('+%d days', $this->adminDays));
+        $days = $this->settings->getInt('password_expiration.days', SettingsScope::ADMIN);
+        $expiresAt = $changedAt->modify(sprintf('+%d days', $days));
 
         return new \DateTimeImmutable() > $expiresAt;
     }

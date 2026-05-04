@@ -10,15 +10,15 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicyInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordPolicy;
 
 class PasswordPolicyValidator extends ConstraintValidator implements PasswordPolicyValidatorInterface
 {
     public function __construct(
-        private PasswordPolicyInterface $customerPolicy,
-        private PasswordPolicyInterface $adminPolicy,
-        private TokenStorageInterface $tokenStorage,
+        protected PolicyFactoryInterface $policyFactory,
+        protected TokenStorageInterface $tokenStorage,
     ) {
     }
 
@@ -39,7 +39,8 @@ class PasswordPolicyValidator extends ConstraintValidator implements PasswordPol
             $policyGroup = $user instanceof AdminUserInterface ? 'admin' : 'customer';
         }
 
-        $policy = $policyGroup === 'admin' ? $this->adminPolicy : $this->customerPolicy;
+        $scope = $policyGroup === 'admin' ? SettingsScope::ADMIN : SettingsScope::CUSTOMER;
+        $policy = $this->policyFactory->passwordPolicy($scope);
         $password = (string) $value;
         $length = mb_strlen($password);
 

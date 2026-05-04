@@ -14,6 +14,7 @@ services:
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManager'
             $requestStack: '@request_stack'
             $tokenStorage: '@security.token_storage'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $logger: '@logger'
         tags:
             - { name: 'doctrine.event_listener', event: 'onFlush' }
@@ -45,12 +46,14 @@ services:
         arguments:
             $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryChecker'
             $tokenStorage: '@security.token_storage'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
         tags:
             - { name: 'validator.constraint_validator', alias: 'three_brs.validator.password_history' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserPasswordHistoryListener:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepository'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $logger: '@logger'
         tags:
             - { name: 'doctrine.event_listener', event: 'onFlush' }
@@ -59,12 +62,15 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordHistoryListener:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryRepository'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $logger: '@logger'
         tags:
             - { name: 'doctrine.event_listener', event: 'onFlush' }
             - { name: 'doctrine.event_listener', event: 'postFlush' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker: ~
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker:
+        arguments:
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordExpirationListener:
         arguments:
@@ -143,8 +149,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker:
         arguments:
-            $customerMode: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode::DISABLED
-            $adminMode: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode::DISABLED
+            $policyFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\TwoFactorEnforcementListener:
         arguments:
@@ -283,8 +288,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\ShopAccountMenuListener:
         arguments:
-            $passkeyEnabled: '%three_brs.passkey.customer.enabled%'
-            $sessionManagementEnabled: '%three_brs.session_management.customer.enabled%'
+            $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
@@ -299,10 +303,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\AdminMainMenuListener:
         arguments:
-            $passkeyEnabled: '%three_brs.passkey.admin.enabled%'
-            $customerLockoutEnabled: '%three_brs.account_lockout.customer.enabled%'
-            $adminLockoutEnabled: '%three_brs.account_lockout.admin.enabled%'
-            $sessionManagementEnabled: '%three_brs.session_management.admin.enabled%'
+            $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }
@@ -310,6 +311,7 @@ services:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addLockedCustomersItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addLockedAdminsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSessionsItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSecuritySettingsItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController:
         arguments:
@@ -319,8 +321,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator:
         arguments:
-            $customerPolicy: '@three_brs.password_policy.customer'
-            $adminPolicy: '@three_brs.password_policy.admin'
+            $policyFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory'
             $tokenStorage: '@security.token_storage'
         tags:
             - { name: 'validator.constraint_validator', alias: 'three_brs.validator.password_policy' }
@@ -823,15 +824,13 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\MagicLinkExtension:
         arguments:
-            $customerEnabled: '%three_brs.magic_link.customer.enabled%'
-            $adminEnabled: '%three_brs.magic_link.admin.enabled%'
+            $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
         tags:
             - { name: 'twig.extension' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\PasskeyExtension:
         arguments:
-            $customerEnabled: '%three_brs.passkey.customer.enabled%'
-            $adminEnabled: '%three_brs.passkey.admin.enabled%'
+            $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
         tags:
             - { name: 'twig.extension' }
 
@@ -862,17 +861,15 @@ services:
 
     three_brs.lockout.policy.customer:
         class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy
+        factory: ['@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory', 'lockoutPolicy']
         arguments:
-            $enabled: '%three_brs.account_lockout.customer.enabled%'
-            $maxAttempts: '%three_brs.account_lockout.customer.max_attempts%'
-            $autoUnlockAfter: '%three_brs.account_lockout.customer.auto_unlock_after%'
+            $scope: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope::CUSTOMER
 
     three_brs.lockout.policy.admin:
         class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy
+        factory: ['@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory', 'lockoutPolicy']
         arguments:
-            $enabled: '%three_brs.account_lockout.admin.enabled%'
-            $maxAttempts: '%three_brs.account_lockout.admin.max_attempts%'
-            $autoUnlockAfter: '%three_brs.account_lockout.admin.auto_unlock_after%'
+            $scope: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope::ADMIN
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager:
         arguments:
@@ -1248,5 +1245,115 @@ services:
             $customerRepository: '@sylius.repository.customer'
             $adminUserRepository: '@sylius.repository.admin_user'
             $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\SettingsDefaultsBuilder: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\SettingsDefaultsBuilderInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\SettingsDefaultsBuilder
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\YamlConfigDefaultsProvider:
+        arguments:
+            $defaults: '%three_brs.security_settings.defaults%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\SettingsDefaultsProviderInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\YamlConfigDefaultsProvider
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepository'
+            $defaultsProvider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\YamlConfigDefaultsProvider'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $provider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriterInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory:
+        arguments:
+            $provider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle:
+        arguments:
+            $provider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggleInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordPolicySettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordHistorySettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordExpirationSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountLockoutSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\TwoFactorSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\MagicLinkSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasskeySettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SimpleToggleSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\IndexController:
+        arguments:
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+            $formFactory: '@form.factory'
+            $twig: '@twig'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\SaveTabController:
+        arguments:
+            $writer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter'
+            $formFactory: '@form.factory'
+            $router: '@router'
+            $translator: '@translator'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\SecuritySettingsFixture:
+        arguments:
+            $defaultsProvider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\YamlConfigDefaultsProvider'
+            $writer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter'
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepository'
         tags:
             - { name: 'sylius_fixtures.fixture' }

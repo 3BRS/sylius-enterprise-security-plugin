@@ -8,6 +8,8 @@ use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasswordHistory;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 /**
  * @extends AbstractPasswordHistoryListener<AdminUserInterface>
@@ -15,12 +17,11 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryR
 class AdminUserPasswordHistoryListener extends AbstractPasswordHistoryListener implements AdminUserPasswordHistoryListenerInterface
 {
     public function __construct(
-        private AdminUserPasswordHistoryRepositoryInterface $repository,
-        bool $enabled,
-        int $count,
+        protected AdminUserPasswordHistoryRepositoryInterface $repository,
+        SettingsProviderInterface $settings,
         ?LoggerInterface $logger = null,
     ) {
-        parent::__construct($enabled, $count, $logger);
+        parent::__construct($settings, SettingsScope::ADMIN, $logger);
     }
 
     protected function supports(object $entity): bool

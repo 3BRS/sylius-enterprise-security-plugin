@@ -8,23 +8,23 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthShopUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class TwoFactorEnforcementChecker implements TwoFactorEnforcementCheckerInterface
 {
     public function __construct(
-        protected TwoFactorMode $customerMode,
-        protected TwoFactorMode $adminMode,
+        protected PolicyFactoryInterface $policyFactory,
     ) {
     }
 
     public function shouldEnforceForShopUser(ShopUserInterface&TwoFactorAuthShopUserInterface $user): bool
     {
-        return $this->customerMode->isEnforced() && !$user->isTwoFactorEnabled();
+        return $this->policyFactory->twoFactorMode(SettingsScope::CUSTOMER)->isEnforced() && !$user->isTwoFactorEnabled();
     }
 
     public function shouldEnforceForAdminUser(AdminUserInterface&TwoFactorAuthAdminUserInterface $user): bool
     {
-        return $this->adminMode->isEnforced() && !$user->isTwoFactorEnabled();
+        return $this->policyFactory->twoFactorMode(SettingsScope::ADMIN)->isEnforced() && !$user->isTwoFactorEnabled();
     }
 }
