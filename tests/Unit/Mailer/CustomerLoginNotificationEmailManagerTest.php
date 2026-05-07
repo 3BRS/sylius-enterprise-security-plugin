@@ -24,13 +24,11 @@ class CustomerLoginNotificationEmailManagerTest extends TestCase
                 Emails::LOGIN_NOTIFICATION,
                 ['alice@example.com'],
                 self::callback(static fn (array $data): bool =>
-                    $data['group'] === 'customer'
-                    && $data['ipAddress'] === '8.8.8.8'
+                    $data['ipAddress'] === '8.8.8.8'
                     && $data['country'] === 'US'
                     && $data['city'] === 'NYC'
                     && $data['browser'] === 'Chrome'
                     && $data['operatingSystem'] === 'Mac'
-                    && $data['deviceType'] === 'desktop'
                 ),
             )
         ;

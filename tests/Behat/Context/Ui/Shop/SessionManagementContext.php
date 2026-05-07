@@ -197,7 +197,7 @@ class SessionManagementContext implements Context
 
     protected function findShopUser(string $email): ShopUserInterface
     {
-        $customer = $this->customerRepository->findOneBy(['email' => $email]);
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::notNull($customer, sprintf('Customer "%s" not found.', $email));
         $user = $customer->getUser();
         Assert::isInstanceOf($user, ShopUserInterface::class);

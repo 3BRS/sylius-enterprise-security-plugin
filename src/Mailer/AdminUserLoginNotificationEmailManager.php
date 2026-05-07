@@ -34,14 +34,12 @@ class AdminUserLoginNotificationEmailManager implements AdminUserLoginNotificati
             recipients: [$email],
             data: [
                 'user' => $user,
-                'group' => 'admin',
                 'loggedInAt' => $loggedInAt,
                 'ipAddress' => $ipAddress,
                 'country' => $country,
                 'city' => $city,
                 'browser' => $userAgent->browser,
                 'operatingSystem' => $userAgent->operatingSystem,
-                'deviceType' => $userAgent->deviceType,
             ],
         );
     }

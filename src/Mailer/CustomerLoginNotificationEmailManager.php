@@ -34,14 +34,12 @@ class CustomerLoginNotificationEmailManager implements CustomerLoginNotification
             recipients: [$email],
             data: [
                 'user' => $user,
-                'group' => 'customer',
                 'loggedInAt' => $loggedInAt,
                 'ipAddress' => $ipAddress,
                 'country' => $country,
                 'city' => $city,
                 'browser' => $userAgent->browser,
                 'operatingSystem' => $userAgent->operatingSystem,
-                'deviceType' => $userAgent->deviceType,
             ],
         );
     }

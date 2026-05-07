@@ -37,7 +37,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
                     'enabled' => true,
                 ],
                 'three_brs_login_notification' => [
-                    'subject' => 'three_brs.emails.login_notification.subject',
                     'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/loginNotification.html.twig',
                     'enabled' => true,
                 ],
