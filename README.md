@@ -470,43 +470,19 @@ Active session listing with manual revocation, plus optional email notifications
 
 **Login Notifications** — on a successful sign-in, the plugin computes a fingerprint from `sha256(User-Agent + '|' + client IP)`. If that fingerprint isn't already stored in `three_brs_customer_known_device` / `three_brs_admin_user_known_device` for the user, the plugin persists it and sends a `three_brs_login_notification` email containing the time, parsed browser/OS, IP, and (if a GeoIP provider is wired up) country and city. Subsequent logins from the same UA + IP combination are treated as a known device and produce no email.
 
-**GeoIP integration** — pluggable via `ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface`. The default binding is `NullGeoIpLookup`, which returns `null` for every lookup (no hard dependency on MaxMind, no DB downloads). To plug in a real provider:
+**GeoIP integration** — pluggable via `ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface`. The default binding is `NullGeoIpLookup`, which returns `null` for every lookup so the feature works out-of-the-box without any GeoIP dependency. The plugin ships a ready-to-use `MaxMindGeoIpLookup` for the most common case (local MaxMind GeoLite2 / GeoIP2 `.mmdb`); to enable it:
 
-1. **Add a GeoIP library** (the plugin doesn't ship one to keep the dependency footprint small). Typical pick is `composer require geoip2/geoip2`; download the free `GeoLite2-City.mmdb` from [MaxMind](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) and store it somewhere readable, e.g. `var/geoip/GeoLite2-City.mmdb`.
-
-2. **Implement the interface** in your application:
-   ```php
-   namespace App\Service;
-
-   use GeoIp2\Database\Reader;
-   use GeoIp2\Exception\AddressNotFoundException;
-   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface;
-   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpResult;
-
-   class MaxMindGeoIpLookup implements GeoIpLookupInterface
-   {
-       public function __construct(protected string $databasePath) {}
-
-       public function lookup(?string $ipAddress): ?GeoIpResult
-       {
-           if ($ipAddress === null || $ipAddress === '') {
-               return null;
-           }
-           try {
-               $record = (new Reader($this->databasePath))->city($ipAddress);
-               return new GeoIpResult($record->country->isoCode, $record->city->name);
-           } catch (AddressNotFoundException) {
-               return null;
-           }
-       }
-   }
+1. **Pull in the MaxMind library** (kept under composer `suggest` to avoid a hard dep for users who don't need GeoIP):
+   ```bash
+   composer require geoip2/geoip2
    ```
+   Download the free `GeoLite2-City.mmdb` from [MaxMind](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) (registration required) and store it somewhere readable, e.g. `var/geoip/GeoLite2-City.mmdb`.
 
-3. **Register the service and point the config at it:**
+2. **Wire the bundled service and point the config at it:**
    ```yaml
    # config/services.yaml
    services:
-       App\Service\MaxMindGeoIpLookup:
+       ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\MaxMindGeoIpLookup:
            arguments:
                $databasePath: '%kernel.project_dir%/var/geoip/GeoLite2-City.mmdb'
    ```
@@ -514,8 +490,10 @@ Active session listing with manual revocation, plus optional email notifications
    # config/packages/threebrs_sylius_enterprise_security_plugin.yaml
    three_brs_sylius_enterprise_security:
        session_management:
-           geoip_service: App\Service\MaxMindGeoIpLookup   # service ID
+           geoip_service: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\MaxMindGeoIpLookup
    ```
+
+If you'd rather use a different provider (IP2Location, an online API, an internal service…), implement `GeoIpLookupInterface` yourself, register it as a service, and point `geoip_service` at your service ID — the plugin's Extension swaps the default alias accordingly.
 
 The plugin's Extension reads `session_management.geoip_service` and replaces the default `NullGeoIpLookup` alias with your service ID — both the customer and admin trackers then call it transparently. For local development the plugin ships a `FakeGeoIpLookup` (`tests/Application/src/Service/FakeGeoIpLookup.php`, wired in `services_dev.yaml`) that maps Docker bridge / RFC5737 ranges to canned city names so the Active Sessions UI is populated when clicking around the dev shop without a real MaxMind DB.
 
