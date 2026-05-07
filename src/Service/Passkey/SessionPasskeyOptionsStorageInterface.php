@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 
-interface PasskeyOptionsSessionStorageInterface
+interface SessionPasskeyOptionsStorageInterface
 {
     public function store(string $key, string $serialized): void;
 

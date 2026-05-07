@@ -97,7 +97,7 @@ class PasskeyContext implements Context
 
     protected function findAdminUser(string $email): AdminUserInterface
     {
-        $user = $this->adminUserRepository->findOneBy(['email' => $email]);
+        $user = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::notNull($user, sprintf('Administrator "%s" not found.', $email));
         Assert::isInstanceOf($user, AdminUserInterface::class);
 

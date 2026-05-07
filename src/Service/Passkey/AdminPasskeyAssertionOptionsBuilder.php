@@ -13,7 +13,7 @@ class AdminPasskeyAssertionOptionsBuilder implements AdminPasskeyAssertionOption
 
     public function __construct(
         protected PasskeyRelyingPartyEntityFactoryInterface $relyingPartyEntityFactory,
-        protected PasskeyOptionsSessionStorageInterface $sessionStorage,
+        protected SessionPasskeyOptionsStorageInterface $sessionStorage,
         protected PasskeyWebauthnSerializerInterface $serializer,
     ) {
     }

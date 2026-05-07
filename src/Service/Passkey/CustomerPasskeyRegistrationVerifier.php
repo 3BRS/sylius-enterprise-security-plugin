@@ -14,7 +14,7 @@ use Webauthn\PublicKeyCredentialCreationOptions;
 class CustomerPasskeyRegistrationVerifier implements CustomerPasskeyRegistrationVerifierInterface
 {
     public function __construct(
-        protected PasskeyOptionsSessionStorageInterface $sessionStorage,
+        protected SessionPasskeyOptionsStorageInterface $sessionStorage,
         protected PasskeyWebauthnSerializerInterface $serializer,
         protected PasskeyValidatorFactoryInterface $validatorFactory,
     ) {

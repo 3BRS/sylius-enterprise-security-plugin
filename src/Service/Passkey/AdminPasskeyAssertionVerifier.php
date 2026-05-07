@@ -18,7 +18,7 @@ class AdminPasskeyAssertionVerifier implements AdminPasskeyAssertionVerifierInte
     public function __construct(
         protected AdminUserPasskeyCredentialRepositoryInterface $credentialRepository,
         protected EntityManagerInterface $entityManager,
-        protected PasskeyOptionsSessionStorageInterface $sessionStorage,
+        protected SessionPasskeyOptionsStorageInterface $sessionStorage,
         protected PasskeyWebauthnSerializerInterface $serializer,
         protected PasskeyValidatorFactoryInterface $validatorFactory,
         protected ClockInterface $clock,

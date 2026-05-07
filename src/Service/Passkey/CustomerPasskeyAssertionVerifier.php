@@ -18,7 +18,7 @@ class CustomerPasskeyAssertionVerifier implements CustomerPasskeyAssertionVerifi
     public function __construct(
         protected CustomerPasskeyCredentialRepositoryInterface $credentialRepository,
         protected EntityManagerInterface $entityManager,
-        protected PasskeyOptionsSessionStorageInterface $sessionStorage,
+        protected SessionPasskeyOptionsStorageInterface $sessionStorage,
         protected PasskeyWebauthnSerializerInterface $serializer,
         protected PasskeyValidatorFactoryInterface $validatorFactory,
         protected ClockInterface $clock,

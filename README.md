@@ -344,16 +344,31 @@ security:
 - Fixture (`three_brs_passkey`) to preload placeholder credentials for demo/testing of list/remove flows.
 - **End-to-end Behat coverage without a real browser** — the `passkey_ceremony` suite runs a PHP-side authenticator emulator (`tests/Behat/Service/Passkey/FakeAuthenticator`) that generates real ES256 keypairs in PHP, signs assertions and serializes WebAuthn structures (CBOR + COSE) exactly as a real authenticator would. Server-side `web-auth/webauthn-lib` validates the signed payloads end-to-end, so the full register / login ceremony is covered without Selenium, Panther or a browser. Run with `APP_ENV=test ./bin-docker/php vendor/bin/behat --suite=shop_passkey_ceremony` (and the admin variant). Note: this layer does **not** exercise the JavaScript glue in `passkey.js`; that is left for a separate JS unit-test suite if/when added.
 
+### Defaults for passkey
+
 ```yaml
 three_brs_sylius_enterprise_security:
     passkey:
-        rp_id: example.com               # required when enabled — your domain (or `localhost` in dev)
-        rp_name: 'My Sylius Shop'        # required when enabled — display name shown by the browser
+        rp_id: ~
+        rp_name: ~
         skip_2fa_when_user_verified: false
         customer:
             enabled: false
         admin:
             enabled: false
+```
+
+### Required configuration to enable passkeys
+
+`rp_id` and `rp_name` are `null` by default and must be set before passkeys can be used — registration and login will silently fail otherwise. Minimum config to turn the feature on for shop customers:
+
+```yaml
+three_brs_sylius_enterprise_security:
+    passkey:
+        rp_id: example.com               # your domain (or `localhost` in dev)
+        rp_name: 'My Sylius Shop'        # display name shown by the browser
+        customer:
+            enabled: true
 ```
 
 Expose the passkey login endpoints as public in your firewall access control (the verify controller authenticates internally):

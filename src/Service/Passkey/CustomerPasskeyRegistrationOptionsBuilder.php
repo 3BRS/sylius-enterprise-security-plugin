@@ -20,7 +20,7 @@ class CustomerPasskeyRegistrationOptionsBuilder implements CustomerPasskeyRegist
     public function __construct(
         protected PasskeyRelyingPartyEntityFactoryInterface $relyingPartyEntityFactory,
         protected CustomerPasskeyCredentialRepositoryInterface $credentialRepository,
-        protected PasskeyOptionsSessionStorageInterface $sessionStorage,
+        protected SessionPasskeyOptionsStorageInterface $sessionStorage,
         protected PasskeyWebauthnSerializerInterface $serializer,
     ) {
     }

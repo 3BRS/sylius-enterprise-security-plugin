@@ -7,7 +7,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
-class SessionPasskeyOptionsStorage implements PasskeyOptionsSessionStorageInterface
+class SessionPasskeyOptionsStorage implements SessionPasskeyOptionsStorageInterface
 {
     protected const SESSION_KEY_PREFIX = 'three_brs.passkey.';
 

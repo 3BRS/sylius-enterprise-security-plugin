@@ -20,7 +20,7 @@ class AdminPasskeyRegistrationOptionsBuilder implements AdminPasskeyRegistration
     public function __construct(
         protected PasskeyRelyingPartyEntityFactoryInterface $relyingPartyEntityFactory,
         protected AdminUserPasskeyCredentialRepositoryInterface $credentialRepository,
-        protected PasskeyOptionsSessionStorageInterface $sessionStorage,
+        protected SessionPasskeyOptionsStorageInterface $sessionStorage,
         protected PasskeyWebauthnSerializerInterface $serializer,
     ) {
     }

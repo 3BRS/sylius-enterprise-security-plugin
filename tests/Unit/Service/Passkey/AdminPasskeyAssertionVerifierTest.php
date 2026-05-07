@@ -13,7 +13,7 @@ use Symfony\Component\Uid\Uuid;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasskeyCredentialInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyAssertionVerifier;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyOptionsSessionStorageInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorageInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyValidatorFactoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializerInterface;
 use Webauthn\AuthenticatorAssertionResponse;
@@ -31,7 +31,7 @@ class AdminPasskeyAssertionVerifierTest extends TestCase
 {
     public function testThrowsWhenNoSessionOptionsStored(): void
     {
-        $storage = $this->createStub(PasskeyOptionsSessionStorageInterface::class);
+        $storage = $this->createStub(SessionPasskeyOptionsStorageInterface::class);
         $storage->method('consume')->willReturn(null);
 
         $verifier = new AdminPasskeyAssertionVerifier(
@@ -49,7 +49,7 @@ class AdminPasskeyAssertionVerifierTest extends TestCase
 
     public function testThrowsWhenResponseIsNotAssertion(): void
     {
-        $storage = $this->createStub(PasskeyOptionsSessionStorageInterface::class);
+        $storage = $this->createStub(SessionPasskeyOptionsStorageInterface::class);
         $storage->method('consume')->willReturn('serialized-options');
 
         $serializer = $this->createStub(PasskeyWebauthnSerializerInterface::class);
@@ -76,7 +76,7 @@ class AdminPasskeyAssertionVerifierTest extends TestCase
 
     public function testThrowsWhenCredentialNotFound(): void
     {
-        $storage = $this->createStub(PasskeyOptionsSessionStorageInterface::class);
+        $storage = $this->createStub(SessionPasskeyOptionsStorageInterface::class);
         $storage->method('consume')->willReturn('serialized-options');
 
         $assertion = $this->createStub(AuthenticatorAssertionResponse::class);
@@ -109,7 +109,7 @@ class AdminPasskeyAssertionVerifierTest extends TestCase
 
     public function testHappyPathReturnsResultAndUpdatesEntity(): void
     {
-        $storage = $this->createStub(PasskeyOptionsSessionStorageInterface::class);
+        $storage = $this->createStub(SessionPasskeyOptionsStorageInterface::class);
         $storage->method('consume')->willReturn('serialized-options');
 
         $authenticatorData = $this->createStub(AuthenticatorData::class);

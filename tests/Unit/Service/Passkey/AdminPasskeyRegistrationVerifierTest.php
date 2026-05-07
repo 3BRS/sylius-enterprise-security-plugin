@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Symfony\Component\Uid\Uuid;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyRegistrationVerifier;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyOptionsSessionStorageInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorageInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyValidatorFactoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializerInterface;
 use Webauthn\AuthenticatorAssertionResponse;
@@ -27,7 +27,7 @@ class AdminPasskeyRegistrationVerifierTest extends TestCase
 {
     public function testThrowsWhenNoSessionOptionsStored(): void
     {
-        $storage = $this->createStub(PasskeyOptionsSessionStorageInterface::class);
+        $storage = $this->createStub(SessionPasskeyOptionsStorageInterface::class);
         $storage->method('consume')->willReturn(null);
 
         $verifier = new AdminPasskeyRegistrationVerifier(
@@ -47,7 +47,7 @@ class AdminPasskeyRegistrationVerifierTest extends TestCase
 
     public function testThrowsWhenResponseIsNotAttestation(): void
     {
-        $storage = $this->createStub(PasskeyOptionsSessionStorageInterface::class);
+        $storage = $this->createStub(SessionPasskeyOptionsStorageInterface::class);
         $storage->method('consume')->willReturn('serialized-options');
 
         $serializer = $this->createStub(PasskeyWebauthnSerializerInterface::class);
@@ -80,7 +80,7 @@ class AdminPasskeyRegistrationVerifierTest extends TestCase
 
     public function testHappyPathReturnsCredentialEntityWithFieldsFromValidator(): void
     {
-        $storage = $this->createStub(PasskeyOptionsSessionStorageInterface::class);
+        $storage = $this->createStub(SessionPasskeyOptionsStorageInterface::class);
         $storage->method('consume')->willReturn('serialized-options');
 
         $aaguid = Uuid::v4();
