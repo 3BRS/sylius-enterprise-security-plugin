@@ -151,9 +151,6 @@ three_brs:
             scope_customer: 'Customers'
             scope_admin: 'Administrators'
             save: 'Save'
-            flash:
-                saved: 'Security settings saved.'
-                invalid: 'Invalid security settings submission.'
             password_policy:
                 title: 'Password policy'
                 description: 'Minimum length, maximum length and complexity requirements applied during password validation.'

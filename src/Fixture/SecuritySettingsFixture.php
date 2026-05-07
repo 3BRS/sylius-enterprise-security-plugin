@@ -29,7 +29,7 @@ class SecuritySettingsFixture extends AbstractFixture implements SecuritySetting
     public function load(array $options): void
     {
         if ($options['reset'] === true) {
-            $this->repository->deleteAll();
+            $this->repository->truncateForFixtureReset();
         }
 
         foreach ($this->defaultsProvider->all() as $scopeKey => $values) {

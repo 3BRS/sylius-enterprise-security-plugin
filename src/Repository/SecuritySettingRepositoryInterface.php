@@ -11,9 +11,16 @@ interface SecuritySettingRepositoryInterface
     public function findOneByPathAndScope(string $path, string $scope): ?SecuritySettingInterface;
 
     /**
+     * @param list<string> $paths
+     *
+     * @return list<SecuritySettingInterface>
+     */
+    public function findManyByPathsAndScope(array $paths, string $scope): array;
+
+    /**
      * @return list<SecuritySettingInterface>
      */
     public function findAllSettings(): array;
 
-    public function deleteAll(): void;
+    public function truncateForFixtureReset(): void;
 }

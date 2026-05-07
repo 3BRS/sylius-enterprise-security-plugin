@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings;
 
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountLockoutSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\MagicLinkSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasskeySettingsType;
@@ -24,12 +25,14 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriterInterface;
 
 class SaveTabController implements SaveTabControllerInterface
 {
+    use FlashHelperTrait;
+
     /**
      * Map of tab name => form type, settings prefix, form options, and an optional
      * key_map to translate flat form-field names into nested settings paths
      * (Symfony form-field names cannot contain dots, but settings paths use them).
      *
-     * @var array<string, array{type: class-string<\Symfony\Component\Form\FormTypeInterface<array<string, mixed>>>, prefix: string, options: array<string, mixed>, key_map?: array<string, string>}>
+     * @var array<string, array{type: class-string<FormTypeInterface<array<string, mixed>>>, prefix: string, options: array<string, mixed>, key_map?: array<string, string>}>
      */
     protected array $tabs;
 
@@ -37,7 +40,6 @@ class SaveTabController implements SaveTabControllerInterface
         protected SettingsWriterInterface $writer,
         protected FormFactoryInterface $formFactory,
         protected RouterInterface $router,
-        protected TranslatorInterface $translator,
     ) {
         $this->tabs = [
             'password_policy' => ['type' => PasswordPolicySettingsType::class, 'prefix' => 'password_policy', 'options' => []],
@@ -87,14 +89,14 @@ class SaveTabController implements SaveTabControllerInterface
         $form->handleRequest($request);
 
         if (!$form->isSubmitted() || !$form->isValid()) {
-            $this->addFlash($request, 'error', 'three_brs.ui.security_settings.flash.invalid');
+            $this->addFlashMessage($request, 'error', 'three_brs.security_settings.invalid');
 
             return $this->redirect($scope, $tab);
         }
 
         $data = $form->getData();
         if (!is_array($data)) {
-            throw new NotFoundHttpException();
+            throw new \LogicException(sprintf('Form "%s" returned non-array data.', $tabConfig['type']));
         }
 
         $values = [];
@@ -107,7 +109,7 @@ class SaveTabController implements SaveTabControllerInterface
         $this->writer->setMany($scope, $values);
         $this->writer->flush();
 
-        $this->addFlash($request, 'success', 'three_brs.ui.security_settings.flash.saved');
+        $this->addFlashMessage($request, 'success', 'three_brs.security_settings.saved');
 
         return $this->redirect($scope, $tab);
     }
@@ -118,14 +120,5 @@ class SaveTabController implements SaveTabControllerInterface
             'scope' => $scope->value,
             'tab' => $tab,
         ]));
-    }
-
-    protected function addFlash(Request $request, string $type, string $messageKey): void
-    {
-        $session = $request->getSession();
-        if (!method_exists($session, 'getFlashBag')) {
-            return;
-        }
-        $session->getFlashBag()->add($type, $this->translator->trans($messageKey));
     }
 }

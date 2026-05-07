@@ -74,7 +74,7 @@ class SecuritySetting implements SecuritySettingInterface
     public function setValue(mixed $value): void
     {
         $this->value = $value;
-        $this->touch();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -85,10 +85,5 @@ class SecuritySetting implements SecuritySettingInterface
     public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
-    }
-
-    public function touch(): void
-    {
-        $this->updatedAt = new \DateTimeImmutable();
     }
 }

@@ -25,6 +25,23 @@ class SecuritySettingRepository extends ServiceEntityRepository implements Secur
     }
 
     /**
+     * @param list<string> $paths
+     *
+     * @return list<SecuritySettingInterface>
+     */
+    public function findManyByPathsAndScope(array $paths, string $scope): array
+    {
+        if ($paths === []) {
+            return [];
+        }
+
+        /** @var list<SecuritySetting> $result */
+        $result = $this->findBy(['path' => $paths, 'scope' => $scope]);
+
+        return $result;
+    }
+
+    /**
      * @return list<SecuritySettingInterface>
      */
     public function findAllSettings(): array
@@ -32,7 +49,7 @@ class SecuritySettingRepository extends ServiceEntityRepository implements Secur
         return $this->findAll();
     }
 
-    public function deleteAll(): void
+    public function truncateForFixtureReset(): void
     {
         $this->createQueryBuilder('s')
             ->delete()

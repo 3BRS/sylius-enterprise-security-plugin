@@ -26,6 +26,7 @@ class PasswordPolicySettingsType extends AbstractType implements PasswordPolicyS
             ->add('max_length', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.password_policy.max_length',
                 'required' => false,
+                'constraints' => [new Positive()],
             ])
             ->add('require_uppercase', CheckboxType::class, [
                 'label' => 'three_brs.ui.security_settings.password_policy.require_uppercase',

@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Positive;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
 
 /**
  * @extends AbstractType<array<string, mixed>>
@@ -18,14 +19,15 @@ class TwoFactorSettingsType extends AbstractType implements TwoFactorSettingsTyp
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $modeChoices = [];
+        foreach (TwoFactorMode::cases() as $mode) {
+            $modeChoices['three_brs.ui.security_settings.two_factor.mode_' . $mode->value] = $mode->value;
+        }
+
         $builder
             ->add('mode', ChoiceType::class, [
                 'label' => 'three_brs.ui.security_settings.two_factor.mode',
-                'choices' => [
-                    'three_brs.ui.security_settings.two_factor.mode_disabled' => 'disabled',
-                    'three_brs.ui.security_settings.two_factor.mode_optional' => 'optional',
-                    'three_brs.ui.security_settings.two_factor.mode_enforced' => 'enforced',
-                ],
+                'choices' => $modeChoices,
                 'expanded' => true,
                 'required' => true,
             ])

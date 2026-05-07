@@ -27,6 +27,7 @@ class AccountLockoutSettingsType extends AbstractType implements AccountLockoutS
                 'label' => 'three_brs.ui.security_settings.account_lockout.auto_unlock_after',
                 'required' => false,
                 'help' => 'three_brs.ui.security_settings.account_lockout.auto_unlock_after_help',
+                'constraints' => [new Positive()],
             ])
             ->add('enabled', CheckboxType::class, [
                 'label' => 'three_brs.ui.security_settings.account_lockout.enabled',
