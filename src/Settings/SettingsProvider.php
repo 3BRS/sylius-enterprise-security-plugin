@@ -42,10 +42,10 @@ class SettingsProvider implements SettingsProviderInterface
 
     public function get(string $path, SettingsScope $scope): mixed
     {
-        $this->load();
+        $scopeMap = $this->load()[$scope->value] ?? [];
 
-        if (array_key_exists($path, $this->cache[$scope->value] ?? [])) {
-            return $this->cache[$scope->value][$path];
+        if (array_key_exists($path, $scopeMap)) {
+            return $scopeMap[$path];
         }
 
         return $this->defaultsProvider->get($path, $scope);
@@ -56,10 +56,13 @@ class SettingsProvider implements SettingsProviderInterface
         $this->cache = null;
     }
 
-    protected function load(): void
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    protected function load(): array
     {
         if ($this->cache !== null) {
-            return;
+            return $this->cache;
         }
 
         $cache = [
@@ -73,5 +76,7 @@ class SettingsProvider implements SettingsProviderInterface
         }
 
         $this->cache = $cache;
+
+        return $cache;
     }
 }
