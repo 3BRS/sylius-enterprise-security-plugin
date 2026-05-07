@@ -100,7 +100,7 @@ class MagicLinkContext implements Context
     public function noAdminMagicLinkTokenShouldHaveBeenStoredFor(string $email): void
     {
         $this->entityManager->clear();
-        $user = $this->adminUserRepository->findOneBy(['email' => $email]);
+        $user = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         if (!$user instanceof AdminUserInterface) {
             return;
         }
@@ -146,7 +146,7 @@ class MagicLinkContext implements Context
         $url = $this->session->getCurrentUrl();
         Assert::notContains($url, '/admin/magic-link', sprintf('Expected redirect off admin magic link pages after login, got "%s".', $url));
 
-        $user = $this->adminUserRepository->findOneBy(['email' => $email]);
+        $user = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::notNull($user, sprintf('Administrator "%s" not found.', $email));
     }
 
@@ -168,7 +168,7 @@ class MagicLinkContext implements Context
 
     protected function findAdminUser(string $email): AdminUserInterface
     {
-        $user = $this->adminUserRepository->findOneBy(['email' => $email]);
+        $user = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::notNull($user, sprintf('Administrator "%s" not found.', $email));
         Assert::isInstanceOf($user, AdminUserInterface::class);
 

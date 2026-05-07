@@ -100,7 +100,7 @@ class MagicLinkContext implements Context
     public function noMagicLinkTokenShouldHaveBeenStoredFor(string $email): void
     {
         $this->entityManager->clear();
-        $customer = $this->customerRepository->findOneBy(['email' => $email]);
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         if ($customer === null) {
             return;
         }
@@ -150,7 +150,7 @@ class MagicLinkContext implements Context
         $url = $this->session->getCurrentUrl();
         Assert::notContains($url, '/magic-link', sprintf('Expected redirect off magic link pages after login, got "%s".', $url));
 
-        $customer = $this->customerRepository->findOneBy(['email' => $email]);
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::notNull($customer, sprintf('Customer "%s" not found.', $email));
     }
 
@@ -172,7 +172,7 @@ class MagicLinkContext implements Context
 
     protected function findShopUser(string $email): ShopUserInterface
     {
-        $customer = $this->customerRepository->findOneBy(['email' => $email]);
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::notNull($customer, sprintf('Customer "%s" not found.', $email));
 
         $user = $customer->getUser();
