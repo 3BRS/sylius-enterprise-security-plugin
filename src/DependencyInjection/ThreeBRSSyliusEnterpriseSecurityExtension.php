@@ -32,7 +32,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
                     'enabled' => true,
                 ],
                 'three_brs_magic_link' => [
-                    'subject' => 'three_brs.emails.magic_link.subject',
                     'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/magicLink.html.twig',
                     'enabled' => true,
                 ],

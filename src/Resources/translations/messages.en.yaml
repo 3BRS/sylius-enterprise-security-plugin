@@ -8,14 +8,9 @@ three_brs:
             ip_address: 'IP Address'
             not_you_warning: 'If you did not make this change, your account may be compromised. Please secure your account immediately.'
             secure_account: 'Secure My Account'
-        customer_magic_link:
-            subject: 'Your sign-in link'
-            title: 'Sign in to your account'
-        admin_magic_link:
-            subject: 'Your admin sign-in link'
-            title: 'Sign in to the admin panel'
         magic_link:
             subject: 'Your sign-in link'
+            title: 'Sign in to your account'
             intro: 'Use the button below to sign in. No password is required.'
             button: 'Sign in'
             expires_in: 'This link will expire in %minutes% minutes.'

@@ -79,7 +79,7 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
             return null;
         }
 
-        $customer = $this->customerRepository->findOneBy(['email' => $email]);
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         if (!$customer instanceof CustomerInterface) {
             return null;
         }

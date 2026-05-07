@@ -36,7 +36,6 @@ class CustomerMagicLinkEmailManager implements CustomerMagicLinkEmailManagerInte
                 'user' => $user,
                 'magicLinkUrl' => $magicLinkUrl,
                 'expirationMinutes' => (int) ceil($expirationSeconds / 60),
-                'group' => 'customer',
             ],
         );
     }

@@ -145,7 +145,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $customerRepo = $this->createMock(CustomerRepositoryInterface::class);
         $customerRepo->expects(self::once())
             ->method('findOneBy')
-            ->with(['email' => 'john@example.com'])
+            ->with(['emailCanonical' => 'john@example.com'])
             ->willReturn($customer);
 
         $tokenRepo = $this->createStub(CustomerMagicLinkTokenRepositoryInterface::class);

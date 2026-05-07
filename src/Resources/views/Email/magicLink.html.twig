@@ -1,9 +1,5 @@
 {% block subject %}
-    {% if group == 'admin' %}
-        {{ 'three_brs.emails.admin_magic_link.subject'|trans }}
-    {% else %}
-        {{ 'three_brs.emails.customer_magic_link.subject'|trans }}
-    {% endif %}
+    {{ 'three_brs.emails.magic_link.subject'|trans }}
 {% endblock %}
 
 {% block body %}
@@ -11,11 +7,7 @@
         <div style="max-width: 600px; margin: 20px auto;">
             <div style="background: #fff; padding: 40px 30px;">
                 <div style="font-size: 24px; margin-bottom: 20px;">
-                    {% if group == 'admin' %}
-                        {{ 'three_brs.emails.admin_magic_link.title'|trans }}
-                    {% else %}
-                        {{ 'three_brs.emails.customer_magic_link.title'|trans }}
-                    {% endif %}
+                    {{ 'three_brs.emails.magic_link.title'|trans }}
                 </div>
 
                 <p>{{ 'three_brs.emails.magic_link.intro'|trans }}</p>

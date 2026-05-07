@@ -7,7 +7,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 class DeadlineTimingPadding implements TimingPaddingInterface
 {
     public function __construct(
-        protected float $targetSeconds = 0.8,
+        protected float $targetSeconds = 2.0,
     ) {
     }
 
