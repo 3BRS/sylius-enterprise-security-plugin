@@ -15,6 +15,14 @@ three_brs:
             button: 'Sign in'
             expires_in: 'This link will expire in %minutes% minutes.'
             ignore_if_not_requested: 'If you did not request this email, you can safely ignore it.'
+        account_deletion_requested:
+            subject: 'Your account deletion request'
+            title: 'Account deletion requested'
+            intro: 'You have requested to delete your account. If you change your mind, please contact a store administrator before %date%.'
+        account_deletion_completed:
+            subject: 'Your account has been deleted'
+            title: 'Account deleted'
+            intro: 'Your account has been deleted as requested.'
         login_notification:
             subject: 'New sign-in to your account'
             title: 'New sign-in detected'
@@ -104,6 +112,22 @@ three_brs:
             unlock: 'Unlock'
             no_locked_customers: 'No customers are currently locked.'
             no_locked_admins: 'No administrators are currently locked.'
+        account_deletion:
+            menu_item: 'Delete account'
+            title: 'Delete my account'
+            intro: 'This will permanently delete your account. After confirmation, you will no longer be able to sign in.'
+            contact_admin_to_cancel: 'If you change your mind, please contact a store administrator. We will send the deadline to cancel by email.'
+            current_password: 'Current password'
+            acknowledge: 'I understand my account will be deleted.'
+            submit: 'Delete my account'
+            admin_title: 'Account deletions'
+            admin_intro: 'Customers who have requested account deletion. The grace period before anonymization is configured in Security settings.'
+            pending: 'Pending requests'
+            no_pending: 'No customers are currently scheduled for deletion.'
+            email: 'Email'
+            requested_at: 'Requested at'
+            scheduled_for: 'Scheduled for'
+            cancel: 'Cancel deletion'
         passkey:
             menu_item: 'Passkeys'
             title: 'Passkeys'
@@ -241,3 +265,9 @@ three_brs:
                 auto_register_allowed_email_domains: 'Whitelisted email domains'
                 auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to disable auto-registration entirely.'
                 invalid_domain: 'This value is not a valid email domain.'
+            account_deletion:
+                title: 'Account deletion'
+                description: 'Self-service account deletion (GDPR right to erasure) with admin-cancellable grace period.'
+                enabled: 'Enable self-service account deletion'
+                grace_period_days: 'Grace period (days)'
+                grace_period_days_help: 'Number of days between the customer''s request and the actual anonymization. During this window, only an administrator can cancel the deletion.'

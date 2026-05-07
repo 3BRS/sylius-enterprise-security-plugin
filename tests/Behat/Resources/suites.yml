@@ -31,3 +31,5 @@ imports:
     - suites/shop_session_management.yml
     - suites/admin_session_management.yml
     - suites/admin_security_settings.yml
+    - suites/shop_account_deletion.yml
+    - suites/admin_account_deletion.yml

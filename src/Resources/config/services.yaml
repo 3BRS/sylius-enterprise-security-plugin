@@ -294,6 +294,7 @@ services:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addPasskeyItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSessionsItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addAccountDeletionItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountsController:
         arguments:
@@ -312,6 +313,7 @@ services:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addLockedAdminsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSessionsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSecuritySettingsItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addAccountDeletionsItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController:
         arguments:
@@ -1346,6 +1348,10 @@ services:
         tags:
             - { name: 'form.type' }
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountDeletionSettingsType:
+        tags:
+            - { name: 'form.type' }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\IndexController:
         arguments:
             $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
@@ -1368,5 +1374,89 @@ services:
             $defaultsProvider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\YamlConfigDefaultsProvider'
             $writer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter'
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepository'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
+
+    # Account deletion (GDPR self-service)
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository:
+        arguments:
+            - '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerAnonymizer: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerAnonymizerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerAnonymizer
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManager:
+        arguments:
+            $emailSender: '@sylius.email_sender'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManagerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManager
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
+            $anonymizer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerAnonymizer'
+            $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManager'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $clock: '@clock'
+            $gracePeriodDays: '%three_brs.account_deletion.customer.grace_period_days%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\AccountDeletionRequestType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\AccountDeletionRequestController:
+        arguments:
+            $formFactory: '@form.factory'
+            $deletionService: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService'
+            $passwordHasher: '@security.user_password_hasher'
+            $tokenStorage: '@security.token_storage'
+            $router: '@router'
+            $twig: '@twig'
+            $enabled: '%three_brs.account_deletion.customer.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\AccountDeletionsController:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
+            $twig: '@twig'
+            $enabled: '%three_brs.account_deletion.customer.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\AccountDeletionCancelController:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $deletionService: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $tokenStorage: '@security.token_storage'
+            $router: '@router'
+            $enabled: '%three_brs.account_deletion.customer.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Command\ProcessDueAccountDeletionsCommand:
+        arguments:
+            $deletionService: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService'
+        tags:
+            - { name: 'console.command' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\AccountDeletionFixture:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $anonymizer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerAnonymizer'
+            $entityManager: '@doctrine.orm.entity_manager'
         tags:
             - { name: 'sylius_fixtures.fixture' }

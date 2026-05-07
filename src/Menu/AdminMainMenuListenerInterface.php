@@ -21,4 +21,6 @@ interface AdminMainMenuListenerInterface
     public function addSessionsItem(MenuBuilderEvent $event): void;
 
     public function addSecuritySettingsItem(MenuBuilderEvent $event): void;
+
+    public function addAccountDeletionsItem(MenuBuilderEvent $event): void;
 }

@@ -43,6 +43,11 @@ class SettingsDefaultsBuilder implements SettingsDefaultsBuilderInterface
             $this->copyKeys($result[$scope], 'session_management', $processedConfig['session_management'][$scope]);
             $this->copyKeys($result[$scope], 'login_notifications', $processedConfig['login_notifications'][$scope]);
 
+            // Account deletion is intentionally customer-scoped only (admin self-deletion is out of scope).
+            if (isset($processedConfig['account_deletion'][$scope])) {
+                $this->copyKeys($result[$scope], 'account_deletion', $processedConfig['account_deletion'][$scope]);
+            }
+
             foreach ($processedConfig['oauth'][$scope] as $key => $value) {
                 if ($key === 'google' || $key === 'apple') {
                     foreach ($value as $providerKey => $providerValue) {

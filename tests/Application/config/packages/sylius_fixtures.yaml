@@ -64,6 +64,12 @@ sylius_fixtures:
                                 password: "ExpiredPass1!"
                                 first_name: Expired
                                 enabled: true
+                            customer_to_be_anonymized:
+                                email: to-be-anonymized@example.com
+                                password: "AnonPass1!"
+                                first_name: ToBe
+                                last_name: Anonymized
+                                enabled: true
 
                 three_brs_password_history:
                     options:
@@ -179,6 +185,12 @@ sylius_fixtures:
                               known_devices:
                                   - 44444444444444444444444444444444dddddddddddddddddddddddddddddddd
                                   - 55555555555555555555555555555555eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+
+                three_brs_account_deletion:
+                    options:
+                        pending_requests: []
+                        anonymized:
+                            - email: to-be-anonymized@example.com
 
                 three_brs_security_settings:
                     options:

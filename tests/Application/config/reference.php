@@ -3632,6 +3632,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             auto_unlock_after?: int|Param, // Default: null
  *         },
  *     },
+ *     account_deletion?: array{
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             grace_period_days?: int|Param, // Default: 30
+ *         },
+ *     },
  *     rate_limit?: array{
  *         customer?: array{
  *             login?: array{

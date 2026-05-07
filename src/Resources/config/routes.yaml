@@ -308,3 +308,22 @@ three_brs_admin_security_settings_save:
     methods: [POST]
     requirements:
         tab: '[a-z_]+'
+
+three_brs_shop_account_deletion_request:
+    path: /{_locale}/account/delete
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\AccountDeletionRequestController
+    methods: [GET, POST]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+
+three_brs_admin_account_deletions:
+    path: /admin/account-deletions
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\AccountDeletionsController
+    methods: [GET]
+
+three_brs_admin_account_deletion_cancel:
+    path: /admin/account-deletions/{id}/cancel
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\AccountDeletionCancelController
+    methods: [POST]
+    requirements:
+        id: '\d+'

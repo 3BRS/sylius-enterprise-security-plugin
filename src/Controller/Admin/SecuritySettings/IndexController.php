@@ -9,6 +9,7 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountDeletionSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountLockoutSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\MagicLinkSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType;
@@ -150,6 +151,14 @@ class IndexController implements IndexControllerInterface
                     'auto_register_allowed_email_domains' => is_array($whitelist) ? $whitelist : [],
                 ], ['action' => $this->saveUrl('oauth_admin_policy', $scope)]);
             }
+        }
+
+        // Account deletion is intentionally customer-scoped only.
+        if ($scope === SettingsScope::CUSTOMER) {
+            $forms['account_deletion'] = $this->formFactory->create(AccountDeletionSettingsType::class, [
+                'enabled' => $this->settings->getBool('account_deletion.enabled', $scope),
+                'grace_period_days' => $this->settings->getInt('account_deletion.grace_period_days', $scope),
+            ], ['action' => $this->saveUrl('account_deletion', $scope)]);
         }
 
         return $forms;

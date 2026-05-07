@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountDeletionSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountLockoutSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\MagicLinkSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType;
@@ -115,6 +116,12 @@ class SaveTabController implements SaveTabControllerInterface
                 'prefix' => 'oauth',
                 'options' => [],
                 'scopes' => [SettingsScope::ADMIN],
+            ],
+            'account_deletion' => [
+                'type' => AccountDeletionSettingsType::class,
+                'prefix' => 'account_deletion',
+                'options' => [],
+                'scopes' => [SettingsScope::CUSTOMER],
             ],
         ];
     }
