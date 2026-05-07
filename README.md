@@ -552,7 +552,9 @@ sylius_fixtures:
                         overrides: {}
 ```
 
-OAuth secrets (`client_id`, `client_secret`, Apple `private_key_path`) intentionally stay in YAML / `.env.local` — keeping them out of the database avoids leaking them through admin UI display, DB dumps and audit logs. The OAuth tab in the UI exposes only the `enabled` toggle and non-secret metadata. Same rationale for passkey `rp_id` / `rp_name` (browser API requires they match the served domain) and the GeoIP service ID (a Symfony service alias resolved at compile time).
+OAuth (Google / Apple) is intentionally **not** exposed in the Settings UI — `client_id`, `client_secret`, Apple `private_key_path` and the per-provider `enabled` flags all stay in YAML / `.env.local`. Putting credentials in the database would leak them through admin UI display, DB dumps and audit logs; splitting only the `enabled` toggle into the UI while keeping creds in YAML would create a confusing split-config trap (UI says enabled but credentials missing → silent failure). Same rationale for passkey `rp_id` / `rp_name` (browser API requires they match the served domain), Symfony rate-limiter parameters (compile-time DI) and the GeoIP service ID (a Symfony service alias resolved at compile time).
+
+The `Linked social accounts` shop menu item and the admin Configuration *Linked social accounts* item are still gated automatically — they appear only when at least one provider is `enabled` in YAML for the relevant group.
 
 ## Installation
 

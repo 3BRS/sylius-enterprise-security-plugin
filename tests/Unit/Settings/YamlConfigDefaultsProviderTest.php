@@ -34,19 +34,6 @@ class YamlConfigDefaultsProviderTest extends TestCase
         self::assertNull($provider->get('does.not.exist', SettingsScope::CUSTOMER));
     }
 
-    public function testHasIsTrueOnlyWhenKeyExists(): void
-    {
-        $provider = new YamlConfigDefaultsProvider([
-            'customer' => ['x' => null],
-            'admin' => [],
-            'global' => [],
-        ]);
-
-        self::assertTrue($provider->has('x', SettingsScope::CUSTOMER));
-        self::assertFalse($provider->has('y', SettingsScope::CUSTOMER));
-        self::assertFalse($provider->has('x', SettingsScope::ADMIN));
-    }
-
     public function testAllReturnsRawMap(): void
     {
         $defaults = [

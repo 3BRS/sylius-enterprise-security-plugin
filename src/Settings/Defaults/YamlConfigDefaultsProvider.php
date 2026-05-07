@@ -21,11 +21,6 @@ class YamlConfigDefaultsProvider implements SettingsDefaultsProviderInterface
         return $this->defaults[$scope->value][$path] ?? null;
     }
 
-    public function has(string $path, SettingsScope $scope): bool
-    {
-        return array_key_exists($path, $this->defaults[$scope->value] ?? []);
-    }
-
     /**
      * @return array<string, array<string, mixed>>
      */

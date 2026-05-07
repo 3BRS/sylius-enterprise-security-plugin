@@ -108,26 +108,6 @@ class SettingsProviderTest extends TestCase
         self::assertNull($provider->getNullableInt('account_lockout.auto_unlock_after', SettingsScope::CUSTOMER));
     }
 
-    public function testGetStringListReturnsArrayOfStrings(): void
-    {
-        $setting = new SecuritySetting();
-        $setting->setPath('oauth.auto_register_allowed_email_domains');
-        $setting->setScope(SettingsScope::ADMIN->value);
-        $setting->setValue(['example.com', 'company.io']);
-
-        $repository = $this->createStub(SecuritySettingRepositoryInterface::class);
-        $repository->method('findAllSettings')->willReturn([$setting]);
-
-        $defaults = $this->createStub(SettingsDefaultsProviderInterface::class);
-
-        $provider = new SettingsProvider($repository, $defaults);
-
-        self::assertSame(
-            ['example.com', 'company.io'],
-            $provider->getStringList('oauth.auto_register_allowed_email_domains', SettingsScope::ADMIN),
-        );
-    }
-
     public function testRefreshClearsCache(): void
     {
         $setting = new SecuritySetting();

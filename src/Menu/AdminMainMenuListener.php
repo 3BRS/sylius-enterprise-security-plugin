@@ -12,11 +12,17 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
 {
     public function __construct(
         protected FeatureToggleInterface $features,
+        protected bool $googleOAuthEnabled,
+        protected bool $appleOAuthEnabled,
     ) {
     }
 
     public function addTwoFactorItem(MenuBuilderEvent $event): void
     {
+        if (!$this->features->isTwoFactorActive(SettingsScope::ADMIN)) {
+            return;
+        }
+
         $configuration = $event->getMenu()->getChild('configuration');
 
         if ($configuration === null) {
@@ -32,6 +38,12 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
 
     public function addSocialAccountsItem(MenuBuilderEvent $event): void
     {
+        // OAuth stays YAML/env-bound (sensitive credentials, env-specific) so
+        // the gate reads container parameters instead of the DB-backed settings.
+        if (!$this->googleOAuthEnabled && !$this->appleOAuthEnabled) {
+            return;
+        }
+
         $configuration = $event->getMenu()->getChild('configuration');
 
         if ($configuration === null) {

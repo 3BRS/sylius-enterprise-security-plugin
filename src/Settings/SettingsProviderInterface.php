@@ -14,16 +14,7 @@ interface SettingsProviderInterface
 
     public function getString(string $path, SettingsScope $scope): string;
 
-    public function getNullableString(string $path, SettingsScope $scope): ?string;
-
-    /**
-     * @return list<string>
-     */
-    public function getStringList(string $path, SettingsScope $scope): array;
-
     public function get(string $path, SettingsScope $scope): mixed;
-
-    public function has(string $path, SettingsScope $scope): bool;
 
     public function refresh(): void;
 }

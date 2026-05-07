@@ -76,6 +76,39 @@ class SecuritySettingsContext implements Context
     }
 
     /**
+     * @When I enable customer account lockout with max attempts :count
+     */
+    public function iEnableCustomerAccountLockoutWithMaxAttempts(int $count): void
+    {
+        $this->iSwitchToTheScope('customer');
+        $page = $this->session->getPage();
+        $form = $page->find('css', '[data-test-three-brs-security-settings-tab="account_lockout"] form');
+        Assert::notNull($form, 'Account lockout form not found.');
+
+        $form->find('css', '#three_brs_account_lockout_settings_enabled')?->check();
+        $maxField = $form->find('css', '#three_brs_account_lockout_settings_max_attempts');
+        Assert::notNull($maxField, 'max_attempts field not found.');
+        $maxField->setValue((string) $count);
+
+        $form->find('css', '[data-test-three-brs-security-settings-save="account_lockout"]')?->click();
+    }
+
+    /**
+     * @When customer :email attempts :count failed sign-ins
+     */
+    public function customerAttemptsFailedSignIns(string $email, int $count): void
+    {
+        $loginUrl = $this->router->generate('sylius_shop_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        for ($i = 0; $i < $count; $i++) {
+            $this->session->visit($loginUrl);
+            $page = $this->session->getPage();
+            $page->fillField('_username', $email);
+            $page->fillField('_password', 'WrongPassword!');
+            $page->pressButton('Login');
+        }
+    }
+
+    /**
      * @Then I should see the security settings configuration page
      */
     public function iShouldSeeTheSecuritySettingsConfigurationPage(): void

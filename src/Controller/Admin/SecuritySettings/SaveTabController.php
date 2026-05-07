@@ -25,9 +25,11 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriterInterface;
 class SaveTabController implements SaveTabControllerInterface
 {
     /**
-     * Map of tab name => [form_type_class, prefix, options].
+     * Map of tab name => form type, settings prefix, form options, and an optional
+     * key_map to translate flat form-field names into nested settings paths
+     * (Symfony form-field names cannot contain dots, but settings paths use them).
      *
-     * @var array<string, array{type: class-string<\Symfony\Component\Form\FormTypeInterface<array<string, mixed>>>, prefix: string, options: array<string, mixed>}>
+     * @var array<string, array{type: class-string<\Symfony\Component\Form\FormTypeInterface<array<string, mixed>>>, prefix: string, options: array<string, mixed>, key_map?: array<string, string>}>
      */
     protected array $tabs;
 
@@ -50,6 +52,10 @@ class SaveTabController implements SaveTabControllerInterface
                 'type' => TwoFactorSettingsType::class,
                 'prefix' => 'two_factor_authentication',
                 'options' => [],
+                'key_map' => [
+                    'recovery_codes_enabled' => 'recovery_codes.enabled',
+                    'recovery_codes_count' => 'recovery_codes.count',
+                ],
             ],
             'magic_link' => ['type' => MagicLinkSettingsType::class, 'prefix' => 'magic_link', 'options' => []],
             'passkey' => ['type' => PasskeySettingsType::class, 'prefix' => 'passkey', 'options' => []],
@@ -92,8 +98,10 @@ class SaveTabController implements SaveTabControllerInterface
         }
 
         $values = [];
+        $keyMap = $tabConfig['key_map'] ?? [];
         foreach ($data as $key => $value) {
-            $values[$tabConfig['prefix'] . '.' . $key] = $value;
+            $mappedKey = $keyMap[$key] ?? $key;
+            $values[$tabConfig['prefix'] . '.' . $mappedKey] = $value;
         }
 
         $this->writer->setMany($scope, $values);

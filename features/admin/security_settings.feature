@@ -28,3 +28,12 @@ Feature: Admin can configure security settings via UI
         And I switch to the "customer" scope
         And I enable customer passkey
         Then the customer passkey feature should be enabled
+
+    Scenario: Customer account lockout settings applied via UI take effect on next customer login
+        Given there is a customer account "lockout-test@example.com" identified by "Password1!"
+        When I am logged in as "admin@example.com" administrator
+        And I open the security settings page
+        And I switch to the "customer" scope
+        And I enable customer account lockout with max attempts 2
+        And customer "lockout-test@example.com" attempts 2 failed sign-ins
+        Then customer "lockout-test@example.com" should be locked

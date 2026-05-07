@@ -289,6 +289,8 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\ShopAccountMenuListener:
         arguments:
             $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
+            $googleOAuthEnabled: '%three_brs.oauth.customer.google.enabled%'
+            $appleOAuthEnabled: '%three_brs.oauth.customer.apple.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
@@ -304,6 +306,8 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\AdminMainMenuListener:
         arguments:
             $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
+            $googleOAuthEnabled: '%three_brs.oauth.admin.google.enabled%'
+            $appleOAuthEnabled: '%three_brs.oauth.admin.apple.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }

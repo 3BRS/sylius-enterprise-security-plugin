@@ -25,4 +25,43 @@ class FeatureToggleTest extends TestCase
 
         self::assertTrue($toggle->isEnabled('passkey', SettingsScope::CUSTOMER));
     }
+
+    public function testTwoFactorIsInactiveWhenModeIsDisabled(): void
+    {
+        $provider = $this->createMock(SettingsProviderInterface::class);
+        $provider->expects(self::once())
+            ->method('getString')
+            ->with('two_factor_authentication.mode', SettingsScope::CUSTOMER)
+            ->willReturn('disabled');
+
+        $toggle = new FeatureToggle($provider);
+
+        self::assertFalse($toggle->isTwoFactorActive(SettingsScope::CUSTOMER));
+    }
+
+    public function testTwoFactorIsActiveWhenModeIsOptional(): void
+    {
+        $provider = $this->createMock(SettingsProviderInterface::class);
+        $provider->expects(self::once())
+            ->method('getString')
+            ->with('two_factor_authentication.mode', SettingsScope::ADMIN)
+            ->willReturn('optional');
+
+        $toggle = new FeatureToggle($provider);
+
+        self::assertTrue($toggle->isTwoFactorActive(SettingsScope::ADMIN));
+    }
+
+    public function testTwoFactorIsActiveWhenModeIsEnforced(): void
+    {
+        $provider = $this->createMock(SettingsProviderInterface::class);
+        $provider->expects(self::once())
+            ->method('getString')
+            ->with('two_factor_authentication.mode', SettingsScope::CUSTOMER)
+            ->willReturn('enforced');
+
+        $toggle = new FeatureToggle($provider);
+
+        self::assertTrue($toggle->isTwoFactorActive(SettingsScope::CUSTOMER));
+    }
 }

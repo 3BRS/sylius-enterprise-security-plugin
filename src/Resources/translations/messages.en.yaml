@@ -178,8 +178,6 @@ three_brs:
                 description: 'Send an email when a user changes their password.'
                 enabled: 'Enable password change notification email'
             two_factor:
-                title: 'Two-factor authentication'
-                description: 'Two-factor authentication mode and recovery codes.'
                 mode: 'Mode'
                 mode_disabled: 'Disabled'
                 mode_optional: 'Optional (allowed)'

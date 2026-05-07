@@ -10,8 +10,6 @@ interface SettingsDefaultsProviderInterface
 {
     public function get(string $path, SettingsScope $scope): mixed;
 
-    public function has(string $path, SettingsScope $scope): bool;
-
     /**
      * @return array<string, array<string, mixed>>  scope.value => path.value => default
      */

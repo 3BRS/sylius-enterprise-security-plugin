@@ -40,27 +40,6 @@ class SettingsProvider implements SettingsProviderInterface
         return (string) $this->get($path, $scope);
     }
 
-    public function getNullableString(string $path, SettingsScope $scope): ?string
-    {
-        $value = $this->get($path, $scope);
-
-        return $value === null ? null : (string) $value;
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function getStringList(string $path, SettingsScope $scope): array
-    {
-        $value = $this->get($path, $scope);
-
-        if (!is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_map(static fn ($item): string => (string) $item, $value));
-    }
-
     public function get(string $path, SettingsScope $scope): mixed
     {
         $this->load();
@@ -70,17 +49,6 @@ class SettingsProvider implements SettingsProviderInterface
         }
 
         return $this->defaultsProvider->get($path, $scope);
-    }
-
-    public function has(string $path, SettingsScope $scope): bool
-    {
-        $this->load();
-
-        if (array_key_exists($path, $this->cache[$scope->value] ?? [])) {
-            return true;
-        }
-
-        return $this->defaultsProvider->has($path, $scope);
     }
 
     public function refresh(): void

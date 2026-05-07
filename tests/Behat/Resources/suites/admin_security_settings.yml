@@ -10,8 +10,10 @@ default:
                 - sylius.behat.context.setup.zone
                 - sylius.behat.context.setup.admin_user
                 - sylius.behat.context.setup.admin_security
+                - sylius.behat.context.setup.customer
                 - sylius.behat.context.transform.shared_storage
                 - sylius.behat.context.ui.admin.login
                 - three_brs.behat.context.ui.admin.security_settings
+                - three_brs.behat.context.ui.shop.lockout
             filters:
                 tags: "@admin&&@security_settings&&@ui"
