@@ -7,6 +7,8 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
+use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\User\Model\UserInterface;
@@ -14,6 +16,7 @@ use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManagerInterface;
 use Webmozart\Assert\Assert;
 
 class LockoutContext implements Context
@@ -25,6 +28,9 @@ class LockoutContext implements Context
         protected CustomerRepositoryInterface $customerRepository,
         protected EntityManagerInterface $entityManager,
         protected UrlGeneratorInterface $router,
+        protected AdminUserLockoutManagerInterface $lockoutManager,
+        protected SharedStorageInterface $sharedStorage,
+        protected CacheItemPoolInterface $rateLimiterCachePool,
     ) {
     }
 
@@ -36,7 +42,7 @@ class LockoutContext implements Context
         $this->session->visit($this->router->generate('sylius_admin_login'));
         $page = $this->session->getPage();
         $page->fillField('_username', $email);
-        $page->fillField('_password', $password);
+        $page->fillField('_password', $this->retrieveSecurePassword($password));
         $page->pressButton('Login');
     }
 
@@ -72,6 +78,31 @@ class LockoutContext implements Context
         $user->setLockoutUntil($past->modify('+30 minutes'));
         $user->setFailedLoginAttempts(3);
         $this->entityManager->flush();
+    }
+
+    /**
+     * @When the lockout time for admin :email has elapsed
+     *
+     * Simulates the `auto_unlock_after` interval passing by rewinding
+     * `lockedAt` / `lockoutUntil` into the past AND clearing the rate
+     * limiter cache. In real wall-clock time both windows (DB lockout
+     * + Symfony rate-limit fixed window) elapse together, so the test
+     * resets both. Lets a scenario chain "real failed attempts → wait
+     * → real sign-in" without waiting the configured 15 / 30 min.
+     */
+    public function adminLockoutHasElapsed(string $email): void
+    {
+        $user = $this->loadAdminUser($email);
+        $this->entityManager->refresh($user);
+
+        Assert::notNull($user->getLockoutUntil(), sprintf('Expected admin %s to be locked.', $email));
+
+        $past = new \DateTimeImmutable('-1 hour');
+        $user->setLockedAt($past);
+        $user->setLockoutUntil($past->modify('+1 minute')); // still in the past
+        $this->entityManager->flush();
+
+        $this->rateLimiterCachePool->clear();
     }
 
     /**
@@ -197,6 +228,37 @@ class LockoutContext implements Context
         Assert::contains($url, '/login', sprintf('Expected to stay on the login page; got %s.', $url));
     }
 
+    /**
+     * @Then I should be signed in to the admin panel as :email
+     */
+    public function iShouldBeSignedInToAdminAs(string $email): void
+    {
+        $url = $this->session->getCurrentUrl();
+        Assert::notContains($url, '/admin/login', sprintf('Expected to be off the admin login page after sign-in, got "%s".', $url));
+    }
+
+    /**
+     * @Then I should not see the too-many-requests message
+     */
+    public function iShouldNotSeeTooManyRequests(): void
+    {
+        $content = (string) $this->session->getPage()->getContent();
+        Assert::notContains($content, 'three_brs.rate_limit.too_many_requests', 'Unexpected rate-limit error.');
+        Assert::notContains($content, 'Too many requests', 'Unexpected rate-limit error.');
+    }
+
+    /**
+     * @When the locked admin :email is unlocked by another administrator
+     *
+     * Calls the lockout manager directly to simulate another admin clicking
+     * "Unlock" in /admin/locked-admins — same code path, avoids needing a
+     * second admin session in the scenario.
+     */
+    public function adminIsUnlockedByAnotherAdministrator(string $email): void
+    {
+        $this->lockoutManager->unlock($this->loadAdminUser($email));
+    }
+
     protected function loadAdminUser(string $email): LockableAdminUserInterface
     {
         $user = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
@@ -205,9 +267,28 @@ class LockoutContext implements Context
         return $user;
     }
 
+    /**
+     * Sylius's `there is an administrator ... identified by ...` step replaces
+     * the configured password with a random hex string and stashes the original
+     * → secret mapping in shared storage. To submit the *real* password from a
+     * Behat step, we look up the secret via that mapping.
+     */
+    protected function retrieveSecurePassword(string $password): string
+    {
+        $scenarioSetupPassword = $this->sharedStorage->has('scenario_setup_password')
+            ? $this->sharedStorage->get('scenario_setup_password')
+            : null;
+
+        if ($scenarioSetupPassword === $password && $this->sharedStorage->has('password')) {
+            return (string) $this->sharedStorage->get('password');
+        }
+
+        return $password;
+    }
+
     protected function loadShopUser(string $email): LockableShopUserInterface
     {
-        $customer = $this->customerRepository->findOneBy(['email' => $email]);
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::isInstanceOf($customer, CustomerInterface::class);
         $user = $customer->getUser();
         Assert::isInstanceOf($user, LockableShopUserInterface::class);

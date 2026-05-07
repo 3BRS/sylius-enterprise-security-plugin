@@ -16,6 +16,7 @@ Feature: Customer account lockout
         And I try to sign in with email "customer@example.com" and password "WrongPass1!"
         And I try to sign in with email "customer@example.com" and password "WrongPass1!"
         Then customer "customer@example.com" should be locked
+        And the failed attempt counter for customer "customer@example.com" should be 5
 
     @ui
     Scenario: Locked customer cannot sign in even with correct password
@@ -26,8 +27,22 @@ Feature: Customer account lockout
     @ui
     Scenario: Lockout auto-expires when lockoutUntil is in the past
         Given customer "customer@example.com" was locked but the lockout has already expired
-        When I try to sign in with email "customer@example.com" and password "Password1!"
+        When I sign in with email "customer@example.com" and password "Password1!"
         Then customer "customer@example.com" should not be locked
+        And I should be signed in to the shop as "customer@example.com"
+
+    @ui
+    Scenario: Customer can sign in after the lockout auto-unlock interval has elapsed
+        When I try to sign in with email "customer@example.com" and password "WrongPass1!"
+        And I try to sign in with email "customer@example.com" and password "WrongPass1!"
+        And I try to sign in with email "customer@example.com" and password "WrongPass1!"
+        And I try to sign in with email "customer@example.com" and password "WrongPass1!"
+        And I try to sign in with email "customer@example.com" and password "WrongPass1!"
+        Then customer "customer@example.com" should be locked
+        When the lockout time for customer "customer@example.com" has elapsed
+        And I sign in with email "customer@example.com" and password "Password1!"
+        Then I should be signed in to the shop as "customer@example.com"
+        And customer "customer@example.com" should not be locked
 
     @ui
     Scenario: Admin manual unlock allows immediate sign-in

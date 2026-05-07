@@ -742,7 +742,6 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler:
         arguments:
             $customerRepository: '@sylius.repository.customer'
-            $tokenRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository'
             $tokenGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManager'
             $entityManager: '@doctrine.orm.entity_manager'
@@ -752,7 +751,6 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler:
         arguments:
             $adminUserRepository: '@sylius.repository.admin_user'
-            $tokenRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepository'
             $tokenGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManager'
             $entityManager: '@doctrine.orm.entity_manager'

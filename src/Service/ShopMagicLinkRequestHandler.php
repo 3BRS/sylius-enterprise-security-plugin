@@ -11,7 +11,6 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerMagicLinkToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManagerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepositoryInterface;
 
 class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterface
 {
@@ -20,7 +19,6 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
      */
     public function __construct(
         protected CustomerRepositoryInterface $customerRepository,
-        protected CustomerMagicLinkTokenRepositoryInterface $tokenRepository,
         protected MagicLinkTokenGeneratorInterface $tokenGenerator,
         protected CustomerMagicLinkEmailManagerInterface $emailManager,
         protected EntityManagerInterface $entityManager,

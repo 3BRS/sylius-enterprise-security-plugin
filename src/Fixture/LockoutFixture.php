@@ -37,7 +37,7 @@ class LockoutFixture extends AbstractFixture implements LockoutFixtureInterface
     public function load(array $options): void
     {
         foreach ($options['shop_users'] as $entry) {
-            $customer = $this->customerRepository->findOneBy(['email' => $entry['email']]);
+            $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower((string) $entry['email'])]);
             if (!$customer instanceof CustomerInterface) {
                 continue;
             }

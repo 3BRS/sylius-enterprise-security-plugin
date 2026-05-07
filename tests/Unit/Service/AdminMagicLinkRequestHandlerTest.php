@@ -11,7 +11,6 @@ use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManagerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TimingPaddingInterface;
@@ -23,8 +22,6 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
     {
         $userRepo = $this->createMock(UserRepositoryInterface::class);
         $userRepo->expects(self::never())->method('findOneBy');
-
-        $tokenRepo = $this->createStub(AdminUserMagicLinkTokenRepositoryInterface::class);
 
         $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
         $generator->expects(self::never())->method('generatePlainToken');
@@ -40,7 +37,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::never())->method('padTo');
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, false, 300);
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $generator, $mailer, $em, $clock, $timingPadding, false, 300);
 
         $handler->request('admin@example.com');
     }
@@ -49,8 +46,6 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
     {
         $userRepo = $this->createMock(UserRepositoryInterface::class);
         $userRepo->expects(self::once())->method('findOneBy')->willReturn(null);
-
-        $tokenRepo = $this->createStub(AdminUserMagicLinkTokenRepositoryInterface::class);
 
         $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
         $generator->method('generatePlainToken')->willReturn('plain-token');
@@ -68,7 +63,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
 
         $handler->request('nobody@example.com');
     }
@@ -82,8 +77,6 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
             ->method('findOneBy')
             ->with(['emailCanonical' => 'admin@example.com'])
             ->willReturn($user);
-
-        $tokenRepo = $this->createStub(AdminUserMagicLinkTokenRepositoryInterface::class);
 
         $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
         $generator->expects(self::once())->method('generatePlainToken')->willReturn('plain-token');
@@ -102,7 +95,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
 
         $handler->request('ADMIN@example.com');
     }

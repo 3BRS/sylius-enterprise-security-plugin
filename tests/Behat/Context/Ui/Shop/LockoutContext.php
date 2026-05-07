@@ -7,6 +7,7 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
@@ -24,6 +25,7 @@ class LockoutContext implements Context
         protected UrlGeneratorInterface $router,
         protected ShopUserLockoutManagerInterface $lockoutManager,
         protected SharedStorageInterface $sharedStorage,
+        protected CacheItemPoolInterface $rateLimiterCachePool,
     ) {
     }
 
@@ -75,6 +77,31 @@ class LockoutContext implements Context
     }
 
     /**
+     * @When the lockout time for customer :email has elapsed
+     *
+     * Simulates the `auto_unlock_after` interval passing by rewinding
+     * `lockedAt` / `lockoutUntil` into the past AND clearing the rate
+     * limiter cache. In real wall-clock time both windows (DB lockout
+     * + Symfony rate-limit fixed window) elapse together, so the test
+     * resets both. Lets a scenario chain "real failed attempts → wait
+     * → real sign-in" without waiting the configured 15 / 30 min.
+     */
+    public function customerLockoutHasElapsed(string $email): void
+    {
+        $user = $this->loadShopUser($email);
+        $this->entityManager->refresh($user);
+
+        Assert::notNull($user->getLockoutUntil(), sprintf('Expected customer %s to be locked.', $email));
+
+        $past = new \DateTimeImmutable('-1 hour');
+        $user->setLockedAt($past);
+        $user->setLockoutUntil($past->modify('+1 minute')); // still in the past
+        $this->entityManager->flush();
+
+        $this->rateLimiterCachePool->clear();
+    }
+
+    /**
      * @When the locked customer :email is unlocked by an administrator
      *
      * Calls the lockout manager directly to simulate the admin clicking
@@ -117,6 +144,17 @@ class LockoutContext implements Context
     }
 
     /**
+     * @Then the failed attempt counter for customer :email should be :count
+     */
+    public function customerFailedAttemptsShouldBe(string $email, int $count): void
+    {
+        $user = $this->loadShopUser($email);
+        $this->entityManager->refresh($user);
+
+        Assert::same($user->getFailedLoginAttempts(), $count);
+    }
+
+    /**
      * @Then customer :email should not be locked
      */
     public function customerShouldNotBeLocked(string $email): void
@@ -143,7 +181,7 @@ class LockoutContext implements Context
 
     protected function loadShopUser(string $email): LockableShopUserInterface
     {
-        $customer = $this->customerRepository->findOneBy(['email' => $email]);
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::isInstanceOf($customer, CustomerInterface::class);
         $user = $customer->getUser();
         Assert::isInstanceOf($user, LockableShopUserInterface::class);

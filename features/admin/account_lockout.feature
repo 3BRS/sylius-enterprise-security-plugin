@@ -25,5 +25,31 @@ Feature: Admin account lockout
     @ui
     Scenario: Lockout auto-expires when lockoutUntil is in the past
         Given admin "admin@example.com" was locked but the lockout has already expired
-        When I try to sign in to the admin panel with email "admin@example.com" and password "Password1!"
+        When I sign in to the admin panel with email "admin@example.com" and password "Password1!"
         Then admin "admin@example.com" should not be locked
+        And I should be signed in to the admin panel as "admin@example.com"
+
+    @ui
+    Scenario: Admin can sign in after the lockout auto-unlock interval has elapsed
+        When I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        And I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        And I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        Then admin "admin@example.com" should be locked
+        When the lockout time for admin "admin@example.com" has elapsed
+        And I sign in to the admin panel with email "admin@example.com" and password "Password1!"
+        Then I should be signed in to the admin panel as "admin@example.com"
+        And admin "admin@example.com" should not be locked
+
+    @ui
+    Scenario: Admin locked + rate-limited can sign in immediately after another administrator's unlock
+        When I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        And I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        And I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        And I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        And I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        And I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        Then admin "admin@example.com" should be locked
+        When the locked admin "admin@example.com" is unlocked by another administrator
+        And I sign in to the admin panel with email "admin@example.com" and password "Password1!"
+        Then I should not see the too-many-requests message
+        And I should be signed in to the admin panel as "admin@example.com"
