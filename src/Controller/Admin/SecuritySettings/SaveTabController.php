@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings;
 
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordHistorySe
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordPolicySettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SimpleToggleSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\TwoFactorSettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Exception\ConcurrentSettingsWriteException;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriterInterface;
 
@@ -89,7 +91,7 @@ class SaveTabController implements SaveTabControllerInterface
         $form->handleRequest($request);
 
         if (!$form->isSubmitted() || !$form->isValid()) {
-            $this->addFlashMessage($request, 'error', 'three_brs.security_settings.invalid');
+            $this->flashFormErrors($request, $form);
 
             return $this->redirect($scope, $tab);
         }
@@ -107,11 +109,39 @@ class SaveTabController implements SaveTabControllerInterface
         }
 
         $this->writer->setMany($scope, $values);
-        $this->writer->flush();
+
+        try {
+            $this->writer->flush();
+        } catch (ConcurrentSettingsWriteException) {
+            $this->addFlashMessage($request, 'error', 'three_brs.security_settings.concurrent_conflict');
+
+            return $this->redirect($scope, $tab);
+        }
 
         $this->addFlashMessage($request, 'success', 'three_brs.security_settings.saved');
 
         return $this->redirect($scope, $tab);
+    }
+
+    /**
+     * @param FormInterface<array<string, mixed>|null> $form
+     */
+    protected function flashFormErrors(Request $request, FormInterface $form): void
+    {
+        // Generic key so the admin always sees something (e.g. on a bare CSRF
+        // failure with no field errors), plus one flash per field error so the
+        // admin can fix the offending field directly. Symfony's form pipeline
+        // already translates constraint messages, so we surface them verbatim.
+        $this->addFlashMessage($request, 'error', 'three_brs.security_settings.invalid');
+
+        foreach ($form->getErrors(true) as $error) {
+            $field = $error->getOrigin()?->getName() ?? '?';
+            $this->addFlashMessage(
+                $request,
+                'error',
+                sprintf('%s: %s', $field, $error->getMessage()),
+            );
+        }
     }
 
     protected function redirect(SettingsScope $scope, string $tab): RedirectResponse

@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\SecuritySetting;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\SecuritySettingInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Exception\ConcurrentSettingsWriteException;
 
 class SettingsWriter implements SettingsWriterInterface
 {
@@ -56,13 +57,21 @@ class SettingsWriter implements SettingsWriterInterface
     {
         try {
             $this->entityManager->flush();
-        } catch (UniqueConstraintViolationException) {
-            // Concurrent writer raced us — its row now exists. Reset the unit of
-            // work, re-fetch, re-apply our pending writes, retry once.
+        } catch (UniqueConstraintViolationException $exception) {
+            // Concurrent admin committed the same (path, scope) row between our
+            // find() and flush(). The unit of work is now broken — we can't
+            // safely re-apply our writes without re-reading the conflicting
+            // row, and the caller already constructed entities that are stale.
+            // Reset state, refresh the cache, and surface a typed exception so
+            // the caller knows our changes were dropped (instead of silently
+            // showing a "saved" flash on a no-op).
             $this->entityManager->clear();
             $this->provider->refresh();
 
-            return;
+            throw new ConcurrentSettingsWriteException(
+                'Settings were not saved because another administrator updated the same values concurrently. Reload the page and try again.',
+                previous: $exception,
+            );
         }
 
         $this->provider->refresh();
