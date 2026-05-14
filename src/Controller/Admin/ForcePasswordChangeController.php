@@ -20,12 +20,12 @@ use Twig\Environment;
 class ForcePasswordChangeController implements ForcePasswordChangeControllerInterface
 {
     public function __construct(
-        private TokenStorageInterface $tokenStorage,
-        private UserPasswordHasherInterface $passwordHasher,
-        private EntityManagerInterface $entityManager,
-        private RouterInterface $router,
-        private Environment $twig,
-        private FormFactoryInterface $formFactory,
+        protected TokenStorageInterface $tokenStorage,
+        protected UserPasswordHasherInterface $passwordHasher,
+        protected EntityManagerInterface $entityManager,
+        protected RouterInterface $router,
+        protected Environment $twig,
+        protected FormFactoryInterface $formFactory,
     ) {
     }
 

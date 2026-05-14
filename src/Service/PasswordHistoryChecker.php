@@ -12,8 +12,8 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRe
 class PasswordHistoryChecker implements PasswordHistoryCheckerInterface
 {
     public function __construct(
-        private CustomerPasswordHistoryRepositoryInterface $customerRepository,
-        private AdminUserPasswordHistoryRepositoryInterface $adminRepository,
+        protected CustomerPasswordHistoryRepositoryInterface $customerRepository,
+        protected AdminUserPasswordHistoryRepositoryInterface $adminRepository,
     ) {
     }
 

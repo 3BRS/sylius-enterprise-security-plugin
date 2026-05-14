@@ -21,9 +21,9 @@ class PasswordHistoryFixture extends AbstractFixture implements PasswordHistoryF
      * @param UserRepositoryInterface<\Sylius\Component\User\Model\UserInterface>         $adminUserRepository
      */
     public function __construct(
-        private CustomerRepositoryInterface $customerRepository,
-        private UserRepositoryInterface $adminUserRepository,
-        private EntityManagerInterface $entityManager,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected UserRepositoryInterface $adminUserRepository,
+        protected EntityManagerInterface $entityManager,
     ) {
     }
 

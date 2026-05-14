@@ -17,11 +17,11 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationCheckerInt
 
 class PasswordExpirationListener implements PasswordExpirationListenerInterface
 {
-    private const SHOP_CHANGE_PASSWORD_ROUTE = 'sylius_shop_account_change_password';
+    protected const SHOP_CHANGE_PASSWORD_ROUTE = 'sylius_shop_account_change_password';
 
-    private const ADMIN_CHANGE_PASSWORD_ROUTE = 'three_brs_admin_force_password_change';
+    protected const ADMIN_CHANGE_PASSWORD_ROUTE = 'three_brs_admin_force_password_change';
 
-    private const EXCLUDED_ROUTES = [
+    protected const EXCLUDED_ROUTES = [
         'sylius_shop_login',
         'sylius_shop_logout',
         'sylius_shop_register',
@@ -37,12 +37,12 @@ class PasswordExpirationListener implements PasswordExpirationListenerInterface
         self::ADMIN_CHANGE_PASSWORD_ROUTE,
     ];
 
-    private const LIVE_COMPONENT_ACCEPT = 'application/vnd.live-component+html';
+    protected const LIVE_COMPONENT_ACCEPT = 'application/vnd.live-component+html';
 
     public function __construct(
-        private TokenStorageInterface $tokenStorage,
-        private PasswordExpirationCheckerInterface $checker,
-        private RouterInterface $router,
+        protected TokenStorageInterface $tokenStorage,
+        protected PasswordExpirationCheckerInterface $checker,
+        protected RouterInterface $router,
     ) {
     }
 
@@ -98,7 +98,7 @@ class PasswordExpirationListener implements PasswordExpirationListenerInterface
         }
     }
 
-    private function isFragmentRequest(Request $request): bool
+    protected function isFragmentRequest(Request $request): bool
     {
         if ($request->isXmlHttpRequest()) {
             return true;

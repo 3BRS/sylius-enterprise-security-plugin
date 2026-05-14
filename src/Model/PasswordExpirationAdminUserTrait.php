@@ -9,10 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 trait PasswordExpirationAdminUserTrait
 {
     #[ORM\Column(name: 'password_changed_at', type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $passwordChangedAt = null;
+    protected ?\DateTimeImmutable $passwordChangedAt = null;
 
     #[ORM\Column(name: 'force_password_change', type: 'boolean', options: ['default' => false])]
-    private bool $forcePasswordChange = false;
+    protected bool $forcePasswordChange = false;
 
     public function getPasswordChangedAt(): ?\DateTimeImmutable
     {
