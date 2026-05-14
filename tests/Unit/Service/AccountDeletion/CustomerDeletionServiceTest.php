@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
+use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -45,6 +46,7 @@ class CustomerDeletionServiceTest extends TestCase
             $email,
             $em,
             $this->fixedClock('2026-05-07 10:00:00'),
+            $this->createStub(LoggerInterface::class),
             30,
         );
 
@@ -66,6 +68,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(AccountDeletionEmailManagerInterface::class),
             $this->createStub(EntityManagerInterface::class),
             $this->fixedClock('2026-05-07 10:00:00'),
+            $this->createStub(LoggerInterface::class),
             30,
         );
 
@@ -96,6 +99,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(AccountDeletionEmailManagerInterface::class),
             $em,
             $this->fixedClock('2026-05-10 12:00:00'),
+            $this->createStub(LoggerInterface::class),
             30,
         );
 
@@ -119,6 +123,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(AccountDeletionEmailManagerInterface::class),
             $this->createStub(EntityManagerInterface::class),
             $this->fixedClock('2026-05-10 12:00:00'),
+            $this->createStub(LoggerInterface::class),
             30,
         );
 
@@ -163,6 +168,7 @@ class CustomerDeletionServiceTest extends TestCase
             $email,
             $this->createStub(EntityManagerInterface::class),
             $this->fixedClock('2026-05-08 10:00:00'),
+            $this->createStub(LoggerInterface::class),
             30,
         );
 

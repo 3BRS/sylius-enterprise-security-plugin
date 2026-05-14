@@ -6,6 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
+use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -22,6 +23,7 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         protected AccountDeletionEmailManagerInterface $emailManager,
         protected EntityManagerInterface $entityManager,
         protected ClockInterface $clock,
+        protected LoggerInterface $logger,
         protected int $gracePeriodDays,
     ) {
     }
@@ -43,7 +45,17 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         $this->entityManager->persist($request);
         $this->entityManager->flush();
 
-        $this->emailManager->sendDeletionRequested($customer, $request->getScheduledFor());
+        // Email is best-effort: the request is already committed, so a transient SMTP
+        // failure must not unwind the deletion request. Admin can still see the pending
+        // request in the UI and resend manually if needed.
+        try {
+            $this->emailManager->sendDeletionRequested($customer, $request->getScheduledFor());
+        } catch (\Throwable $exception) {
+            $this->logger->warning('three_brs.account_deletion.requested_email_failed', [
+                'customer_id' => $customer->getId(),
+                'reason' => $exception->getMessage(),
+            ]);
+        }
 
         return $request;
     }
@@ -72,7 +84,17 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
             $customer = $request->getCustomer();
             // Send the completion email BEFORE anonymizing — afterwards
             // customer.email points at deleted-{id}@anonymized.invalid.
-            $this->emailManager->sendDeletionCompleted($customer);
+            // Caught: SMTP failure must not block the deletion (otherwise the
+            // customer's PII would linger because of an external system fault);
+            // log + carry on with anonymisation.
+            try {
+                $this->emailManager->sendDeletionCompleted($customer);
+            } catch (\Throwable $exception) {
+                $this->logger->warning('three_brs.account_deletion.completed_email_failed', [
+                    'customer_id' => $customer->getId(),
+                    'reason' => $exception->getMessage(),
+                ]);
+            }
             $this->anonymizer->anonymize($customer);
             $request->setCompletedAt($now);
             $this->entityManager->flush();

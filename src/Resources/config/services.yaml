@@ -1407,6 +1407,7 @@ services:
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManager'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
+            $logger: '@logger'
             $gracePeriodDays: '%three_brs.account_deletion.customer.grace_period_days%'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface:
