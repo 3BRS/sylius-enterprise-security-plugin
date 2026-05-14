@@ -389,16 +389,16 @@ After installing the plugin, run `bin/console assets:install` so the bundled `pa
 
 ### Account Lockout & Rate Limiting
 
-Brute-force protection covering both account-level lockout (per user, persistent) and request-level rate limiting (per IP, ephemeral). Independently configurable per group (customer / admin).
+Brute-force protection covering both account-level lockout (persistent, per user) and request-level rate limiting (ephemeral, keyed per username for login and per IP for other actions). Independently configurable per group (customer / admin).
 
 **Account Lockout** — locks the user account after a configurable number of consecutive failed sign-in attempts.
 
-- Failed-attempts counter on the user entity (`failedLoginAttempts`, `lockedAt`, `lockoutUntil`, `lastFailedLoginAt`) — added via `LockableShopUserTrait` / `LockableAdminUserTrait`
+- Failed-attempts counter and lockout timestamps tracked on the user entity via `LockableShopUserTrait` / `LockableAdminUserTrait` (concurrent failed logins are serialised through a pessimistic row lock so the threshold cannot be bypassed)
 - Counter resets on successful login
 - **Auto-unlock** after `auto_unlock_after` seconds (set to `null` for manual-only)
 - **Manual unlock** by admin from `/admin/locked-customers` and `/admin/locked-admins` (sub-menu under Configuration)
 - Both unlock methods can coexist — auto-unlock fires first when `lockoutUntil` is reached, admin can override manually any time
-- Locked users see *"Account is locked. Try again later or contact an administrator."* on login attempt — generic on purpose, no timer leak
+- Locked sign-in attempts get the same generic *"Invalid credentials"* response as a wrong-password attempt — by design, so account state does not leak through error text
 
 **Rate Limiting** — built on Symfony Rate Limiter (`fixed_window` policy). Plugin auto-registers `framework.rate_limiter.three_brs_<group>_<action>` services for every enabled combination, no manual `framework.yaml` wiring needed.
 
@@ -450,9 +450,11 @@ class ShopUser extends BaseShopUser implements LockableShopUserInterface
 }
 ```
 
+The trait adds four columns (`failed_login_attempts`, `last_failed_login_at`, `locked_at`, `lockout_until`); run a schema update after adding the trait, e.g. `bin/console doctrine:schema:update --complete --force` or your usual migration workflow.
+
 Plugin adds **Locked customers** and **Locked administrators** entries to the admin Configuration sub-menu automatically — both shown only when lockout is enabled for that group.
 
-> **Trusted proxies:** rate limiter keys include `Request::getClientIp()`. If your Sylius runs behind a load balancer or reverse proxy, configure `framework.trusted_proxies` and `framework.trusted_headers` so the real client IP is used (otherwise all requests look like they come from the proxy and the limit triggers immediately).
+> **Trusted proxies:** for password reset, registration, and magic-link rate limits the key is `Request::getClientIp()` (login rate limits use the submitted username so admin unlock can clear them deterministically). If your Sylius runs behind a load balancer or reverse proxy, configure `framework.trusted_proxies` and `framework.trusted_headers` so the real client IP is used — otherwise all non-login requests look like they come from the proxy and the limit triggers immediately.
 
 ## Installation
 

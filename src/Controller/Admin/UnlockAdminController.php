@@ -22,7 +22,7 @@ class UnlockAdminController implements UnlockAdminControllerInterface
 {
     use FlashHelperTrait;
 
-    protected const CSRF_TOKEN_ID = 'three_brs_unlock_user';
+    protected const CSRF_TOKEN_ID = 'three_brs_unlock_admin';
 
     /** @param UserRepositoryInterface<AdminUserInterface> $adminUserRepository */
     public function __construct(

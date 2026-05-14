@@ -22,7 +22,7 @@ class UnlockCustomerController implements UnlockCustomerControllerInterface
 {
     use FlashHelperTrait;
 
-    protected const CSRF_TOKEN_ID = 'three_brs_unlock_user';
+    protected const CSRF_TOKEN_ID = 'three_brs_unlock_customer';
 
     /** @param UserRepositoryInterface<ShopUserInterface> $shopUserRepository */
     public function __construct(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout;
 
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
@@ -26,21 +27,32 @@ class AdminUserLockoutManager implements AdminUserLockoutManagerInterface
             return;
         }
 
-        $now = $this->clock->now();
-        $attempts = $user->getFailedLoginAttempts() + 1;
+        // Pessimistic row lock on the user — without it, concurrent failed-login requests
+        // would race the read-modify-write of failedLoginAttempts and collapse multiple
+        // increments into one, letting an attacker exceed maxAttempts before lockout
+        // engages. Refresh re-reads the latest counter under the lock; flush + commit
+        // (via wrapInTransaction) releases it. Scoped to this manager so unrelated user
+        // updates (e.g. trusted-device revocation) are unaffected.
+        $this->entityManager->wrapInTransaction(function () use ($user): void {
+            $this->entityManager->lock($user, LockMode::PESSIMISTIC_WRITE);
+            $this->entityManager->refresh($user);
 
-        $user->setFailedLoginAttempts($attempts);
-        $user->setLastFailedLoginAt($now);
+            $now = $this->clock->now();
+            $attempts = $user->getFailedLoginAttempts() + 1;
 
-        if ($attempts >= $this->policy->getMaxAttempts()) {
-            $user->setLockedAt($now);
-            $autoUnlockAfter = $this->policy->getAutoUnlockAfter();
-            $user->setLockoutUntil(
-                $autoUnlockAfter === null ? null : $now->modify(sprintf('+%d seconds', $autoUnlockAfter)),
-            );
-        }
+            $user->setFailedLoginAttempts($attempts);
+            $user->setLastFailedLoginAt($now);
 
-        $this->entityManager->flush();
+            if ($attempts >= $this->policy->getMaxAttempts()) {
+                $user->setLockedAt($now);
+                $autoUnlockAfter = $this->policy->getAutoUnlockAfter();
+                $user->setLockoutUntil(
+                    $autoUnlockAfter === null ? null : $now->modify(sprintf('+%d seconds', $autoUnlockAfter)),
+                );
+            }
+
+            $this->entityManager->flush();
+        });
     }
 
     public function recordSuccess(LockableAdminUserInterface $user): void
