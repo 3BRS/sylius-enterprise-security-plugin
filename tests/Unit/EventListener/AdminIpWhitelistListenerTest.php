@@ -60,7 +60,7 @@ class AdminIpWhitelistListenerTest extends TestCase
     {
         $checker = $this->createMock(IpWhitelistCheckerInterface::class);
         $checker->method('isFeatureEnabled')->willReturn(false);
-        $checker->expects(self::never())->method('isAllowedByGlobal');
+        $checker->expects(self::never())->method('isAllowedAnonymously');
 
         $listener = $this->createListener($checker, $this->tokenStorageEmpty());
 
@@ -74,7 +74,7 @@ class AdminIpWhitelistListenerTest extends TestCase
     {
         $checker = $this->createMock(IpWhitelistCheckerInterface::class);
         $checker->method('isFeatureEnabled')->willReturn(true);
-        $checker->expects(self::never())->method('isAllowedByGlobal');
+        $checker->expects(self::never())->method('isAllowedAnonymously');
 
         $listener = $this->createListener($checker, $this->tokenStorageEmpty());
 
@@ -88,7 +88,7 @@ class AdminIpWhitelistListenerTest extends TestCase
     {
         $checker = $this->createStub(IpWhitelistCheckerInterface::class);
         $checker->method('isFeatureEnabled')->willReturn(true);
-        $checker->method('isAllowedByGlobal')->willReturn(true);
+        $checker->method('isAllowedAnonymously')->willReturn(true);
 
         $listener = $this->createListener($checker, $this->tokenStorageEmpty());
 
@@ -102,7 +102,7 @@ class AdminIpWhitelistListenerTest extends TestCase
     {
         $checker = $this->createStub(IpWhitelistCheckerInterface::class);
         $checker->method('isFeatureEnabled')->willReturn(true);
-        $checker->method('isAllowedByGlobal')->willReturn(false);
+        $checker->method('isAllowedAnonymously')->willReturn(false);
 
         $listener = $this->createListener($checker, $this->tokenStorageEmpty());
 

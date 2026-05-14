@@ -62,6 +62,7 @@ class CidrListValidatorTest extends TestCase
 
     public function testThrowsOnNonArray(): void
     {
+        $this->context->expects(self::never())->method('buildViolation');
         $this->expectException(UnexpectedValueException::class);
 
         $this->createValidator()->validate('10.0.0.0/8', new CidrList());

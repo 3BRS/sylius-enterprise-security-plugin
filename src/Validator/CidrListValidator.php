@@ -58,7 +58,7 @@ class CidrListValidator extends ConstraintValidator implements CidrListValidator
     protected function isValidCidrOrIp(string $value): bool
     {
         if (!str_contains($value, '/')) {
-            return filter_var($value, FILTER_VALIDATE_IP) !== false;
+            return filter_var($value, \FILTER_VALIDATE_IP) !== false;
         }
 
         $parts = explode('/', $value, 2);
@@ -74,11 +74,11 @@ class CidrListValidator extends ConstraintValidator implements CidrListValidator
 
         $prefix = (int) $prefixStr;
 
-        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+        if (filter_var($address, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4) !== false) {
             return $prefix >= 0 && $prefix <= 32;
         }
 
-        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false) {
+        if (filter_var($address, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6) !== false) {
             return $prefix >= 0 && $prefix <= 128;
         }
 

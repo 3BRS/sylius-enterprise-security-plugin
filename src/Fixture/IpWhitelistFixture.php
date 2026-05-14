@@ -7,15 +7,16 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Bundle\FixturesBundle\Fixture\AbstractFixture;
 use Sylius\Component\Core\Model\AdminUserInterface;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelist;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 
 class IpWhitelistFixture extends AbstractFixture implements IpWhitelistFixtureInterface
 {
+    /** @param UserRepositoryInterface<AdminUserInterface> $adminUserRepository */
     public function __construct(
-        protected RepositoryInterface $adminUserRepository,
+        protected UserRepositoryInterface $adminUserRepository,
         protected AdminUserIpWhitelistRepositoryInterface $whitelistRepository,
         protected EntityManagerInterface $entityManager,
     ) {

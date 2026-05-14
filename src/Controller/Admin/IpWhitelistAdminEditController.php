@@ -6,7 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelist;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelistInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\AdminUserIpWhitelistType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 use Twig\Environment;
@@ -23,8 +24,9 @@ class IpWhitelistAdminEditController implements IpWhitelistAdminEditControllerIn
 {
     use FlashHelperTrait;
 
+    /** @param UserRepositoryInterface<AdminUserInterface> $adminUserRepository */
     public function __construct(
-        protected RepositoryInterface $adminUserRepository,
+        protected UserRepositoryInterface $adminUserRepository,
         protected AdminUserIpWhitelistRepositoryInterface $whitelistRepository,
         protected EntityManagerInterface $entityManager,
         protected FormFactoryInterface $formFactory,
@@ -41,7 +43,6 @@ class IpWhitelistAdminEditController implements IpWhitelistAdminEditControllerIn
         }
 
         $whitelist = $this->whitelistRepository->findOneByAdminUser($admin);
-        $isNew = $whitelist === null;
 
         $formData = [
             'enabled' => $whitelist?->isEnabled() ?? false,
@@ -53,19 +54,7 @@ class IpWhitelistAdminEditController implements IpWhitelistAdminEditControllerIn
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-
-            if ($isNew) {
-                $whitelist = new AdminUserIpWhitelist();
-                $whitelist->setAdminUser($admin);
-                $this->entityManager->persist($whitelist);
-            }
-
-            \assert($whitelist !== null);
-            $whitelist->setEnabled((bool) $data['enabled']);
-            /** @var list<string> $cidrs */
-            $cidrs = is_array($data['cidrs']) ? array_values(array_filter($data['cidrs'], 'is_string')) : [];
-            $whitelist->setCidrs($cidrs);
-            $whitelist->touchUpdatedAt();
+            $whitelist = $this->upsertWhitelist($admin, $whitelist, (bool) ($data['enabled'] ?? false), $this->normaliseCidrs($data['cidrs'] ?? []));
 
             $this->entityManager->flush();
 
@@ -82,5 +71,47 @@ class IpWhitelistAdminEditController implements IpWhitelistAdminEditControllerIn
                 'whitelist' => $whitelist,
             ],
         ));
+    }
+
+    /**
+     * @param list<string> $cidrs
+     */
+    protected function upsertWhitelist(
+        AdminUserInterface $admin,
+        ?AdminUserIpWhitelistInterface $existing,
+        bool $enabled,
+        array $cidrs,
+    ): AdminUserIpWhitelistInterface {
+        $whitelist = $existing;
+        if ($whitelist === null) {
+            $whitelist = new AdminUserIpWhitelist();
+            $whitelist->setAdminUser($admin);
+            $this->entityManager->persist($whitelist);
+        }
+
+        $whitelist->setEnabled($enabled);
+        $whitelist->setCidrs($cidrs);
+        $whitelist->touchUpdatedAt();
+
+        return $whitelist;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function normaliseCidrs(mixed $value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $cidrs = [];
+        foreach ($value as $entry) {
+            if (is_string($entry) && $entry !== '') {
+                $cidrs[] = $entry;
+            }
+        }
+
+        return $cidrs;
     }
 }

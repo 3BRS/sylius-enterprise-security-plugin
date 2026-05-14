@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Sylius\Component\Core\Model\AdminUserInterface;
+use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistCheckerInterface;
@@ -12,8 +13,9 @@ use Twig\Environment;
 
 class IpWhitelistAdminsController implements IpWhitelistAdminsControllerInterface
 {
+    /** @param UserRepositoryInterface<AdminUserInterface> $adminUserRepository */
     public function __construct(
-        protected RepositoryInterface $adminUserRepository,
+        protected UserRepositoryInterface $adminUserRepository,
         protected AdminUserIpWhitelistRepositoryInterface $whitelistRepository,
         protected IpWhitelistCheckerInterface $checker,
         protected Environment $twig,

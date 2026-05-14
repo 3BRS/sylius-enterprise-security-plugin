@@ -29,4 +29,17 @@ class AdminUserIpWhitelistRepository extends ServiceEntityRepository implements 
             ->getOneOrNullResult()
         ;
     }
+
+    public function findAllEnabled(): array
+    {
+        /** @var list<AdminUserIpWhitelist> $result */
+        $result = $this->createQueryBuilder('w')
+            ->where('w.enabled = :enabled')
+            ->setParameter('enabled', true)
+            ->getQuery()
+            ->getResult()
+        ;
+
+        return $result;
+    }
 }

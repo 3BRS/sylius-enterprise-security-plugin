@@ -3696,6 +3696,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             enabled?: bool|Param, // Default: false
  *         },
  *     },
+ *     ip_whitelist?: array{
+ *         enabled?: bool|Param, // Default: false
+ *     },
  *     oauth?: array{
  *         customer?: array{
  *             google?: array{

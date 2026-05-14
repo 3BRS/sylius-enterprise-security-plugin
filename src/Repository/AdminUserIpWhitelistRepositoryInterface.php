@@ -10,4 +10,9 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelistInterface
 interface AdminUserIpWhitelistRepositoryInterface
 {
     public function findOneByAdminUser(AdminUserInterface $user): ?AdminUserIpWhitelistInterface;
+
+    /**
+     * @return list<AdminUserIpWhitelistInterface>
+     */
+    public function findAllEnabled(): array;
 }

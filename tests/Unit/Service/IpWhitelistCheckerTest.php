@@ -17,12 +17,14 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 class IpWhitelistCheckerTest extends TestCase
 {
     /**
-     * @param list<string> $globalCidrs
+     * @param list<string>                        $globalCidrs
+     * @param list<AdminUserIpWhitelistInterface> $allEnabled
      */
     private function createChecker(
         bool $enabled,
         array $globalCidrs,
         ?AdminUserIpWhitelistInterface $perAdmin = null,
+        array $allEnabled = [],
     ): IpWhitelistChecker {
         $settings = $this->createStub(SettingsProviderInterface::class);
         $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($enabled): bool {
@@ -42,6 +44,7 @@ class IpWhitelistCheckerTest extends TestCase
 
         $repository = $this->createStub(AdminUserIpWhitelistRepositoryInterface::class);
         $repository->method('findOneByAdminUser')->willReturn($perAdmin);
+        $repository->method('findAllEnabled')->willReturn($allEnabled);
 
         return new IpWhitelistChecker($settings, $repository);
     }
@@ -148,5 +151,36 @@ class IpWhitelistCheckerTest extends TestCase
         $checker = new IpWhitelistChecker($settings, $repository);
 
         self::assertSame(['10.0.0.0/8', '192.168.1.1'], $checker->getGlobalCidrs());
+    }
+
+    public function testAnonymousAllowedByGlobal(): void
+    {
+        $checker = $this->createChecker(true, ['10.0.0.0/8']);
+
+        self::assertTrue($checker->isAllowedAnonymously('10.5.6.7'));
+    }
+
+    public function testAnonymousAllowedByAnyPerAdminWhenGlobalEmpty(): void
+    {
+        $entry = $this->perAdmin(true, ['192.168.1.0/24']);
+        $checker = $this->createChecker(true, [], null, [$entry]);
+
+        self::assertTrue($checker->isAllowedAnonymously('192.168.1.42'));
+    }
+
+    public function testAnonymousDeniedWhenNothingMatches(): void
+    {
+        $entry = $this->perAdmin(true, ['192.168.1.0/24']);
+        $checker = $this->createChecker(true, ['10.0.0.0/8'], null, [$entry]);
+
+        self::assertFalse($checker->isAllowedAnonymously('8.8.8.8'));
+    }
+
+    public function testAnonymousEmptyIpDenied(): void
+    {
+        $entry = $this->perAdmin(true, ['127.0.0.1']);
+        $checker = $this->createChecker(true, [], null, [$entry]);
+
+        self::assertFalse($checker->isAllowedAnonymously(''));
     }
 }

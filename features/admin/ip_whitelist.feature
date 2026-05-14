@@ -33,6 +33,13 @@ Feature: Admin panel can be restricted by IP whitelist
         And I open any admin page
         Then the admin response status should be 200
 
+    Scenario: Pure per-admin (no global) allows reaching the login form and signing in
+        Given the admin IP whitelist is enabled with no global CIDRs
+        And administrator "admin@example.com" has per-admin IP whitelist enabled with CIDRs "127.0.0.1"
+        When I am logged in as "admin@example.com" administrator
+        And I open any admin page
+        Then the admin response status should be 200
+
     Scenario: Disabled per-admin entry is ignored
         Given the admin IP whitelist is enabled with global CIDRs "203.0.113.0/24"
         And administrator "admin@example.com" has per-admin IP whitelist disabled with CIDRs "127.0.0.1"

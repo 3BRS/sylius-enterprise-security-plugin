@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings;
 
-use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormTypeInterface;
 
-interface IpWhitelistSettingsTypeInterface
+/**
+ * @extends FormTypeInterface<array<string, mixed>>
+ */
+interface IpWhitelistSettingsTypeInterface extends FormTypeInterface
 {
-    /**
-     * @param array<string, mixed> $options
-     */
-    public function buildForm(FormBuilderInterface $builder, array $options): void;
-
-    public function getBlockPrefix(): string;
 }

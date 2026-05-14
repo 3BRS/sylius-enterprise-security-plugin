@@ -28,6 +28,25 @@ class IpWhitelistChecker implements IpWhitelistCheckerInterface
         return $this->matchesAny($ip, $this->getGlobalCidrs());
     }
 
+    public function isAllowedAnonymously(string $ip): bool
+    {
+        if ($this->isAllowedByGlobal($ip)) {
+            return true;
+        }
+
+        if ($ip === '') {
+            return false;
+        }
+
+        foreach ($this->adminWhitelistRepository->findAllEnabled() as $entry) {
+            if ($this->matchesAny($ip, $entry->getCidrs())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function isAllowedForAdmin(AdminUserInterface $admin, string $ip): bool
     {
         if ($this->isAllowedByGlobal($ip)) {

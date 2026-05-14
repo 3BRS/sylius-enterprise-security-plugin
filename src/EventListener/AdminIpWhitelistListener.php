@@ -31,7 +31,10 @@ class AdminIpWhitelistListener implements AdminIpWhitelistListenerInterface
 
         $request = $event->getRequest();
         $path = $request->getPathInfo();
-        if (!str_starts_with($path, $this->adminPathPrefix)) {
+
+        // Match `/admin` exactly and `/admin/...` — but not `/admin-anything`,
+        // which would otherwise slip past a naive `str_starts_with($path, '/admin')`.
+        if ($path !== $this->adminPathPrefix && !str_starts_with($path, $this->adminPathPrefix . '/')) {
             return;
         }
 
@@ -42,7 +45,7 @@ class AdminIpWhitelistListener implements AdminIpWhitelistListenerInterface
 
         $allowed = $user instanceof AdminUserInterface
             ? $this->checker->isAllowedForAdmin($user, $ip)
-            : $this->checker->isAllowedByGlobal($ip);
+            : $this->checker->isAllowedAnonymously($ip);
 
         if ($allowed) {
             return;

@@ -74,7 +74,7 @@ class AdminUserIpWhitelist implements AdminUserIpWhitelistInterface
 
     public function setCidrs(array $cidrs): void
     {
-        $this->cidrs = array_values($cidrs);
+        $this->cidrs = $cidrs;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
