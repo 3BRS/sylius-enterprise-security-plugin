@@ -1,0 +1,19 @@
+{% if three_brs_passkey_enabled('customer') %}
+    <div class="text-center mt-2">
+        <button type="button"
+                class="btn btn-outline-primary w-100"
+                id="three_brs_passkey_login_button"
+                data-test-three-brs-passkey-login
+                data-options-url="{{ path('three_brs_shop_passkey_login_options') }}"
+                data-verify-url="{{ path('three_brs_shop_passkey_login_verify') }}"
+                data-fallback-url="{{ path('sylius_shop_account_dashboard') }}"
+                data-cancelled-message="{{ 'three_brs.ui.passkey.login_cancelled'|trans }}"
+                data-error-message="{{ 'three_brs.ui.passkey.login_failed'|trans }}">
+            {{ 'three_brs.ui.passkey.sign_in_with_passkey'|trans }}
+        </button>
+        <p id="three_brs_passkey_unsupported_notice" class="text-muted small mt-2 mb-0 d-none">
+            {{ 'three_brs.ui.passkey.browser_unsupported'|trans }}
+        </p>
+    </div>
+    <script src="{{ asset('bundles/threebrssyliusenterprisesecurityplugin/js/passkey.js') }}"></script>
+{% endif %}

@@ -191,5 +191,47 @@
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
+
+		<service id="three_brs.behat.context.ui.shop.passkey"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasskeyContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.passkey"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PasskeyContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+		</service>
+
+		<service id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\Passkey\FakeAuthenticator"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\Passkey\FakeAuthenticator"
+				 public="true"/>
+
+		<service id="three_brs.behat.context.ui.shop.passkey_ceremony"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasskeyCeremonyContext">
+			<argument type="service" id="Symfony\Component\BrowserKit\AbstractBrowser"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository"/>
+			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\Passkey\FakeAuthenticator"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.passkey_ceremony"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PasskeyCeremonyContext">
+			<argument type="service" id="Symfony\Component\BrowserKit\AbstractBrowser"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository"/>
+			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\Passkey\FakeAuthenticator"/>
+		</service>
 	</services>
 </container>

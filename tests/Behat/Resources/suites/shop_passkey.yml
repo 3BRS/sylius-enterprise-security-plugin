@@ -1,0 +1,16 @@
+default:
+    suites:
+        shop_passkey:
+            contexts:
+                - sylius.behat.context.hook.doctrine_orm
+                - sylius.behat.context.setup.channel
+                - sylius.behat.context.setup.currency
+                - sylius.behat.context.setup.geographical
+                - sylius.behat.context.setup.zone
+                - sylius.behat.context.setup.customer
+                - sylius.behat.context.setup.shop_security
+                - sylius.behat.context.transform.shared_storage
+                - sylius.behat.context.ui.shop.login
+                - three_brs.behat.context.ui.shop.passkey
+            filters:
+                tags: "@shop&&@passkey&&@ui"

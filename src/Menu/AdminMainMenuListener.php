@@ -8,6 +8,11 @@ use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
 
 class AdminMainMenuListener implements AdminMainMenuListenerInterface
 {
+    public function __construct(
+        protected bool $passkeyEnabled,
+    ) {
+    }
+
     public function addTwoFactorItem(MenuBuilderEvent $event): void
     {
         $configuration = $event->getMenu()->getChild('configuration');
@@ -35,6 +40,25 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             ->addChild('social_accounts', ['route' => 'three_brs_admin_social_accounts'])
             ->setLabel('three_brs.ui.social_login.menu_item')
             ->setLabelAttribute('icon', 'tabler:user-circle')
+        ;
+    }
+
+    public function addPasskeyItem(MenuBuilderEvent $event): void
+    {
+        if (!$this->passkeyEnabled) {
+            return;
+        }
+
+        $configuration = $event->getMenu()->getChild('configuration');
+
+        if ($configuration === null) {
+            return;
+        }
+
+        $configuration
+            ->addChild('passkey', ['route' => 'three_brs_admin_passkey_index'])
+            ->setLabel('three_brs.ui.passkey.menu_item')
+            ->setLabelAttribute('icon', 'tabler:fingerprint')
         ;
     }
 }

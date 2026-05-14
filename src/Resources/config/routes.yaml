@@ -166,3 +166,70 @@ three_brs_admin_magic_link_verify:
     methods: [GET]
     requirements:
         token: '[A-Za-z0-9_-]+'
+
+three_brs_shop_passkey_index:
+    path: /{_locale}/account/passkey
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyController
+    methods: [GET]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+
+three_brs_shop_passkey_delete:
+    path: /{_locale}/account/passkey/{id}/delete
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyDeleteController
+    methods: [POST]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+        id: '\d+'
+
+three_brs_shop_passkey_register_options:
+    path: /passkey/register/options
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyRegistrationOptionsController
+    methods: [POST]
+
+three_brs_shop_passkey_register_verify:
+    path: /passkey/register/verify
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyRegistrationVerifyController
+    methods: [POST]
+
+three_brs_shop_passkey_login_options:
+    path: /passkey/login/options
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyLoginOptionsController
+    methods: [POST]
+
+three_brs_shop_passkey_login_verify:
+    path: /passkey/login/verify
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyLoginVerifyController
+    methods: [POST]
+
+three_brs_admin_passkey_index:
+    path: /admin/account/passkey
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyController
+    methods: [GET]
+
+three_brs_admin_passkey_delete:
+    path: /admin/account/passkey/{id}/delete
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyDeleteController
+    methods: [POST]
+    requirements:
+        id: '\d+'
+
+three_brs_admin_passkey_register_options:
+    path: /admin/passkey/register/options
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyRegistrationOptionsController
+    methods: [POST]
+
+three_brs_admin_passkey_register_verify:
+    path: /admin/passkey/register/verify
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyRegistrationVerifyController
+    methods: [POST]
+
+three_brs_admin_passkey_login_options:
+    path: /admin/passkey/login/options
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyLoginOptionsController
+    methods: [POST]
+
+three_brs_admin_passkey_login_verify:
+    path: /admin/passkey/login/verify
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyLoginVerifyController
+    methods: [POST]

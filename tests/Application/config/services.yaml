@@ -3,3 +3,10 @@
 parameters:
     locale: en_US
     .container.dumper.inline_factories: true # to avoid fatal 'Filename too long' on Linux EXT4 in combination with encrypted filesystem
+
+services:
+    Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo\SafePhpStanExtractor:
+        arguments:
+            $inner: '@.inner'
+        decorates: property_info.phpstan_extractor
+        decoration_on_invalid: ignore

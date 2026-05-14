@@ -1,0 +1,15 @@
+default:
+    suites:
+        admin_passkey_ceremony:
+            contexts:
+                - sylius.behat.context.hook.doctrine_orm
+                - sylius.behat.context.setup.channel
+                - sylius.behat.context.setup.currency
+                - sylius.behat.context.setup.geographical
+                - sylius.behat.context.setup.zone
+                - sylius.behat.context.setup.admin_user
+                - sylius.behat.context.setup.admin_security
+                - sylius.behat.context.transform.shared_storage
+                - three_brs.behat.context.ui.admin.passkey_ceremony
+            filters:
+                tags: "@admin&&@passkey_ceremony&&@ui"

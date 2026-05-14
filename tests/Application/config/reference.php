@@ -629,7 +629,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         }>,
  *     },
  *     rate_limiter?: bool|array{ // Rate limiter configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         limiters?: array<string, array{ // Default: []
  *             lock_factory?: scalar|Param|null, // The service ID of the lock factory used by this limiter (or null to disable locking). // Default: "auto"
  *             cache_pool?: scalar|Param|null, // The cache pool to use for storing the current limiter state. // Default: "cache.rate_limiter"
@@ -3611,6 +3611,17 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             expiration_seconds?: int|Param, // Default: 300
  *             rate_limit_max?: int|Param, // Default: 3
  *             rate_limit_window_seconds?: int|Param, // Default: 900
+ *         },
+ *     },
+ *     passkey?: array{
+ *         rp_id?: scalar|Param|null, // Default: null
+ *         rp_name?: scalar|Param|null, // Default: null
+ *         skip_2fa_when_user_verified?: bool|Param, // Default: false
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *         },
+ *         admin?: array{
+ *             enabled?: bool|Param, // Default: false
  *         },
  *     },
  *     oauth?: array{

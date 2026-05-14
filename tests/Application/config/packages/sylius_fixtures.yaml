@@ -20,6 +20,17 @@ sylius_fixtures:
                         locales:
                             - en_US
 
+                admin_user:
+                    options:
+                        custom:
+                            sylius_api:
+                                username: sylius_api
+                                password: sylius
+                                email: sylius_api@example.com
+                                first_name: Sylius
+                                last_name: API
+                                api: true
+
                 shop_user:
                     options:
                         custom:
@@ -80,6 +91,11 @@ sylius_fixtures:
                         admin_users: []
 
                 three_brs_magic_link:
+                    options:
+                        shop_users: []
+                        admin_users: []
+
+                three_brs_passkey:
                     options:
                         shop_users: []
                         admin_users: []

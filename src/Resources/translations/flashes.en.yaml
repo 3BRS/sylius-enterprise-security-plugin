@@ -16,3 +16,6 @@ three_brs:
         magic_link:
             request_sent: 'If an account exists for the email you entered, a sign-in link has been sent.'
             invalid_or_expired: 'This magic link is invalid or has expired. Request a new one to sign in.'
+        passkey:
+            removed: 'Passkey removed.'
+            cannot_remove_last_auth_method: 'You cannot remove the last sign-in method on your account. Set a password or add another passkey first.'
