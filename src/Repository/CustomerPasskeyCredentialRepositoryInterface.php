@@ -11,6 +11,8 @@ interface CustomerPasskeyCredentialRepositoryInterface
 {
     public function findOneByCredentialId(string $credentialId): ?CustomerPasskeyCredentialInterface;
 
+    public function findOneByIdAndShopUser(int $id, ShopUserInterface $user): ?CustomerPasskeyCredentialInterface;
+
     /** @return list<CustomerPasskeyCredentialInterface> */
     public function findAllByShopUser(ShopUserInterface $user): array;
 

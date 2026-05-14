@@ -10,21 +10,28 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasskeyCredential;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuardInterface;
 
 class PasskeyDeleteController implements PasskeyDeleteControllerInterface
 {
     use FlashHelperTrait;
 
+    public const CSRF_TOKEN_ID = 'three_brs_admin_passkey_delete';
+
     public function __construct(
         protected EntityManagerInterface $entityManager,
         protected TokenStorageInterface $tokenStorage,
+        protected AdminUserPasskeyCredentialRepositoryInterface $credentialRepository,
         protected LastAuthMethodGuardInterface $lastAuthMethodGuard,
+        protected CsrfTokenManagerInterface $csrfTokenManager,
         protected RouterInterface $router,
         protected bool $enabled,
     ) {
@@ -41,8 +48,13 @@ class PasskeyDeleteController implements PasskeyDeleteControllerInterface
             throw new AccessDeniedHttpException();
         }
 
-        $credential = $this->entityManager->getRepository(AdminUserPasskeyCredential::class)->find($id);
-        if ($credential === null || $credential->getAdminUser()->getId() !== $user->getId()) {
+        $submittedToken = (string) $request->request->get('_csrf_token', '');
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken(self::CSRF_TOKEN_ID, $submittedToken))) {
+            throw new BadRequestHttpException('Invalid CSRF token.');
+        }
+
+        $credential = $this->credentialRepository->findOneByIdAndAdminUser($id, $user);
+        if ($credential === null) {
             throw new NotFoundHttpException();
         }
 

@@ -30,6 +30,18 @@ class CustomerPasskeyCredentialRepository extends ServiceEntityRepository implem
         ;
     }
 
+    public function findOneByIdAndShopUser(int $id, ShopUserInterface $user): ?CustomerPasskeyCredentialInterface
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.id = :id')
+            ->andWhere('c.shopUser = :user')
+            ->setParameter('id', $id)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
     public function findAllByShopUser(ShopUserInterface $user): array
     {
         /** @var list<CustomerPasskeyCredential> $result */

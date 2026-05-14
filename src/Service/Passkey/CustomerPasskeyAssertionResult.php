@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 
-class PasskeyAssertionResult implements PasskeyAssertionResultInterface
+use Sylius\Component\Core\Model\ShopUserInterface;
+
+class CustomerPasskeyAssertionResult implements CustomerPasskeyAssertionResultInterface
 {
     public function __construct(
-        protected readonly object $user,
+        protected readonly ShopUserInterface $user,
         protected readonly bool $userVerified,
     ) {
     }
 
-    public function getUser(): object
+    public function getUser(): ShopUserInterface
     {
         return $this->user;
     }

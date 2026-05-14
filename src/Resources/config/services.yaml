@@ -600,7 +600,9 @@ services:
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
             $tokenStorage: '@security.token_storage'
+            $credentialRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository'
             $lastAuthMethodGuard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
+            $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
             $enabled: '%three_brs.passkey.customer.enabled%'
         tags:
@@ -659,7 +661,9 @@ services:
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
             $tokenStorage: '@security.token_storage'
+            $credentialRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository'
             $lastAuthMethodGuard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
+            $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
             $enabled: '%three_brs.passkey.admin.enabled%'
         tags:

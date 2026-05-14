@@ -6,5 +6,5 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 
 interface CustomerPasskeyAssertionVerifierInterface
 {
-    public function verify(string $credentialResponseJson, string $host): PasskeyAssertionResultInterface;
+    public function verify(string $credentialResponseJson, string $host): CustomerPasskeyAssertionResultInterface;
 }

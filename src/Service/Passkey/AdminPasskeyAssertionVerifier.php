@@ -6,6 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
+use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasskeyCredentialInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepositoryInterface;
 use Webauthn\AuthenticatorAssertionResponse;
@@ -25,7 +26,7 @@ class AdminPasskeyAssertionVerifier implements AdminPasskeyAssertionVerifierInte
     ) {
     }
 
-    public function verify(string $credentialResponseJson, string $host): PasskeyAssertionResultInterface
+    public function verify(string $credentialResponseJson, string $host): AdminPasskeyAssertionResultInterface
     {
         $serializedOptions = $this->sessionStorage->consume(AdminPasskeyAssertionOptionsBuilder::SESSION_KEY);
         if ($serializedOptions === null) {
@@ -57,15 +58,17 @@ class AdminPasskeyAssertionVerifier implements AdminPasskeyAssertionVerifierInte
 
         $stored->setCredentialSource($this->serializer->normalize($updated));
         $stored->setLastUsedAt($this->clock->now());
+        // Flush belongs here (not in caller): signCount + lastUsedAt persistence MUST be atomic with
+        // the WebAuthn check above to close the replay-attack window between concurrent assertions.
         $this->entityManager->flush();
 
         $user = $this->resolveUser($stored);
         $userVerified = $response->authenticatorData->isUserVerified();
 
-        return new PasskeyAssertionResult($user, $userVerified);
+        return new AdminPasskeyAssertionResult($user, $userVerified);
     }
 
-    protected function resolveUser(AdminUserPasskeyCredentialInterface $credential): object
+    protected function resolveUser(AdminUserPasskeyCredentialInterface $credential): AdminUserInterface
     {
         return $credential->getAdminUser();
     }

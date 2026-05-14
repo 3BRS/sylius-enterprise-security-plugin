@@ -91,6 +91,7 @@
                                                 <form method="POST"
                                                       action="{{ path('three_brs_admin_passkey_delete', {'id': credential.id}) }}"
                                                       onsubmit="return confirm('{{ 'three_brs.ui.passkey.delete_confirm'|trans|e('js') }}');">
+                                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_admin_passkey_delete') }}">
                                                     <button type="submit"
                                                             class="btn btn-outline-danger"
                                                             data-test-three-brs-passkey-delete="{{ credential.id }}">

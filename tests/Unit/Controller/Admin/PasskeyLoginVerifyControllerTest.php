@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use Symfony\Component\Security\Http\Event\AuthenticationTokenCreatedEvent;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyLoginVerifyController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyAssertionVerifierInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyAssertionResult;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyAssertionResult;
 
 #[CoversClass(PasskeyLoginVerifyController::class)]
 class PasskeyLoginVerifyControllerTest extends TestCase
@@ -47,7 +47,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         $adminUser = $this->buildAdminUser();
 
         $verifier = $this->createStub(AdminPasskeyAssertionVerifierInterface::class);
-        $verifier->method('verify')->willReturn(new PasskeyAssertionResult($adminUser, true));
+        $verifier->method('verify')->willReturn(new AdminPasskeyAssertionResult($adminUser, true));
 
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::never())->method('dispatch');
@@ -87,7 +87,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         $adminUser = $this->buildAdminUser();
 
         $verifier = $this->createStub(AdminPasskeyAssertionVerifierInterface::class);
-        $verifier->method('verify')->willReturn(new PasskeyAssertionResult($adminUser, false));
+        $verifier->method('verify')->willReturn(new AdminPasskeyAssertionResult($adminUser, false));
 
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::once())
@@ -125,7 +125,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         $adminUser = $this->buildAdminUser();
 
         $verifier = $this->createStub(AdminPasskeyAssertionVerifierInterface::class);
-        $verifier->method('verify')->willReturn(new PasskeyAssertionResult($adminUser, true));
+        $verifier->method('verify')->willReturn(new AdminPasskeyAssertionResult($adminUser, true));
 
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::once())
@@ -159,7 +159,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         $adminUser = $this->buildAdminUser();
 
         $verifier = $this->createStub(AdminPasskeyAssertionVerifierInterface::class);
-        $verifier->method('verify')->willReturn(new PasskeyAssertionResult($adminUser, false));
+        $verifier->method('verify')->willReturn(new AdminPasskeyAssertionResult($adminUser, false));
 
         $twoFactorToken = $this->createStub(TwoFactorTokenInterface::class);
 

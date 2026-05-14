@@ -47,9 +47,13 @@ class PasskeyLoginVerifyController implements PasskeyLoginVerifyControllerInterf
             throw new NotFoundHttpException();
         }
 
-        $payload = (array) json_decode($request->getContent(), true);
-        $credentialJson = (string) ($payload['credential'] ?? '');
-        if ($credentialJson === '') {
+        try {
+            $payload = json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return new JsonResponse(['error' => 'Missing credential payload.'], Response::HTTP_BAD_REQUEST);
+        }
+        $credentialJson = is_array($payload) ? ($payload['credential'] ?? null) : null;
+        if (!is_string($credentialJson) || $credentialJson === '') {
             return new JsonResponse(['error' => 'Missing credential payload.'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -64,12 +68,7 @@ class PasskeyLoginVerifyController implements PasskeyLoginVerifyControllerInterf
             return new JsonResponse(['error' => 'Passkey assertion failed.'], Response::HTTP_BAD_REQUEST);
         }
 
-        $user = $result->getUser();
-        if (!$user instanceof ShopUserInterface) {
-            return new JsonResponse(['error' => 'Resolved user is not a shop user.'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $authenticatedToken = $this->authenticate($request, $user, $result->isUserVerified());
+        $authenticatedToken = $this->authenticate($request, $result->getUser(), $result->isUserVerified());
 
         if ($authenticatedToken instanceof TwoFactorTokenInterface) {
             $twoFactorResponse = $this->twoFactorHandler->onAuthenticationRequired($request, $authenticatedToken);

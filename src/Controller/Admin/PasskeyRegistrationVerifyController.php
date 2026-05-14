@@ -40,8 +40,17 @@ class PasskeyRegistrationVerifyController implements PasskeyRegistrationVerifyCo
             throw new AccessDeniedHttpException();
         }
 
-        $payload = (array) json_decode($request->getContent(), true);
-        $label = trim((string) ($payload['label'] ?? ''));
+        try {
+            $payload = json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return new JsonResponse(['error' => 'Missing credential payload.'], Response::HTTP_BAD_REQUEST);
+        }
+        if (!is_array($payload)) {
+            return new JsonResponse(['error' => 'Missing credential payload.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $rawLabel = $payload['label'] ?? '';
+        $label = is_string($rawLabel) ? trim($rawLabel) : '';
         if ($label === '') {
             $label = 'Passkey';
         }
@@ -49,8 +58,8 @@ class PasskeyRegistrationVerifyController implements PasskeyRegistrationVerifyCo
             $label = mb_substr($label, 0, static::MAX_LABEL_LENGTH);
         }
 
-        $credentialJson = (string) ($payload['credential'] ?? '');
-        if ($credentialJson === '') {
+        $credentialJson = $payload['credential'] ?? null;
+        if (!is_string($credentialJson) || $credentialJson === '') {
             return new JsonResponse(['error' => 'Missing credential payload.'], Response::HTTP_BAD_REQUEST);
         }
 

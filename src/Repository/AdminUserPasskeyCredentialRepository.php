@@ -30,6 +30,18 @@ class AdminUserPasskeyCredentialRepository extends ServiceEntityRepository imple
         ;
     }
 
+    public function findOneByIdAndAdminUser(int $id, AdminUserInterface $user): ?AdminUserPasskeyCredentialInterface
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.id = :id')
+            ->andWhere('c.adminUser = :user')
+            ->setParameter('id', $id)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
     public function findAllByAdminUser(AdminUserInterface $user): array
     {
         /** @var list<AdminUserPasskeyCredential> $result */

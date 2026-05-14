@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use Symfony\Component\Security\Http\Event\AuthenticationTokenCreatedEvent;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyLoginVerifyController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifierInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyAssertionResult;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionResult;
 
 #[CoversClass(PasskeyLoginVerifyController::class)]
 class PasskeyLoginVerifyControllerTest extends TestCase
@@ -47,7 +47,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         $shopUser = $this->buildShopUser();
 
         $verifier = $this->createStub(CustomerPasskeyAssertionVerifierInterface::class);
-        $verifier->method('verify')->willReturn(new PasskeyAssertionResult($shopUser, true));
+        $verifier->method('verify')->willReturn(new CustomerPasskeyAssertionResult($shopUser, true));
 
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::never())->method('dispatch');
@@ -87,7 +87,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         $shopUser = $this->buildShopUser();
 
         $verifier = $this->createStub(CustomerPasskeyAssertionVerifierInterface::class);
-        $verifier->method('verify')->willReturn(new PasskeyAssertionResult($shopUser, false));
+        $verifier->method('verify')->willReturn(new CustomerPasskeyAssertionResult($shopUser, false));
 
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::once())
@@ -125,7 +125,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         $shopUser = $this->buildShopUser();
 
         $verifier = $this->createStub(CustomerPasskeyAssertionVerifierInterface::class);
-        $verifier->method('verify')->willReturn(new PasskeyAssertionResult($shopUser, true));
+        $verifier->method('verify')->willReturn(new CustomerPasskeyAssertionResult($shopUser, true));
 
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects(self::once())
@@ -159,7 +159,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         $shopUser = $this->buildShopUser();
 
         $verifier = $this->createStub(CustomerPasskeyAssertionVerifierInterface::class);
-        $verifier->method('verify')->willReturn(new PasskeyAssertionResult($shopUser, false));
+        $verifier->method('verify')->willReturn(new CustomerPasskeyAssertionResult($shopUser, false));
 
         $twoFactorToken = $this->createStub(TwoFactorTokenInterface::class);
 

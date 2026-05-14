@@ -11,6 +11,8 @@ interface AdminUserPasskeyCredentialRepositoryInterface
 {
     public function findOneByCredentialId(string $credentialId): ?AdminUserPasskeyCredentialInterface;
 
+    public function findOneByIdAndAdminUser(int $id, AdminUserInterface $user): ?AdminUserPasskeyCredentialInterface;
+
     /** @return list<AdminUserPasskeyCredentialInterface> */
     public function findAllByAdminUser(AdminUserInterface $user): array;
 

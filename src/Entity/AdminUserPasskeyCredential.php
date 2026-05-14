@@ -40,6 +40,11 @@ class AdminUserPasskeyCredential implements AdminUserPasskeyCredentialInterface
     #[ORM\Column(name: 'last_used_at', type: 'datetime_immutable', nullable: true)]
     protected ?\DateTimeImmutable $lastUsedAt = null;
 
+    // Optimistic lock to close TOCTOU window on concurrent assertion sign-count updates.
+    #[ORM\Version]
+    #[ORM\Column(name: 'lock_version', type: 'integer')]
+    protected int $lockVersion = 0;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
