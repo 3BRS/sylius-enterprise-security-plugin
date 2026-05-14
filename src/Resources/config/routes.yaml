@@ -142,3 +142,27 @@ three_brs_shop_social_accounts:
     methods: [GET]
     requirements:
         _locale: '[a-z]{2}(?:_[A-Z]{2})?'
+
+three_brs_shop_magic_link_request:
+    path: /magic-link
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\MagicLinkRequestController
+    methods: [GET, POST]
+
+three_brs_shop_magic_link_verify:
+    path: /magic-link/verify/{token}
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\MagicLinkVerifyController
+    methods: [GET]
+    requirements:
+        token: '[A-Za-z0-9_-]+'
+
+three_brs_admin_magic_link_request:
+    path: /admin/magic-link
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\MagicLinkRequestController
+    methods: [GET, POST]
+
+three_brs_admin_magic_link_verify:
+    path: /admin/magic-link/verify/{token}
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\MagicLinkVerifyController
+    methods: [GET]
+    requirements:
+        token: '[A-Za-z0-9_-]+'

@@ -479,3 +479,129 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
         tags:
             - { name: 'sylius_fixtures.fixture' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerMagicLinkTokenVerifier:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository'
+            $generator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+            $clock: '@clock'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserMagicLinkTokenVerifier:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepository'
+            $generator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+            $clock: '@clock'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManager:
+        arguments:
+            $emailSender: '@sylius.email_sender'
+            $router: '@router'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManager:
+        arguments:
+            $emailSender: '@sylius.email_sender'
+            $router: '@router'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $tokenRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository'
+            $tokenGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+            $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManager'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $clock: '@clock'
+            $timingPadding: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $tokenRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepository'
+            $tokenGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+            $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManager'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $clock: '@clock'
+            $timingPadding: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\MagicLinkRequestType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\MagicLinkRequestController:
+        arguments:
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler'
+            $formFactory: '@form.factory'
+            $router: '@router'
+            $twig: '@twig'
+            $enabled: '%three_brs.magic_link.customer.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\MagicLinkVerifyController:
+        arguments:
+            $verifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerMagicLinkTokenVerifier'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $tokenStorage: '@security.token_storage'
+            $eventDispatcher: '@security.event_dispatcher.shop'
+            $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
+            $router: '@router'
+            $clock: '@clock'
+            $logger: '@logger'
+            $enabled: '%three_brs.magic_link.customer.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\MagicLinkRequestController:
+        arguments:
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler'
+            $formFactory: '@form.factory'
+            $router: '@router'
+            $twig: '@twig'
+            $enabled: '%three_brs.magic_link.admin.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\MagicLinkVerifyController:
+        arguments:
+            $verifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserMagicLinkTokenVerifier'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $tokenStorage: '@security.token_storage'
+            $eventDispatcher: '@security.event_dispatcher.admin'
+            $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.admin'
+            $router: '@router'
+            $clock: '@clock'
+            $logger: '@logger'
+            $enabled: '%three_brs.magic_link.admin.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\MagicLinkExtension:
+        arguments:
+            $customerEnabled: '%three_brs.magic_link.customer.enabled%'
+            $adminEnabled: '%three_brs.magic_link.admin.enabled%'
+        tags:
+            - { name: 'twig.extension' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\MagicLinkFixture:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $tokenGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }

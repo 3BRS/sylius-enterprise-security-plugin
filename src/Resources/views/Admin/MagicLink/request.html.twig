@@ -1,0 +1,31 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% block title %}{{ 'three_brs.ui.magic_link.request_title'|trans }}{% endblock %}
+
+{% block body %}
+    {% include '@SyliusAdmin/shared/crud/common/content/flashes.html.twig' %}
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-12 col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="h4 mb-3">{{ 'three_brs.ui.magic_link.request_title'|trans }}</h1>
+                        <p>{{ 'three_brs.ui.magic_link.request_intro'|trans }}</p>
+
+                        {{ form_start(form, {'action': path('three_brs_admin_magic_link_request'), 'attr': {'id': 'three_brs_admin_magic_link_request_form', 'novalidate': 'novalidate'}}) }}
+                            <div class="mb-3">
+                                {{ form_label(form.email) }}
+                                {{ form_widget(form.email, {'attr': {'class': 'form-control', 'autocomplete': 'email', 'autofocus': 'autofocus'}}) }}
+                                {{ form_errors(form.email) }}
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="three_brs_admin_magic_link_request_submit">
+                                {{ 'three_brs.ui.magic_link.request_submit'|trans }}
+                            </button>
+                            {{ form_rest(form) }}
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

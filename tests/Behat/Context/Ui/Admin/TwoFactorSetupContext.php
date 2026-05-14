@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\StableTotpCodeTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepositoryInterface;
@@ -18,6 +19,8 @@ use Webmozart\Assert\Assert;
 
 class TwoFactorSetupContext implements Context
 {
+    use StableTotpCodeTrait;
+
     public function __construct(
         private Session $session,
         private UserRepositoryInterface $adminUserRepository,
@@ -71,7 +74,7 @@ class TwoFactorSetupContext implements Context
     public function iSubmitAValidTotpCode(): void
     {
         $secret = $this->readSecretFromPage();
-        $code = TOTP::createFromSecret($secret)->now();
+        $code = $this->generateStableTotpCode($secret);
         $this->submitSetupForm($code);
     }
 

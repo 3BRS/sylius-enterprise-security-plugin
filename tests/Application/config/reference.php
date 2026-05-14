@@ -3599,6 +3599,20 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             require_special_characters?: bool|Param, // Default: true
  *         },
  *     },
+ *     magic_link?: array{
+ *         customer?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             expiration_seconds?: int|Param, // Default: 300
+ *             rate_limit_max?: int|Param, // Default: 3
+ *             rate_limit_window_seconds?: int|Param, // Default: 900
+ *         },
+ *         admin?: array{
+ *             enabled?: bool|Param, // Default: false
+ *             expiration_seconds?: int|Param, // Default: 300
+ *             rate_limit_max?: int|Param, // Default: 3
+ *             rate_limit_window_seconds?: int|Param, // Default: 900
+ *         },
+ *     },
  *     oauth?: array{
  *         customer?: array{
  *             google?: array{
