@@ -50,6 +50,12 @@ class UnlockCustomerController implements UnlockCustomerControllerInterface
             throw new NotFoundHttpException();
         }
 
+        if (!$this->lockoutManager->isLocked($user)) {
+            $this->addFlashMessage($request, 'info', 'three_brs.lockout.already_unlocked');
+
+            return new RedirectResponse($this->router->generate('three_brs_admin_locked_customers'));
+        }
+
         $this->lockoutManager->unlock($user);
         $this->addFlashMessage($request, 'success', 'three_brs.lockout.unlocked');
 

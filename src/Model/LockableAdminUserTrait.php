@@ -27,7 +27,7 @@ trait LockableAdminUserTrait
 
     public function setFailedLoginAttempts(int $failedLoginAttempts): void
     {
-        $this->failedLoginAttempts = $failedLoginAttempts;
+        $this->failedLoginAttempts = max(0, $failedLoginAttempts);
     }
 
     public function getLastFailedLoginAt(): ?\DateTimeImmutable

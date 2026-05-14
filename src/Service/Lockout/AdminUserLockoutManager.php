@@ -30,10 +30,13 @@ class AdminUserLockoutManager implements AdminUserLockoutManagerInterface
         // Pessimistic row lock on the user — without it, concurrent failed-login requests
         // would race the read-modify-write of failedLoginAttempts and collapse multiple
         // increments into one, letting an attacker exceed maxAttempts before lockout
-        // engages. Refresh re-reads the latest counter under the lock; flush + commit
-        // (via wrapInTransaction) releases it. Scoped to this manager so unrelated user
-        // updates (e.g. trusted-device revocation) are unaffected.
-        $this->entityManager->wrapInTransaction(function () use ($user): void {
+        // engages. Refresh re-reads the latest counter under the lock; commit releases
+        // it. Scoped to this manager so unrelated user updates (e.g. trusted-device
+        // revocation) are unaffected. Uses explicit begin/commit/rollback rather than
+        // wrapInTransaction so it stays compatible with Doctrine ORM 2.x.
+        $this->entityManager->beginTransaction();
+
+        try {
             $this->entityManager->lock($user, LockMode::PESSIMISTIC_WRITE);
             $this->entityManager->refresh($user);
 
@@ -52,7 +55,12 @@ class AdminUserLockoutManager implements AdminUserLockoutManagerInterface
             }
 
             $this->entityManager->flush();
-        });
+            $this->entityManager->commit();
+        } catch (\Throwable $exception) {
+            $this->entityManager->rollback();
+
+            throw $exception;
+        }
     }
 
     public function recordSuccess(LockableAdminUserInterface $user): void

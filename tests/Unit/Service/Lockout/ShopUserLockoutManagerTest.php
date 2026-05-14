@@ -40,7 +40,6 @@ class ShopUserLockoutManagerTest extends TestCase
     {
         $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->method('wrapInTransaction')->willReturnCallback(static fn (callable $cb): mixed => $cb());
         $em->expects(self::once())->method('flush');
 
         $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
@@ -56,7 +55,6 @@ class ShopUserLockoutManagerTest extends TestCase
     {
         $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 90);
         $em = $this->createStub(EntityManagerInterface::class);
-        $em->method('wrapInTransaction')->willReturnCallback(static fn (callable $cb): mixed => $cb());
 
         $now = new \DateTimeImmutable('2026-04-27 10:00:00');
         $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
@@ -74,7 +72,6 @@ class ShopUserLockoutManagerTest extends TestCase
     {
         $policy = new LockoutPolicy(enabled: true, maxAttempts: 2, autoUnlockAfter: null);
         $em = $this->createStub(EntityManagerInterface::class);
-        $em->method('wrapInTransaction')->willReturnCallback(static fn (callable $cb): mixed => $cb());
 
         $manager = new ShopUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:00:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();

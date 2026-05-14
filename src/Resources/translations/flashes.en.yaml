@@ -3,6 +3,7 @@ three_brs:
     lockout:
         account_locked: 'Account is locked. Try again later or contact an administrator.'
         unlocked: 'Account has been unlocked.'
+        already_unlocked: 'Account is no longer locked — nothing to do.'
     rate_limit:
         too_many_requests: 'Too many requests. Please wait a moment and try again.'
     two_factor:
