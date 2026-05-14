@@ -41,6 +41,16 @@ class AdminUserLockoutManager implements AdminUserLockoutManagerInterface
             $this->entityManager->refresh($user);
 
             $now = $this->clock->now();
+
+            // If a previous lockout has already elapsed, start a fresh counter — otherwise
+            // the next failure would immediately re-trip the lockout at maxAttempts.
+            $lockoutUntil = $user->getLockoutUntil();
+            if ($user->getLockedAt() !== null && $lockoutUntil !== null && $lockoutUntil <= $now) {
+                $user->setFailedLoginAttempts(0);
+                $user->setLockedAt(null);
+                $user->setLockoutUntil(null);
+            }
+
             $attempts = $user->getFailedLoginAttempts() + 1;
 
             $user->setFailedLoginAttempts($attempts);
@@ -87,10 +97,10 @@ class AdminUserLockoutManager implements AdminUserLockoutManagerInterface
             return false;
         }
 
+        // Pure query — never mutates. An expired auto-unlock window reads as "not locked";
+        // the persistent cleanup happens in recordFailure / recordSuccess / unlock.
         $until = $user->getLockoutUntil();
         if ($until !== null && $until <= $this->clock->now()) {
-            $this->unlock($user);
-
             return false;
         }
 

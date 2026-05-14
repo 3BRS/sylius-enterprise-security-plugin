@@ -93,11 +93,32 @@ class AdminUserLockoutManagerTest extends TestCase
         self::assertFalse($manager->isLocked($user));
     }
 
-    public function testIsLockedAutoUnlocksWhenLockoutUntilIsInThePast(): void
+    public function testIsLockedReturnsFalseWhenLockoutUntilIsInThePastAndDoesNotMutate(): void
     {
         $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->expects(self::once())->method('flush');
+        $em->expects(self::never())->method('flush');
+
+        $manager = new AdminUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:30:00'), $this->createStub(RateLimitGuardInterface::class));
+        $user = $this->createUser();
+        $lockedAt = new \DateTimeImmutable('2026-04-27 10:00:00');
+        $lockoutUntil = new \DateTimeImmutable('2026-04-27 10:15:00');
+        $user->setLockedAt($lockedAt);
+        $user->setLockoutUntil($lockoutUntil);
+        $user->setFailedLoginAttempts(3);
+
+        self::assertFalse($manager->isLocked($user));
+        // Query is non-mutating — DB state remains "stale-locked" until recordFailure /
+        // recordSuccess / unlock cleans it up.
+        self::assertSame($lockedAt, $user->getLockedAt());
+        self::assertSame($lockoutUntil, $user->getLockoutUntil());
+        self::assertSame(3, $user->getFailedLoginAttempts());
+    }
+
+    public function testRecordFailureRestartsCounterAfterExpiredLockout(): void
+    {
+        $policy = new LockoutPolicy(enabled: true, maxAttempts: 3, autoUnlockAfter: 60);
+        $em = $this->createStub(EntityManagerInterface::class);
 
         $manager = new AdminUserLockoutManager($policy, $em, $this->fixedClock('2026-04-27 10:30:00'), $this->createStub(RateLimitGuardInterface::class));
         $user = $this->createUser();
@@ -105,9 +126,13 @@ class AdminUserLockoutManagerTest extends TestCase
         $user->setLockoutUntil(new \DateTimeImmutable('2026-04-27 10:15:00'));
         $user->setFailedLoginAttempts(3);
 
-        self::assertFalse($manager->isLocked($user));
+        $manager->recordFailure($user);
+
+        // The expired lockout was reset to a clean slate, then this single failure
+        // was recorded — so the counter is back to 1, not 4.
+        self::assertSame(1, $user->getFailedLoginAttempts());
         self::assertNull($user->getLockedAt());
-        self::assertSame(0, $user->getFailedLoginAttempts());
+        self::assertNull($user->getLockoutUntil());
     }
 
     public function testIsLockedReturnsTrueWhenLockoutUntilIsInTheFuture(): void
