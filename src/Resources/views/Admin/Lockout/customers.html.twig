@@ -41,6 +41,7 @@
                                             <th>{{ 'three_brs.ui.lockout.failed_attempts'|trans }}</th>
                                             <th>{{ 'three_brs.ui.lockout.locked_at'|trans }}</th>
                                             <th>{{ 'three_brs.ui.lockout.lockout_until'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.lockout.lockout_duration'|trans }}</th>
                                             <th class="text-end"></th>
                                         </tr>
                                     </thead>
@@ -51,6 +52,18 @@
                                                 <td>{{ user.failedLoginAttempts }}</td>
                                                 <td>{{ user.lockedAt ? user.lockedAt|date('Y-m-d H:i') : '-' }}</td>
                                                 <td>{{ user.lockoutUntil ? user.lockoutUntil|date('Y-m-d H:i') : 'three_brs.ui.lockout.manual_only'|trans }}</td>
+                                                <td>
+                                                    {% if user.lockoutUntil %}
+                                                        {% set remainingSeconds = user.lockoutUntil|date('U') - "now"|date('U') %}
+                                                        {% if remainingSeconds > 0 %}
+                                                            {{ 'three_brs.ui.lockout.minutes_left'|trans({'%minutes%': (remainingSeconds / 60)|round(0, 'ceil')}) }}
+                                                        {% else %}
+                                                            {{ 'three_brs.ui.lockout.expired'|trans }}
+                                                        {% endif %}
+                                                    {% else %}
+                                                        {{ 'three_brs.ui.lockout.manual_only'|trans }}
+                                                    {% endif %}
+                                                </td>
                                                 <td class="text-end">
                                                     <form method="POST" action="{{ path('three_brs_admin_locked_customer_unlock', {'id': user.id}) }}">
                                                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_unlock_customer') }}">
