@@ -99,6 +99,14 @@ class PasskeyLoginVerifyController implements PasskeyLoginVerifyControllerInterf
             $resultToken = $event->getAuthenticatedToken();
         }
 
+        // Regenerate the session ID before authenticating to prevent session
+        // fixation. Symfony's AuthenticatorManager does this automatically on a
+        // successful passport check, but we go through a passport-less custom
+        // login flow here and would otherwise inherit the pre-login session ID.
+        if ($request->hasSession()) {
+            $request->getSession()->migrate(true);
+        }
+
         $this->tokenStorage->setToken($resultToken);
 
         if ($request->hasSession()) {

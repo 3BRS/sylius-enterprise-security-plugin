@@ -50,7 +50,6 @@ class CustomerPasskeyRegistrationOptionsBuilder implements CustomerPasskeyRegist
                 PublicKeyCredentialParameters::create('public-key', Algorithms::COSE_ALGORITHM_RS256),
             ],
             AuthenticatorSelectionCriteria::create(
-                userVerification: AuthenticatorSelectionCriteria::USER_VERIFICATION_REQUIREMENT_PREFERRED,
                 residentKey: AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_PREFERRED,
             ),
             'none',
