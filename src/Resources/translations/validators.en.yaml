@@ -18,3 +18,6 @@ three_brs:
         require_lowercase: 'Password must contain at least one lowercase letter.'
         require_numbers: 'Password must contain at least one number.'
         require_special_characters: 'Password must contain at least one special character.'
+    ip_whitelist:
+        invalid_cidr: '"{{ value }}" is not a valid IP address or CIDR range.'
+        duplicate_cidr: '"{{ value }}" is listed more than once.'

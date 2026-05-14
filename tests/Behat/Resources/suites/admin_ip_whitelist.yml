@@ -1,0 +1,17 @@
+default:
+    suites:
+        admin_ip_whitelist:
+            contexts:
+                - sylius.behat.context.hook.doctrine_orm
+                - three_brs.behat.context.hook.rate_limiter_cache
+                - sylius.behat.context.setup.channel
+                - sylius.behat.context.setup.currency
+                - sylius.behat.context.setup.geographical
+                - sylius.behat.context.setup.zone
+                - sylius.behat.context.setup.admin_user
+                - sylius.behat.context.setup.admin_security
+                - sylius.behat.context.transform.shared_storage
+                - sylius.behat.context.ui.admin.login
+                - three_brs.behat.context.ui.admin.ip_whitelist
+            filters:
+                tags: "@admin&&@ip_whitelist&&@ui"

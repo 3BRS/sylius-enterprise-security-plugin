@@ -15,6 +15,7 @@ use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountDeletionSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountLockoutSettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\IpWhitelistSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\MagicLinkSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthSettingsType;
@@ -122,6 +123,11 @@ class SaveTabController implements SaveTabControllerInterface
                 'prefix' => 'account_deletion',
                 'options' => [],
                 'scopes' => [SettingsScope::CUSTOMER],
+            ],
+            'ip_whitelist' => [
+                'type' => IpWhitelistSettingsType::class,
+                'prefix' => 'ip_whitelist',
+                'options' => [],
             ],
         ];
     }

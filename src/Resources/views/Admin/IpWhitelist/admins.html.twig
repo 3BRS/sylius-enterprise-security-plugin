@@ -1,0 +1,115 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.ip_whitelist.title'|trans }}{% endblock %}
+
+{% block body %}
+    {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
+
+    <div class="page-wrapper">
+        {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
+
+        <div class="page-header" data-sticky-header>
+            <div class="container-xl">
+                {{ breadcrumbs([
+                    { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'three_brs.ui.ip_whitelist.title', active: true },
+                ]) }}
+                <div class="row mt-3 row-gap-2">
+                    <div class="col-12">
+                        {{ header.h1('three_brs.ui.ip_whitelist.title'|trans) }}
+                        <p class="text-secondary mb-0">{{ 'three_brs.ui.ip_whitelist.intro'|trans }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include '@SyliusAdmin/shared/crud/common/content/flashes.html.twig' %}
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="card mb-3" data-test-three-brs-ip-whitelist-status>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <strong>{{ 'three_brs.ui.ip_whitelist.feature_state'|trans }}:</strong>
+                            {% if featureEnabled %}
+                                <span class="badge bg-success">{{ 'three_brs.ui.ip_whitelist.enabled'|trans }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ 'three_brs.ui.ip_whitelist.disabled'|trans }}</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-2">
+                            <strong>{{ 'three_brs.ui.ip_whitelist.global_cidrs'|trans }}:</strong>
+                            {% if globalCidrs is empty %}
+                                <span class="text-secondary">{{ 'three_brs.ui.ip_whitelist.no_global_cidrs'|trans }}</span>
+                            {% else %}
+                                <code>{{ globalCidrs|join(', ') }}</code>
+                            {% endif %}
+                        </p>
+                        <p class="text-secondary mb-0 small">
+                            {{ 'three_brs.ui.ip_whitelist.global_cidrs_hint'|trans }}
+                            <a href="{{ path('three_brs_admin_security_settings_index', {scope: 'global', tab: 'ip_whitelist'}) }}">
+                                {{ 'three_brs.ui.ip_whitelist.open_security_settings'|trans }}
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        {% if rows|length > 0 %}
+                            <div class="table-responsive">
+                                <table class="table table-vcenter" data-test-three-brs-ip-whitelist-admins>
+                                    <thead>
+                                        <tr>
+                                            <th>{{ 'three_brs.ui.ip_whitelist.username'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.ip_whitelist.per_admin_state'|trans }}</th>
+                                            <th>{{ 'three_brs.ui.ip_whitelist.per_admin_cidrs'|trans }}</th>
+                                            <th class="text-end"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in rows %}
+                                            <tr>
+                                                <td>{{ row.admin.email }}</td>
+                                                <td>
+                                                    {% if row.whitelist is null %}
+                                                        <span class="badge bg-secondary">{{ 'three_brs.ui.ip_whitelist.not_configured'|trans }}</span>
+                                                    {% elseif row.whitelist.enabled %}
+                                                        <span class="badge bg-success">{{ 'three_brs.ui.ip_whitelist.enabled'|trans }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">{{ 'three_brs.ui.ip_whitelist.disabled'|trans }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if row.whitelist is null or row.whitelist.cidrs|length == 0 %}
+                                                        <span class="text-secondary">—</span>
+                                                    {% else %}
+                                                        <code>{{ row.whitelist.cidrs|join(', ') }}</code>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-end">
+                                                    <a class="btn btn-outline-primary"
+                                                       href="{{ path('three_brs_admin_ip_whitelist_admin_edit', {'id': row.admin.id}) }}"
+                                                       data-test-three-brs-ip-whitelist-edit="{{ row.admin.id }}">
+                                                        {{ 'three_brs.ui.ip_whitelist.edit'|trans }}
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="empty py-4">
+                                <p class="empty-title">{{ 'three_brs.ui.ip_whitelist.no_admins'|trans }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

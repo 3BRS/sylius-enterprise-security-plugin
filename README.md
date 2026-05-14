@@ -598,6 +598,30 @@ The feature is intentionally customer-scope only — admin self-deletion is not 
 
 > **Cron is required.** Without `three-brs:account-deletion:process-due` running periodically, deletion requests reach `scheduled_for` but never anonymize — the customer stays disabled but their personal data lingers in the DB indefinitely.
 
+### Admin IP Whitelist
+
+Restrict admin panel access to a configured set of IP addresses or CIDR ranges. The feature has two layers, and per-admin entries are **additive** to the global list:
+
+- **Global list** — applies to every admin route (including `/admin/login`). Configured under Security settings → Global → "Admin IP whitelist".
+- **Per-admin list** — managed on `/admin/ip-whitelist/admins`. Pick an administrator and toggle their personal allow-list on/off with its own CIDR set. Useful when one admin needs to sign in from an additional location without widening the global rules for everyone.
+
+Access is granted when **either** the request IP matches the global list **or** the authenticated admin's own (enabled) list matches. A failed check returns HTTP 403 with a plain-text body — there is no redirect or login form fallback.
+
+```yaml
+three_brs_sylius_enterprise_security:
+    ip_whitelist:
+        enabled: false
+```
+
+#### Defaults for IP whitelist
+
+- `ip_whitelist.enabled` defaults to `false` — the feature is off out of the box; existing admin sessions continue unchanged.
+- `ip_whitelist.global_cidrs` defaults to `[]` (no IPs configured). This is GLOBAL-scope only and is edited through the Security settings UI.
+
+The Configuration node only exposes the master switch. The actual allow-lists live in the database (DB-backed settings + a per-admin entity, `three_brs_admin_user_ip_whitelist`) so that operators can change them at runtime without redeploying.
+
+> **Operator note.** If you enable the feature with an empty global list and no per-admin entries, all administrators will be locked out of the panel. Either configure at least one matching CIDR before enabling, or disable the feature again via SQL (`UPDATE three_brs_security_setting SET value_json = 'false' WHERE scope = 'global' AND path = 'ip_whitelist.enabled'`) to recover. CIDR validation accepts both IPv4 (e.g. `10.0.0.0/8`, `192.168.1.1`) and IPv6 (e.g. `2001:db8::/32`, `::1`).
+
 ## Installation
 
 1. Run `composer require 3brs/sylius-enterprise-security-plugin`.
