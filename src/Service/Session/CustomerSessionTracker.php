@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -44,8 +45,21 @@ class CustomerSessionTracker implements CustomerSessionTrackerInterface
         $session->setCountry($geo?->countryCode);
         $session->setCity($geo?->city);
 
-        $this->entityManager->persist($session);
-        $this->entityManager->flush();
+        try {
+            $this->entityManager->persist($session);
+            $this->entityManager->flush();
+        } catch (UniqueConstraintViolationException) {
+            // Concurrent login with the same PHP session ID raced ahead. Detach our
+            // unflushed entity and return the persisted one so the caller still gets
+            // a tracked session.
+            $this->entityManager->detach($session);
+            $existing = $this->repository->findOneBySessionId($sessionId);
+            if ($existing !== null) {
+                return $existing;
+            }
+
+            throw new \RuntimeException('Failed to persist session tracker row.');
+        }
 
         return $session;
     }
