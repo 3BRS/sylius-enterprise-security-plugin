@@ -25,6 +25,12 @@ three_brs:
     ip_whitelist:
         admin:
             saved: 'IP whitelist saved for this administrator.'
+    customer_security:
+        password_reset_forced: 'The customer will be required to change their password on next sign-in.'
+        blocked: 'Customer account has been blocked. Active sessions were signed out.'
+        unblocked: 'Customer account has been unblocked.'
+        sessions_revoked: 'All active sessions for this customer have been signed out.'
+        session_revoked: 'The selected session has been signed out.'
     ui:
         social_login:
             already_linked: 'This social account is already linked to your account.'

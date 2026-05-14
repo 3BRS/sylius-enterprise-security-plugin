@@ -1529,3 +1529,63 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
         tags:
             - { name: 'sylius_fixtures.fixture' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\ForcePasswordResetController:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\BlockAccountController:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $sessionTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\UnblockAccountController:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\RevokeAllSessionsController:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $sessionTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\RevokeSessionController:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $sessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $sessionTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\CustomerSecurityExtension:
+        arguments:
+            $sessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+        tags:
+            - { name: 'twig.extension' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\CustomerSecurityStatesFixture:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }

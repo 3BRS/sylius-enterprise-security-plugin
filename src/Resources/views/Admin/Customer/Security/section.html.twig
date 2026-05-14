@@ -1,0 +1,240 @@
+{% set customer = hookable_metadata.context.resource %}
+{% set shopUser = customer.user|default(null) %}
+
+{# Guest customers (no ShopUser row) have no security state to manage. #}
+{% if shopUser is not null %}
+    {% set activeSessions = three_brs_customer_active_sessions(shopUser) %}
+    {% set loginHistory = three_brs_customer_login_history(shopUser, 20) %}
+    {% set isEnabled = shopUser.enabled %}
+    {% set forceChangeRequested = shopUser.forcePasswordChange|default(false) %}
+    {% set lockedAt = shopUser.lockedAt|default(null) %}
+
+    {% import '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Customer/Security/_macros.html.twig' as security %}
+
+    <div class="card mb-3" data-test-three-brs-customer-security>
+        <div class="card-header">
+            <h3 class="card-title mb-0">{{ 'three_brs.ui.customer_security.title'|trans }}</h3>
+        </div>
+        <div class="card-body">
+            <p class="text-secondary mb-3">{{ 'three_brs.ui.customer_security.intro'|trans }}</p>
+
+            <div class="mb-3">
+                <strong>{{ 'three_brs.ui.customer_security.account_state'|trans }}:</strong>
+                {% if isEnabled %}
+                    <span class="badge bg-success" data-test-three-brs-customer-security-state="enabled">
+                        {{ 'three_brs.ui.customer_security.state_enabled'|trans }}
+                    </span>
+                {% else %}
+                    <span class="badge bg-danger" data-test-three-brs-customer-security-state="blocked">
+                        {{ 'three_brs.ui.customer_security.state_blocked'|trans }}
+                    </span>
+                {% endif %}
+
+                {% if forceChangeRequested %}
+                    <span class="badge bg-warning"
+                          data-test-three-brs-customer-security-force-change-pending>
+                        {{ 'three_brs.ui.customer_security.force_change_pending'|trans }}
+                    </span>
+                {% endif %}
+
+                {% if lockedAt %}
+                    <span class="badge bg-secondary" data-test-three-brs-customer-security-locked>
+                        {{ 'three_brs.ui.customer_security.locked_at'|trans({'%date%': lockedAt|date('Y-m-d H:i')}) }}
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                {% if not forceChangeRequested %}
+                    <button type="button" class="btn btn-outline-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#three-brs-customer-modal-force-reset"
+                            data-test-three-brs-customer-security-force-reset>
+                        {{ 'three_brs.ui.customer_security.force_password_reset'|trans }}
+                    </button>
+                {% endif %}
+
+                {% if isEnabled %}
+                    <button type="button" class="btn btn-outline-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#three-brs-customer-modal-block"
+                            data-test-three-brs-customer-security-block>
+                        {{ 'three_brs.ui.customer_security.block'|trans }}
+                    </button>
+                {% else %}
+                    <button type="button" class="btn btn-outline-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#three-brs-customer-modal-unblock"
+                            data-test-three-brs-customer-security-unblock>
+                        {{ 'three_brs.ui.customer_security.unblock'|trans }}
+                    </button>
+                {% endif %}
+
+                {% if activeSessions|length > 0 %}
+                    <button type="button" class="btn btn-outline-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#three-brs-customer-modal-revoke-all"
+                            data-test-three-brs-customer-security-revoke-all>
+                        {{ 'three_brs.ui.customer_security.revoke_all_sessions'|trans }}
+                    </button>
+                {% endif %}
+            </div>
+
+            <h4 class="mt-4">{{ 'three_brs.ui.customer_security.active_sessions'|trans }}</h4>
+            {% if activeSessions|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-vcenter"
+                           data-test-three-brs-customer-security-active-sessions>
+                        <thead>
+                            <tr>
+                                <th>{{ 'three_brs.ui.customer_security.signed_in_at'|trans }}</th>
+                                <th>{{ 'three_brs.ui.customer_security.last_activity'|trans }}</th>
+                                <th>{{ 'three_brs.ui.customer_security.ip'|trans }}</th>
+                                <th>{{ 'three_brs.ui.customer_security.location'|trans }}</th>
+                                <th>{{ 'three_brs.ui.customer_security.device'|trans }}</th>
+                                <th class="text-end"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in activeSessions %}
+                                <tr>
+                                    <td>{{ session.createdAt|date('Y-m-d H:i') }}</td>
+                                    <td>{{ session.lastActivityAt|date('Y-m-d H:i') }}</td>
+                                    <td>{{ session.ipAddress ?: '—' }}</td>
+                                    <td>
+                                        {% if session.country %}
+                                            {{ session.country }}{% if session.city %} / {{ session.city }}{% endif %}
+                                        {% else %}—{% endif %}
+                                    </td>
+                                    <td>
+                                        {% set ua = three_brs_parse_user_agent(session.userAgent) %}
+                                        {{ ua.browser ?: 'three_brs.ui.customer_security.unknown_device'|trans }}{% if ua.operatingSystem %} <span class="text-muted">({{ ua.operatingSystem }})</span>{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#three-brs-customer-modal-revoke-session-{{ session.id }}"
+                                                data-test-three-brs-customer-security-revoke-session="{{ session.id }}">
+                                            {{ 'three_brs.ui.customer_security.revoke_session'|trans }}
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-secondary">{{ 'three_brs.ui.customer_security.no_active_sessions'|trans }}</p>
+            {% endif %}
+
+            <h4 class="mt-4">{{ 'three_brs.ui.customer_security.login_history'|trans }}</h4>
+            <div class="table-responsive">
+                <table class="table table-vcenter"
+                       data-test-three-brs-customer-security-login-history>
+                    <thead>
+                        <tr>
+                            <th>{{ 'three_brs.ui.customer_security.signed_in_at'|trans }}</th>
+                            <th>{{ 'three_brs.ui.customer_security.ip'|trans }}</th>
+                            <th>{{ 'three_brs.ui.customer_security.location'|trans }}</th>
+                            <th>{{ 'three_brs.ui.customer_security.device'|trans }}</th>
+                            <th>{{ 'three_brs.ui.customer_security.status'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in loginHistory %}
+                            <tr>
+                                <td>{{ session.createdAt|date('Y-m-d H:i') }}</td>
+                                <td>{{ session.ipAddress ?: '—' }}</td>
+                                <td>
+                                    {% if session.country %}
+                                        {{ session.country }}{% if session.city %} / {{ session.city }}{% endif %}
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td>
+                                    {% set ua = three_brs_parse_user_agent(session.userAgent) %}
+                                    {{ ua.browser ?: 'three_brs.ui.customer_security.unknown_device'|trans }}{% if ua.operatingSystem %} <span class="text-muted">({{ ua.operatingSystem }})</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if session.revoked %}
+                                        <span class="text-muted">
+                                            {{ 'three_brs.ui.customer_security.session_offline'|trans }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-success fw-semibold">
+                                            {{ 'three_brs.ui.customer_security.session_online'|trans }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-secondary">
+                                    {{ 'three_brs.ui.customer_security.no_login_history'|trans }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# --- Confirmation modals (Bootstrap, Sylius admin style) --- #}
+    {% if not forceChangeRequested %}
+        {{ security.action_modal(
+            'three-brs-customer-modal-force-reset',
+            'three_brs.ui.customer_security.force_password_reset'|trans,
+            'three_brs.ui.customer_security.confirm_force_password_reset'|trans,
+            path('three_brs_admin_customer_force_password_reset', {'id': customer.id}),
+            'three_brs_customer_force_password_reset',
+            'three_brs.ui.customer_security.force_password_reset'|trans,
+            'btn-warning'
+        ) }}
+    {% endif %}
+
+    {% if isEnabled %}
+        {{ security.action_modal(
+            'three-brs-customer-modal-block',
+            'three_brs.ui.customer_security.block'|trans,
+            'three_brs.ui.customer_security.confirm_block'|trans,
+            path('three_brs_admin_customer_block', {'id': customer.id}),
+            'three_brs_customer_block',
+            'three_brs.ui.customer_security.block'|trans,
+            'btn-danger'
+        ) }}
+    {% else %}
+        {{ security.action_modal(
+            'three-brs-customer-modal-unblock',
+            'three_brs.ui.customer_security.unblock'|trans,
+            'three_brs.ui.customer_security.confirm_unblock'|trans,
+            path('three_brs_admin_customer_unblock', {'id': customer.id}),
+            'three_brs_customer_unblock',
+            'three_brs.ui.customer_security.unblock'|trans,
+            'btn-success'
+        ) }}
+    {% endif %}
+
+    {% if activeSessions|length > 0 %}
+        {{ security.action_modal(
+            'three-brs-customer-modal-revoke-all',
+            'three_brs.ui.customer_security.revoke_all_sessions'|trans,
+            'three_brs.ui.customer_security.confirm_revoke_all_sessions'|trans,
+            path('three_brs_admin_customer_revoke_all_sessions', {'id': customer.id}),
+            'three_brs_customer_revoke_all_sessions',
+            'three_brs.ui.customer_security.revoke_all_sessions'|trans,
+            'btn-primary'
+        ) }}
+
+        {% for session in activeSessions %}
+            {{ security.action_modal(
+                'three-brs-customer-modal-revoke-session-' ~ session.id,
+                'three_brs.ui.customer_security.revoke_session'|trans,
+                'three_brs.ui.customer_security.confirm_revoke_session'|trans,
+                path('three_brs_admin_customer_revoke_session', {'id': customer.id, 'sessionId': session.id}),
+                'three_brs_customer_revoke_session',
+                'three_brs.ui.customer_security.revoke_session'|trans,
+                'btn-primary'
+            ) }}
+        {% endfor %}
+    {% endif %}
+{% endif %}

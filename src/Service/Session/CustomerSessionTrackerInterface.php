@@ -21,4 +21,10 @@ interface CustomerSessionTrackerInterface
     public function revoke(CustomerSessionInterface $session): void;
 
     public function revokeOthers(string $currentSessionId, ShopUserInterface $user): void;
+
+    /**
+     * Revoke every active session of the user — used by the admin "remote logout"
+     * action where no current session is being preserved.
+     */
+    public function revokeAll(ShopUserInterface $user): void;
 }
