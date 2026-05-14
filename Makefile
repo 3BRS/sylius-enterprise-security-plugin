@@ -19,7 +19,7 @@ init:
 	fi
 	docker compose up -d
 	./bin-docker/composer install
-	rm -fr "tests/Application/var/$(APP_ENV)"
+	docker compose exec -T -u root php rm -rf "tests/Application/var/$(APP_ENV)"
 	@make var
 	./bin-docker/php ./bin/console doctrine:database:create --no-interaction --if-not-exists
 	./bin-docker/php ./bin/console doctrine:migrations:migrate --no-interaction

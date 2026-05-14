@@ -26,6 +26,7 @@ parameters:
                 - src/DependencyInjection/Configuration.php
                 - src/Fixture/PasswordHistoryFixture.php
                 - src/Fixture/PasswordExpirationFixture.php
+                - src/Fixture/TwoFactorFixture.php
         -
             # Same root cause: ArrayNodeDefinition generic TParent not resolved on lowest phpstan-symfony.
             identifier: missingType.generics
@@ -33,6 +34,7 @@ parameters:
                 - src/DependencyInjection/Configuration.php
                 - src/Fixture/PasswordHistoryFixture.php
                 - src/Fixture/PasswordExpirationFixture.php
+                - src/Fixture/TwoFactorFixture.php
 
     doctrine:
         objectManagerLoader: tests/phpstan_object_manager.php

@@ -1,0 +1,49 @@
+{% extends '@SyliusShop/shared/layout/base.html.twig' %}
+
+{% block title %}{{ 'three_brs.ui.two_factor.recovery_challenge_title'|trans }} | {{ parent() }}{% endblock %}
+
+{% block body_class %}d-flex flex-column{% endblock %}
+
+{% block content %}
+    <div class="page page-center">
+        <div class="container container-tight py-4">
+            <div class="card card-md" data-test-two-factor-recovery-challenge>
+                <div class="card-body">
+                    <h2 class="h2 text-center mb-2">{{ 'three_brs.ui.two_factor.recovery_challenge_title'|trans }}</h2>
+                    <p class="text-muted text-center mb-4">{{ 'three_brs.ui.two_factor.recovery_challenge_intro'|trans }}</p>
+
+                    {% if error %}
+                        <div class="alert alert-danger" data-test-two-factor-recovery-error>
+                            {{ error|trans }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="_recovery_code" class="form-label">{{ 'three_brs.ui.two_factor.recovery_code'|trans }}</label>
+                            <input
+                                id="_recovery_code"
+                                type="text"
+                                class="form-control"
+                                name="_recovery_code"
+                                data-test-two-factor-recovery-code
+                                autocomplete="one-time-code"
+                                autofocus
+                            />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" data-test-two-factor-recovery-submit>
+                            {{ 'three_brs.ui.two_factor.verify_recovery_code'|trans }}
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <a href="{{ path('three_brs_shop_two_factor_challenge') }}" class="text-muted" data-test-two-factor-challenge-back>
+                            {{ 'three_brs.ui.two_factor.back_to_challenge'|trans }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

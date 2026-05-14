@@ -7,7 +7,12 @@
     "require": {
         "php": "^8.3",
         "sylius/sylius": "^2.1",
-        "3brs/enterprise-security-bundle": "^1.0"
+        "3brs/enterprise-security-bundle": "^1.0",
+        "scheb/2fa-bundle": "^7.13",
+        "scheb/2fa-totp": "^7.13",
+        "spomky-labs/otphp": "^11.4",
+        "endroid/qr-code": "^6.0",
+        "scheb/2fa-trusted-device": "^7.13"
     },
     "require-dev": {
         "behat/behat": "^v3.19.0",

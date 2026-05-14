@@ -1,0 +1,12 @@
+default:
+    suites:
+        admin_two_factor_recovery:
+            contexts:
+                - sylius.behat.context.hook.doctrine_orm
+                - sylius.behat.context.setup.admin_user
+                - sylius.behat.context.setup.admin_security
+                - sylius.behat.context.transform.shared_storage
+                - sylius.behat.context.ui.admin.login
+                - three_brs.behat.context.ui.admin.two_factor_recovery
+            filters:
+                tags: "@admin&&@two_factor_recovery&&@ui"

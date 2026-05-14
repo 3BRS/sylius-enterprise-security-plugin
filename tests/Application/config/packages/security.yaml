@@ -29,6 +29,15 @@ security:
                 enable_csrf: true
                 csrf_parameter: _csrf_admin_security_token
                 csrf_token_id: admin_authenticate
+            two_factor:
+                auth_form_path: /admin/2fa
+                check_path: /admin/2fa_check
+                default_target_path: sylius_admin_dashboard
+                post_only: true
+                enable_csrf: false
+                prepare_on_login: true
+                prepare_on_access_denied: true
+                trusted_parameter_name: _trusted
             remember_me:
                 secret: "%env(APP_SECRET)%"
                 path: "/%sylius_admin.path_name%"
@@ -74,7 +83,7 @@ security:
             provider: sylius_shop_user_provider
             user_checker: security.user_checker.chain.shop
             form_login:
-                success_handler: sylius.authentication.success_handler
+                success_handler: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler.shop
                 failure_handler: sylius.authentication.failure_handler
                 provider: sylius_shop_user_provider
                 login_path: sylius_shop_login
@@ -86,6 +95,15 @@ security:
                 enable_csrf: true
                 csrf_parameter: _csrf_shop_security_token
                 csrf_token_id: shop_authenticate
+            two_factor:
+                auth_form_path: /2fa
+                check_path: /2fa_check
+                default_target_path: sylius_shop_homepage
+                post_only: true
+                enable_csrf: false
+                prepare_on_login: true
+                prepare_on_access_denied: true
+                trusted_parameter_name: _trusted
             json_login:
                 check_path: sylius_shop_json_login_check
                 username_path: _username
@@ -111,6 +129,9 @@ security:
             security: false
 
     access_control:
+        - { path: ^/admin/2fa, role: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+        - { path: ^/2fa, role: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+
         - { path: "%sylius.security.admin_regex%/forgotten-password", role: PUBLIC_ACCESS }
 
         - { path: "%sylius.security.admin_regex%/login", role: PUBLIC_ACCESS }

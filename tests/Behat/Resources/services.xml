@@ -77,5 +77,81 @@
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="router"/>
 		</service>
+
+		<service id="three_brs.behat.context.ui.shop.two_factor_setup"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\TwoFactorSetupContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.two_factor_login"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\TwoFactorLoginContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.two_factor_setup"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\TwoFactorSetupContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.two_factor_login"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\TwoFactorLoginContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.two_factor_recovery"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\TwoFactorRecoveryContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.two_factor_recovery"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\TwoFactorRecoveryContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.two_factor_trusted_device"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\TwoFactorTrustedDeviceContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.two_factor_trusted_device"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\TwoFactorTrustedDeviceContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.two_factor_enforcement"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\TwoFactorEnforcementContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.two_factor_enforcement"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\TwoFactorEnforcementContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker"/>
+		</service>
 	</services>
 </container>

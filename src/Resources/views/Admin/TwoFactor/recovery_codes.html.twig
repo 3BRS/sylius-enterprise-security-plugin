@@ -1,0 +1,51 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.two_factor.recovery_codes_title'|trans }}{% endblock %}
+
+{% block body %}
+    {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
+
+    <div class="page-wrapper">
+        {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
+
+        <div class="page-header" data-sticky-header>
+            <div class="container-xl">
+                {{ breadcrumbs([
+                    { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'three_brs.ui.two_factor.menu_item', url: path('three_brs_admin_two_factor_setup'), active: false },
+                    { name: 'three_brs.ui.two_factor.recovery_codes_title', active: true },
+                ]) }}
+                <div class="row mt-3 row-gap-2">
+                    <div class="col-12">
+                        {{ header.h1('three_brs.ui.two_factor.recovery_codes_title'|trans) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="alert alert-warning mb-4">
+                            {{ 'three_brs.ui.two_factor.recovery_codes_warning'|trans }}
+                        </div>
+
+                        <ul class="list-group mb-4" data-test-two-factor-recovery-codes>
+                            {% for code in codes %}
+                                <li class="list-group-item font-monospace text-center" data-test-recovery-code>{{ code }}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <a href="{{ path('three_brs_admin_two_factor_setup') }}" class="btn btn-primary">
+                            {{ 'three_brs.ui.two_factor.recovery_codes_acknowledged'|trans }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

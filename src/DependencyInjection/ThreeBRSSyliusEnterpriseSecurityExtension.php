@@ -13,7 +13,9 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordHisto
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordChangeNotificationListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserPasswordHistoryListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicy;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordHistoryValidator;
 
 class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements PrependExtensionInterface
@@ -29,6 +31,20 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
                 ],
             ],
         ]);
+
+        $config = $this->processConfiguration(
+            new Configuration(),
+            $container->getExtensionConfig($this->getAlias()),
+        );
+        $twoFactor = $config['two_factor_authentication'];
+
+        $container->setParameter('three_brs.two_factor.issuer', $twoFactor['issuer']);
+        $container->setParameter('three_brs.two_factor.customer.recovery_codes_enabled', $twoFactor['recovery_codes']['customer']['enabled']);
+        $container->setParameter('three_brs.two_factor.customer.recovery_codes_count', $twoFactor['recovery_codes']['customer']['count']);
+        $container->setParameter('three_brs.two_factor.admin.recovery_codes_enabled', $twoFactor['recovery_codes']['admin']['enabled']);
+        $container->setParameter('three_brs.two_factor.admin.recovery_codes_count', $twoFactor['recovery_codes']['admin']['count']);
+        $container->setParameter('three_brs.two_factor.trusted_device_enabled', $twoFactor['trusted_device']['enabled']);
+        $container->setParameter('three_brs.two_factor.trusted_device_lifetime', (int) $twoFactor['trusted_device']['days'] * 86400);
     }
 
     public function load(array $configs, ContainerBuilder $container): void
@@ -43,6 +59,16 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerPasswordHistory($container, $config['password_history']);
         $this->registerPasswordExpiration($container, $config['password_expiration']);
         $this->registerPasswordChangeNotification($container, $config['password_change_notification']);
+        $this->registerTwoFactorAuthentication($container, $config['two_factor_authentication']);
+    }
+
+    /** @param array<string, mixed> $config */
+    protected function registerTwoFactorAuthentication(ContainerBuilder $container, array $config): void
+    {
+        $container->getDefinition(TwoFactorEnforcementChecker::class)
+            ->setArgument('$customerMode', TwoFactorMode::from($config['customer']['mode']))
+            ->setArgument('$adminMode', TwoFactorMode::from($config['admin']['mode']))
+        ;
     }
 
     public function getAlias(): string

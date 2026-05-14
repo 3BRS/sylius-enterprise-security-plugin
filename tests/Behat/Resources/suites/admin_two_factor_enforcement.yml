@@ -1,0 +1,11 @@
+default:
+    suites:
+        admin_two_factor_enforcement:
+            contexts:
+                - sylius.behat.context.hook.doctrine_orm
+                - sylius.behat.context.setup.admin_security
+                - sylius.behat.context.setup.admin_user
+                - sylius.behat.context.transform.shared_storage
+                - three_brs.behat.context.ui.admin.two_factor_enforcement
+            filters:
+                tags: "@admin&&@two_factor_enforcement&&@ui"
