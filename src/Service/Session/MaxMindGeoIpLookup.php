@@ -20,6 +20,8 @@ class MaxMindGeoIpLookup implements GeoIpLookupInterface
 {
     protected ?Reader $reader = null;
 
+    protected bool $readerInitFailed = false;
+
     public function __construct(
         protected string $databasePath,
     ) {
@@ -31,13 +33,15 @@ class MaxMindGeoIpLookup implements GeoIpLookupInterface
             return null;
         }
 
+        $reader = $this->reader();
+        if ($reader === null) {
+            return null;
+        }
+
         try {
-            $record = $this->reader()->city($ipAddress);
+            $record = $reader->city($ipAddress);
         } catch (AddressNotFoundException) {
             // IP isn't covered by the database (private ranges, unallocated blocks).
-            return null;
-        } catch (\InvalidArgumentException) {
-            // Reader rejects malformed IP strings; treat the same as "not found".
             return null;
         }
 
@@ -47,8 +51,29 @@ class MaxMindGeoIpLookup implements GeoIpLookupInterface
         );
     }
 
-    protected function reader(): Reader
+    /**
+     * Lazy-loads and caches the Reader instance. If construction throws — typically
+     * because the configured .mmdb file is missing, unreadable, or corrupt — we
+     * remember the failure for the lifetime of this service and return null on
+     * every subsequent call. Geolocation is best-effort and must never block a
+     * login flow because of a misconfigured GeoIP database.
+     */
+    protected function reader(): ?Reader
     {
-        return $this->reader ??= new Reader($this->databasePath);
+        if ($this->readerInitFailed) {
+            return null;
+        }
+
+        if ($this->reader === null) {
+            try {
+                $this->reader = new Reader($this->databasePath);
+            } catch (\Throwable) {
+                $this->readerInitFailed = true;
+
+                return null;
+            }
+        }
+
+        return $this->reader;
     }
 }

@@ -32,16 +32,6 @@ class MaxMindGeoIpLookupTest extends TestCase
         self::assertNull($lookup->lookup('10.0.0.1'));
     }
 
-    public function testReturnsNullForMalformedIp(): void
-    {
-        $reader = $this->createStub(Reader::class);
-        $reader->method('city')->willThrowException(new \InvalidArgumentException('bad ip'));
-
-        $lookup = $this->buildLookupWithReader($reader);
-
-        self::assertNull($lookup->lookup('not-an-ip'));
-    }
-
     public function testReturnsCountryAndCityFromDatabase(): void
     {
         $cityModel = new City([

@@ -1137,6 +1137,10 @@ services:
             $router: '@router'
             $customerEnabled: '%three_brs.session_management.customer.enabled%'
             $adminEnabled: '%three_brs.session_management.admin.enabled%'
+            # Override these in your application's services.yaml if you renamed
+            # the standard Sylius login routes.
+            $customerLoginRoute: 'sylius_shop_login'
+            $adminLoginRoute: 'sylius_admin_login'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
 
