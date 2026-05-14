@@ -60,6 +60,34 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerPasswordExpiration($container, $config['password_expiration']);
         $this->registerPasswordChangeNotification($container, $config['password_change_notification']);
         $this->registerTwoFactorAuthentication($container, $config['two_factor_authentication']);
+        $this->registerOAuth($container, $config['oauth']);
+    }
+
+    /** @param array<string, mixed> $config */
+    protected function registerOAuth(ContainerBuilder $container, array $config): void
+    {
+        foreach (['customer', 'admin'] as $group) {
+            $google = $config[$group]['google'];
+            $container->setParameter(sprintf('three_brs.oauth.%s.google.enabled', $group), $google['enabled']);
+            $container->setParameter(sprintf('three_brs.oauth.%s.google.client_id', $group), $google['client_id']);
+            $container->setParameter(sprintf('three_brs.oauth.%s.google.client_secret', $group), $google['client_secret']);
+
+            $apple = $config[$group]['apple'];
+            $container->setParameter(sprintf('three_brs.oauth.%s.apple.enabled', $group), $apple['enabled']);
+            $container->setParameter(sprintf('three_brs.oauth.%s.apple.client_id', $group), $apple['client_id']);
+            $container->setParameter(sprintf('three_brs.oauth.%s.apple.team_id', $group), $apple['team_id']);
+            $container->setParameter(sprintf('three_brs.oauth.%s.apple.key_id', $group), $apple['key_id']);
+            $container->setParameter(sprintf('three_brs.oauth.%s.apple.private_key_path', $group), $apple['private_key_path']);
+        }
+
+        $container->setParameter(
+            'three_brs.oauth.admin.auto_register_allowed_email_domains',
+            $config['admin']['auto_register_allowed_email_domains'],
+        );
+        $container->setParameter(
+            'three_brs.oauth.admin.default_locale',
+            $config['admin']['default_locale'],
+        );
     }
 
     /** @param array<string, mixed> $config */

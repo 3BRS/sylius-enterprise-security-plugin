@@ -1,0 +1,18 @@
+{% set providers = three_brs_social_providers('admin') %}
+
+{% if providers|length > 0 %}
+    <div class="three-brs-social-login mt-3">
+        <div class="text-muted small text-center mb-2">
+            {{ 'three_brs.ui.social_login.or_continue_with'|trans }}
+        </div>
+        <div class="d-flex flex-column gap-2">
+            {% for provider in providers %}
+                <a href="{{ path('three_brs_admin_oauth_initiate', {'provider': provider}) }}"
+                   class="btn btn-outline-secondary w-100"
+                   data-test-three-brs-admin-social-login="{{ provider }}">
+                    {{ ('three_brs.ui.social_login.provider.' ~ provider)|trans }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}

@@ -9,4 +9,6 @@ use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
 interface AdminMainMenuListenerInterface
 {
     public function addTwoFactorItem(MenuBuilderEvent $event): void;
+
+    public function addSocialAccountsItem(MenuBuilderEvent $event): void;
 }

@@ -3,3 +3,13 @@ three_brs:
     two_factor:
         enforcement_required: 'Two-factor authentication is required. Please set it up to continue.'
         disabled: 'Two-factor authentication has been disabled.'
+    ui:
+        social_login:
+            already_linked: 'This social account is already linked to your account.'
+            already_linked_other_account: 'This social account is linked to a different user.'
+            cannot_unlink_last_method: 'Cannot unlink the last remaining sign-in method. Set a password first or keep at least one other social link.'
+            unlinked: 'Social account unlinked.'
+            linked: 'Social account linked.'
+            not_logged_in: 'You must be logged in to link a social account.'
+            missing_email: 'The provider did not share an email address, cannot continue.'
+            auto_register_refused: 'Self-registration through this social provider is not allowed. Please contact an administrator.'

@@ -153,5 +153,25 @@
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker"/>
 		</service>
+
+		<service id="three_brs.behat.context.ui.shop.social_login"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\SocialLoginContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.social_login"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\SocialLoginContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
+		</service>
 	</services>
 </container>

@@ -137,6 +137,10 @@ security:
         - { path: "%sylius.security.admin_regex%/login", role: PUBLIC_ACCESS }
         - { path: "%sylius.security.shop_regex%/login", role: PUBLIC_ACCESS }
 
+        - { path: "%sylius.security.admin_regex%/oauth/[a-z_]+/start", role: PUBLIC_ACCESS }
+        - { path: "%sylius.security.admin_regex%/oauth/[a-z_]+/callback", role: PUBLIC_ACCESS }
+        - { path: "%sylius.security.admin_regex%/oauth/confirm-link", role: PUBLIC_ACCESS }
+
         - { path: "%sylius.security.shop_regex%/register", role: PUBLIC_ACCESS }
         - { path: "%sylius.security.shop_regex%/verify", role: PUBLIC_ACCESS }
 

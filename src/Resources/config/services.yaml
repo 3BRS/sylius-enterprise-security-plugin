@@ -284,10 +284,24 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\ShopAccountMenuListener:
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountsController:
+        arguments:
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\AdminMainMenuListener:
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController:
+        arguments:
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator:
         arguments:
@@ -296,3 +310,172 @@ services:
             $tokenStorage: '@security.token_storage'
         tags:
             - { name: 'validator.constraint_validator', alias: 'three_brs.validator.password_policy' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\GoogleOAuthProvider:
+        arguments:
+            $customerEnabled: '%three_brs.oauth.customer.google.enabled%'
+            $customerClientId: '%three_brs.oauth.customer.google.client_id%'
+            $customerClientSecret: '%three_brs.oauth.customer.google.client_secret%'
+            $adminEnabled: '%three_brs.oauth.admin.google.enabled%'
+            $adminClientId: '%three_brs.oauth.admin.google.client_id%'
+            $adminClientSecret: '%three_brs.oauth.admin.google.client_secret%'
+        tags:
+            - { name: 'three_brs.oauth_provider' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\AppleOAuthProvider:
+        arguments:
+            $customerEnabled: '%three_brs.oauth.customer.apple.enabled%'
+            $customerClientId: '%three_brs.oauth.customer.apple.client_id%'
+            $customerTeamId: '%three_brs.oauth.customer.apple.team_id%'
+            $customerKeyId: '%three_brs.oauth.customer.apple.key_id%'
+            $customerPrivateKeyPath: '%three_brs.oauth.customer.apple.private_key_path%'
+            $adminEnabled: '%three_brs.oauth.admin.apple.enabled%'
+            $adminClientId: '%three_brs.oauth.admin.apple.client_id%'
+            $adminTeamId: '%three_brs.oauth.admin.apple.team_id%'
+            $adminKeyId: '%three_brs.oauth.admin.apple.key_id%'
+            $adminPrivateKeyPath: '%three_brs.oauth.admin.apple.private_key_path%'
+        tags:
+            - { name: 'three_brs.oauth_provider' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry:
+        arguments:
+            $providers: !tagged_iterator 'three_brs.oauth_provider'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandler:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $customerFactory: '@sylius.factory.customer'
+            $shopUserFactory: '@sylius.factory.shop_user'
+            $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandler:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $adminUserFactory: '@sylius.factory.admin_user'
+            $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $allowedEmailDomains: '%three_brs.oauth.admin.auto_register_allowed_email_domains%'
+            $defaultLocale: '%three_brs.oauth.admin.default_locale%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard:
+        arguments:
+            $customerLinkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
+            $adminLinkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthInitiateController:
+        arguments:
+            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthCallbackController:
+        arguments:
+            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandler'
+            $router: '@router'
+            $tokenStorage: '@security.token_storage'
+            $security: '@security.helper'
+            $logger: '@logger'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthConfirmLinkController:
+        arguments:
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandler'
+            $passwordHasher: '@security.user_password_hasher'
+            $tokenStorage: '@security.token_storage'
+            $router: '@router'
+            $twig: '@twig'
+            $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
+            $logger: '@logger'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountUnlinkController:
+        arguments:
+            $security: '@security.helper'
+            $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
+            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+            $logger: '@logger'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthInitiateController:
+        arguments:
+            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthCallbackController:
+        arguments:
+            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandler'
+            $router: '@router'
+            $tokenStorage: '@security.token_storage'
+            $security: '@security.helper'
+            $logger: '@logger'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthConfirmLinkController:
+        arguments:
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandler'
+            $passwordHasher: '@security.user_password_hasher'
+            $tokenStorage: '@security.token_storage'
+            $router: '@router'
+            $twig: '@twig'
+            $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
+            $logger: '@logger'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountUnlinkController:
+        arguments:
+            $security: '@security.helper'
+            $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
+            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+            $logger: '@logger'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\SocialProvidersExtension:
+        arguments:
+            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+        tags:
+            - { name: 'twig.extension' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\SocialAccountLinksExtension:
+        arguments:
+            $customerLinkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
+            $adminLinkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
+        tags:
+            - { name: 'twig.extension' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\SocialAccountLinkFixture:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
