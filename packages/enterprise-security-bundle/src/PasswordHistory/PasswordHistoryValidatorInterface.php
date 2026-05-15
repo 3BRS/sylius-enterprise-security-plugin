@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator;
+namespace ThreeBRS\EnterpriseSecurityBundle\PasswordHistory;
 
 use Symfony\Component\Validator\ConstraintValidatorInterface;
 

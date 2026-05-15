@@ -8,10 +8,10 @@ use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
 
 /**
  * @template T of object

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Service;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\PasswordExpiration;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationChecker;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationChecker;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 

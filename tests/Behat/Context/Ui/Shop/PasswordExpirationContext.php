@@ -8,7 +8,7 @@ use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use Webmozart\Assert\Assert;
 
 class PasswordExpirationContext implements Context

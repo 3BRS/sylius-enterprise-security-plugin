@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordPolicy\PasswordPolicy;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordPolicy as PasswordPolicyConstraint;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordPolicy\Constraint\PasswordPolicy as PasswordPolicyConstraint;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator;
 
 #[CoversClass(PasswordPolicyValidator::class)]

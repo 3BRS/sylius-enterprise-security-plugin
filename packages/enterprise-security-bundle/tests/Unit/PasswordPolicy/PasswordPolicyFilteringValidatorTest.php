@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Validator;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\PasswordPolicy;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
-use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyFilteringValidator;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordPolicy\PasswordPolicyFilteringValidator;
 
 #[CoversClass(PasswordPolicyFilteringValidator::class)]
 class PasswordPolicyFilteringValidatorTest extends TestCase

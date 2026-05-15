@@ -2,10 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
-
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
+namespace ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration;
 
 interface PasswordExpirationCheckerInterface
 {

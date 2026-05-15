@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator;
+namespace ThreeBRS\EnterpriseSecurityBundle\PasswordPolicy;
 
 use Symfony\Component\Validator\ConstraintValidatorInterface;
 

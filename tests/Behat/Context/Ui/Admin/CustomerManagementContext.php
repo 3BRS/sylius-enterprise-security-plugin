@@ -13,7 +13,7 @@ use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 use Webmozart\Assert\Assert;
 

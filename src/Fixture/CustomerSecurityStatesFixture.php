@@ -10,8 +10,8 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
 
 class CustomerSecurityStatesFixture extends AbstractFixture implements CustomerSecurityStatesFixtureInterface
 {

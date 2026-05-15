@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Sylius\Component\Core\Model\AdminUser as BaseAdminUser;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserTrait;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserTrait;

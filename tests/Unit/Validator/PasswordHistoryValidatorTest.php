@@ -20,7 +20,7 @@ use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryCheckerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordHistory;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\Constraint\PasswordHistory;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordHistoryValidator;
 
 #[CoversClass(PasswordHistoryValidator::class)]

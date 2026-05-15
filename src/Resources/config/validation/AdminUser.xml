@@ -6,13 +6,13 @@
 
     <class name="Sylius\Component\Core\Model\AdminUser">
         <property name="plainPassword">
-            <constraint name="ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordPolicy">
+            <constraint name="ThreeBRS\EnterpriseSecurityBundle\PasswordPolicy\Constraint\PasswordPolicy">
                 <option name="policyGroup">admin</option>
                 <option name="groups">
                     <value>sylius</value>
                 </option>
             </constraint>
-            <constraint name="ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordHistory">
+            <constraint name="ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\Constraint\PasswordHistory">
                 <option name="groups">
                     <value>sylius</value>
                 </option>

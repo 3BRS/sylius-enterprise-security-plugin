@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Model;
+namespace ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration;
 
 interface PasswordExpirationAdminUserInterface
 {
