@@ -15,10 +15,10 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FirewallRedirectTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerSessionLoginListenerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\Exception\OAuthProviderException;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfoInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandlerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandlerInterface;
 
 class OAuthCallbackController implements OAuthCallbackControllerInterface
@@ -37,7 +37,7 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
         protected TokenStorageInterface $tokenStorage,
         protected Security $security,
         protected LoggerInterface $logger,
-        protected CustomerSessionLoginListenerInterface $sessionLoginListener,
+        protected CustomerSessionLoginHandlerInterface $sessionLoginHandler,
     ) {
     }
 
@@ -154,6 +154,14 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
 
     protected function authenticate(Request $request, ShopUserInterface $user): void
     {
+        // Session fixation defence: rotate the session ID before binding the
+        // newly authenticated token to it, so the pre-authentication session ID
+        // (which an attacker could have planted via XSS / set-cookie injection)
+        // cannot be reused to ride the resulting authenticated session.
+        if ($request->hasSession()) {
+            $request->getSession()->migrate(true);
+        }
+
         $token = new PostAuthenticationToken($user, static::FIREWALL_NAME, $user->getRoles());
         $this->tokenStorage->setToken($token);
 
@@ -162,11 +170,11 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
         }
 
         // Symfony's LoginSuccessEvent is dispatched by the firewall authenticator;
-        // OAuth bypasses that machinery and writes the token directly, so any
-        // listener bound to LoginSuccessEvent (session tracking, new-device email,
-        // …) would silently skip OAuth logins. Call the tracker directly to keep
-        // OAuth-authenticated sessions in the Active sessions list.
-        $this->sessionLoginListener->handleLogin($user, $request);
+        // OAuth bypasses that machinery and writes the token directly, so the
+        // standard session-tracking listener never fires. Invoke the handler
+        // directly so OAuth sign-ins land in the Active sessions list and trigger
+        // the new-device email like a regular password login.
+        $this->sessionLoginHandler->handle($user, $request);
     }
 
     /** @param array<string, mixed> $extra */

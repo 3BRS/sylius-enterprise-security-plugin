@@ -406,7 +406,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $security: '@security.helper'
             $logger: '@logger'
-            $sessionLoginListener: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerSessionLoginListener'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -419,6 +419,7 @@ services:
             $twig: '@twig'
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -449,7 +450,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $security: '@security.helper'
             $logger: '@logger'
-            $sessionLoginListener: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserSessionLoginListener'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -462,6 +463,7 @@ services:
             $twig: '@twig'
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -653,6 +655,7 @@ services:
             $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
             $router: '@router'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
             $enabled: '%three_brs.passkey.customer.enabled%'
             $skipTwoFactorWhenUserVerified: '%three_brs.passkey.skip_2fa_when_user_verified%'
         tags:
@@ -714,6 +717,7 @@ services:
             $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.admin'
             $router: '@router'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
             $enabled: '%three_brs.passkey.admin.enabled%'
             $skipTwoFactorWhenUserVerified: '%three_brs.passkey.skip_2fa_when_user_verified%'
         tags:
@@ -787,6 +791,7 @@ services:
             $router: '@router'
             $clock: '@clock'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
             $enabled: '%three_brs.magic_link.customer.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
@@ -811,6 +816,7 @@ services:
             $router: '@router'
             $clock: '@clock'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
             $enabled: '%three_brs.magic_link.admin.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
@@ -1093,7 +1099,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManagerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManager
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerSessionLoginListener:
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler:
         arguments:
             $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
             $newDeviceDetector: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerNewDeviceDetector'
@@ -1104,10 +1110,11 @@ services:
             $clock: '@clock'
             $sessionTrackingEnabled: '%three_brs.session_management.customer.enabled%'
             $loginNotificationsEnabled: '%three_brs.login_notifications.customer.enabled%'
-        tags:
-            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserSessionLoginListener:
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandlerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler:
         arguments:
             $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
             $newDeviceDetector: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserNewDeviceDetector'
@@ -1118,6 +1125,19 @@ services:
             $clock: '@clock'
             $sessionTrackingEnabled: '%three_brs.session_management.admin.enabled%'
             $loginNotificationsEnabled: '%three_brs.login_notifications.admin.enabled%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerSessionLoginListener:
+        arguments:
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+        tags:
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserSessionLoginListener:
+        arguments:
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
 

@@ -22,6 +22,7 @@ use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use Symfony\Component\Security\Http\Event\AuthenticationTokenCreatedEvent;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FirewallRedirectTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifierInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandlerInterface;
 
 class PasskeyLoginVerifyController implements PasskeyLoginVerifyControllerInterface
 {
@@ -36,6 +37,7 @@ class PasskeyLoginVerifyController implements PasskeyLoginVerifyControllerInterf
         protected AuthenticationRequiredHandlerInterface $twoFactorHandler,
         protected RouterInterface $router,
         protected LoggerInterface $logger,
+        protected CustomerSessionLoginHandlerInterface $sessionLoginHandler,
         protected bool $enabled,
         protected bool $skipTwoFactorWhenUserVerified,
     ) {
@@ -112,6 +114,12 @@ class PasskeyLoginVerifyController implements PasskeyLoginVerifyControllerInterf
         if ($request->hasSession()) {
             $request->getSession()->set('_security_' . static::FIREWALL_NAME, serialize($resultToken));
         }
+
+        // Manual setToken bypasses the firewall event dispatcher, so the
+        // session-tracking + new-device-notification listener bound to
+        // LoginSuccessEvent never fires. Invoke the handler directly so passkey
+        // sign-ins behave like a regular password login.
+        $this->sessionLoginHandler->handle($user, $request);
 
         return $resultToken;
     }

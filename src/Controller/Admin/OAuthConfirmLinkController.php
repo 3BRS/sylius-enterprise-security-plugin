@@ -18,6 +18,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfo;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandlerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface;
 use Twig\Environment;
 
 class OAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
@@ -35,6 +36,7 @@ class OAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
         protected Environment $twig,
         protected AdminUserSocialAccountLinkRepositoryInterface $linkRepository,
         protected LoggerInterface $logger,
+        protected AdminUserSessionLoginHandlerInterface $sessionLoginHandler,
     ) {
     }
 
@@ -117,11 +119,23 @@ class OAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
 
     protected function authenticate(Request $request, AdminUserInterface $user): void
     {
+        // Session fixation defence: rotate the session ID before binding the
+        // newly authenticated token, so a pre-auth session ID an attacker could
+        // have planted cannot ride the resulting authenticated session.
+        if ($request->hasSession()) {
+            $request->getSession()->migrate(true);
+        }
+
         $token = new PostAuthenticationToken($user, static::FIREWALL_NAME, $user->getRoles());
         $this->tokenStorage->setToken($token);
 
         if ($request->hasSession()) {
             $request->getSession()->set('_security_' . static::FIREWALL_NAME, serialize($token));
         }
+
+        // Manual setToken bypasses the firewall event dispatcher; invoke the
+        // tracker directly so OAuth confirm-link sign-ins land in the Active
+        // sessions list and trigger the new-device email like a regular login.
+        $this->sessionLoginHandler->handle($user, $request);
     }
 }
