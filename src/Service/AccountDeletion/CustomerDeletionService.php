@@ -82,6 +82,7 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
 
         foreach ($due as $request) {
             $customer = $request->getCustomer();
+
             // Send the completion email BEFORE anonymizing — afterwards
             // customer.email points at deleted-{id}@anonymized.invalid.
             // Caught: SMTP failure must not block the deletion (otherwise the
