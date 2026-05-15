@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig;
 
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistryInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistryInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 

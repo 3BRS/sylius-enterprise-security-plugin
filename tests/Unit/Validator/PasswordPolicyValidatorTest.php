@@ -11,9 +11,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicy;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordPolicy\PasswordPolicy;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactoryInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordPolicy as PasswordPolicyConstraint;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator;
 

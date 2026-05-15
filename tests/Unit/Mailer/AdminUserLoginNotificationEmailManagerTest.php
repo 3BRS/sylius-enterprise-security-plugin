@@ -10,7 +10,7 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManager;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentInfo;
+use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentInfo;
 
 #[CoversClass(AdminUserLoginNotificationEmailManager::class)]
 class AdminUserLoginNotificationEmailManagerTest extends TestCase

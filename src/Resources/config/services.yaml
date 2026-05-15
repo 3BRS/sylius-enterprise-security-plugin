@@ -116,8 +116,8 @@ services:
             $customerRepository: '@sylius.repository.customer'
             $adminUserRepository: '@sylius.repository.admin_user'
             $entityManager: '@doctrine.orm.entity_manager'
-            $totpGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator'
-            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $totpGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TotpSecretGenerator'
+            $recoveryGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator'
         tags:
             - { name: 'sylius_fixtures.fixture' }
 
@@ -133,23 +133,23 @@ services:
         tags:
             - { name: 'doctrine.repository_service' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator: ~
+    ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TotpSecretGenerator: ~
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\QrCodeGenerator: ~
+    ThreeBRS\EnterpriseSecurityBundle\TwoFactor\QrCodeGenerator: ~
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator: ~
+    ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator: ~
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeVerifier:
         arguments:
             $customerRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository'
             $adminRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository'
-            $generator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $generator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker:
         arguments:
-            $policyFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory'
+            $policyFactory: '@ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactory'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\TwoFactorEnforcementListener:
         arguments:
@@ -166,9 +166,9 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\TwoFactorSetupController:
         arguments:
             $tokenStorage: '@security.token_storage'
-            $totpGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator'
-            $qrGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\QrCodeGenerator'
-            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $totpGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TotpSecretGenerator'
+            $qrGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\QrCodeGenerator'
+            $recoveryGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator'
             $csrfTokenManager: '@security.csrf.token_manager'
             $entityManager: '@doctrine.orm.entity_manager'
             $formFactory: '@form.factory'
@@ -204,7 +204,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $entityManager: '@doctrine.orm.entity_manager'
             $recoveryCodeRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository'
-            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $recoveryGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator'
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
             $recoveryCodesEnabled: '%three_brs.two_factor.customer.recovery_codes_enabled%'
@@ -215,9 +215,9 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorSetupController:
         arguments:
             $tokenStorage: '@security.token_storage'
-            $totpGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TotpSecretGenerator'
-            $qrGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\QrCodeGenerator'
-            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $totpGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TotpSecretGenerator'
+            $qrGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\QrCodeGenerator'
+            $recoveryGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator'
             $csrfTokenManager: '@security.csrf.token_manager'
             $entityManager: '@doctrine.orm.entity_manager'
             $formFactory: '@form.factory'
@@ -260,7 +260,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $entityManager: '@doctrine.orm.entity_manager'
             $recoveryCodeRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository'
-            $recoveryGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator'
+            $recoveryGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator'
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
             $recoveryCodesEnabled: '%three_brs.two_factor.admin.recovery_codes_enabled%'
@@ -288,7 +288,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\ShopAccountMenuListener:
         arguments:
-            $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
+            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
@@ -304,7 +304,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\AdminMainMenuListener:
         arguments:
-            $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
+            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }
@@ -324,7 +324,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator:
         arguments:
-            $policyFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory'
+            $policyFactory: '@ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactory'
             $tokenStorage: '@security.token_storage'
         tags:
             - { name: 'validator.constraint_validator', alias: 'three_brs.validator.password_policy' }
@@ -341,7 +341,7 @@ services:
         tags:
             - { name: 'doctrine.repository_service' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\GoogleOAuthProvider:
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\GoogleOAuthProvider:
         arguments:
             $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $customerClientId: '%three_brs.oauth.customer.google.client_id%'
@@ -351,7 +351,7 @@ services:
         tags:
             - { name: 'three_brs.oauth_provider' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\AppleOAuthProvider:
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\AppleOAuthProvider:
         arguments:
             $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $customerClientId: '%three_brs.oauth.customer.apple.client_id%'
@@ -365,7 +365,7 @@ services:
         tags:
             - { name: 'three_brs.oauth_provider' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry:
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry:
         arguments:
             $providers: !tagged_iterator 'three_brs.oauth_provider'
 
@@ -394,14 +394,14 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthInitiateController:
         arguments:
-            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+            $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
             $router: '@router'
         tags:
             - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthCallbackController:
         arguments:
-            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+            $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
             $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandler'
             $router: '@router'
             $tokenStorage: '@security.token_storage'
@@ -438,14 +438,14 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthInitiateController:
         arguments:
-            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+            $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
             $router: '@router'
         tags:
             - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthCallbackController:
         arguments:
-            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+            $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
             $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandler'
             $router: '@router'
             $tokenStorage: '@security.token_storage'
@@ -482,7 +482,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\SocialProvidersExtension:
         arguments:
-            $registry: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistry'
+            $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
         tags:
             - { name: 'twig.extension' }
 
@@ -724,18 +724,18 @@ services:
         tags:
             - { name: 'controller.service_arguments' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator: ~
+    ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator: ~
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerMagicLinkTokenVerifier:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository'
-            $generator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+            $generator: '@ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator'
             $clock: '@clock'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserMagicLinkTokenVerifier:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepository'
-            $generator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+            $generator: '@ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator'
             $clock: '@clock'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManager:
@@ -748,25 +748,25 @@ services:
             $emailSender: '@sylius.email_sender'
             $router: '@router'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding: ~
+    ThreeBRS\EnterpriseSecurityBundle\Timing\DeadlineTimingPadding: ~
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler:
         arguments:
             $customerRepository: '@sylius.repository.customer'
-            $tokenGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+            $tokenGenerator: '@ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator'
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManager'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
-            $timingPadding: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding'
+            $timingPadding: '@ThreeBRS\EnterpriseSecurityBundle\Timing\DeadlineTimingPadding'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler:
         arguments:
             $adminUserRepository: '@sylius.repository.admin_user'
-            $tokenGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+            $tokenGenerator: '@ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator'
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManager'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
-            $timingPadding: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding'
+            $timingPadding: '@ThreeBRS\EnterpriseSecurityBundle\Timing\DeadlineTimingPadding'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\MagicLinkRequestType:
         tags:
@@ -824,13 +824,13 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\MagicLinkExtension:
         arguments:
-            $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
+            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
         tags:
             - { name: 'twig.extension' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\PasskeyExtension:
         arguments:
-            $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
+            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
         tags:
             - { name: 'twig.extension' }
 
@@ -839,7 +839,7 @@ services:
             $customerRepository: '@sylius.repository.customer'
             $adminUserRepository: '@sylius.repository.admin_user'
             $entityManager: '@doctrine.orm.entity_manager'
-            $tokenGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator'
+            $tokenGenerator: '@ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator'
         tags:
             - { name: 'sylius_fixtures.fixture' }
 
@@ -860,23 +860,23 @@ services:
             - { name: 'sylius_fixtures.fixture' }
 
     three_brs.lockout.policy.customer:
-        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy
-        factory: ['@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory', 'lockoutPolicy']
+        class: ThreeBRS\EnterpriseSecurityBundle\Lockout\LockoutPolicy
+        factory: ['@ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactory', 'lockoutPolicy']
         arguments:
-            $scope: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope::CUSTOMER
+            $scope: !php/enum ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope::CUSTOMER
 
     three_brs.lockout.policy.admin:
-        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy
-        factory: ['@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory', 'lockoutPolicy']
+        class: ThreeBRS\EnterpriseSecurityBundle\Lockout\LockoutPolicy
+        factory: ['@ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactory', 'lockoutPolicy']
         arguments:
-            $scope: !php/enum ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope::ADMIN
+            $scope: !php/enum ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope::ADMIN
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager:
         arguments:
             $policy: '@three_brs.lockout.policy.customer'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
-            $rateLimitGuard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard'
+            $rateLimitGuard: '@ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuard'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManagerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager
@@ -886,7 +886,7 @@ services:
             $policy: '@three_brs.lockout.policy.admin'
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
-            $rateLimitGuard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard'
+            $rateLimitGuard: '@ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuard'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManagerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager
@@ -924,24 +924,24 @@ services:
         arguments:
             - '@three_brs.rate_limiter.cache_pool'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactory:
+    ThreeBRS\EnterpriseSecurityBundle\RateLimit\DynamicRateLimiterFactory:
         arguments:
             $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $storage: '@three_brs.rate_limiter.storage'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactoryInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactory
+    ThreeBRS\EnterpriseSecurityBundle\RateLimit\DynamicRateLimiterFactoryInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\RateLimit\DynamicRateLimiterFactory
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard:
+    ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuard:
         arguments:
-            $factory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactory'
+            $factory: '@ThreeBRS\EnterpriseSecurityBundle\RateLimit\DynamicRateLimiterFactory'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard
+    ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuardInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuard
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\RateLimitListener:
         arguments:
-            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard'
+            $guard: '@ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuard'
             $router: '@router'
         tags:
             # Priority 16: after Symfony RouterListener (priority 32) so `_route`
@@ -1036,26 +1036,26 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepositoryInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepository
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser: ~
+    ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser: ~
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParserInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser
+    ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParserInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\NullGeoIpLookup: ~
+    ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\NullGeoIpLookup: ~
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\NullGeoIpLookup
+    ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\NullGeoIpLookup
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator: ~
+    ThreeBRS\EnterpriseSecurityBundle\Session\SessionFingerprintGenerator: ~
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGeneratorInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator
+    ThreeBRS\EnterpriseSecurityBundle\Session\SessionFingerprintGeneratorInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\Session\SessionFingerprintGenerator
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
             $entityManager: '@doctrine.orm.entity_manager'
-            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
+            $geoIpLookup: '@ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface'
             $clock: '@clock'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface:
@@ -1065,7 +1065,7 @@ services:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
             $entityManager: '@doctrine.orm.entity_manager'
-            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
+            $geoIpLookup: '@ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface'
             $clock: '@clock'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTrackerInterface:
@@ -1106,9 +1106,9 @@ services:
             $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
             $newDeviceDetector: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerNewDeviceDetector'
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManager'
-            $fingerprintGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator'
-            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
-            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
+            $fingerprintGenerator: '@ThreeBRS\EnterpriseSecurityBundle\Session\SessionFingerprintGenerator'
+            $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
+            $geoIpLookup: '@ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface'
             $clock: '@clock'
             $sessionTrackingEnabled: '%three_brs.session_management.customer.enabled%'
             $loginNotificationsEnabled: '%three_brs.login_notifications.customer.enabled%'
@@ -1121,9 +1121,9 @@ services:
             $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
             $newDeviceDetector: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserNewDeviceDetector'
             $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManager'
-            $fingerprintGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator'
-            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
-            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
+            $fingerprintGenerator: '@ThreeBRS\EnterpriseSecurityBundle\Session\SessionFingerprintGenerator'
+            $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
+            $geoIpLookup: '@ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface'
             $clock: '@clock'
             $sessionTrackingEnabled: '%three_brs.session_management.admin.enabled%'
             $loginNotificationsEnabled: '%three_brs.login_notifications.admin.enabled%'
@@ -1187,7 +1187,7 @@ services:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
             $tokenStorage: '@security.token_storage'
-            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+            $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
             $twig: '@twig'
             $enabled: '%three_brs.session_management.customer.enabled%'
         tags:
@@ -1218,7 +1218,7 @@ services:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
             $tokenStorage: '@security.token_storage'
-            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+            $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
             $twig: '@twig'
             $enabled: '%three_brs.session_management.admin.enabled%'
         tags:
@@ -1262,24 +1262,24 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepositoryInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepository
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\SettingsDefaultsBuilder: ~
+    ThreeBRS\EnterpriseSecurityBundle\Settings\Defaults\SettingsDefaultsBuilder: ~
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\SettingsDefaultsBuilderInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\SettingsDefaultsBuilder
+    ThreeBRS\EnterpriseSecurityBundle\Settings\Defaults\SettingsDefaultsBuilderInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\Settings\Defaults\SettingsDefaultsBuilder
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\YamlConfigDefaultsProvider:
+    ThreeBRS\EnterpriseSecurityBundle\Settings\Defaults\YamlConfigDefaultsProvider:
         arguments:
             $defaults: '%three_brs.security_settings.defaults%'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\SettingsDefaultsProviderInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\YamlConfigDefaultsProvider
+    ThreeBRS\EnterpriseSecurityBundle\Settings\Defaults\SettingsDefaultsProviderInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\Settings\Defaults\YamlConfigDefaultsProvider
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepository'
-            $defaultsProvider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\YamlConfigDefaultsProvider'
+            $defaultsProvider: '@ThreeBRS\EnterpriseSecurityBundle\Settings\Defaults\YamlConfigDefaultsProvider'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface:
+    ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter:
@@ -1288,22 +1288,22 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $provider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriterInterface:
+    ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory:
+    ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactory:
         arguments:
             $provider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactoryInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactory
+    ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactoryInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactory
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle:
+    ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle:
         arguments:
             $provider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggleInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle
+    ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordPolicySettingsType:
         tags:
@@ -1373,7 +1373,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\SecuritySettingsFixture:
         arguments:
-            $defaultsProvider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\YamlConfigDefaultsProvider'
+            $defaultsProvider: '@ThreeBRS\EnterpriseSecurityBundle\Settings\Defaults\YamlConfigDefaultsProvider'
             $writer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter'
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepository'
         tags:
@@ -1579,7 +1579,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\CustomerSecurityExtension:
         arguments:
             $sessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
-            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+            $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
         tags:
             - { name: 'twig.extension' }
 

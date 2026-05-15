@@ -7,7 +7,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer;
 use DateTimeImmutable;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentInfo;
+use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentInfo;
 
 class AdminUserLoginNotificationEmailManager implements AdminUserLoginNotificationEmailManagerInterface
 {

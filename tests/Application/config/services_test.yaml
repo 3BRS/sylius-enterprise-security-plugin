@@ -15,7 +15,7 @@ services:
         public: true
 
     # Override the real Google OAuth provider with a fake one during tests.
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\GoogleOAuthProvider:
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\GoogleOAuthProvider:
         class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
         arguments:
             $name: 'google'
@@ -25,7 +25,7 @@ services:
             - { name: 'three_brs.oauth_provider' }
 
     # Override the real Apple OAuth provider with a fake one during tests.
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\AppleOAuthProvider:
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\AppleOAuthProvider:
         class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
         arguments:
             $name: 'apple'

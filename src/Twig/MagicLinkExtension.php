@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig;
 
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggleInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 

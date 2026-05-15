@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface;
+use ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuardInterface;
 
 class RateLimitListener implements RateLimitListenerInterface
 {

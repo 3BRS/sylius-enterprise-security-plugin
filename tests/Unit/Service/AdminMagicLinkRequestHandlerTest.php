@@ -12,8 +12,8 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGeneratorInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TimingPaddingInterface;
+use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Timing\TimingPaddingInterface;
 
 #[CoversClass(AdminMagicLinkRequestHandler::class)]
 class AdminMagicLinkRequestHandlerTest extends TestCase

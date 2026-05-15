@@ -12,8 +12,8 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpResult;
+use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpResult;
 
 #[CoversClass(CustomerSessionTracker::class)]
 class CustomerSessionTrackerTest extends TestCase

@@ -7,6 +7,7 @@
     <testsuites>
         <testsuite name="SyliusEnterpriseSecurityPlugin Test Suite">
             <directory>tests</directory>
+            <directory>packages/enterprise-security-bundle/tests</directory>
         </testsuite>
     </testsuites>
 

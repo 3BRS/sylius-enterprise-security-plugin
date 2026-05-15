@@ -7,6 +7,9 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session;
 use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
+use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\SessionFingerprintGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManagerInterface;
 
 /**
