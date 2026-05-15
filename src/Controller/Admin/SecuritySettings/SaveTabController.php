@@ -179,10 +179,20 @@ class SaveTabController implements SaveTabControllerInterface
      */
     protected function flashFormErrors(Request $request, FormInterface $form): void
     {
-        // Generic key so the admin always sees something (e.g. on a bare CSRF
-        // failure with no field errors), plus one flash per field error so the
-        // admin can fix the offending field directly. Symfony's form pipeline
-        // already translates constraint messages, so we surface them verbatim.
+        // Root-level errors (deep: false) are almost always CSRF on this form —
+        // Symfony's CsrfValidationListener calls `$form->addError()` on the
+        // root, never on a child field. Customer / admin sign-ins elsewhere in
+        // the browser invalidate the pre-auth CSRF token storage by design
+        // (Symfony SessionAuthenticationStrategy::MIGRATE destroys the old
+        // session), so the admin's still-open settings tab fails validation.
+        // Show a targeted "session renewed, refresh & retry" flash instead of
+        // the generic `_token: The CSRF token is invalid` echo from Symfony.
+        if (count($form->getErrors(deep: false)) > 0) {
+            $this->addFlashMessage($request, 'error', 'three_brs.security_settings.session_expired');
+
+            return;
+        }
+
         $this->addFlashMessage($request, 'error', 'three_brs.security_settings.invalid');
 
         foreach ($form->getErrors(true) as $error) {

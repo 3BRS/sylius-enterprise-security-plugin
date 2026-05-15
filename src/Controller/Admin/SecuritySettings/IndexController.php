@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings;
 
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
@@ -55,7 +56,7 @@ class IndexController implements IndexControllerInterface
     }
 
     /**
-     * @return array<string, \Symfony\Component\Form\FormInterface<array<string, mixed>>>
+     * @return array<string, FormInterface<array<string, mixed>>>
      */
     protected function buildForms(SettingsScope $scope): array
     {

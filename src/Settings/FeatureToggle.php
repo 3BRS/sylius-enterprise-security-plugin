@@ -21,7 +21,7 @@ class FeatureToggle implements FeatureToggleInterface
     public function isTwoFactorActive(SettingsScope $scope): bool
     {
         // 2FA has no `enabled` flag — it is gated by a three-state mode
-        // (disabled / optional / enforced); the menu / setup pages only make
+        // (disabled / allowed / enforced); the menu / setup pages only make
         // sense when the mode is non-disabled.
         return $this->provider->getString('two_factor_authentication.mode', $scope) !== TwoFactorMode::DISABLED->value;
     }

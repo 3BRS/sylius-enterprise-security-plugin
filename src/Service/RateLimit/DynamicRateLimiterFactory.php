@@ -55,6 +55,13 @@ class DynamicRateLimiterFactory implements DynamicRateLimiterFactoryInterface
 
     protected function resolveScope(string $group): SettingsScope
     {
-        return $group === 'admin' ? SettingsScope::ADMIN : SettingsScope::CUSTOMER;
+        return match ($group) {
+            'customer' => SettingsScope::CUSTOMER,
+            'admin' => SettingsScope::ADMIN,
+            default => throw new \InvalidArgumentException(sprintf(
+                'Unknown rate limit group "%s"; expected "customer" or "admin".',
+                $group,
+            )),
+        };
     }
 }
