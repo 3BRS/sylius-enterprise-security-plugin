@@ -146,4 +146,23 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             ->setLabelAttribute('icon', 'tabler:shield-check')
         ;
     }
+
+    public function addAccountDeletionsItem(MenuBuilderEvent $event): void
+    {
+        if (!$this->features->isEnabled('account_deletion', SettingsScope::CUSTOMER)) {
+            return;
+        }
+
+        $configuration = $event->getMenu()->getChild('configuration');
+
+        if ($configuration === null) {
+            return;
+        }
+
+        $configuration
+            ->addChild('three_brs_account_deletions', ['route' => 'three_brs_admin_account_deletions'])
+            ->setLabel('three_brs.ui.account_deletion.admin_title')
+            ->setLabelAttribute('icon', 'tabler:user-x')
+        ;
+    }
 }

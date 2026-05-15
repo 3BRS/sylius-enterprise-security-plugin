@@ -77,4 +77,19 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
             ->setLabelAttribute('icon', 'tabler:devices')
         ;
     }
+
+    public function addAccountDeletionItem(MenuBuilderEvent $event): void
+    {
+        if (!$this->features->isEnabled('account_deletion', SettingsScope::CUSTOMER)) {
+            return;
+        }
+
+        $menu = $event->getMenu();
+
+        $menu
+            ->addChild('account_deletion', ['route' => 'three_brs_shop_account_deletion_request'])
+            ->setLabel('three_brs.ui.account_deletion.menu_item')
+            ->setLabelAttribute('icon', 'tabler:user-x')
+        ;
+    }
 }

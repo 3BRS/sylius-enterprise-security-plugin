@@ -30,6 +30,9 @@ class RateLimitListener implements RateLimitListenerInterface
         'sylius_shop_register' => ['customer', 'register', 'sylius_shop_register'],
         'three_brs_shop_magic_link_request' => ['customer', 'magic_link', 'three_brs_shop_magic_link_request'],
         'three_brs_admin_magic_link_request' => ['admin', 'magic_link', 'three_brs_admin_magic_link_request'],
+        // Account deletion POSTs the user's current password — same brute-force surface as
+        // password reset, so it shares that limiter budget per (IP, action) pair.
+        'three_brs_shop_account_deletion_request' => ['customer', 'password_reset', 'three_brs_shop_account_deletion_request'],
     ];
 
     public function __construct(

@@ -1,0 +1,47 @@
+{% extends '@SyliusShop/shared/layout/base.html.twig' %}
+
+{% block title %}{{ 'three_brs.ui.account_deletion.title'|trans }} | {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="container mb-auto">
+        <div class="row my-4 justify-content-center">
+            <div class="col-12 col-md-7">
+                <div class="card border-danger">
+                    <div class="card-body p-4">
+                        <h1 class="h4 mb-3 text-danger">{{ 'three_brs.ui.account_deletion.title'|trans }}</h1>
+                        <p class="mb-2">{{ 'three_brs.ui.account_deletion.intro'|trans }}</p>
+                        <p class="text-muted small mb-0">{{ 'three_brs.ui.account_deletion.contact_admin_to_cancel'|trans }}</p>
+
+                        <hr class="my-4">
+
+                        {{ form_start(form, {'action': path('three_brs_shop_account_deletion_request'), 'attr': {'id': 'three_brs_account_deletion_form', 'novalidate': 'novalidate'}}) }}
+                            <div class="mb-3">
+                                {{ form_label(form.currentPassword, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.currentPassword, {'attr': {'class': 'form-control', 'autocomplete': 'current-password', 'id': 'three_brs_account_deletion_current_password'}}) }}
+                            </div>
+                            <div class="form-check mb-3">
+                                {{ form_widget(form.acknowledged, {'attr': {'class': 'form-check-input', 'id': 'three_brs_account_deletion_acknowledged'}}) }}
+                                {{ form_label(form.acknowledged, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                            </div>
+
+                            {% if form.currentPassword.vars.errors|length > 0 or form.acknowledged.vars.errors|length > 0 %}
+                                <ul class="text-danger small ps-3 mb-3">
+                                    {% for error in form.currentPassword.vars.errors %}
+                                        <li>{{ error.message }}</li>
+                                    {% endfor %}
+                                    {% for error in form.acknowledged.vars.errors %}
+                                        <li>{{ error.message }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                            <button type="submit" class="btn btn-danger w-100" id="three_brs_account_deletion_submit">
+                                {{ 'three_brs.ui.account_deletion.submit'|trans }}
+                            </button>
+                            {{ form_rest(form) }}
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

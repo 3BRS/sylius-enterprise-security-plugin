@@ -1,4 +1,7 @@
 three_brs:
+    account_deletion:
+        acknowledge_required: 'You must acknowledge the consequences before submitting.'
+        password_required: 'Please enter your password.'
     two_factor:
         code_required: 'Please enter your authentication code.'
         invalid_code: 'The authentication code is invalid. Please try again.'

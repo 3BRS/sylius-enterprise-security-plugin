@@ -1,0 +1,78 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.account_deletion.admin_title'|trans }}{% endblock %}
+
+{% block body %}
+    {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
+
+    <div class="page-wrapper">
+        {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
+
+        <div class="page-header" data-sticky-header>
+            <div class="container-xl">
+                {{ breadcrumbs([
+                    { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'three_brs.ui.account_deletion.admin_title', active: true },
+                ]) }}
+                <div class="row mt-3 row-gap-2">
+                    <div class="col-12">
+                        {{ header.h1('three_brs.ui.account_deletion.admin_title'|trans) }}
+                        <p class="text-secondary mb-0">{{ 'three_brs.ui.account_deletion.admin_intro'|trans }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include '@SyliusAdmin/shared/crud/common/content/flashes.html.twig' %}
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title mb-0">{{ 'three_brs.ui.account_deletion.pending'|trans }}</h2>
+                    </div>
+                    {% if pendingRequests is empty %}
+                        <div class="card-body">
+                            <p class="text-secondary mb-0">{{ 'three_brs.ui.account_deletion.no_pending'|trans }}</p>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-vcenter" data-test-three-brs-pending-deletions>
+                                <thead>
+                                    <tr>
+                                        <th>{{ 'three_brs.ui.account_deletion.email'|trans }}</th>
+                                        <th>{{ 'three_brs.ui.account_deletion.requested_at'|trans }}</th>
+                                        <th>{{ 'three_brs.ui.account_deletion.scheduled_for'|trans }}</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in pendingRequests %}
+                                        <tr data-test-three-brs-pending-deletion="{{ request.id }}">
+                                            <td>{{ request.customer.email }}</td>
+                                            <td>{{ request.requestedAt|date('Y-m-d H:i') }}</td>
+                                            <td>{{ request.scheduledFor|date('Y-m-d H:i') }}</td>
+                                            <td class="text-end">
+                                                <form method="POST" action="{{ path('three_brs_admin_account_deletion_cancel', {'id': request.id}) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('three_brs_account_deletion_cancel_' ~ request.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary"
+                                                            data-test-three-brs-cancel-deletion="{{ request.id }}">
+                                                        {{ 'three_brs.ui.account_deletion.cancel'|trans }}
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

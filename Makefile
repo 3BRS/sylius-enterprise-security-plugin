@@ -107,7 +107,7 @@ bare-fixtures:
 	./bin-docker/php ./bin/console sylius:fixtures:load --no-interaction
 
 var:
-	docker compose exec -u root php rm -rf tests/Application/var
+	rm -rf tests/Application/var
 	mkdir -p tests/Application/var/log
 	touch tests/Application/var/log/test.log
 	touch tests/Application/var/log/dev.log

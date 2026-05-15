@@ -1,0 +1,17 @@
+{% block subject %}
+    {{ 'three_brs.emails.account_deletion_completed.subject'|trans }}
+{% endblock %}
+
+{% block body %}
+    <div style="font-family: sans-serif; background: #eee; padding-top: 30px; padding-bottom: 30px; font-size: 16px; color: #333; line-height: 1.5">
+        <div style="max-width: 600px; margin: 20px auto;">
+            <div style="background: #fff; padding: 40px 30px;">
+                <div style="font-size: 24px; margin-bottom: 20px;">
+                    {{ 'three_brs.emails.account_deletion_completed.title'|trans }}
+                </div>
+
+                <p>{{ 'three_brs.emails.account_deletion_completed.intro'|trans }}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

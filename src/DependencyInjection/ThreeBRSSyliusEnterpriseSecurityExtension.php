@@ -56,6 +56,14 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
                     'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/loginNotification.html.twig',
                     'enabled' => true,
                 ],
+                'three_brs_account_deletion_requested' => [
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/accountDeletionRequested.html.twig',
+                    'enabled' => true,
+                ],
+                'three_brs_account_deletion_completed' => [
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/accountDeletionCompleted.html.twig',
+                    'enabled' => true,
+                ],
             ],
         ]);
 
@@ -88,6 +96,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerAccountLockout($container, $config['account_lockout']);
         $this->registerSessionManagement($container, $config['session_management']);
         $this->registerLoginNotifications($container, $config['login_notifications']);
+        $this->registerAccountDeletion($container, $config['account_deletion']);
         $this->registerSecuritySettingsDefaults($container, $config);
     }
 
@@ -96,6 +105,13 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     {
         $defaults = (new SettingsDefaultsBuilder())->build($config);
         $container->setParameter('three_brs.security_settings.defaults', $defaults);
+    }
+
+    /** @param array<string, array<string, mixed>> $config */
+    protected function registerAccountDeletion(ContainerBuilder $container, array $config): void
+    {
+        $container->setParameter('three_brs.account_deletion.customer.enabled', (bool) $config['customer']['enabled']);
+        $container->setParameter('three_brs.account_deletion.customer.grace_period_days', (int) $config['customer']['grace_period_days']);
     }
 
     /** @param array<string, mixed> $config */

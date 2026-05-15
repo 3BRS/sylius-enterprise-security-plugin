@@ -128,3 +128,7 @@ three_brs_sylius_enterprise_security:
             enabled: true
         admin:
             enabled: true
+    account_deletion:
+        customer:
+            enabled: true
+            grace_period_days: 30
