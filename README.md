@@ -607,7 +607,9 @@ Restrict admin panel access to a configured set of IP addresses or CIDR ranges. 
 
 Access is granted when **either** the request IP matches the global list **or** the authenticated admin's own (enabled) list matches. A failed check returns HTTP 403 with a plain-text body — there is no redirect or login form fallback.
 
-**Pure per-admin (no global) is fully supported.** Leave the global list empty and configure per-admin entries only — admin A is allowed in from her CIDRs, admin B from his, and the lists never cross. On `/admin/login` (anonymous, identity not yet known) the listener allows the request through if the IP matches **any** enabled per-admin entry so the admin can reach the login form; after authentication, the post-auth check then enforces that the IP matches **that specific admin's** entry (otherwise the session is rejected on the next request). This means an attacker who lands on admin A's home IP still can't sign in as admin B — the per-admin check binds the IP to the identity.
+**Global list is mandatory when the feature is enabled.** The Security settings form rejects saving `enabled = true` with an empty global list — at least one global CIDR must be configured. This guard prevents the most common self-lockout scenario (someone flips the master switch on without filling anything in). At runtime, the post-auth check then fans out into per-admin entries on top of the global list. On `/admin/login` (anonymous, identity not yet known) the listener also lets the request through if the IP matches **any** enabled per-admin entry so an admin can reach the login form; after authentication, the post-auth check enforces that the IP matches **that specific admin's** entry (otherwise the session is rejected on the next request). This means an attacker who lands on admin A's home IP still can't sign in as admin B — the per-admin check binds the IP to the identity.
+
+If you really want pure per-admin enforcement with no team-wide allow, add `0.0.0.0/0` and `::/0` to the global list as an explicit acknowledgement that the team-wide layer is intentionally wide open and only per-admin entries restrict access.
 
 ```yaml
 three_brs_sylius_enterprise_security:
@@ -618,11 +620,11 @@ three_brs_sylius_enterprise_security:
 #### Defaults for IP whitelist
 
 - `ip_whitelist.enabled` defaults to `false` — the feature is off out of the box; existing admin sessions continue unchanged.
-- `ip_whitelist.global_cidrs` defaults to `[]` (no IPs configured). This is GLOBAL-scope only and is edited through the Security settings UI.
+- `ip_whitelist.global_cidrs` defaults to `[]` (no IPs configured). This is GLOBAL-scope only and is edited through the Security settings UI. When the feature is enabled, the form requires at least one CIDR here.
 
 The Configuration node only exposes the master switch. The actual allow-lists live in the database (DB-backed settings + a per-admin entity, `three_brs_admin_user_ip_whitelist`) so that operators can change them at runtime without redeploying.
 
-> **Operator note.** If you enable the feature with an empty global list **and no enabled per-admin entries** that cover your IP, all administrators will be locked out of the panel. Either configure at least one matching CIDR (global or per-admin) before enabling, or disable the feature again via SQL (`UPDATE three_brs_security_setting SET value = 'false' WHERE scope = 'global' AND path = 'ip_whitelist.enabled'`) to recover. CIDR validation accepts both IPv4 (e.g. `10.0.0.0/8`, `192.168.1.1`) and IPv6 (e.g. `2001:db8::/32`, `::1`).
+> **Operator note.** The UI guard above prevents enabling the feature with an empty global list, so the standard self-lockout path is closed. If the feature still gets misconfigured (e.g. via direct DB edits) and the global list no longer matches your IP, disable the feature via SQL to recover: `UPDATE three_brs_security_setting SET value = 'false' WHERE scope = 'global' AND path = 'ip_whitelist.enabled'`. CIDR validation accepts both IPv4 (e.g. `10.0.0.0/8`, `192.168.1.1`) and IPv6 (e.g. `2001:db8::/32`, `::1`).
 
 #### When IP whitelist is the right tool
 
