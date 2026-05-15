@@ -9,18 +9,19 @@ use League\OAuth2\Client\Provider\AppleResourceOwner;
 use League\OAuth2\Client\Token\AccessToken;
 use Symfony\Component\HttpFoundation\Request;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\Exception\OAuthProviderException;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class AppleOAuthProvider implements AppleOAuthProviderInterface
 {
     public const NAME = 'apple';
 
     public function __construct(
-        protected bool $customerEnabled,
+        protected SettingsProviderInterface $settings,
         protected ?string $customerClientId,
         protected ?string $customerTeamId,
         protected ?string $customerKeyId,
         protected ?string $customerPrivateKeyPath,
-        protected bool $adminEnabled,
         protected ?string $adminClientId,
         protected ?string $adminTeamId,
         protected ?string $adminKeyId,
@@ -35,7 +36,7 @@ class AppleOAuthProvider implements AppleOAuthProviderInterface
 
     public function isEnabledForCustomer(): bool
     {
-        return $this->customerEnabled &&
+        return $this->settings->getBool('oauth.apple.enabled', SettingsScope::CUSTOMER) &&
             $this->customerClientId !== null && $this->customerClientId !== '' &&
             $this->customerTeamId !== null && $this->customerTeamId !== '' &&
             $this->customerKeyId !== null && $this->customerKeyId !== '' &&
@@ -44,7 +45,7 @@ class AppleOAuthProvider implements AppleOAuthProviderInterface
 
     public function isEnabledForAdmin(): bool
     {
-        return $this->adminEnabled &&
+        return $this->settings->getBool('oauth.apple.enabled', SettingsScope::ADMIN) &&
             $this->adminClientId !== null && $this->adminClientId !== '' &&
             $this->adminTeamId !== null && $this->adminTeamId !== '' &&
             $this->adminKeyId !== null && $this->adminKeyId !== '' &&

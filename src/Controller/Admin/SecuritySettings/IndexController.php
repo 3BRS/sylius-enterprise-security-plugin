@@ -10,10 +10,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountLockoutSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\MagicLinkSettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasskeySettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordExpirationSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordHistorySettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordPolicySettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\RateLimitSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SimpleToggleSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\TwoFactorSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
@@ -106,6 +109,20 @@ class IndexController implements IndexControllerInterface
                 'auto_unlock_after' => $this->settings->getNullableInt('account_lockout.auto_unlock_after', $scope),
             ], ['action' => $this->saveUrl('account_lockout', $scope)]);
 
+            $rateLimitActions = $scope === SettingsScope::CUSTOMER
+                ? ['login', 'password_reset', 'register', 'magic_link']
+                : ['login', 'password_reset', 'magic_link'];
+            $rateLimitData = [];
+            foreach ($rateLimitActions as $action) {
+                $rateLimitData[$action . '_enabled'] = $this->settings->getBool('rate_limit.' . $action . '.enabled', $scope);
+                $rateLimitData[$action . '_limit'] = $this->settings->getInt('rate_limit.' . $action . '.limit', $scope);
+                $rateLimitData[$action . '_interval'] = $this->settings->getString('rate_limit.' . $action . '.interval', $scope);
+            }
+            $forms['rate_limit'] = $this->formFactory->create(RateLimitSettingsType::class, $rateLimitData, [
+                'actions' => $rateLimitActions,
+                'action' => $this->saveUrl('rate_limit', $scope),
+            ]);
+
             $forms['session_management'] = $this->formFactory->create(SimpleToggleSettingsType::class, [
                 'enabled' => $this->settings->getBool('session_management.enabled', $scope),
             ], [
@@ -119,6 +136,19 @@ class IndexController implements IndexControllerInterface
                 'label' => 'three_brs.ui.security_settings.login_notifications.enabled',
                 'action' => $this->saveUrl('login_notifications', $scope),
             ]);
+
+            $forms['oauth'] = $this->formFactory->create(OAuthSettingsType::class, [
+                'google_enabled' => $this->settings->getBool('oauth.google.enabled', $scope),
+                'apple_enabled' => $this->settings->getBool('oauth.apple.enabled', $scope),
+            ], ['action' => $this->saveUrl('oauth', $scope)]);
+
+            if ($scope === SettingsScope::ADMIN) {
+                $whitelist = $this->settings->get('oauth.auto_register_allowed_email_domains', $scope);
+                $forms['oauth_admin_policy'] = $this->formFactory->create(OAuthAdminPolicySettingsType::class, [
+                    'default_locale' => $this->settings->getString('oauth.default_locale', $scope),
+                    'auto_register_allowed_email_domains' => is_array($whitelist) ? $whitelist : [],
+                ], ['action' => $this->saveUrl('oauth_admin_policy', $scope)]);
+            }
         }
 
         return $forms;

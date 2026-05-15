@@ -7,7 +7,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Model;
 enum TwoFactorMode: string
 {
     case DISABLED = 'disabled';
-    case OPTIONAL = 'optional';
+    case ALLOWED = 'allowed';
     case ENFORCED = 'enforced';
 
     public function isDisabled(): bool

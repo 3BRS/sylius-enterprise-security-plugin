@@ -177,7 +177,7 @@ three_brs:
             two_factor:
                 mode: 'Mode'
                 mode_disabled: 'Disabled'
-                mode_optional: 'Optional (allowed)'
+                mode_allowed: 'Allowed'
                 mode_enforced: 'Enforced'
                 recovery_codes_enabled: 'Enable recovery codes'
                 recovery_codes_count: 'Number of recovery codes'
@@ -208,3 +208,36 @@ three_brs:
                 title: 'Login notifications'
                 description: 'Send an email when a user signs in from a new device.'
                 enabled: 'Enable login notifications'
+            rate_limit:
+                title: 'Rate limiting'
+                description: 'Throttle authentication-related routes to slow down brute-force and enumeration attacks. Limits apply per username (for login) or per client IP (for anonymous routes).'
+                interval_help: 'Human-readable interval, e.g. "15 minutes", "1 hour".'
+                login:
+                    enabled: 'Enable login rate limiting'
+                    limit: 'Login attempts per interval'
+                    interval: 'Login interval'
+                password_reset:
+                    enabled: 'Enable password reset rate limiting'
+                    limit: 'Password reset requests per interval'
+                    interval: 'Password reset interval'
+                register:
+                    enabled: 'Enable registration rate limiting'
+                    limit: 'Registrations per interval'
+                    interval: 'Registration interval'
+                magic_link:
+                    enabled: 'Enable magic link rate limiting'
+                    limit: 'Magic link requests per interval'
+                    interval: 'Magic link interval'
+            oauth:
+                title: 'Social login (OAuth)'
+                description: 'Toggle Google and Apple social login per scope. Provider credentials (client_id, secret, etc.) remain in YAML configuration — only the enabled flag is runtime-mutable here.'
+                google_enabled: 'Enable Google'
+                apple_enabled: 'Enable Apple'
+            oauth_admin_policy:
+                title: 'OAuth admin auto-registration'
+                description: 'Policy applied when an administrator signs in via OAuth and no matching account exists yet. Only emails from the whitelisted domains can be auto-registered.'
+                default_locale: 'Default locale for new admins'
+                default_locale_help: 'Locale code (e.g. en_US, cs_CZ) applied to admins auto-registered via OAuth.'
+                auto_register_allowed_email_domains: 'Whitelisted email domains'
+                auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to disable auto-registration entirely.'
+                invalid_domain: 'This value is not a valid email domain.'

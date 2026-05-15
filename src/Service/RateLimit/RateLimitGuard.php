@@ -4,26 +4,19 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit;
 
-use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 class RateLimitGuard implements RateLimitGuardInterface
 {
-    /**
-     * @param ContainerInterface  $limiterLocator service locator with `limiter.three_brs_<group>_<action>` services
-     * @param array<string, bool> $enabledMap     keys formatted as `<group>.<action>` → bool
-     */
     public function __construct(
-        protected ContainerInterface $limiterLocator,
-        protected array $enabledMap,
+        protected DynamicRateLimiterFactoryInterface $factory,
     ) {
     }
 
     public function isEnabled(string $group, string $action): bool
     {
-        return ($this->enabledMap[$this->mapKey($group, $action)] ?? false) === true;
+        return $this->factory->isEnabled($group, $action);
     }
 
     public function consume(Request $request, string $group, string $action, ?string $userIdentifier = null): void
@@ -32,16 +25,8 @@ class RateLimitGuard implements RateLimitGuardInterface
             return;
         }
 
-        $limiterId = sprintf('limiter.three_brs_%s_%s', $group, $action);
-        if (!$this->limiterLocator->has($limiterId)) {
-            return;
-        }
-
-        /** @var RateLimiterFactory $factory */
-        $factory = $this->limiterLocator->get($limiterId);
-
         $key = $this->buildKey($request, $userIdentifier);
-        $limit = $factory->create($key)->consume();
+        $limit = $this->factory->consume($group, $action, $key);
 
         if (!$limit->isAccepted()) {
             throw new TooManyRequestsHttpException(
@@ -57,14 +42,7 @@ class RateLimitGuard implements RateLimitGuardInterface
             return;
         }
 
-        $limiterId = sprintf('limiter.three_brs_%s_%s', $group, $action);
-        if (!$this->limiterLocator->has($limiterId)) {
-            return;
-        }
-
-        /** @var RateLimiterFactory $factory */
-        $factory = $this->limiterLocator->get($limiterId);
-        $factory->create(strtolower($userIdentifier))->reset();
+        $this->factory->reset($group, $action, strtolower($userIdentifier));
     }
 
     /**
@@ -79,10 +57,5 @@ class RateLimitGuard implements RateLimitGuardInterface
         }
 
         return $request->getClientIp() ?? 'unknown';
-    }
-
-    protected function mapKey(string $group, string $action): string
-    {
-        return $group . '.' . $action;
     }
 }

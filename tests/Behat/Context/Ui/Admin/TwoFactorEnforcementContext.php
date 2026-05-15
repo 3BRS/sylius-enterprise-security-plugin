@@ -7,14 +7,17 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriterInterface;
 use Webmozart\Assert\Assert;
 
 class TwoFactorEnforcementContext implements Context
 {
     public function __construct(
-        private Session $session,
-        private TwoFactorEnforcementChecker $enforcementChecker,
+        protected Session $session,
+        protected SettingsWriterInterface $settingsWriter,
+        protected SettingsProviderInterface $settingsProvider,
     ) {
     }
 
@@ -23,8 +26,7 @@ class TwoFactorEnforcementContext implements Context
      */
     public function resetEnforcement(): void
     {
-        $reflection = new \ReflectionProperty(TwoFactorEnforcementChecker::class, 'adminMode');
-        $reflection->setValue($this->enforcementChecker, TwoFactorMode::OPTIONAL);
+        $this->setMode(TwoFactorMode::ALLOWED);
     }
 
     /**
@@ -32,8 +34,7 @@ class TwoFactorEnforcementContext implements Context
      */
     public function enforcementIsEnabledForAdmins(): void
     {
-        $reflection = new \ReflectionProperty(TwoFactorEnforcementChecker::class, 'adminMode');
-        $reflection->setValue($this->enforcementChecker, TwoFactorMode::ENFORCED);
+        $this->setMode(TwoFactorMode::ENFORCED);
     }
 
     /**
@@ -50,5 +51,12 @@ class TwoFactorEnforcementContext implements Context
     public function iShouldBeRedirectedToTheSetupPage(): void
     {
         Assert::contains($this->session->getCurrentUrl(), '/admin/two-factor/setup');
+    }
+
+    protected function setMode(TwoFactorMode $mode): void
+    {
+        $this->settingsWriter->set('two_factor_authentication.mode', SettingsScope::ADMIN, $mode->value);
+        $this->settingsWriter->flush();
+        $this->settingsProvider->refresh();
     }
 }

@@ -145,13 +145,15 @@
 		<service id="three_brs.behat.context.ui.shop.two_factor_enforcement"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\TwoFactorEnforcementContext">
 			<argument type="service" id="behat.mink.default_session"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.two_factor_enforcement"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\TwoFactorEnforcementContext">
 			<argument type="service" id="behat.mink.default_session"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.social_login"

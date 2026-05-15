@@ -48,40 +48,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $container->setParameter('three_brs.two_factor.admin.recovery_codes_count', $twoFactor['recovery_codes']['admin']['count']);
         $container->setParameter('three_brs.two_factor.trusted_device_enabled', $twoFactor['trusted_device']['enabled']);
         $container->setParameter('three_brs.two_factor.trusted_device_lifetime', (int) $twoFactor['trusted_device']['days'] * 86400);
-
-        $this->prependRateLimiters($container, $config['rate_limit']);
-    }
-
-    /**
-     * Auto-registers Symfony framework.rate_limiter services for each enabled (group, action) pair.
-     * Symfony FrameworkBundle then exposes them as `limiter.three_brs_<group>_<action>` services.
-     *
-     * @param array<string, array<string, array<string, mixed>>> $config
-     */
-    protected function prependRateLimiters(ContainerBuilder $container, array $config): void
-    {
-        $rateLimiters = [];
-
-        foreach ($config as $group => $actions) {
-            foreach ($actions as $action => $settings) {
-                if ($settings['enabled'] !== true) {
-                    continue;
-                }
-                $rateLimiters[sprintf('three_brs_%s_%s', $group, $action)] = [
-                    'policy' => 'fixed_window',
-                    'limit' => $settings['limit'],
-                    'interval' => $settings['interval'],
-                ];
-            }
-        }
-
-        if ($rateLimiters === []) {
-            return;
-        }
-
-        $container->prependExtensionConfig('framework', [
-            'rate_limiter' => $rateLimiters,
-        ]);
     }
 
     public function load(array $configs, ContainerBuilder $container): void
@@ -96,7 +62,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerMagicLink($container, $config['magic_link']);
         $this->registerPasskey($container, $config['passkey']);
         $this->registerAccountLockout($container, $config['account_lockout']);
-        $this->registerRateLimit($container, $config['rate_limit']);
         $this->registerSessionManagement($container, $config['session_management']);
         $this->registerLoginNotifications($container, $config['login_notifications']);
         $this->registerSecuritySettingsDefaults($container, $config);
@@ -142,19 +107,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         }
     }
 
-    /** @param array<string, array<string, array<string, mixed>>> $config */
-    protected function registerRateLimit(ContainerBuilder $container, array $config): void
-    {
-        foreach ($config as $group => $actions) {
-            foreach ($actions as $action => $settings) {
-                $container->setParameter(
-                    sprintf('three_brs.rate_limit.%s.%s.enabled', $group, $action),
-                    (bool) $settings['enabled'],
-                );
-            }
-        }
-    }
-
     /** @param array<string, mixed> $config */
     protected function registerPasskey(ContainerBuilder $container, array $config): void
     {
@@ -194,31 +146,27 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $container->setParameter('three_brs.magic_link.admin.enabled', $config['admin']['enabled']);
     }
 
-    /** @param array<string, mixed> $config */
+    /**
+     * OAuth `enabled` flags, `default_locale` and `auto_register_allowed_email_domains`
+     * are runtime-mutable via the Settings UI — they are read from the DB through
+     * `SettingsProviderInterface`. Only the deployment-time secrets (client IDs,
+     * client secrets, team / key IDs, private key paths) remain compile-time params.
+     *
+     * @param array<string, mixed> $config
+     */
     protected function registerOAuth(ContainerBuilder $container, array $config): void
     {
         foreach (['customer', 'admin'] as $group) {
             $google = $config[$group]['google'];
-            $container->setParameter(sprintf('three_brs.oauth.%s.google.enabled', $group), $google['enabled']);
             $container->setParameter(sprintf('three_brs.oauth.%s.google.client_id', $group), $google['client_id']);
             $container->setParameter(sprintf('three_brs.oauth.%s.google.client_secret', $group), $google['client_secret']);
 
             $apple = $config[$group]['apple'];
-            $container->setParameter(sprintf('three_brs.oauth.%s.apple.enabled', $group), $apple['enabled']);
             $container->setParameter(sprintf('three_brs.oauth.%s.apple.client_id', $group), $apple['client_id']);
             $container->setParameter(sprintf('three_brs.oauth.%s.apple.team_id', $group), $apple['team_id']);
             $container->setParameter(sprintf('three_brs.oauth.%s.apple.key_id', $group), $apple['key_id']);
             $container->setParameter(sprintf('three_brs.oauth.%s.apple.private_key_path', $group), $apple['private_key_path']);
         }
-
-        $container->setParameter(
-            'three_brs.oauth.admin.auto_register_allowed_email_domains',
-            $config['admin']['auto_register_allowed_email_domains'],
-        );
-        $container->setParameter(
-            'three_brs.oauth.admin.default_locale',
-            $config['admin']['default_locale'],
-        );
     }
 
     public function getAlias(): string

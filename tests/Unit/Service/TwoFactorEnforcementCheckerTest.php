@@ -33,9 +33,9 @@ class TwoFactorEnforcementCheckerTest extends TestCase
         self::assertFalse($checker->shouldEnforceForShopUser($this->shopUser(twoFactorEnabled: false)));
     }
 
-    public function testShopUserNotEnforcedWhenModeIsOptional(): void
+    public function testShopUserNotEnforcedWhenModeIsAllowed(): void
     {
-        $checker = $this->createChecker(TwoFactorMode::OPTIONAL, TwoFactorMode::ENFORCED);
+        $checker = $this->createChecker(TwoFactorMode::ALLOWED, TwoFactorMode::ENFORCED);
 
         self::assertFalse($checker->shouldEnforceForShopUser($this->shopUser(twoFactorEnabled: false)));
     }

@@ -12,8 +12,6 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 {
     public function __construct(
         protected FeatureToggleInterface $features,
-        protected bool $googleOAuthEnabled,
-        protected bool $appleOAuthEnabled,
     ) {
     }
 
@@ -34,9 +32,10 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 
     public function addSocialAccountsItem(MenuBuilderEvent $event): void
     {
-        // OAuth stays YAML/env-bound (sensitive credentials, env-specific) so
-        // the gate reads container parameters instead of the DB-backed settings.
-        if (!$this->googleOAuthEnabled && !$this->appleOAuthEnabled) {
+        if (
+            !$this->features->isEnabled('oauth.google', SettingsScope::CUSTOMER)
+            && !$this->features->isEnabled('oauth.apple', SettingsScope::CUSTOMER)
+        ) {
             return;
         }
 

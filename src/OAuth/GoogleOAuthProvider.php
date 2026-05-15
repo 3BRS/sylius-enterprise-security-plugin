@@ -9,16 +9,17 @@ use League\OAuth2\Client\Provider\GoogleUser;
 use League\OAuth2\Client\Token\AccessToken;
 use Symfony\Component\HttpFoundation\Request;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\Exception\OAuthProviderException;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class GoogleOAuthProvider implements GoogleOAuthProviderInterface
 {
     public const NAME = 'google';
 
     public function __construct(
-        protected bool $customerEnabled,
+        protected SettingsProviderInterface $settings,
         protected ?string $customerClientId,
         protected ?string $customerClientSecret,
-        protected bool $adminEnabled,
         protected ?string $adminClientId,
         protected ?string $adminClientSecret,
     ) {
@@ -31,14 +32,14 @@ class GoogleOAuthProvider implements GoogleOAuthProviderInterface
 
     public function isEnabledForCustomer(): bool
     {
-        return $this->customerEnabled &&
+        return $this->settings->getBool('oauth.google.enabled', SettingsScope::CUSTOMER) &&
             $this->customerClientId !== null && $this->customerClientId !== '' &&
             $this->customerClientSecret !== null && $this->customerClientSecret !== '';
     }
 
     public function isEnabledForAdmin(): bool
     {
-        return $this->adminEnabled &&
+        return $this->settings->getBool('oauth.google.enabled', SettingsScope::ADMIN) &&
             $this->adminClientId !== null && $this->adminClientId !== '' &&
             $this->adminClientSecret !== null && $this->adminClientSecret !== '';
     }

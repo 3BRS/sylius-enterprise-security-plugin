@@ -76,6 +76,46 @@ class SecuritySettingsContext implements Context
     }
 
     /**
+     * @When I tighten customer login rate limit to :count per minute
+     */
+    public function iTightenCustomerLoginRateLimitToPerMinute(int $count): void
+    {
+        $this->iSwitchToTheScope('customer');
+        $page = $this->session->getPage();
+        $form = $page->find('css', '[data-test-three-brs-security-settings-tab="rate_limit"] form');
+        Assert::notNull($form, 'Rate limit form not found.');
+
+        $form->find('css', '#three_brs_rate_limit_settings_login_enabled')?->check();
+
+        $limitField = $form->find('css', '#three_brs_rate_limit_settings_login_limit');
+        Assert::notNull($limitField, 'login_limit field not found.');
+        $limitField->setValue((string) $count);
+
+        $intervalField = $form->find('css', '#three_brs_rate_limit_settings_login_interval');
+        Assert::notNull($intervalField, 'login_interval field not found.');
+        $intervalField->setValue('1 minute');
+
+        $form->find('css', '[data-test-three-brs-security-settings-save="rate_limit"]')?->click();
+    }
+
+    /**
+     * @When I disable customer Google OAuth
+     */
+    public function iDisableCustomerGoogleOAuth(): void
+    {
+        $this->iSwitchToTheScope('customer');
+        $page = $this->session->getPage();
+        $form = $page->find('css', '[data-test-three-brs-security-settings-tab="oauth"] form');
+        Assert::notNull($form, 'OAuth form not found.');
+
+        $field = $form->find('css', '#three_brs_oauth_settings_google_enabled');
+        Assert::notNull($field, 'google_enabled field not found.');
+        $field->uncheck();
+
+        $form->find('css', '[data-test-three-brs-security-settings-save="oauth"]')?->click();
+    }
+
+    /**
      * @When I enable customer account lockout with max attempts :count
      */
     public function iEnableCustomerAccountLockoutWithMaxAttempts(int $count): void
@@ -151,6 +191,38 @@ class SecuritySettingsContext implements Context
         Assert::true(
             $this->settingsProvider->getBool('passkey.enabled', SettingsScope::CUSTOMER),
             'Customer passkey feature is not enabled in DB.',
+        );
+    }
+
+    /**
+     * @Then the customer login rate limit should be :count per minute
+     */
+    public function theCustomerLoginRateLimitShouldBePerMinute(int $count): void
+    {
+        $this->settingsProvider->refresh();
+        Assert::true(
+            $this->settingsProvider->getBool('rate_limit.login.enabled', SettingsScope::CUSTOMER),
+            'Customer login rate limit is not enabled in DB.',
+        );
+        Assert::same(
+            $this->settingsProvider->getInt('rate_limit.login.limit', SettingsScope::CUSTOMER),
+            $count,
+        );
+        Assert::same(
+            $this->settingsProvider->getString('rate_limit.login.interval', SettingsScope::CUSTOMER),
+            '1 minute',
+        );
+    }
+
+    /**
+     * @Then the customer Google OAuth should be disabled
+     */
+    public function theCustomerGoogleOAuthShouldBeDisabled(): void
+    {
+        $this->settingsProvider->refresh();
+        Assert::false(
+            $this->settingsProvider->getBool('oauth.google.enabled', SettingsScope::CUSTOMER),
+            'Customer Google OAuth is still enabled in DB.',
         );
     }
 }

@@ -15,10 +15,13 @@ use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountLockoutSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\MagicLinkSettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasskeySettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordExpirationSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordHistorySettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\PasswordPolicySettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\RateLimitSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SimpleToggleSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\TwoFactorSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Exception\ConcurrentSettingsWriteException;
@@ -34,7 +37,14 @@ class SaveTabController implements SaveTabControllerInterface
      * key_map to translate flat form-field names into nested settings paths
      * (Symfony form-field names cannot contain dots, but settings paths use them).
      *
-     * @var array<string, array{type: class-string<FormTypeInterface<array<string, mixed>>>, prefix: string, options: array<string, mixed>, key_map?: array<string, string>}>
+     * `options_per_scope` lets a tab inject scope-specific options into the form
+     * (e.g. rate_limit has a different action set for customer vs admin); they
+     * are merged on top of `options` at request time.
+     *
+     * `scopes` (when present) restricts the tab to a subset of scopes — used for
+     * tabs that only make sense in one scope (e.g. oauth admin policy).
+     *
+     * @var array<string, array{type: class-string<FormTypeInterface<array<string, mixed>>>, prefix: string, options: array<string, mixed>, key_map?: array<string, string>, options_per_scope?: array<string, array<string, mixed>>, scopes?: list<SettingsScope>}>
      */
     protected array $tabs;
 
@@ -43,6 +53,13 @@ class SaveTabController implements SaveTabControllerInterface
         protected FormFactoryInterface $formFactory,
         protected RouterInterface $router,
     ) {
+        $rateLimitKeyMap = [];
+        foreach (['login', 'password_reset', 'register', 'magic_link'] as $action) {
+            $rateLimitKeyMap[$action . '_enabled'] = $action . '.enabled';
+            $rateLimitKeyMap[$action . '_limit'] = $action . '.limit';
+            $rateLimitKeyMap[$action . '_interval'] = $action . '.interval';
+        }
+
         $this->tabs = [
             'password_policy' => ['type' => PasswordPolicySettingsType::class, 'prefix' => 'password_policy', 'options' => []],
             'password_history' => ['type' => PasswordHistorySettingsType::class, 'prefix' => 'password_history', 'options' => []],
@@ -64,6 +81,16 @@ class SaveTabController implements SaveTabControllerInterface
             'magic_link' => ['type' => MagicLinkSettingsType::class, 'prefix' => 'magic_link', 'options' => []],
             'passkey' => ['type' => PasskeySettingsType::class, 'prefix' => 'passkey', 'options' => []],
             'account_lockout' => ['type' => AccountLockoutSettingsType::class, 'prefix' => 'account_lockout', 'options' => []],
+            'rate_limit' => [
+                'type' => RateLimitSettingsType::class,
+                'prefix' => 'rate_limit',
+                'options' => [],
+                'key_map' => $rateLimitKeyMap,
+                'options_per_scope' => [
+                    SettingsScope::CUSTOMER->value => ['actions' => ['login', 'password_reset', 'register', 'magic_link']],
+                    SettingsScope::ADMIN->value => ['actions' => ['login', 'password_reset', 'magic_link']],
+                ],
+            ],
             'session_management' => [
                 'type' => SimpleToggleSettingsType::class,
                 'prefix' => 'session_management',
@@ -73,6 +100,21 @@ class SaveTabController implements SaveTabControllerInterface
                 'type' => SimpleToggleSettingsType::class,
                 'prefix' => 'login_notifications',
                 'options' => ['label' => 'three_brs.ui.security_settings.login_notifications.enabled'],
+            ],
+            'oauth' => [
+                'type' => OAuthSettingsType::class,
+                'prefix' => 'oauth',
+                'options' => [],
+                'key_map' => [
+                    'google_enabled' => 'google.enabled',
+                    'apple_enabled' => 'apple.enabled',
+                ],
+            ],
+            'oauth_admin_policy' => [
+                'type' => OAuthAdminPolicySettingsType::class,
+                'prefix' => 'oauth',
+                'options' => [],
+                'scopes' => [SettingsScope::ADMIN],
             ],
         ];
     }
@@ -87,7 +129,16 @@ class SaveTabController implements SaveTabControllerInterface
         $scope = SettingsScope::tryFrom($scopeParam) ?? SettingsScope::CUSTOMER;
 
         $tabConfig = $this->tabs[$tab];
-        $form = $this->formFactory->create($tabConfig['type'], null, $tabConfig['options']);
+        if (isset($tabConfig['scopes']) && !in_array($scope, $tabConfig['scopes'], true)) {
+            throw new NotFoundHttpException(sprintf('Tab "%s" is not available for scope "%s".', $tab, $scope->value));
+        }
+
+        $tabOptions = $tabConfig['options'];
+        if (isset($tabConfig['options_per_scope'][$scope->value])) {
+            $tabOptions = array_merge($tabOptions, $tabConfig['options_per_scope'][$scope->value]);
+        }
+
+        $form = $this->formFactory->create($tabConfig['type'], null, $tabOptions);
         $form->handleRequest($request);
 
         if (!$form->isSubmitted() || !$form->isValid()) {

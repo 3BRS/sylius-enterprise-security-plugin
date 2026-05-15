@@ -289,8 +289,6 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\ShopAccountMenuListener:
         arguments:
             $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
-            $googleOAuthEnabled: '%three_brs.oauth.customer.google.enabled%'
-            $appleOAuthEnabled: '%three_brs.oauth.customer.apple.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
@@ -306,8 +304,6 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\AdminMainMenuListener:
         arguments:
             $features: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggle'
-            $googleOAuthEnabled: '%three_brs.oauth.admin.google.enabled%'
-            $appleOAuthEnabled: '%three_brs.oauth.admin.apple.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }
@@ -344,10 +340,9 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\GoogleOAuthProvider:
         arguments:
-            $customerEnabled: '%three_brs.oauth.customer.google.enabled%'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $customerClientId: '%three_brs.oauth.customer.google.client_id%'
             $customerClientSecret: '%three_brs.oauth.customer.google.client_secret%'
-            $adminEnabled: '%three_brs.oauth.admin.google.enabled%'
             $adminClientId: '%three_brs.oauth.admin.google.client_id%'
             $adminClientSecret: '%three_brs.oauth.admin.google.client_secret%'
         tags:
@@ -355,12 +350,11 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\AppleOAuthProvider:
         arguments:
-            $customerEnabled: '%three_brs.oauth.customer.apple.enabled%'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $customerClientId: '%three_brs.oauth.customer.apple.client_id%'
             $customerTeamId: '%three_brs.oauth.customer.apple.team_id%'
             $customerKeyId: '%three_brs.oauth.customer.apple.key_id%'
             $customerPrivateKeyPath: '%three_brs.oauth.customer.apple.private_key_path%'
-            $adminEnabled: '%three_brs.oauth.admin.apple.enabled%'
             $adminClientId: '%three_brs.oauth.admin.apple.client_id%'
             $adminTeamId: '%three_brs.oauth.admin.apple.team_id%'
             $adminKeyId: '%three_brs.oauth.admin.apple.key_id%'
@@ -386,8 +380,7 @@ services:
             $adminUserFactory: '@sylius.factory.admin_user'
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
             $entityManager: '@doctrine.orm.entity_manager'
-            $allowedEmailDomains: '%three_brs.oauth.admin.auto_register_allowed_email_domains%'
-            $defaultLocale: '%three_brs.oauth.admin.default_locale%'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard:
         arguments:
@@ -923,17 +916,22 @@ services:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginFailureEvent', method: 'onLoginFailure' }
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
 
+    three_brs.rate_limiter.storage:
+        class: Symfony\Component\RateLimiter\Storage\CacheStorage
+        arguments:
+            - '@cache.app'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactory:
+        arguments:
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+            $storage: '@three_brs.rate_limiter.storage'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactory
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard:
         arguments:
-            $limiterLocator: !abstract 'set by RateLimiterServiceLocatorPass'
-            $enabledMap:
-                customer.login: '%three_brs.rate_limit.customer.login.enabled%'
-                customer.password_reset: '%three_brs.rate_limit.customer.password_reset.enabled%'
-                customer.register: '%three_brs.rate_limit.customer.register.enabled%'
-                customer.magic_link: '%three_brs.rate_limit.customer.magic_link.enabled%'
-                admin.login: '%three_brs.rate_limit.admin.login.enabled%'
-                admin.password_reset: '%three_brs.rate_limit.admin.password_reset.enabled%'
-                admin.magic_link: '%three_brs.rate_limit.admin.magic_link.enabled%'
+            $factory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactory'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard
@@ -1333,6 +1331,18 @@ services:
             - { name: 'form.type' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SimpleToggleSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\RateLimitSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType:
         tags:
             - { name: 'form.type' }
 

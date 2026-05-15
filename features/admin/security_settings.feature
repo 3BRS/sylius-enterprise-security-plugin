@@ -37,3 +37,17 @@ Feature: Admin can configure security settings via UI
         And I enable customer account lockout with max attempts 2
         And customer "lockout-test@example.com" attempts 2 failed sign-ins
         Then customer "lockout-test@example.com" should be locked
+
+    Scenario: Admin tightens customer login rate limit via UI
+        When I am logged in as "admin@example.com" administrator
+        And I open the security settings page
+        And I switch to the "customer" scope
+        And I tighten customer login rate limit to 1 per minute
+        Then the customer login rate limit should be 1 per minute
+
+    Scenario: Admin disables customer Google OAuth via UI
+        When I am logged in as "admin@example.com" administrator
+        And I open the security settings page
+        And I switch to the "customer" scope
+        And I disable customer Google OAuth
+        Then the customer Google OAuth should be disabled

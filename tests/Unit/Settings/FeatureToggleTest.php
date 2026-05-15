@@ -39,13 +39,13 @@ class FeatureToggleTest extends TestCase
         self::assertFalse($toggle->isTwoFactorActive(SettingsScope::CUSTOMER));
     }
 
-    public function testTwoFactorIsActiveWhenModeIsOptional(): void
+    public function testTwoFactorIsActiveWhenModeIsAllowed(): void
     {
         $provider = $this->createMock(SettingsProviderInterface::class);
         $provider->expects(self::once())
             ->method('getString')
             ->with('two_factor_authentication.mode', SettingsScope::ADMIN)
-            ->willReturn('optional');
+            ->willReturn('allowed');
 
         $toggle = new FeatureToggle($provider);
 

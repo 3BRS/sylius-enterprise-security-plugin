@@ -11,21 +11,21 @@ use Sylius\Component\User\Repository\UserRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserSocialAccountLink;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfoInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
 {
     /**
      * @param UserRepositoryInterface<AdminUserInterface> $adminUserRepository
      * @param FactoryInterface<AdminUserInterface>        $adminUserFactory
-     * @param list<string>                                $allowedEmailDomains
      */
     public function __construct(
         protected UserRepositoryInterface $adminUserRepository,
         protected FactoryInterface $adminUserFactory,
         protected AdminUserSocialAccountLinkRepositoryInterface $linkRepository,
         protected EntityManagerInterface $entityManager,
-        protected array $allowedEmailDomains,
-        protected string $defaultLocale,
+        protected SettingsProviderInterface $settings,
     ) {
     }
 
@@ -54,7 +54,8 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
             return false;
         }
 
-        if ($this->allowedEmailDomains === []) {
+        $allowedEmailDomains = $this->loadAllowedEmailDomains();
+        if ($allowedEmailDomains === []) {
             return false;
         }
 
@@ -64,9 +65,27 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
         }
 
         $domain = strtolower(substr($email, $atPos + 1));
-        $normalized = array_map('strtolower', $this->allowedEmailDomains);
+        $normalized = array_map('strtolower', $allowedEmailDomains);
 
         return in_array($domain, $normalized, true);
+    }
+
+    /** @return list<string> */
+    protected function loadAllowedEmailDomains(): array
+    {
+        $value = $this->settings->get('oauth.auto_register_allowed_email_domains', SettingsScope::ADMIN);
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($value as $domain) {
+            if (is_string($domain) && $domain !== '') {
+                $result[] = $domain;
+            }
+        }
+
+        return $result;
     }
 
     /** @internal Callers must gate with {@see canAutoRegister()} before invoking. */
@@ -84,7 +103,7 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
         $adminUser->setFirstName($info->getFirstName());
         $adminUser->setLastName($info->getLastName());
         $adminUser->setEnabled(true);
-        $adminUser->setLocaleCode($this->defaultLocale);
+        $adminUser->setLocaleCode($this->settings->getString('oauth.default_locale', SettingsScope::ADMIN));
         $adminUser->addRole('ROLE_ADMINISTRATION_ACCESS');
 
         $this->entityManager->persist($adminUser);
