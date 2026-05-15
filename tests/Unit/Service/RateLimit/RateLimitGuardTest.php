@@ -17,7 +17,7 @@ class RateLimitGuardTest extends TestCase
 {
     public function testIsEnabledDelegatesToFactory(): void
     {
-        $factory = $this->createMock(DynamicRateLimiterFactoryInterface::class);
+        $factory = $this->createStub(DynamicRateLimiterFactoryInterface::class);
         $factory->method('isEnabled')->willReturnMap([
             ['customer', 'login', true],
             ['admin', 'login', false],
@@ -45,7 +45,7 @@ class RateLimitGuardTest extends TestCase
         $accepted = $this->createStub(RateLimit::class);
         $accepted->method('isAccepted')->willReturn(true);
 
-        $factory = $this->createMock(DynamicRateLimiterFactoryInterface::class);
+        $factory = $this->createStub(DynamicRateLimiterFactoryInterface::class);
         $factory->method('isEnabled')->willReturn(true);
         $factory->method('consume')->willReturn($accepted);
 
@@ -62,7 +62,7 @@ class RateLimitGuardTest extends TestCase
         $rejected->method('isAccepted')->willReturn(false);
         $rejected->method('getRetryAfter')->willReturn(new \DateTimeImmutable('+30 seconds'));
 
-        $factory = $this->createMock(DynamicRateLimiterFactoryInterface::class);
+        $factory = $this->createStub(DynamicRateLimiterFactoryInterface::class);
         $factory->method('isEnabled')->willReturn(true);
         $factory->method('consume')->willReturn($rejected);
 

@@ -37,8 +37,8 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
     public function addSocialAccountsItem(MenuBuilderEvent $event): void
     {
         if (
-            !$this->features->isEnabled('oauth.google', SettingsScope::ADMIN)
-            && !$this->features->isEnabled('oauth.apple', SettingsScope::ADMIN)
+            !$this->features->isEnabled('oauth.google', SettingsScope::ADMIN) &&
+            !$this->features->isEnabled('oauth.apple', SettingsScope::ADMIN)
         ) {
             return;
         }

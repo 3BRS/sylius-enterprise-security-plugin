@@ -33,8 +33,8 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
     public function addSocialAccountsItem(MenuBuilderEvent $event): void
     {
         if (
-            !$this->features->isEnabled('oauth.google', SettingsScope::CUSTOMER)
-            && !$this->features->isEnabled('oauth.apple', SettingsScope::CUSTOMER)
+            !$this->features->isEnabled('oauth.google', SettingsScope::CUSTOMER) &&
+            !$this->features->isEnabled('oauth.apple', SettingsScope::CUSTOMER)
         ) {
             return;
         }

@@ -919,7 +919,7 @@ services:
     three_brs.rate_limiter.storage:
         class: Symfony\Component\RateLimiter\Storage\CacheStorage
         arguments:
-            - '@cache.app'
+            - '@three_brs.rate_limiter.cache_pool'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactory:
         arguments:

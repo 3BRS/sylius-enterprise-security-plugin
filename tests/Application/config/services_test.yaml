@@ -20,6 +20,7 @@ services:
         arguments:
             $name: 'google'
             $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
         tags:
             - { name: 'three_brs.oauth_provider' }
 
@@ -29,5 +30,6 @@ services:
         arguments:
             $name: 'apple'
             $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
         tags:
             - { name: 'three_brs.oauth_provider' }

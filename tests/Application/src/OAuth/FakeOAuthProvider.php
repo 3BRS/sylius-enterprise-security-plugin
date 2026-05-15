@@ -8,12 +8,15 @@ use Symfony\Component\HttpFoundation\Request;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\Exception\OAuthProviderException;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfoInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class FakeOAuthProvider implements OAuthProviderInterface
 {
     public function __construct(
         private string $name,
         private FakeOAuthStateInterface $state,
+        private SettingsProviderInterface $settings,
     ) {
     }
 
@@ -24,12 +27,18 @@ class FakeOAuthProvider implements OAuthProviderInterface
 
     public function isEnabledForCustomer(): bool
     {
-        return true;
+        return $this->settings->getBool(
+            sprintf('oauth.%s.enabled', $this->name),
+            SettingsScope::CUSTOMER,
+        );
     }
 
     public function isEnabledForAdmin(): bool
     {
-        return true;
+        return $this->settings->getBool(
+            sprintf('oauth.%s.enabled', $this->name),
+            SettingsScope::ADMIN,
+        );
     }
 
     public function getAuthorizationUrl(string $redirectUri, string $state, string $group): string

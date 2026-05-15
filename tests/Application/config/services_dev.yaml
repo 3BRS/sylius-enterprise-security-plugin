@@ -10,12 +10,15 @@ services:
             - [seedUserInfo, ['apple', 'dev-apple-123', 'dev.apple@example.com', 'Dev', 'Apple']]
 
     # Override the real Google OAuth provider with a fake one in dev so the
-    # buttons appear and the flow works without external credentials.
+    # buttons appear and the flow works without external credentials. The fake
+    # honors the runtime enabled flag from SettingsProvider — admin can toggle
+    # Google off in the Settings UI and the button disappears like in prod.
     ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\GoogleOAuthProvider:
         class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
         arguments:
             $name: 'google'
             $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
         tags:
             - { name: 'three_brs.oauth_provider' }
 
@@ -25,6 +28,7 @@ services:
         arguments:
             $name: 'apple'
             $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
         tags:
             - { name: 'three_brs.oauth_provider' }
 

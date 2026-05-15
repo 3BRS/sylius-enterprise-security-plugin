@@ -3561,10 +3561,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     two_factor_authentication?: array{
  *         issuer?: scalar|Param|null, // Default: "Sylius"
  *         customer?: array{
- *             mode?: "disabled"|"optional"|"enforced"|Param, // Default: "disabled"
+ *             mode?: "disabled"|"allowed"|"enforced"|Param, // Default: "disabled"
  *         },
  *         admin?: array{
- *             mode?: "disabled"|"optional"|"enforced"|Param, // Default: "disabled"
+ *             mode?: "disabled"|"allowed"|"enforced"|Param, // Default: "disabled"
  *         },
  *         recovery_codes?: array{
  *             customer?: array{

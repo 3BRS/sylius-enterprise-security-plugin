@@ -242,7 +242,7 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
-			<argument type="service" id="cache.rate_limiter"/>
+			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.lockout"
@@ -254,7 +254,7 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
-			<argument type="service" id="cache.rate_limiter"/>
+			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.rate_limit"
@@ -275,7 +275,7 @@
 
 		<service id="three_brs.behat.context.hook.rate_limiter_cache"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Hook\RateLimiterCacheHookContext">
-			<argument type="service" id="cache.rate_limiter"/>
+			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.session_management"

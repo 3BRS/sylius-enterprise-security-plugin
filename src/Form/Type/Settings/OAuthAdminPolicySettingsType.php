@@ -41,7 +41,10 @@ class OAuthAdminPolicySettingsType extends AbstractType implements OAuthAdminPol
                 if (!is_string($value)) {
                     return [];
                 }
-                $lines = preg_split('/[\r\n]+/', $value) ?: [];
+                $lines = preg_split('/[\r\n]+/', $value);
+                if ($lines === false) {
+                    return [];
+                }
                 $result = [];
                 foreach ($lines as $line) {
                     $trimmed = trim($line);
