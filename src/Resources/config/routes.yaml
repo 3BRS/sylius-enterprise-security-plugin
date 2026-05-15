@@ -233,3 +233,27 @@ three_brs_admin_passkey_login_verify:
     path: /admin/passkey/login/verify
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyLoginVerifyController
     methods: [POST]
+
+three_brs_admin_locked_customers:
+    path: /admin/locked-customers
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedCustomersController
+    methods: [GET]
+
+three_brs_admin_locked_customer_unlock:
+    path: /admin/locked-customers/{id}/unlock
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\UnlockCustomerController
+    methods: [POST]
+    requirements:
+        id: '\d+'
+
+three_brs_admin_locked_admins:
+    path: /admin/locked-admins
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedAdminsController
+    methods: [GET]
+
+three_brs_admin_locked_admin_unlock:
+    path: /admin/locked-admins/{id}/unlock
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\UnlockAdminController
+    methods: [POST]
+    requirements:
+        id: '\d+'

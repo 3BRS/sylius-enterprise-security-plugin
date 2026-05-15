@@ -10,7 +10,6 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserMagicLinkToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManagerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepositoryInterface;
 
 class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterface
 {
@@ -19,7 +18,6 @@ class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterf
      */
     public function __construct(
         protected UserRepositoryInterface $adminUserRepository,
-        protected AdminUserMagicLinkTokenRepositoryInterface $tokenRepository,
         protected MagicLinkTokenGeneratorInterface $tokenGenerator,
         protected AdminUserMagicLinkEmailManagerInterface $emailManager,
         protected EntityManagerInterface $entityManager,
@@ -27,8 +25,6 @@ class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterf
         protected TimingPaddingInterface $timingPadding,
         protected bool $enabled,
         protected int $expirationSeconds,
-        protected int $rateLimitMax,
-        protected int $rateLimitWindowSeconds,
     ) {
     }
 
@@ -50,11 +46,6 @@ class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterf
 
             $user = $this->findUserByEmail($email);
             if ($user === null) {
-                return;
-            }
-
-            $windowStart = $now->sub(new \DateInterval('PT' . $this->rateLimitWindowSeconds . 'S'));
-            if ($this->tokenRepository->countRecentForAdminUser($user, $windowStart) >= $this->rateLimitMax) {
                 return;
             }
 

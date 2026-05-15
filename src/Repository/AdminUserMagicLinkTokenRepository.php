@@ -6,7 +6,6 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserMagicLinkToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserMagicLinkTokenInterface;
 
@@ -27,19 +26,6 @@ class AdminUserMagicLinkTokenRepository extends ServiceEntityRepository implemen
             ->setParameter('hash', $tokenHash)
             ->getQuery()
             ->getOneOrNullResult()
-        ;
-    }
-
-    public function countRecentForAdminUser(AdminUserInterface $user, \DateTimeImmutable $since): int
-    {
-        return (int) $this->createQueryBuilder('t')
-            ->select('COUNT(t.id)')
-            ->where('t.adminUser = :user')
-            ->andWhere('t.createdAt >= :since')
-            ->setParameter('user', $user)
-            ->setParameter('since', $since)
-            ->getQuery()
-            ->getSingleScalarResult()
         ;
     }
 }

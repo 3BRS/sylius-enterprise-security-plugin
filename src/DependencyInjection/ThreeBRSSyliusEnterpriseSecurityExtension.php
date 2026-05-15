@@ -51,6 +51,40 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $container->setParameter('three_brs.two_factor.admin.recovery_codes_count', $twoFactor['recovery_codes']['admin']['count']);
         $container->setParameter('three_brs.two_factor.trusted_device_enabled', $twoFactor['trusted_device']['enabled']);
         $container->setParameter('three_brs.two_factor.trusted_device_lifetime', (int) $twoFactor['trusted_device']['days'] * 86400);
+
+        $this->prependRateLimiters($container, $config['rate_limit']);
+    }
+
+    /**
+     * Auto-registers Symfony framework.rate_limiter services for each enabled (group, action) pair.
+     * Symfony FrameworkBundle then exposes them as `limiter.three_brs_<group>_<action>` services.
+     *
+     * @param array<string, array<string, array<string, mixed>>> $config
+     */
+    protected function prependRateLimiters(ContainerBuilder $container, array $config): void
+    {
+        $rateLimiters = [];
+
+        foreach ($config as $group => $actions) {
+            foreach ($actions as $action => $settings) {
+                if ($settings['enabled'] !== true) {
+                    continue;
+                }
+                $rateLimiters[sprintf('three_brs_%s_%s', $group, $action)] = [
+                    'policy' => 'fixed_window',
+                    'limit' => $settings['limit'],
+                    'interval' => $settings['interval'],
+                ];
+            }
+        }
+
+        if ($rateLimiters === []) {
+            return;
+        }
+
+        $container->prependExtensionConfig('framework', [
+            'rate_limiter' => $rateLimiters,
+        ]);
     }
 
     public function load(array $configs, ContainerBuilder $container): void
@@ -69,6 +103,35 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerOAuth($container, $config['oauth']);
         $this->registerMagicLink($container, $config['magic_link']);
         $this->registerPasskey($container, $config['passkey']);
+        $this->registerAccountLockout($container, $config['account_lockout']);
+        $this->registerRateLimit($container, $config['rate_limit']);
+    }
+
+    /** @param array<string, array<string, mixed>> $config */
+    protected function registerAccountLockout(ContainerBuilder $container, array $config): void
+    {
+        foreach (['customer', 'admin'] as $group) {
+            $groupConfig = $config[$group];
+            $container->setParameter(sprintf('three_brs.account_lockout.%s.enabled', $group), (bool) $groupConfig['enabled']);
+            $container->setParameter(sprintf('three_brs.account_lockout.%s.max_attempts', $group), (int) $groupConfig['max_attempts']);
+            $container->setParameter(
+                sprintf('three_brs.account_lockout.%s.auto_unlock_after', $group),
+                $groupConfig['auto_unlock_after'] === null ? null : (int) $groupConfig['auto_unlock_after'],
+            );
+        }
+    }
+
+    /** @param array<string, array<string, array<string, mixed>>> $config */
+    protected function registerRateLimit(ContainerBuilder $container, array $config): void
+    {
+        foreach ($config as $group => $actions) {
+            foreach ($actions as $action => $settings) {
+                $container->setParameter(
+                    sprintf('three_brs.rate_limit.%s.%s.enabled', $group, $action),
+                    (bool) $settings['enabled'],
+                );
+            }
+        }
     }
 
     /** @param array<string, mixed> $config */
@@ -99,15 +162,11 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $container->getDefinition(ShopMagicLinkRequestHandler::class)
             ->setArgument('$enabled', $config['customer']['enabled'])
             ->setArgument('$expirationSeconds', $config['customer']['expiration_seconds'])
-            ->setArgument('$rateLimitMax', $config['customer']['rate_limit_max'])
-            ->setArgument('$rateLimitWindowSeconds', $config['customer']['rate_limit_window_seconds'])
         ;
 
         $container->getDefinition(AdminMagicLinkRequestHandler::class)
             ->setArgument('$enabled', $config['admin']['enabled'])
             ->setArgument('$expirationSeconds', $config['admin']['expiration_seconds'])
-            ->setArgument('$rateLimitMax', $config['admin']['rate_limit_max'])
-            ->setArgument('$rateLimitWindowSeconds', $config['admin']['rate_limit_window_seconds'])
         ;
 
         $container->setParameter('three_brs.magic_link.customer.enabled', $config['customer']['enabled']);

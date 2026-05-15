@@ -37,10 +37,3 @@ Feature: Customer magic link login
         Given a used magic link token "shop-used-1" exists for "existing@example.com"
         When I follow the magic link "shop-used-1"
         Then I should see a magic link invalid-or-expired error
-
-    @ui
-    Scenario: Rate limit blocks additional requests within the window
-        Given 3 magic link tokens have recently been issued for "existing@example.com"
-        When I request a magic link for "existing@example.com"
-        Then I should see a magic link request confirmation
-        And exactly 3 magic link tokens should exist for "existing@example.com"

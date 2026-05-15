@@ -178,7 +178,6 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\MagicLinkContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.customer"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
@@ -187,7 +186,6 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\MagicLinkContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.admin_user"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepository"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
@@ -232,6 +230,50 @@
 			<argument type="service" id="sylius.repository.admin_user"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository"/>
 			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\Passkey\FakeAuthenticator"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.lockout"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\LockoutContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
+			<argument type="service" id="cache.rate_limiter"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.lockout"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\LockoutContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
+			<argument type="service" id="cache.rate_limiter"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.rate_limit"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\RateLimitContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.rate_limit"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\RateLimitContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+		</service>
+
+		<service id="three_brs.behat.context.hook.rate_limiter_cache"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Hook\RateLimiterCacheHookContext">
+			<argument type="service" id="cache.rate_limiter"/>
 		</service>
 	</services>
 </container>

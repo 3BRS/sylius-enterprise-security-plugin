@@ -11,7 +11,6 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerMagicLinkToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManagerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepositoryInterface;
 
 class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterface
 {
@@ -20,7 +19,6 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
      */
     public function __construct(
         protected CustomerRepositoryInterface $customerRepository,
-        protected CustomerMagicLinkTokenRepositoryInterface $tokenRepository,
         protected MagicLinkTokenGeneratorInterface $tokenGenerator,
         protected CustomerMagicLinkEmailManagerInterface $emailManager,
         protected EntityManagerInterface $entityManager,
@@ -28,8 +26,6 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
         protected TimingPaddingInterface $timingPadding,
         protected bool $enabled,
         protected int $expirationSeconds,
-        protected int $rateLimitMax,
-        protected int $rateLimitWindowSeconds,
     ) {
     }
 
@@ -51,11 +47,6 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
 
             $user = $this->findUserByEmail($email);
             if ($user === null) {
-                return;
-            }
-
-            $windowStart = $now->sub(new \DateInterval('PT' . $this->rateLimitWindowSeconds . 'S'));
-            if ($this->tokenRepository->countRecentForShopUser($user, $windowStart) >= $this->rateLimitMax) {
                 return;
             }
 

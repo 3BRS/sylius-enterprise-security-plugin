@@ -12,7 +12,6 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManagerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TimingPaddingInterface;
@@ -24,8 +23,6 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
     {
         $customerRepo = $this->createMock(CustomerRepositoryInterface::class);
         $customerRepo->expects(self::never())->method('findOneBy');
-
-        $tokenRepo = $this->createStub(CustomerMagicLinkTokenRepositoryInterface::class);
 
         $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
         $generator->expects(self::never())->method('generatePlainToken');
@@ -41,7 +38,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::never())->method('padTo');
 
-        $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, false, 300, 3, 900);
+        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, false, 300);
 
         $handler->request('john@example.com');
     }
@@ -51,8 +48,6 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $customerRepo = $this->createMock(CustomerRepositoryInterface::class);
         $customerRepo->expects(self::never())->method('findOneBy');
 
-        $tokenRepo = $this->createStub(CustomerMagicLinkTokenRepositoryInterface::class);
-
         $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
         $generator->method('generatePlainToken')->willReturn('plain-token');
         $generator->method('hash')->willReturn('hashed-token');
@@ -69,7 +64,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
+        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
 
         $handler->request('');
     }
@@ -79,9 +74,6 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $customerRepo = $this->createMock(CustomerRepositoryInterface::class);
         $customerRepo->expects(self::once())->method('findOneBy')->willReturn(null);
 
-        $tokenRepo = $this->createMock(CustomerMagicLinkTokenRepositoryInterface::class);
-        $tokenRepo->expects(self::never())->method('countRecentForShopUser');
-
         $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
         $generator->method('generatePlainToken')->willReturn('plain-token');
         $generator->method('hash')->willReturn('hashed-token');
@@ -98,42 +90,9 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
+        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
 
         $handler->request('nobody@example.com');
-    }
-
-    public function testRateLimitBlocksSendingAndPadsResponseTime(): void
-    {
-        $user = $this->createStub(ShopUserInterface::class);
-        $customer = $this->createStub(CustomerInterface::class);
-        $customer->method('getUser')->willReturn($user);
-
-        $customerRepo = $this->createStub(CustomerRepositoryInterface::class);
-        $customerRepo->method('findOneBy')->willReturn($customer);
-
-        $tokenRepo = $this->createMock(CustomerMagicLinkTokenRepositoryInterface::class);
-        $tokenRepo->expects(self::once())->method('countRecentForShopUser')->willReturn(3);
-
-        $generator = $this->createStub(MagicLinkTokenGeneratorInterface::class);
-        $generator->method('generatePlainToken')->willReturn('plain-token');
-        $generator->method('hash')->willReturn('hashed-token');
-
-        $mailer = $this->createMock(CustomerMagicLinkEmailManagerInterface::class);
-        $mailer->expects(self::never())->method('sendMagicLink');
-
-        $em = $this->createMock(EntityManagerInterface::class);
-        $em->expects(self::never())->method('flush');
-
-        $clock = $this->createStub(ClockInterface::class);
-        $clock->method('now')->willReturn(new \DateTimeImmutable('2026-04-24 10:00:00'));
-
-        $timingPadding = $this->createMock(TimingPaddingInterface::class);
-        $timingPadding->expects(self::once())->method('padTo');
-
-        $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
-
-        $handler->request('john@example.com');
     }
 
     public function testKnownEmailDispatchesMagicLinkAndPadsResponseTime(): void
@@ -147,9 +106,6 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
             ->method('findOneBy')
             ->with(['emailCanonical' => 'john@example.com'])
             ->willReturn($customer);
-
-        $tokenRepo = $this->createStub(CustomerMagicLinkTokenRepositoryInterface::class);
-        $tokenRepo->method('countRecentForShopUser')->willReturn(0);
 
         $generator = $this->createMock(MagicLinkTokenGeneratorInterface::class);
         $generator->expects(self::once())->method('generatePlainToken')->willReturn('plain-token');
@@ -168,7 +124,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new ShopMagicLinkRequestHandler($customerRepo, $tokenRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300, 3, 900);
+        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
 
         $handler->request('john@example.com');
     }

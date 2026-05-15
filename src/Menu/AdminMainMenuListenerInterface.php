@@ -13,4 +13,8 @@ interface AdminMainMenuListenerInterface
     public function addSocialAccountsItem(MenuBuilderEvent $event): void;
 
     public function addPasskeyItem(MenuBuilderEvent $event): void;
+
+    public function addLockedCustomersItem(MenuBuilderEvent $event): void;
+
+    public function addLockedAdminsItem(MenuBuilderEvent $event): void;
 }

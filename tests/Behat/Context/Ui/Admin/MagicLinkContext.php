@@ -10,7 +10,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserMagicLinkToken;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGeneratorInterface;
 use Webmozart\Assert\Assert;
 
@@ -19,7 +18,6 @@ class MagicLinkContext implements Context
     public function __construct(
         protected Session $session,
         protected UserRepositoryInterface $adminUserRepository,
-        protected AdminUserMagicLinkTokenRepositoryInterface $tokenRepository,
         protected MagicLinkTokenGeneratorInterface $tokenGenerator,
         protected EntityManagerInterface $entityManager,
     ) {
@@ -90,7 +88,7 @@ class MagicLinkContext implements Context
     {
         $this->entityManager->clear();
         $user = $this->findAdminUser($email);
-        $count = $this->tokenRepository->countRecentForAdminUser($user, new \DateTimeImmutable('-1 hour'));
+        $count = $this->countTokensFor($user);
         Assert::greaterThan($count, 0, sprintf('No admin magic link token stored for "%s".', $email));
     }
 
@@ -104,7 +102,7 @@ class MagicLinkContext implements Context
         if (!$user instanceof AdminUserInterface) {
             return;
         }
-        $count = $this->tokenRepository->countRecentForAdminUser($user, new \DateTimeImmutable('-1 hour'));
+        $count = $this->countTokensFor($user);
         Assert::same($count, 0, sprintf('Unexpected admin magic link token stored for "%s".', $email));
     }
 
@@ -125,7 +123,7 @@ class MagicLinkContext implements Context
     {
         $this->entityManager->clear();
         $user = $this->findAdminUser($email);
-        $actual = $this->tokenRepository->countRecentForAdminUser($user, new \DateTimeImmutable('-1 hour'));
+        $actual = $this->countTokensFor($user);
         Assert::same($actual, $count, sprintf('Expected exactly %d admin magic link tokens for "%s", got %d.', $count, $email, $actual));
     }
 
@@ -173,5 +171,10 @@ class MagicLinkContext implements Context
         Assert::isInstanceOf($user, AdminUserInterface::class);
 
         return $user;
+    }
+
+    protected function countTokensFor(AdminUserInterface $user): int
+    {
+        return $this->entityManager->getRepository(AdminUserMagicLinkToken::class)->count(['adminUser' => $user]);
     }
 }
