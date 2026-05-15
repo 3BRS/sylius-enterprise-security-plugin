@@ -6,6 +6,10 @@ three_brs:
         already_unlocked: 'Account is no longer locked — nothing to do.'
     rate_limit:
         too_many_requests: 'Too many requests. Please wait a moment and try again.'
+    session:
+        revoked: 'Session signed out.'
+        others_revoked: 'All other sessions have been signed out.'
+        cannot_revoke_current: 'You cannot sign out the current session this way. Use the sign-out link instead.'
     two_factor:
         enforcement_required: 'Two-factor authentication is required. Please set it up to continue.'
         disabled: 'Two-factor authentication has been disabled.'

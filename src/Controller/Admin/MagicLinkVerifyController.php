@@ -25,6 +25,7 @@ use Symfony\Component\Security\Http\Event\AuthenticationTokenCreatedEvent;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FirewallRedirectTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserMagicLinkTokenVerifierInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface;
 
 class MagicLinkVerifyController implements MagicLinkVerifyControllerInterface
 {
@@ -42,6 +43,7 @@ class MagicLinkVerifyController implements MagicLinkVerifyControllerInterface
         protected RouterInterface $router,
         protected ClockInterface $clock,
         protected LoggerInterface $logger,
+        protected AdminUserSessionLoginHandlerInterface $sessionLoginHandler,
         protected bool $enabled,
     ) {
     }
@@ -105,11 +107,26 @@ class MagicLinkVerifyController implements MagicLinkVerifyControllerInterface
         $this->eventDispatcher->dispatch($event);
 
         $resultToken = $event->getAuthenticatedToken();
+
+        // Session fixation defence: rotate the session ID before binding the
+        // newly authenticated token. Symfony's AuthenticatorManager does this
+        // automatically; the magic link verify flow goes through a custom
+        // passport-less login path and would otherwise inherit the pre-login ID.
+        if ($request->hasSession()) {
+            $request->getSession()->migrate(true);
+        }
+
         $this->tokenStorage->setToken($resultToken);
 
         if ($request->hasSession()) {
             $request->getSession()->set('_security_' . static::FIREWALL_NAME, serialize($resultToken));
         }
+
+        // Manual setToken bypasses the firewall event dispatcher, so the
+        // session-tracking + new-device-notification listener bound to
+        // LoginSuccessEvent never fires. Invoke the handler directly so magic
+        // link sign-ins behave like a regular password login.
+        $this->sessionLoginHandler->handle($user, $request);
 
         return $resultToken;
     }

@@ -118,3 +118,13 @@ three_brs_sylius_enterprise_security:
                 enabled: true
                 limit: 3
                 interval: '15 minutes'
+    session_management:
+        customer:
+            enabled: true
+        admin:
+            enabled: true
+    login_notifications:
+        customer:
+            enabled: true
+        admin:
+            enabled: true

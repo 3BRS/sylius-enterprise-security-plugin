@@ -17,7 +17,8 @@
         "league/oauth2-google": "^4.0",
         "patrickbussmann/oauth2-apple": "^0.4",
         "web-auth/webauthn-lib": "^5.0",
-        "symfony/rate-limiter": "^6.4|^7.4"
+        "symfony/rate-limiter": "^6.4|^7.4",
+        "matomo/device-detector": "^6.5"
     },
     "require-dev": {
         "behat/behat": "^v3.19.0",
@@ -53,7 +54,11 @@
         "symfony/maker-bundle": "^1.60",
         "symfony/property-info": "^6.4|^7.4",
         "symfony/web-profiler-bundle": "^6.4|^7.4",
-        "symplify/easy-coding-standard": "^12.0"
+        "symplify/easy-coding-standard": "^12.0",
+        "geoip2/geoip2": "^3.0"
+    },
+    "suggest": {
+        "geoip2/geoip2": "Required when wiring ThreeBRS\\SyliusEnterpriseSecurityPlugin\\Service\\Session\\MaxMindGeoIpLookup as session_management.geoip_service (^3.0)"
     },
     "conflict": {
         "api-platform/symfony": "<4.2.0",

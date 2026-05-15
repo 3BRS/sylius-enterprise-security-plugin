@@ -13,4 +13,6 @@ interface ShopAccountMenuListenerInterface
     public function addSocialAccountsItem(MenuBuilderEvent $event): void;
 
     public function addPasskeyItem(MenuBuilderEvent $event): void;
+
+    public function addSessionsItem(MenuBuilderEvent $event): void;
 }

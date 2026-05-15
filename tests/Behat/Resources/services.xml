@@ -275,5 +275,27 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Hook\RateLimiterCacheHookContext">
 			<argument type="service" id="cache.rate_limiter"/>
 		</service>
+
+		<service id="three_brs.behat.context.ui.shop.session_management"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\SessionManagementContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="sylius.email_sender"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.session_management"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\SessionManagementContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="sylius.email_sender"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
+		</service>
 	</services>
 </container>

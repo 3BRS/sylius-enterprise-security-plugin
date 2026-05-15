@@ -22,6 +22,7 @@ use Symfony\Component\Security\Http\Event\AuthenticationTokenCreatedEvent;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyLoginVerifyController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifierInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionResult;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandlerInterface;
 
 #[CoversClass(PasskeyLoginVerifyController::class)]
 class PasskeyLoginVerifyControllerTest extends TestCase
@@ -253,6 +254,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
             twoFactorHandler: $twoFactorHandler,
             router: $router,
             logger: $this->createStub(LoggerInterface::class),
+            sessionLoginHandler: $this->createStub(CustomerSessionLoginHandlerInterface::class),
             enabled: $enabled,
             skipTwoFactorWhenUserVerified: $skipTwoFactorWhenUserVerified,
         );

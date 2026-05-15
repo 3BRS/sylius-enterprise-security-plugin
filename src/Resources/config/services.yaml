@@ -284,10 +284,12 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\ShopAccountMenuListener:
         arguments:
             $passkeyEnabled: '%three_brs.passkey.customer.enabled%'
+            $sessionManagementEnabled: '%three_brs.session_management.customer.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addPasskeyItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSessionsItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountsController:
         arguments:
@@ -300,12 +302,14 @@ services:
             $passkeyEnabled: '%three_brs.passkey.admin.enabled%'
             $customerLockoutEnabled: '%three_brs.account_lockout.customer.enabled%'
             $adminLockoutEnabled: '%three_brs.account_lockout.admin.enabled%'
+            $sessionManagementEnabled: '%three_brs.session_management.admin.enabled%'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addPasskeyItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addLockedCustomersItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addLockedAdminsItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSessionsItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController:
         arguments:
@@ -402,6 +406,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $security: '@security.helper'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -414,6 +419,7 @@ services:
             $twig: '@twig'
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -444,6 +450,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $security: '@security.helper'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -456,6 +463,7 @@ services:
             $twig: '@twig'
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -647,6 +655,7 @@ services:
             $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
             $router: '@router'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
             $enabled: '%three_brs.passkey.customer.enabled%'
             $skipTwoFactorWhenUserVerified: '%three_brs.passkey.skip_2fa_when_user_verified%'
         tags:
@@ -708,6 +717,7 @@ services:
             $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.admin'
             $router: '@router'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
             $enabled: '%three_brs.passkey.admin.enabled%'
             $skipTwoFactorWhenUserVerified: '%three_brs.passkey.skip_2fa_when_user_verified%'
         tags:
@@ -781,6 +791,7 @@ services:
             $router: '@router'
             $clock: '@clock'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
             $enabled: '%three_brs.magic_link.customer.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
@@ -805,6 +816,7 @@ services:
             $router: '@router'
             $clock: '@clock'
             $logger: '@logger'
+            $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
             $enabled: '%three_brs.magic_link.admin.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
@@ -985,3 +997,256 @@ services:
             $enabled: '%three_brs.account_lockout.admin.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerKnownDeviceRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerKnownDeviceRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerKnownDeviceRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParserInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\NullGeoIpLookup: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\NullGeoIpLookup
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGeneratorInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
+            $clock: '@clock'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
+            $clock: '@clock'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTrackerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerNewDeviceDetector:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerKnownDeviceRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerNewDeviceDetectorInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerNewDeviceDetector
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserNewDeviceDetector:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserNewDeviceDetectorInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserNewDeviceDetector
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManager:
+        arguments:
+            $emailSender: '@sylius.email_sender'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManagerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManager
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManager:
+        arguments:
+            $emailSender: '@sylius.email_sender'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManagerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManager
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler:
+        arguments:
+            $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $newDeviceDetector: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerNewDeviceDetector'
+            $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManager'
+            $fingerprintGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator'
+            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
+            $clock: '@clock'
+            $sessionTrackingEnabled: '%three_brs.session_management.customer.enabled%'
+            $loginNotificationsEnabled: '%three_brs.login_notifications.customer.enabled%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandlerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler:
+        arguments:
+            $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
+            $newDeviceDetector: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserNewDeviceDetector'
+            $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManager'
+            $fingerprintGenerator: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGenerator'
+            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+            $geoIpLookup: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface'
+            $clock: '@clock'
+            $sessionTrackingEnabled: '%three_brs.session_management.admin.enabled%'
+            $loginNotificationsEnabled: '%three_brs.login_notifications.admin.enabled%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerSessionLoginListener:
+        arguments:
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+        tags:
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserSessionLoginListener:
+        arguments:
+            $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
+        tags:
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\SessionActivityListener:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $customerTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $adminTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
+            $customerEnabled: '%three_brs.session_management.customer.enabled%'
+            $adminEnabled: '%three_brs.session_management.admin.enabled%'
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\SessionRevocationListener:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $customerSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $adminSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
+            $router: '@router'
+            $customerEnabled: '%three_brs.session_management.customer.enabled%'
+            $adminEnabled: '%three_brs.session_management.admin.enabled%'
+            # Override these in your application's services.yaml if you renamed
+            # the standard Sylius login routes.
+            $customerLoginRoute: 'sylius_shop_login'
+            $adminLoginRoute: 'sylius_admin_login'
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\SessionLogoutListener:
+        arguments:
+            $customerTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $adminTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
+            $customerSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $adminSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
+            $customerEnabled: '%three_brs.session_management.customer.enabled%'
+            $adminEnabled: '%three_brs.session_management.admin.enabled%'
+        tags:
+            # Priority 16: run BEFORE Symfony's built-in SessionLogoutListener
+            # (priority 0) which calls $session->invalidate() — we need the
+            # original PHP session ID to find the tracker row before that
+            # invalidation regenerates / clears it.
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LogoutEvent', method: 'onLogout', priority: 16 }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SessionsController:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $tokenStorage: '@security.token_storage'
+            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+            $twig: '@twig'
+            $enabled: '%three_brs.session_management.customer.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SessionRevokeController:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $tokenStorage: '@security.token_storage'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+            $enabled: '%three_brs.session_management.customer.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SessionRevokeOthersController:
+        arguments:
+            $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $tokenStorage: '@security.token_storage'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+            $enabled: '%three_brs.session_management.customer.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SessionsController:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
+            $tokenStorage: '@security.token_storage'
+            $userAgentParser: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParser'
+            $twig: '@twig'
+            $enabled: '%three_brs.session_management.admin.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SessionRevokeController:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
+            $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
+            $tokenStorage: '@security.token_storage'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+            $enabled: '%three_brs.session_management.admin.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SessionRevokeOthersController:
+        arguments:
+            $tracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
+            $tokenStorage: '@security.token_storage'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+            $enabled: '%three_brs.session_management.admin.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\SessionFixture:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }

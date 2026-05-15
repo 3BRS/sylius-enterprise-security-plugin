@@ -17,4 +17,6 @@ interface AdminMainMenuListenerInterface
     public function addLockedCustomersItem(MenuBuilderEvent $event): void;
 
     public function addLockedAdminsItem(MenuBuilderEvent $event): void;
+
+    public function addSessionsItem(MenuBuilderEvent $event): void;
 }

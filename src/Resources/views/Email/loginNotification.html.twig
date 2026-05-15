@@ -1,0 +1,42 @@
+{% block subject %}
+    {{ 'three_brs.emails.login_notification.subject'|trans }}
+{% endblock %}
+
+{% block body %}
+    <div style="font-family: sans-serif; background: #eee; padding-top: 30px; padding-bottom: 30px; font-size: 16px; color: #333; line-height: 1.5">
+        <div style="max-width: 600px; margin: 20px auto;">
+            <div style="background: #fff; padding: 40px 30px;">
+                <div style="font-size: 24px; margin-bottom: 20px;">
+                    {{ 'three_brs.emails.login_notification.title'|trans }}
+                </div>
+
+                <p>{{ 'three_brs.emails.login_notification.intro'|trans }}</p>
+
+                <table style="width: 100%; margin: 20px 0; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 6px 8px; color: #666; width: 40%;">{{ 'three_brs.emails.login_notification.when'|trans }}</td>
+                        <td style="padding: 6px 8px;">{{ loggedInAt|date('Y-m-d H:i:s') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 8px; color: #666;">{{ 'three_brs.emails.login_notification.browser'|trans }}</td>
+                        <td style="padding: 6px 8px;">{{ browser ?: 'three_brs.emails.login_notification.unknown'|trans }}{% if operatingSystem %} ({{ operatingSystem }}){% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 8px; color: #666;">{{ 'three_brs.emails.login_notification.ip'|trans }}</td>
+                        <td style="padding: 6px 8px;">{{ ipAddress ?: 'three_brs.emails.login_notification.unknown'|trans }}</td>
+                    </tr>
+                    {% if country or city %}
+                        <tr>
+                            <td style="padding: 6px 8px; color: #666;">{{ 'three_brs.emails.login_notification.location'|trans }}</td>
+                            <td style="padding: 6px 8px;">{{ city ? city ~ ', ' : '' }}{{ country }}</td>
+                        </tr>
+                    {% endif %}
+                </table>
+
+                <p style="color: #666; font-size: 14px;">
+                    {{ 'three_brs.emails.login_notification.if_not_you'|trans }}
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
