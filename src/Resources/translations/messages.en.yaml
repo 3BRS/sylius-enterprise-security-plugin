@@ -291,7 +291,6 @@ three_brs:
                 default_locale_help: 'Locale code (e.g. en_US, cs_CZ) applied to admins auto-registered via OAuth.'
                 auto_register_allowed_email_domains: 'Whitelisted email domains'
                 auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to disable auto-registration entirely.'
-                invalid_domain: 'This value is not a valid email domain.'
             account_deletion:
                 title: 'Account deletion'
                 description: 'Self-service account deletion (GDPR right to erasure) with admin-cancellable grace period.'

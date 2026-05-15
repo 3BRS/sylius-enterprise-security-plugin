@@ -2509,7 +2509,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             create?: bool|Param, // Default: false
  *             ssl?: bool|Param, // Default: false
  *             utf8?: bool|Param, // Default: false
- *             mode?: scalar|Param|null, // Default: null
+ *             mode?: scalar|Param|null, // Default: 1
  *         },
  *         phpseclib_sftp?: array{
  *             phpseclib_sftp_id?: scalar|Param|null,

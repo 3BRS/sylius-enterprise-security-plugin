@@ -1367,6 +1367,7 @@ services:
             $writer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter'
             $formFactory: '@form.factory'
             $router: '@router'
+            $translator: '@translator'
         tags:
             - { name: 'controller.service_arguments' }
 

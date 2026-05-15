@@ -8,6 +8,9 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\DataTransformer\CidrListDataTransformer;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\CidrList;
 
@@ -34,6 +37,31 @@ class IpWhitelistSettingsType extends AbstractType implements IpWhitelistSetting
         ;
 
         $builder->get('global_cidrs')->addModelTransformer(new CidrListDataTransformer());
+
+        // Cross-field guard: enabling the whitelist with an empty global list
+        // and no per-admin override locks the saving admin out on the next
+        // request (and every other admin too). We can't check the per-admin
+        // table from here without DB access, so we err on the safe side and
+        // require at least one global CIDR whenever the feature is enabled —
+        // an admin who really wants pure per-admin mode can add `0.0.0.0/0`
+        // (and IPv6 `::/0`) to the global list as an explicit acknowledgement.
+        // The error is attached to the `global_cidrs` field (not the root) so
+        // SaveTabController's CSRF detection — which treats root errors as
+        // expired-session — doesn't misclassify this as a CSRF mismatch.
+        $builder->addEventListener(FormEvents::POST_SUBMIT, static function (FormEvent $event): void {
+            $data = $event->getData();
+            if (!is_array($data)) {
+                return;
+            }
+            $enabled = (bool) ($data['enabled'] ?? false);
+            $cidrs = $data['global_cidrs'] ?? null;
+            $hasCidrs = is_array($cidrs) && $cidrs !== [];
+            if ($enabled && !$hasCidrs) {
+                $event->getForm()->get('global_cidrs')->addError(new FormError(
+                    'three_brs.ip_whitelist.enabled_requires_cidrs',
+                ));
+            }
+        });
     }
 
     public function getBlockPrefix(): string
