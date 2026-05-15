@@ -15,6 +15,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FirewallRedirectTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserSessionLoginListenerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\Exception\OAuthProviderException;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderRegistryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfoInterface;
@@ -36,6 +37,7 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
         protected TokenStorageInterface $tokenStorage,
         protected Security $security,
         protected LoggerInterface $logger,
+        protected AdminUserSessionLoginListenerInterface $sessionLoginListener,
     ) {
     }
 
@@ -158,6 +160,13 @@ class OAuthCallbackController implements OAuthCallbackControllerInterface
         if ($request->hasSession()) {
             $request->getSession()->set('_security_' . static::FIREWALL_NAME, serialize($token));
         }
+
+        // Symfony's LoginSuccessEvent is dispatched by the firewall authenticator;
+        // OAuth bypasses that machinery and writes the token directly, so any
+        // listener bound to LoginSuccessEvent (session tracking, new-device email,
+        // …) would silently skip OAuth logins. Call the tracker directly to keep
+        // OAuth-authenticated sessions in the Active sessions list.
+        $this->sessionLoginListener->handleLogin($user, $request);
     }
 
     /** @param array<string, mixed> $extra */

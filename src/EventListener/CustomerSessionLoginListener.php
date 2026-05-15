@@ -32,16 +32,28 @@ class CustomerSessionLoginListener implements CustomerSessionLoginListenerInterf
 
     public function onLoginSuccess(LoginSuccessEvent $event): void
     {
-        if (!$this->sessionTrackingEnabled && !$this->loginNotificationsEnabled) {
-            return;
-        }
-
         $user = $event->getUser();
         if (!$user instanceof ShopUserInterface) {
             return;
         }
 
-        $request = $event->getRequest();
+        $this->handleLogin($user, $event->getRequest());
+    }
+
+    /**
+     * Same tracking + new-device-notification logic that runs after a regular
+     * password login via `LoginSuccessEvent`, exposed so non-Symfony-authenticator
+     * login flows (OAuth callback, magic link, passkey) can invoke it directly
+     * after their own manual `tokenStorage->setToken()` — those flows don't
+     * dispatch `LoginSuccessEvent`, so without this hook the session list and
+     * new-device email would silently skip them.
+     */
+    public function handleLogin(ShopUserInterface $user, Request $request): void
+    {
+        if (!$this->sessionTrackingEnabled && !$this->loginNotificationsEnabled) {
+            return;
+        }
+
         $userAgent = $request->headers->get('User-Agent');
         $ipAddress = $request->getClientIp();
 

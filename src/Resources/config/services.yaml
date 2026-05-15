@@ -406,6 +406,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $security: '@security.helper'
             $logger: '@logger'
+            $sessionLoginListener: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerSessionLoginListener'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -448,6 +449,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $security: '@security.helper'
             $logger: '@logger'
+            $sessionLoginListener: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserSessionLoginListener'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -1143,6 +1145,21 @@ services:
             $adminLoginRoute: 'sylius_admin_login'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\SessionLogoutListener:
+        arguments:
+            $customerTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $adminTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
+            $customerSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $adminSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
+            $customerEnabled: '%three_brs.session_management.customer.enabled%'
+            $adminEnabled: '%three_brs.session_management.admin.enabled%'
+        tags:
+            # Priority 16: run BEFORE Symfony's built-in SessionLogoutListener
+            # (priority 0) which calls $session->invalidate() — we need the
+            # original PHP session ID to find the tracker row before that
+            # invalidation regenerates / clears it.
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LogoutEvent', method: 'onLogout', priority: 16 }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SessionsController:
         arguments:
