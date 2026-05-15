@@ -144,3 +144,100 @@ three_brs:
             revoke_confirm: 'Sign out from this session?'
             revoke_others_confirm: 'Sign out from every other session?'
             none: 'No active sessions.'
+        security_settings:
+            menu_item: 'Security settings'
+            title: 'Security settings'
+            intro: 'Configure authentication and security policies for customers and administrators. Changes apply immediately on next request.'
+            scope_customer: 'Customers'
+            scope_admin: 'Administrators'
+            save: 'Save'
+            password_policy:
+                title: 'Password policy'
+                description: 'Minimum length, maximum length and complexity requirements applied during password validation.'
+                min_length: 'Minimum length'
+                max_length: 'Maximum length'
+                require_uppercase: 'Require uppercase letter'
+                require_lowercase: 'Require lowercase letter'
+                require_numbers: 'Require number'
+                require_special_characters: 'Require special character'
+            password_history:
+                title: 'Password history'
+                description: 'Prevent reuse of recent passwords.'
+                enabled: 'Enable password history check'
+                count: 'Number of previous passwords to remember'
+            password_expiration:
+                title: 'Password expiration'
+                description: 'Force users to change their password after a number of days.'
+                enabled: 'Enable password expiration'
+                days: 'Expire after (days)'
+            password_change_notification:
+                title: 'Password change notification'
+                description: 'Send an email when a user changes their password.'
+                enabled: 'Enable password change notification email'
+            two_factor:
+                mode: 'Mode'
+                mode_disabled: 'Disabled'
+                mode_allowed: 'Allowed'
+                mode_enforced: 'Enforced'
+                recovery_codes_enabled: 'Enable recovery codes'
+                recovery_codes_count: 'Number of recovery codes'
+            two_factor_authentication:
+                title: 'Two-factor authentication'
+                description: 'Two-factor authentication mode and recovery codes.'
+            magic_link:
+                title: 'Magic link'
+                description: 'Allow users to sign in via a one-time link emailed to them.'
+                enabled: 'Enable magic link'
+                expiration_seconds: 'Link expiration (seconds)'
+            passkey:
+                title: 'Passkey (WebAuthn)'
+                description: 'Allow users to register and sign in with a passkey.'
+                enabled: 'Enable passkey'
+            account_lockout:
+                title: 'Account lockout'
+                description: 'Lock accounts after repeated failed login attempts.'
+                enabled: 'Enable account lockout'
+                max_attempts: 'Maximum failed attempts before lockout'
+                auto_unlock_after: 'Auto-unlock after (seconds)'
+                auto_unlock_after_help: 'Leave empty to require manual unlock by administrator.'
+            session_management:
+                title: 'Session management'
+                description: 'Track active user sessions and allow remote sign-out.'
+                enabled: 'Enable session management'
+            login_notifications:
+                title: 'Login notifications'
+                description: 'Send an email when a user signs in from a new device.'
+                enabled: 'Enable login notifications'
+            rate_limit:
+                title: 'Rate limiting'
+                description: 'Throttle authentication-related routes to slow down brute-force and enumeration attacks. Limits apply per username (for login) or per client IP (for anonymous routes).'
+                interval_help: 'Human-readable interval, e.g. "15 minutes", "1 hour".'
+                login:
+                    enabled: 'Enable login rate limiting'
+                    limit: 'Login attempts per interval'
+                    interval: 'Login interval'
+                password_reset:
+                    enabled: 'Enable password reset rate limiting'
+                    limit: 'Password reset requests per interval'
+                    interval: 'Password reset interval'
+                register:
+                    enabled: 'Enable registration rate limiting'
+                    limit: 'Registrations per interval'
+                    interval: 'Registration interval'
+                magic_link:
+                    enabled: 'Enable magic link rate limiting'
+                    limit: 'Magic link requests per interval'
+                    interval: 'Magic link interval'
+            oauth:
+                title: 'Social login (OAuth)'
+                description: 'Toggle Google and Apple social login per scope. Provider credentials (client_id, secret, etc.) remain in YAML configuration — only the enabled flag is runtime-mutable here.'
+                google_enabled: 'Enable Google'
+                apple_enabled: 'Enable Apple'
+            oauth_admin_policy:
+                title: 'OAuth admin auto-registration'
+                description: 'Policy applied when an administrator signs in via OAuth and no matching account exists yet. Only emails from the whitelisted domains can be auto-registered.'
+                default_locale: 'Default locale for new admins'
+                default_locale_help: 'Locale code (e.g. en_US, cs_CZ) applied to admins auto-registered via OAuth.'
+                auto_register_allowed_email_domains: 'Whitelisted email domains'
+                auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to disable auto-registration entirely.'
+                invalid_domain: 'This value is not a valid email domain.'

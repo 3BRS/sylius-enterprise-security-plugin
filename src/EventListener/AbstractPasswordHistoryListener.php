@@ -10,6 +10,8 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 /**
  * @template T of object
@@ -17,15 +19,15 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInte
 abstract class AbstractPasswordHistoryListener implements PasswordHistoryListenerInterface
 {
     /** @var list<T> */
-    private array $pendingEntries = [];
+    protected array $pendingEntries = [];
 
-    private bool $isFlushing = false;
+    protected bool $isFlushing = false;
 
-    private LoggerInterface $logger;
+    protected LoggerInterface $logger;
 
     public function __construct(
-        private bool $enabled,
-        private int $count,
+        protected SettingsProviderInterface $settings,
+        protected SettingsScope $scope,
         ?LoggerInterface $logger = null,
     ) {
         $this->logger = $logger ?? new NullLogger();
@@ -70,18 +72,19 @@ abstract class AbstractPasswordHistoryListener implements PasswordHistoryListene
 
     public function postFlush(PostFlushEventArgs $args): void
     {
-        if ($this->isFlushing || !$this->enabled || $this->pendingEntries === []) {
+        if ($this->isFlushing || !$this->settings->getBool('password_history.enabled', $this->scope) || $this->pendingEntries === []) {
             return;
         }
 
         $this->isFlushing = true;
         $em = $args->getObjectManager();
+        $count = $this->settings->getInt('password_history.count', $this->scope);
 
         try {
             foreach ($this->pendingEntries as $user) {
                 $entry = $this->createHistoryEntry($user);
                 $em->persist($entry);
-                $this->deleteOldEntries($user, $this->count - 1);
+                $this->deleteOldEntries($user, $count - 1);
             }
 
             $this->pendingEntries = [];
@@ -118,7 +121,7 @@ abstract class AbstractPasswordHistoryListener implements PasswordHistoryListene
      */
     abstract protected function deleteOldEntries(object $user, int $keepCount): void;
 
-    private function stampPasswordChangedAt(object $entity): void
+    protected function stampPasswordChangedAt(object $entity): void
     {
         if ($entity instanceof PasswordExpirationShopUserInterface || $entity instanceof PasswordExpirationAdminUserInterface) {
             $entity->setPasswordChangedAt(new \DateTimeImmutable());

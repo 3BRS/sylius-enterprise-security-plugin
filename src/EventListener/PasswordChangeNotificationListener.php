@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManagerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class PasswordChangeNotificationListener implements PasswordChangeNotificationListenerInterface
 {
@@ -26,16 +28,15 @@ class PasswordChangeNotificationListener implements PasswordChangeNotificationLi
     ];
 
     /** @var array<int, ShopUserInterface|AdminUserInterface> */
-    private array $pendingNotifications = [];
+    protected array $pendingNotifications = [];
 
-    private LoggerInterface $logger;
+    protected LoggerInterface $logger;
 
     public function __construct(
-        private PasswordChangeEmailManagerInterface $emailManager,
-        private RequestStack $requestStack,
-        private TokenStorageInterface $tokenStorage,
-        private bool $customerEnabled,
-        private bool $adminEnabled,
+        protected PasswordChangeEmailManagerInterface $emailManager,
+        protected RequestStack $requestStack,
+        protected TokenStorageInterface $tokenStorage,
+        protected SettingsProviderInterface $settings,
         ?LoggerInterface $logger = null,
     ) {
         $this->logger = $logger ?? new NullLogger();
@@ -43,7 +44,10 @@ class PasswordChangeNotificationListener implements PasswordChangeNotificationLi
 
     public function onFlush(OnFlushEventArgs $args): void
     {
-        if (!$this->customerEnabled && !$this->adminEnabled) {
+        $customerEnabled = $this->settings->getBool('password_change_notification.enabled', SettingsScope::CUSTOMER);
+        $adminEnabled = $this->settings->getBool('password_change_notification.enabled', SettingsScope::ADMIN);
+
+        if (!$customerEnabled && !$adminEnabled) {
             return;
         }
 
@@ -54,11 +58,11 @@ class PasswordChangeNotificationListener implements PasswordChangeNotificationLi
                 continue;
             }
 
-            if ($entity instanceof ShopUserInterface && !$this->customerEnabled) {
+            if ($entity instanceof ShopUserInterface && !$customerEnabled) {
                 continue;
             }
 
-            if ($entity instanceof AdminUserInterface && !$this->adminEnabled) {
+            if ($entity instanceof AdminUserInterface && !$adminEnabled) {
                 continue;
             }
 
@@ -99,7 +103,7 @@ class PasswordChangeNotificationListener implements PasswordChangeNotificationLi
         }
     }
 
-    private function isInitiatedByUser(?object $currentUser, ShopUserInterface|AdminUserInterface $target, bool $selfInitiatedRoute): bool
+    protected function isInitiatedByUser(?object $currentUser, ShopUserInterface|AdminUserInterface $target, bool $selfInitiatedRoute): bool
     {
         if ($selfInitiatedRoute) {
             return true;
@@ -112,7 +116,7 @@ class PasswordChangeNotificationListener implements PasswordChangeNotificationLi
         return $currentUser->getUserIdentifier() === $target->getUserIdentifier();
     }
 
-    private function isSelfInitiatedRoute(?Request $request): bool
+    protected function isSelfInitiatedRoute(?Request $request): bool
     {
         if ($request === null) {
             return false;

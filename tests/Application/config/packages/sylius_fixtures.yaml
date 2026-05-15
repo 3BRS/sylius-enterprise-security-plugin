@@ -179,3 +179,8 @@ sylius_fixtures:
                               known_devices:
                                   - 44444444444444444444444444444444dddddddddddddddddddddddddddddddd
                                   - 55555555555555555555555555555555eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+
+                three_brs_security_settings:
+                    options:
+                        reset: true
+                        overrides: {}

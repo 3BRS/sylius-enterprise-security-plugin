@@ -18,6 +18,8 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AbstractPasswordHistor
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserPasswordHistoryListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 /** @internal test double: shop user with expiration tracking */
 interface TestShopUserForHistory extends ShopUserInterface, PasswordExpirationShopUserInterface
@@ -33,10 +35,17 @@ class ShopUserPasswordHistoryListenerTest extends TestCase
         bool $enabled = true,
         int $count = 5,
     ): ShopUserPasswordHistoryListener {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($enabled): bool {
+            return $path === 'password_history.enabled' && $scope === SettingsScope::CUSTOMER ? $enabled : false;
+        });
+        $settings->method('getInt')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($count): int {
+            return $path === 'password_history.count' && $scope === SettingsScope::CUSTOMER ? $count : 0;
+        });
+
         return new ShopUserPasswordHistoryListener(
             $repository ?? $this->createStub(CustomerPasswordHistoryRepositoryInterface::class),
-            $enabled,
-            $count,
+            $settings,
         );
     }
 

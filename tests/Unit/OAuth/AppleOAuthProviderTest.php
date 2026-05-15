@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\AppleOAuthProvider;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\Exception\OAuthProviderException;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 #[CoversClass(AppleOAuthProvider::class)]
 class AppleOAuthProviderTest extends TestCase
@@ -95,13 +97,21 @@ class AppleOAuthProviderTest extends TestCase
         ?string $adminKeyId = 'akid',
         ?string $adminPrivateKeyPath = '/tmp/ak.p8',
     ): AppleOAuthProvider {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getBool')->willReturnCallback(
+            static fn (string $path, SettingsScope $scope): bool => match ($scope) {
+                SettingsScope::CUSTOMER => $customerEnabled,
+                SettingsScope::ADMIN => $adminEnabled,
+                default => false,
+            },
+        );
+
         return new AppleOAuthProvider(
-            $customerEnabled,
+            $settings,
             $customerClientId,
             $customerTeamId,
             $customerKeyId,
             $customerPrivateKeyPath,
-            $adminEnabled,
             $adminClientId,
             $adminTeamId,
             $adminKeyId,

@@ -8,6 +8,8 @@ use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerPasswordHistory;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 /**
  * @extends AbstractPasswordHistoryListener<ShopUserInterface>
@@ -15,12 +17,11 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRe
 class ShopUserPasswordHistoryListener extends AbstractPasswordHistoryListener implements ShopUserPasswordHistoryListenerInterface
 {
     public function __construct(
-        private CustomerPasswordHistoryRepositoryInterface $repository,
-        bool $enabled,
-        int $count,
+        protected CustomerPasswordHistoryRepositoryInterface $repository,
+        SettingsProviderInterface $settings,
         ?LoggerInterface $logger = null,
     ) {
-        parent::__construct($enabled, $count, $logger);
+        parent::__construct($settings, SettingsScope::CUSTOMER, $logger);
     }
 
     protected function supports(object $entity): bool

@@ -1,0 +1,79 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.security_settings.title'|trans }}{% endblock %}
+
+{% block body %}
+    {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
+
+    <div class="page-wrapper">
+        {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
+
+        <div class="page-header" data-sticky-header>
+            <div class="container-xl">
+                {{ breadcrumbs([
+                    { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'three_brs.ui.security_settings.title', active: true },
+                ]) }}
+                <div class="row mt-3 row-gap-2">
+                    <div class="col-12">
+                        {{ header.h1('three_brs.ui.security_settings.title'|trans) }}
+                        <p class="text-secondary mb-0">{{ 'three_brs.ui.security_settings.intro'|trans }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include '@SyliusAdmin/shared/crud/common/content/flashes.html.twig' %}
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <ul class="nav nav-pills" data-test-three-brs-security-settings-scope>
+                            <li class="nav-item">
+                                <a class="nav-link {{ scope_value == 'customer' ? 'active' : '' }}"
+                                   href="{{ path('three_brs_admin_security_settings_index', {'scope': 'customer'}) }}"
+                                   data-test-three-brs-security-settings-scope-customer>
+                                    {{ 'three_brs.ui.security_settings.scope_customer'|trans }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ scope_value == 'admin' ? 'active' : '' }}"
+                                   href="{{ path('three_brs_admin_security_settings_index', {'scope': 'admin'}) }}"
+                                   data-test-three-brs-security-settings-scope-admin>
+                                    {{ 'three_brs.ui.security_settings.scope_admin'|trans }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {% for tab, form in forms %}
+                    {% form_theme form '@SyliusAdmin/shared/form_theme.html.twig' %}
+                    <div class="card mb-4" data-test-three-brs-security-settings-tab="{{ tab }}">
+                        <div class="card-header">
+                            <h3 class="card-title mb-0">{{ ('three_brs.ui.security_settings.' ~ tab ~ '.title')|trans }}</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-secondary mb-4">{{ ('three_brs.ui.security_settings.' ~ tab ~ '.description')|trans }}</p>
+                            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                                {{ form_errors(form) }}
+                                {{ form_rest(form) }}
+                                <div class="mt-4 pt-3 border-top">
+                                    <button type="submit"
+                                            class="btn btn-primary"
+                                            data-test-three-brs-security-settings-save="{{ tab }}">
+                                        {{ 'three_brs.ui.security_settings.save'|trans }}
+                                    </button>
+                                </div>
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

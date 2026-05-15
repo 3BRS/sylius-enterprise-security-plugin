@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\Exception\OAuthProviderException;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\GoogleOAuthProvider;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 #[CoversClass(GoogleOAuthProvider::class)]
 class GoogleOAuthProviderTest extends TestCase
@@ -105,11 +107,19 @@ class GoogleOAuthProviderTest extends TestCase
         ?string $adminClientId = 'acid',
         ?string $adminClientSecret = 'asec',
     ): GoogleOAuthProvider {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getBool')->willReturnCallback(
+            static fn (string $path, SettingsScope $scope): bool => match ($scope) {
+                SettingsScope::CUSTOMER => $customerEnabled,
+                SettingsScope::ADMIN => $adminEnabled,
+                default => false,
+            },
+        );
+
         return new GoogleOAuthProvider(
-            $customerEnabled,
+            $settings,
             $customerClientId,
             $customerClientSecret,
-            $adminEnabled,
             $adminClientId,
             $adminClientSecret,
         );

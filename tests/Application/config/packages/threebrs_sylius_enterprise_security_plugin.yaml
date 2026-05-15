@@ -23,9 +23,9 @@ three_brs_sylius_enterprise_security:
             enabled: true
     two_factor_authentication:
         customer:
-            mode: optional
+            mode: allowed
         admin:
-            mode: optional
+            mode: allowed
         recovery_codes:
             customer:
                 enabled: true

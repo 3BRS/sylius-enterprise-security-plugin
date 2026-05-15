@@ -12,6 +12,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordPolicy;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\PolicyFactoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordPolicy as PasswordPolicyConstraint;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordPolicyValidator;
 
@@ -64,7 +66,10 @@ class PasswordPolicyValidatorTest extends TestCase
             $adminRequireSpecialChars,
         );
 
-        $validator = new PasswordPolicyValidator($customerPolicy, $adminPolicy, $this->createStub(TokenStorageInterface::class));
+        $factory = $this->createStub(PolicyFactoryInterface::class);
+        $factory->method('passwordPolicy')->willReturnCallback(static fn (SettingsScope $scope) => $scope === SettingsScope::ADMIN ? $adminPolicy : $customerPolicy);
+
+        $validator = new PasswordPolicyValidator($factory, $this->createStub(TokenStorageInterface::class));
         $validator->initialize($this->context);
 
         return $validator;

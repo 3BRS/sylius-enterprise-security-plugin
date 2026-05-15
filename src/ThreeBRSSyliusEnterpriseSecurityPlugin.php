@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin;
 
 use Sylius\Bundle\CoreBundle\Application\SyliusPluginTrait;
-use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\DependencyInjection\Compiler\RateLimiterServiceLocatorPass;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\DependencyInjection\ThreeBRSSyliusEnterpriseSecurityExtension;
 
 class ThreeBRSSyliusEnterpriseSecurityPlugin extends Bundle implements PrependExtensionInterface
@@ -19,13 +17,6 @@ class ThreeBRSSyliusEnterpriseSecurityPlugin extends Bundle implements PrependEx
     public function getContainerExtension(): ThreeBRSSyliusEnterpriseSecurityExtension
     {
         return new ThreeBRSSyliusEnterpriseSecurityExtension();
-    }
-
-    public function build(ContainerBuilder $container): void
-    {
-        parent::build($container);
-
-        $container->addCompilerPass(new RateLimiterServiceLocatorPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -100);
     }
 
     public function prepend(ContainerBuilder $container): void

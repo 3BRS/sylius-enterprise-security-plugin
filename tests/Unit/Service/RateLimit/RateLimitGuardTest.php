@@ -6,97 +6,131 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Service\RateLimit;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
-use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
+use Symfony\Component\RateLimiter\RateLimit;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\DynamicRateLimiterFactoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuard;
 
 #[CoversClass(RateLimitGuard::class)]
 class RateLimitGuardTest extends TestCase
 {
-    public function testIsEnabledReturnsTrueOnlyForExplicitlyEnabledKey(): void
+    public function testIsEnabledDelegatesToFactory(): void
     {
-        $guard = new RateLimitGuard(
-            $this->createStub(ContainerInterface::class),
-            ['customer.login' => true, 'admin.login' => false],
-        );
+        $factory = $this->createStub(DynamicRateLimiterFactoryInterface::class);
+        $factory->method('isEnabled')->willReturnMap([
+            ['customer', 'login', true],
+            ['admin', 'login', false],
+        ]);
+
+        $guard = new RateLimitGuard($factory);
 
         self::assertTrue($guard->isEnabled('customer', 'login'));
         self::assertFalse($guard->isEnabled('admin', 'login'));
-        self::assertFalse($guard->isEnabled('customer', 'unknown'));
     }
 
     public function testConsumeNoOpsWhenDisabled(): void
     {
-        $locator = $this->createMock(ContainerInterface::class);
-        $locator->expects(self::never())->method('has');
+        $factory = $this->createMock(DynamicRateLimiterFactoryInterface::class);
+        $factory->method('isEnabled')->willReturn(false);
+        $factory->expects(self::never())->method('consume');
 
-        $guard = new RateLimitGuard($locator, ['customer.login' => false]);
-
-        $guard->consume(Request::create('/login', 'POST'), 'customer', 'login');
-    }
-
-    public function testConsumeNoOpsWhenLimiterServiceMissing(): void
-    {
-        $locator = $this->createMock(ContainerInterface::class);
-        $locator->method('has')->with('limiter.three_brs_customer_login')->willReturn(false);
-        $locator->expects(self::never())->method('get');
-
-        $guard = new RateLimitGuard($locator, ['customer.login' => true]);
+        $guard = new RateLimitGuard($factory);
 
         $guard->consume(Request::create('/login', 'POST'), 'customer', 'login');
     }
 
     public function testConsumeAllowsRequestWhenLimitNotExceeded(): void
     {
-        $factory = $this->buildFactory(limit: 5);
+        $accepted = $this->createStub(RateLimit::class);
+        $accepted->method('isAccepted')->willReturn(true);
 
-        $locator = $this->createMock(ContainerInterface::class);
-        $locator->method('has')->with('limiter.three_brs_customer_login')->willReturn(true);
-        $locator->method('get')->with('limiter.three_brs_customer_login')->willReturn($factory);
+        $factory = $this->createStub(DynamicRateLimiterFactoryInterface::class);
+        $factory->method('isEnabled')->willReturn(true);
+        $factory->method('consume')->willReturn($accepted);
 
-        $guard = new RateLimitGuard($locator, ['customer.login' => true]);
+        $guard = new RateLimitGuard($factory);
 
-        // Limit is 5, single consume must pass without throwing.
         $guard->consume(Request::create('/login', 'POST'), 'customer', 'login', 'user@example.com');
 
-        // No assertions needed — absence of exception is the assertion.
         self::assertTrue(true);
     }
 
     public function testConsumeThrowsWhenLimitExceeded(): void
     {
-        $factory = $this->buildFactory(limit: 1);
+        $rejected = $this->createStub(RateLimit::class);
+        $rejected->method('isAccepted')->willReturn(false);
+        $rejected->method('getRetryAfter')->willReturn(new \DateTimeImmutable('+30 seconds'));
 
-        $locator = $this->createStub(ContainerInterface::class);
-        $locator->method('has')->willReturn(true);
-        $locator->method('get')->willReturn($factory);
+        $factory = $this->createStub(DynamicRateLimiterFactoryInterface::class);
+        $factory->method('isEnabled')->willReturn(true);
+        $factory->method('consume')->willReturn($rejected);
 
-        $guard = new RateLimitGuard($locator, ['customer.login' => true]);
+        $guard = new RateLimitGuard($factory);
 
-        // Same key both times so the bucket is shared.
-        $request = Request::create('/login', 'POST', server: ['REMOTE_ADDR' => '203.0.113.42']);
-
-        // First call consumes the only allowed token.
-        $guard->consume($request, 'customer', 'login');
-
-        // Second call must exceed the limit.
         $this->expectException(TooManyRequestsHttpException::class);
-        $guard->consume($request, 'customer', 'login');
+        $guard->consume(Request::create('/login', 'POST'), 'customer', 'login');
     }
 
-    protected function buildFactory(int $limit): RateLimiterFactory
+    public function testConsumeUsesUsernameAsKeyWhenProvided(): void
     {
-        return new RateLimiterFactory(
-            [
-                'id' => 'test_limiter',
-                'policy' => 'fixed_window',
-                'limit' => $limit,
-                'interval' => '15 minutes',
-            ],
-            new InMemoryStorage(),
+        $accepted = $this->createStub(RateLimit::class);
+        $accepted->method('isAccepted')->willReturn(true);
+
+        $factory = $this->createMock(DynamicRateLimiterFactoryInterface::class);
+        $factory->method('isEnabled')->willReturn(true);
+        $factory->expects(self::once())
+            ->method('consume')
+            ->with('customer', 'login', 'admin@example.com')
+            ->willReturn($accepted);
+
+        $guard = new RateLimitGuard($factory);
+
+        $guard->consume(Request::create('/login', 'POST'), 'customer', 'login', 'Admin@Example.com');
+    }
+
+    public function testConsumeFallsBackToClientIpWhenNoUsername(): void
+    {
+        $accepted = $this->createStub(RateLimit::class);
+        $accepted->method('isAccepted')->willReturn(true);
+
+        $factory = $this->createMock(DynamicRateLimiterFactoryInterface::class);
+        $factory->method('isEnabled')->willReturn(true);
+        $factory->expects(self::once())
+            ->method('consume')
+            ->with('customer', 'register', '203.0.113.42')
+            ->willReturn($accepted);
+
+        $guard = new RateLimitGuard($factory);
+
+        $guard->consume(
+            Request::create('/register', 'POST', server: ['REMOTE_ADDR' => '203.0.113.42']),
+            'customer',
+            'register',
         );
+    }
+
+    public function testResetNoOpsWhenDisabled(): void
+    {
+        $factory = $this->createMock(DynamicRateLimiterFactoryInterface::class);
+        $factory->method('isEnabled')->willReturn(false);
+        $factory->expects(self::never())->method('reset');
+
+        $guard = new RateLimitGuard($factory);
+
+        $guard->reset('customer', 'login', 'user@example.com');
+    }
+
+    public function testResetLowercasesUserIdentifier(): void
+    {
+        $factory = $this->createMock(DynamicRateLimiterFactoryInterface::class);
+        $factory->method('isEnabled')->willReturn(true);
+        $factory->expects(self::once())
+            ->method('reset')
+            ->with('customer', 'login', 'admin@example.com');
+
+        $guard = new RateLimitGuard($factory);
+
+        $guard->reset('customer', 'login', 'Admin@Example.com');
     }
 }

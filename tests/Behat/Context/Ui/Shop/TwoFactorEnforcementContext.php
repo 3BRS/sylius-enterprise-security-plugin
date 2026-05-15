@@ -7,14 +7,17 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriterInterface;
 use Webmozart\Assert\Assert;
 
 class TwoFactorEnforcementContext implements Context
 {
     public function __construct(
-        private Session $session,
-        private TwoFactorEnforcementChecker $enforcementChecker,
+        protected Session $session,
+        protected SettingsWriterInterface $settingsWriter,
+        protected SettingsProviderInterface $settingsProvider,
     ) {
     }
 
@@ -23,7 +26,7 @@ class TwoFactorEnforcementContext implements Context
      */
     public function resetEnforcement(): void
     {
-        $this->overrideMode('customerMode', TwoFactorMode::OPTIONAL);
+        $this->setMode(TwoFactorMode::ALLOWED);
     }
 
     /**
@@ -31,7 +34,7 @@ class TwoFactorEnforcementContext implements Context
      */
     public function enforcementIsEnabledForCustomers(): void
     {
-        $this->overrideMode('customerMode', TwoFactorMode::ENFORCED);
+        $this->setMode(TwoFactorMode::ENFORCED);
     }
 
     /**
@@ -58,9 +61,10 @@ class TwoFactorEnforcementContext implements Context
         Assert::contains($this->session->getCurrentUrl(), '/account/dashboard');
     }
 
-    private function overrideMode(string $property, TwoFactorMode $mode): void
+    protected function setMode(TwoFactorMode $mode): void
     {
-        $reflection = new \ReflectionProperty(TwoFactorEnforcementChecker::class, $property);
-        $reflection->setValue($this->enforcementChecker, $mode);
+        $this->settingsWriter->set('two_factor_authentication.mode', SettingsScope::CUSTOMER, $mode->value);
+        $this->settingsWriter->flush();
+        $this->settingsProvider->refresh();
     }
 }

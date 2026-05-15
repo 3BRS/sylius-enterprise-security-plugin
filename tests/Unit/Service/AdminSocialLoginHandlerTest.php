@@ -15,6 +15,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserSocialAccountLinkInt
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfo;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandler;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
 
 #[CoversClass(AdminSocialLoginHandler::class)]
 class AdminSocialLoginHandlerTest extends TestCase
@@ -33,8 +34,7 @@ class AdminSocialLoginHandlerTest extends TestCase
             $this->createStub(FactoryInterface::class),
             $linkRepository,
             $this->createStub(EntityManagerInterface::class),
-            [],
-            'en_US',
+            $this->settings(),
         );
 
         self::assertSame($admin, $handler->findExistingLinkUser(new OAuthUserInfo('google', '1', 'a@b.com')));
@@ -55,8 +55,7 @@ class AdminSocialLoginHandlerTest extends TestCase
             $this->createStub(FactoryInterface::class),
             $this->createStub(AdminUserSocialAccountLinkRepositoryInterface::class),
             $this->createStub(EntityManagerInterface::class),
-            [],
-            'en_US',
+            $this->settings(),
         );
 
         self::assertSame($admin, $handler->findUserByEmail('A@B.com'));
@@ -90,8 +89,7 @@ class AdminSocialLoginHandlerTest extends TestCase
             $adminFactory,
             $this->createStub(AdminUserSocialAccountLinkRepositoryInterface::class),
             $entityManager,
-            [],
-            'en_US',
+            $this->settings(),
         );
 
         $result = $handler->registerAndLink(new OAuthUserInfo('google', 'g-1', 'new@example.com', 'John', 'Doe'));
@@ -117,8 +115,7 @@ class AdminSocialLoginHandlerTest extends TestCase
             $adminFactory,
             $this->createStub(AdminUserSocialAccountLinkRepositoryInterface::class),
             $this->createStub(EntityManagerInterface::class),
-            [],
-            'cs_CZ',
+            $this->settings(defaultLocale: 'cs_CZ'),
         );
 
         $handler->registerAndLink(new OAuthUserInfo('google', 'g-1', 'new@example.com'));
@@ -131,12 +128,38 @@ class AdminSocialLoginHandlerTest extends TestCase
             $this->createStub(FactoryInterface::class),
             $this->createStub(AdminUserSocialAccountLinkRepositoryInterface::class),
             $this->createStub(EntityManagerInterface::class),
-            [],
-            'en_US',
+            $this->settings(),
         );
 
         $this->expectException(\LogicException::class);
         $handler->registerAndLink(new OAuthUserInfo('google', 'g-1', null));
+    }
+
+    public function testCanAutoRegisterRejectsEmailFromDomainNotInWhitelist(): void
+    {
+        $handler = new AdminSocialLoginHandler(
+            $this->createStub(UserRepositoryInterface::class),
+            $this->createStub(FactoryInterface::class),
+            $this->createStub(AdminUserSocialAccountLinkRepositoryInterface::class),
+            $this->createStub(EntityManagerInterface::class),
+            $this->settings(allowedDomains: ['example.com']),
+        );
+
+        self::assertFalse($handler->canAutoRegister(new OAuthUserInfo('google', '1', 'a@other.com', emailVerified: true)));
+        self::assertTrue($handler->canAutoRegister(new OAuthUserInfo('google', '1', 'a@example.com', emailVerified: true)));
+    }
+
+    public function testCanAutoRegisterRejectsEmptyWhitelist(): void
+    {
+        $handler = new AdminSocialLoginHandler(
+            $this->createStub(UserRepositoryInterface::class),
+            $this->createStub(FactoryInterface::class),
+            $this->createStub(AdminUserSocialAccountLinkRepositoryInterface::class),
+            $this->createStub(EntityManagerInterface::class),
+            $this->settings(allowedDomains: []),
+        );
+
+        self::assertFalse($handler->canAutoRegister(new OAuthUserInfo('google', '1', 'a@example.com', emailVerified: true)));
     }
 
     public function testLinkExistingUserPersistsLinkAndFlushes(): void
@@ -157,8 +180,7 @@ class AdminSocialLoginHandlerTest extends TestCase
             $this->createStub(FactoryInterface::class),
             $this->createStub(AdminUserSocialAccountLinkRepositoryInterface::class),
             $entityManager,
-            [],
-            'en_US',
+            $this->settings(),
         );
 
         $handler->linkExistingUser($admin, new OAuthUserInfo('apple', 'a-7', 'x@y.com'));
@@ -183,8 +205,7 @@ class AdminSocialLoginHandlerTest extends TestCase
             $this->createStub(FactoryInterface::class),
             $linkRepository,
             $entityManager,
-            [],
-            'en_US',
+            $this->settings(),
         );
 
         $handler->touchLastUsed($admin, new OAuthUserInfo('google', 'g-1', 'x@y.com'));
@@ -208,10 +229,29 @@ class AdminSocialLoginHandlerTest extends TestCase
             $this->createStub(FactoryInterface::class),
             $linkRepository,
             $entityManager,
-            [],
-            'en_US',
+            $this->settings(),
         );
 
         $handler->touchLastUsed($admin, new OAuthUserInfo('google', 'g-1', 'x@y.com'));
+    }
+
+    /** @param list<string> $allowedDomains */
+    protected function settings(array $allowedDomains = [], string $defaultLocale = 'en_US'): SettingsProviderInterface
+    {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('get')->willReturnCallback(
+            static fn (string $path, $scope): mixed => match ($path) {
+                'oauth.auto_register_allowed_email_domains' => $allowedDomains,
+                default => null,
+            },
+        );
+        $settings->method('getString')->willReturnCallback(
+            static fn (string $path, $scope): string => match ($path) {
+                'oauth.default_locale' => $defaultLocale,
+                default => '',
+            },
+        );
+
+        return $settings;
     }
 }

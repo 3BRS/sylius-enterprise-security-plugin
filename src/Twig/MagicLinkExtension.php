@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig;
 
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggleInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
 class MagicLinkExtension extends AbstractExtension implements MagicLinkExtensionInterface
 {
     public function __construct(
-        protected bool $customerEnabled,
-        protected bool $adminEnabled,
+        protected FeatureToggleInterface $features,
     ) {
     }
 
@@ -24,6 +25,8 @@ class MagicLinkExtension extends AbstractExtension implements MagicLinkExtension
 
     public function isEnabled(string $group): bool
     {
-        return $group === 'admin' ? $this->adminEnabled : $this->customerEnabled;
+        $scope = $group === 'admin' ? SettingsScope::ADMIN : SettingsScope::CUSTOMER;
+
+        return $this->features->isEnabled('magic_link', $scope);
     }
 }

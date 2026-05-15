@@ -18,6 +18,8 @@ use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryCheckerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordHistory;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\PasswordHistoryValidator;
 
@@ -46,13 +48,26 @@ class PasswordHistoryValidatorTest extends TestCase
         bool $adminEnabled = true,
         int $adminCount = 10,
     ): PasswordHistoryValidator {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerEnabled, $adminEnabled): bool {
+            if ($path !== 'password_history.enabled') {
+                return false;
+            }
+
+            return $scope === SettingsScope::ADMIN ? $adminEnabled : $customerEnabled;
+        });
+        $settings->method('getInt')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerCount, $adminCount): int {
+            if ($path !== 'password_history.count') {
+                return 0;
+            }
+
+            return $scope === SettingsScope::ADMIN ? $adminCount : $customerCount;
+        });
+
         $validator = new PasswordHistoryValidator(
             $checker ?? $this->createStub(PasswordHistoryCheckerInterface::class),
             $tokenStorage ?? $this->createStub(TokenStorageInterface::class),
-            $customerEnabled,
-            $customerCount,
-            $adminEnabled,
-            $adminCount,
+            $settings,
         );
         $validator->initialize($this->context);
 

@@ -19,6 +19,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordChangeNotificationListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\PasswordChangeEmailManagerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 #[CoversClass(PasswordChangeNotificationListener::class)]
 class PasswordChangeNotificationListenerTest extends TestCase
@@ -31,12 +33,20 @@ class PasswordChangeNotificationListenerTest extends TestCase
         bool $adminEnabled = true,
         ?LoggerInterface $logger = null,
     ): PasswordChangeNotificationListener {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerEnabled, $adminEnabled): bool {
+            if ($path !== 'password_change_notification.enabled') {
+                return false;
+            }
+
+            return $scope === SettingsScope::ADMIN ? $adminEnabled : $customerEnabled;
+        });
+
         return new PasswordChangeNotificationListener(
             $emailManager,
             $requestStack ?? $this->requestStackWithRequest(),
             $tokenStorage ?? $this->tokenStorageWithUser(null),
-            $customerEnabled,
-            $adminEnabled,
+            $settings,
             $logger,
         );
     }

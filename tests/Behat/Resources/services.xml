@@ -145,13 +145,15 @@
 		<service id="three_brs.behat.context.ui.shop.two_factor_enforcement"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\TwoFactorEnforcementContext">
 			<argument type="service" id="behat.mink.default_session"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.two_factor_enforcement"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\TwoFactorEnforcementContext">
 			<argument type="service" id="behat.mink.default_session"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.social_login"
@@ -240,7 +242,7 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
-			<argument type="service" id="cache.rate_limiter"/>
+			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.lockout"
@@ -252,7 +254,7 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
-			<argument type="service" id="cache.rate_limiter"/>
+			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.rate_limit"
@@ -273,7 +275,7 @@
 
 		<service id="three_brs.behat.context.hook.rate_limiter_cache"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Hook\RateLimiterCacheHookContext">
-			<argument type="service" id="cache.rate_limiter"/>
+			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.session_management"
@@ -296,6 +298,13 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="sylius.email_sender"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.security_settings"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\SecuritySettingsContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 	</services>
 </container>

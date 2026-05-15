@@ -5,17 +5,22 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu;
 
 use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggleInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 {
     public function __construct(
-        protected bool $passkeyEnabled,
-        protected bool $sessionManagementEnabled,
+        protected FeatureToggleInterface $features,
     ) {
     }
 
     public function addTwoFactorItem(MenuBuilderEvent $event): void
     {
+        if (!$this->features->isTwoFactorActive(SettingsScope::CUSTOMER)) {
+            return;
+        }
+
         $menu = $event->getMenu();
 
         $menu
@@ -27,6 +32,13 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 
     public function addSocialAccountsItem(MenuBuilderEvent $event): void
     {
+        if (
+            !$this->features->isEnabled('oauth.google', SettingsScope::CUSTOMER) &&
+            !$this->features->isEnabled('oauth.apple', SettingsScope::CUSTOMER)
+        ) {
+            return;
+        }
+
         $menu = $event->getMenu();
 
         $menu
@@ -38,7 +50,7 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 
     public function addPasskeyItem(MenuBuilderEvent $event): void
     {
-        if (!$this->passkeyEnabled) {
+        if (!$this->features->isEnabled('passkey', SettingsScope::CUSTOMER)) {
             return;
         }
 
@@ -53,7 +65,7 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 
     public function addSessionsItem(MenuBuilderEvent $event): void
     {
-        if (!$this->sessionManagementEnabled) {
+        if (!$this->features->isEnabled('session_management', SettingsScope::CUSTOMER)) {
             return;
         }
 

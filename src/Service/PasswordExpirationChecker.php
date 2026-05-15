@@ -6,53 +6,42 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 class PasswordExpirationChecker implements PasswordExpirationCheckerInterface
 {
     public function __construct(
-        private bool $customerEnabled,
-        private int $customerDays,
-        private bool $adminEnabled,
-        private int $adminDays,
+        protected SettingsProviderInterface $settings,
     ) {
     }
 
     public function isShopUserPasswordExpired(PasswordExpirationShopUserInterface $user): bool
     {
-        if ($user->isForcePasswordChange()) {
-            return true;
-        }
-
-        if (!$this->customerEnabled) {
-            return false;
-        }
-
-        $changedAt = $user->getPasswordChangedAt();
-        if ($changedAt === null) {
-            return true;
-        }
-
-        $expiresAt = $changedAt->modify(sprintf('+%d days', $this->customerDays));
-
-        return new \DateTimeImmutable() > $expiresAt;
+        return $this->isExpired($user->isForcePasswordChange(), $user->getPasswordChangedAt(), SettingsScope::CUSTOMER);
     }
 
     public function isAdminUserPasswordExpired(PasswordExpirationAdminUserInterface $user): bool
     {
-        if ($user->isForcePasswordChange()) {
+        return $this->isExpired($user->isForcePasswordChange(), $user->getPasswordChangedAt(), SettingsScope::ADMIN);
+    }
+
+    protected function isExpired(bool $forcePasswordChange, ?\DateTimeImmutable $changedAt, SettingsScope $scope): bool
+    {
+        if ($forcePasswordChange) {
             return true;
         }
 
-        if (!$this->adminEnabled) {
+        if (!$this->settings->getBool('password_expiration.enabled', $scope)) {
             return false;
         }
 
-        $changedAt = $user->getPasswordChangedAt();
         if ($changedAt === null) {
             return true;
         }
 
-        $expiresAt = $changedAt->modify(sprintf('+%d days', $this->adminDays));
+        $days = $this->settings->getInt('password_expiration.days', $scope);
+        $expiresAt = $changedAt->modify(sprintf('+%d days', $days));
 
         return new \DateTimeImmutable() > $expiresAt;
     }
