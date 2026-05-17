@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\DataTransformer;
+namespace ThreeBRS\EnterpriseSecurityBundle\Form\DataTransformer;
 
 class CidrListDataTransformer implements CidrListDataTransformerInterface
 {

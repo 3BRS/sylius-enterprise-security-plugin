@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator;
+namespace ThreeBRS\EnterpriseSecurityBundle\Validator;
 
 use Symfony\Component\Validator\Constraint;
 

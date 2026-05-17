@@ -11,8 +11,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\DataTransformer\CidrListDataTransformer;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\CidrList;
+use ThreeBRS\EnterpriseSecurityBundle\Form\DataTransformer\CidrListDataTransformer;
+use ThreeBRS\EnterpriseSecurityBundle\Validator\Constraint\CidrList;
 
 /**
  * @extends AbstractType<array<string, mixed>>

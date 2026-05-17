@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator;
+namespace ThreeBRS\EnterpriseSecurityBundle\Validator;
 
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\CidrList;
+use ThreeBRS\EnterpriseSecurityBundle\Validator\Constraint\CidrList;
 
 class CidrListValidator extends ConstraintValidator implements CidrListValidatorInterface
 {

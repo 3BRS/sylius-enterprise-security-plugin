@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Form\DataTransformer;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\Form\DataTransformer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\DataTransformer\CidrListDataTransformer;
+use ThreeBRS\EnterpriseSecurityBundle\Form\DataTransformer\CidrListDataTransformer;
 
 #[CoversClass(CidrListDataTransformer::class)]
 class CidrListDataTransformerTest extends TestCase

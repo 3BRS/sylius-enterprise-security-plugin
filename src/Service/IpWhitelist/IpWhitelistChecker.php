@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist;
 
 use Sylius\Component\Core\Model\AdminUserInterface;
-use Symfony\Component\HttpFoundation\IpUtils;
+use ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcherInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
@@ -15,6 +15,7 @@ class IpWhitelistChecker implements IpWhitelistCheckerInterface
     public function __construct(
         protected SettingsProviderInterface $settingsProvider,
         protected AdminUserIpWhitelistRepositoryInterface $adminWhitelistRepository,
+        protected CidrMatcherInterface $cidrMatcher,
     ) {
     }
 
@@ -25,7 +26,7 @@ class IpWhitelistChecker implements IpWhitelistCheckerInterface
 
     public function isAllowedByGlobal(string $ip): bool
     {
-        return $this->matchesAny($ip, $this->getGlobalCidrs());
+        return $this->cidrMatcher->matchesAny($ip, $this->getGlobalCidrs());
     }
 
     public function isAllowedAnonymously(string $ip): bool
@@ -39,7 +40,7 @@ class IpWhitelistChecker implements IpWhitelistCheckerInterface
         }
 
         foreach ($this->adminWhitelistRepository->findAllEnabled() as $entry) {
-            if ($this->matchesAny($ip, $entry->getCidrs())) {
+            if ($this->cidrMatcher->matchesAny($ip, $entry->getCidrs())) {
                 return true;
             }
         }
@@ -58,7 +59,7 @@ class IpWhitelistChecker implements IpWhitelistCheckerInterface
             return false;
         }
 
-        return $this->matchesAny($ip, $entity->getCidrs());
+        return $this->cidrMatcher->matchesAny($ip, $entity->getCidrs());
     }
 
     public function getGlobalCidrs(): array
@@ -76,17 +77,5 @@ class IpWhitelistChecker implements IpWhitelistCheckerInterface
         }
 
         return $cidrs;
-    }
-
-    /**
-     * @param list<string> $cidrs
-     */
-    protected function matchesAny(string $ip, array $cidrs): bool
-    {
-        if ($ip === '' || $cidrs === []) {
-            return false;
-        }
-
-        return IpUtils::checkIp($ip, $cidrs);
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Validator;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\Validator;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -12,8 +12,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\CidrListValidator;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\CidrList;
+use ThreeBRS\EnterpriseSecurityBundle\Validator\CidrListValidator;
+use ThreeBRS\EnterpriseSecurityBundle\Validator\Constraint\CidrList;
 
 #[CoversClass(CidrListValidator::class)]
 class CidrListValidatorTest extends TestCase

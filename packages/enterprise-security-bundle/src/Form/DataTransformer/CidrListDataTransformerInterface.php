@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\DataTransformer;
+namespace ThreeBRS\EnterpriseSecurityBundle\Form\DataTransformer;
 
 use Symfony\Component\Form\DataTransformerInterface;
 

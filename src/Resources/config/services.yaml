@@ -1484,15 +1484,18 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository
 
+    ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcher: ~
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker:
         arguments:
             $settingsProvider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $adminWhitelistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository'
+            $cidrMatcher: '@ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcher'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistCheckerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\CidrListValidator:
+    ThreeBRS\EnterpriseSecurityBundle\Validator\CidrListValidator:
         tags:
             - { name: 'validator.constraint_validator', alias: 'three_brs.validator.cidr_list' }
 
