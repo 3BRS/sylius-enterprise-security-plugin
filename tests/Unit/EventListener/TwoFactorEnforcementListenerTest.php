@@ -16,9 +16,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\TwoFactorEnforcementListener;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthShopUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementCheckerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorEnforcementCheckerInterface;
 
 /** @internal test double: shop user with 2FA support */
 interface TestShopUserForEnforcement extends ShopUserInterface, TwoFactorAuthShopUserInterface

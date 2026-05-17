@@ -10,7 +10,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserTrait;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserTrait;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserTrait;
 
 #[ORM\Entity]

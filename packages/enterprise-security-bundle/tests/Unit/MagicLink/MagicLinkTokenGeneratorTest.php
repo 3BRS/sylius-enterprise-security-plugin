@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\TwoFactor;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\MagicLink;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;

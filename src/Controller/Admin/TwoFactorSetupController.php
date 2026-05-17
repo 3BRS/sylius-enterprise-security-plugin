@@ -18,9 +18,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\QrCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TotpSecretGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\TwoFactorVerifyType;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserInterface;
 use Twig\Environment;
 
 class TwoFactorSetupController implements TwoFactorSetupControllerInterface

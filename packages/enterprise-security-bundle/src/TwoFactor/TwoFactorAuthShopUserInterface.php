@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Model;
+namespace ThreeBRS\EnterpriseSecurityBundle\TwoFactor;
 
 use Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface as TotpTwoFactorInterface;
 use Scheb\TwoFactorBundle\Model\TrustedDeviceInterface;
 
-interface TwoFactorAuthAdminUserInterface extends TotpTwoFactorInterface, TrustedDeviceInterface
+interface TwoFactorAuthShopUserInterface extends TotpTwoFactorInterface, TrustedDeviceInterface
 {
     public function getTotpSecret(): ?string;
 

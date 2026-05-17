@@ -147,14 +147,14 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker:
+    ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorEnforcementChecker:
         arguments:
             $policyFactory: '@ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactory'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\TwoFactorEnforcementListener:
         arguments:
             $tokenStorage: '@security.token_storage'
-            $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker'
+            $checker: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorEnforcementChecker'
             $router: '@router'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 3 }
@@ -238,8 +238,8 @@ services:
         tags:
             - { name: 'controller.service_arguments' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler.shop:
-        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler
+    ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler.shop:
+        class: ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler
         arguments:
             $twoFactorAuthenticationRequiredHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
             $defaultSuccessHandler: '@sylius.authentication.success_handler'

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Security;
+namespace ThreeBRS\EnterpriseSecurityBundle\TwoFactor;
 
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 

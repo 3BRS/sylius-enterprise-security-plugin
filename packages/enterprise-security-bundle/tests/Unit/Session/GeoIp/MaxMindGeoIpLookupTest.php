@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\Session;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\Session\GeoIp;
 
 use GeoIp2\Database\Reader;
 use GeoIp2\Exception\AddressNotFoundException;

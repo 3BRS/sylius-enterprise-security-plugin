@@ -12,6 +12,8 @@
         "matomo/device-detector": "^6.5",
         "patrickbussmann/oauth2-apple": "^0.4",
         "psr/clock": "^1.0",
+        "scheb/2fa-bundle": "^7.13",
+        "scheb/2fa-trusted-device": "^7.13",
         "spomky-labs/otphp": "^11.4",
         "symfony/framework-bundle": "^6.4|^7.4",
         "symfony/http-foundation": "^6.4|^7.4",

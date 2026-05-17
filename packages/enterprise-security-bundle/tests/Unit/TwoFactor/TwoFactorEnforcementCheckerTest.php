@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Service;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\TwoFactor;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthShopUserInterface;
-use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorMode;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TwoFactorEnforcementChecker;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorEnforcementChecker;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorMode;
 
 #[CoversClass(TwoFactorEnforcementChecker::class)]
 class TwoFactorEnforcementCheckerTest extends TestCase

@@ -10,7 +10,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserTrait;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserTrait;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthShopUserTrait;
 
 #[ORM\Entity]

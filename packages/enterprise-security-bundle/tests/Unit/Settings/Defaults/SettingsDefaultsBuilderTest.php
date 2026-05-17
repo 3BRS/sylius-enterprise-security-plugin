@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\Settings;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\Settings\Defaults;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
