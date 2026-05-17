@@ -100,7 +100,12 @@
     "repositories": [
         {
             "type": "path",
-            "url": "./packages/enterprise-security-bundle"
+            "url": "./packages/enterprise-security-bundle",
+            "options": {
+                "versions": {
+                    "3brs/enterprise-security-bundle": "1.0.0"
+                }
+            }
         }
     ],
     "autoload": {

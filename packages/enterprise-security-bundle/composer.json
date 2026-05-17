@@ -1,7 +1,6 @@
 {
     "name": "3brs/enterprise-security-bundle",
     "type": "symfony-bundle",
-    "version": "1.0.0",
     "description": "Standalone Symfony bundle with reusable security logic — interfaces, services, validators, event listeners",
     "license": "MIT",
     "require": {
