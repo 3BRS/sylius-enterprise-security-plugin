@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
+namespace ThreeBRS\EnterpriseSecurityBundle\Passkey;
 
 interface PasskeyWebauthnSerializerInterface
 {

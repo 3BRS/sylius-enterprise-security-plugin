@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyRelyingPartyEntityFactoryInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorageInterface;
 use Webauthn\AuthenticatorSelectionCriteria;
 use Webauthn\PublicKeyCredentialRequestOptions;
 

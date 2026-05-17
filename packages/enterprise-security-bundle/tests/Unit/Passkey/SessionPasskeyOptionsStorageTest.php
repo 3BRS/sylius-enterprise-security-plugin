@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Service\Passkey;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\Passkey;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage;
 
 #[CoversClass(SessionPasskeyOptionsStorage::class)]
 class SessionPasskeyOptionsStorageTest extends TestCase

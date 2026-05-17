@@ -6,7 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
 
 class LockedAdminUserRepository implements LockedAdminUserRepositoryInterface
 {

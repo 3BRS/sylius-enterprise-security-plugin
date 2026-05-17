@@ -9,7 +9,7 @@ use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Event\LoginFailureEvent;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManagerInterface;
 
 class AdminUserLoginAttemptListener implements AdminUserLoginAttemptListenerInterface

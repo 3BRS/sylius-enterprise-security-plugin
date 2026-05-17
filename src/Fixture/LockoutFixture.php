@@ -12,8 +12,8 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
 
 class LockoutFixture extends AbstractFixture implements LockoutFixtureInterface
 {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Service\Passkey;
+namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\Passkey;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyRelyingPartyEntityFactory;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyRelyingPartyEntityFactory;
 
 #[CoversClass(PasskeyRelyingPartyEntityFactory::class)]
 class PasskeyRelyingPartyEntityFactoryTest extends TestCase

@@ -9,7 +9,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockoutPolicy;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager;
 use ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuardInterface;

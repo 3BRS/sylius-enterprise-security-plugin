@@ -14,8 +14,8 @@ use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\User\Model\UserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManagerInterface;
 use Webmozart\Assert\Assert;
 

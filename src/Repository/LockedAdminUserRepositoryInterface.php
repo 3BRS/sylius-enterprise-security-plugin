@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
 use Sylius\Component\Core\Model\AdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
 
 interface LockedAdminUserRepositoryInterface
 {

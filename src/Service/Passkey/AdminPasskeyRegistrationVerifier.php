@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 
 use Sylius\Component\Core\Model\AdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyValidatorFactoryInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorageInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasskeyCredential;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasskeyCredentialInterface;
 use Webauthn\AuthenticatorAttestationResponse;

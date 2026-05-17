@@ -6,7 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Security;
 
 use Symfony\Component\Security\Core\Exception\LockedException;
 use Symfony\Component\Security\Core\User\UserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManagerInterface;
 
 class ShopUserLockoutChecker implements ShopUserLockoutCheckerInterface

@@ -8,9 +8,9 @@ use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockoutPolicyInterface;
 use ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuardInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
 
 class ShopUserLockoutManager implements ShopUserLockoutManagerInterface
 {

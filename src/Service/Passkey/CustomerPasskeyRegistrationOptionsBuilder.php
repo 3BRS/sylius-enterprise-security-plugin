@@ -6,6 +6,9 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 
 use Cose\Algorithms;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyRelyingPartyEntityFactoryInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorageInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepositoryInterface;
 use Webauthn\AuthenticatorSelectionCriteria;
 use Webauthn\PublicKeyCredentialCreationOptions;

@@ -529,79 +529,79 @@ services:
         tags:
             - { name: 'doctrine.repository_service' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyRelyingPartyEntityFactory:
+    ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyRelyingPartyEntityFactory:
         arguments:
             $rpId: '%three_brs.passkey.rp_id%'
             $rpName: '%three_brs.passkey.rp_name%'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyCeremonyStepManagerFactory:
+    ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyCeremonyStepManagerFactory:
         arguments:
             $rpId: '%three_brs.passkey.rp_id%'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyValidatorFactory:
+    ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyValidatorFactory:
         arguments:
-            $ceremonyStepManagerFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyCeremonyStepManagerFactory'
+            $ceremonyStepManagerFactory: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyCeremonyStepManagerFactory'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer: ~
+    ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer: ~
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage:
+    ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage:
         arguments:
             $requestStack: '@request_stack'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyRegistrationOptionsBuilder:
         arguments:
-            $relyingPartyEntityFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyRelyingPartyEntityFactory'
+            $relyingPartyEntityFactory: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyRelyingPartyEntityFactory'
             $credentialRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository'
-            $sessionStorage: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
+            $sessionStorage: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyRegistrationVerifier:
         arguments:
-            $sessionStorage: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
-            $validatorFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyValidatorFactory'
+            $sessionStorage: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
+            $validatorFactory: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyValidatorFactory'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionOptionsBuilder:
         arguments:
-            $relyingPartyEntityFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyRelyingPartyEntityFactory'
-            $sessionStorage: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
+            $relyingPartyEntityFactory: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyRelyingPartyEntityFactory'
+            $sessionStorage: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifier:
         arguments:
             $credentialRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository'
             $entityManager: '@doctrine.orm.entity_manager'
-            $sessionStorage: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
-            $validatorFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyValidatorFactory'
+            $sessionStorage: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
+            $validatorFactory: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyValidatorFactory'
             $clock: '@clock'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyRegistrationOptionsBuilder:
         arguments:
-            $relyingPartyEntityFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyRelyingPartyEntityFactory'
+            $relyingPartyEntityFactory: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyRelyingPartyEntityFactory'
             $credentialRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository'
-            $sessionStorage: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
+            $sessionStorage: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyRegistrationVerifier:
         arguments:
-            $sessionStorage: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
-            $validatorFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyValidatorFactory'
+            $sessionStorage: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
+            $validatorFactory: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyValidatorFactory'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyAssertionOptionsBuilder:
         arguments:
-            $relyingPartyEntityFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyRelyingPartyEntityFactory'
-            $sessionStorage: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
+            $relyingPartyEntityFactory: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyRelyingPartyEntityFactory'
+            $sessionStorage: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyAssertionVerifier:
         arguments:
             $credentialRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository'
             $entityManager: '@doctrine.orm.entity_manager'
-            $sessionStorage: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\SessionPasskeyOptionsStorage'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
-            $validatorFactory: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyValidatorFactory'
+            $sessionStorage: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorage'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
+            $validatorFactory: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyValidatorFactory'
             $clock: '@clock'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyController:
@@ -628,7 +628,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyRegistrationOptionsController:
         arguments:
             $optionsBuilder: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyRegistrationOptionsBuilder'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
             $tokenStorage: '@security.token_storage'
             $enabled: '%three_brs.passkey.customer.enabled%'
         tags:
@@ -647,7 +647,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyLoginOptionsController:
         arguments:
             $optionsBuilder: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionOptionsBuilder'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
             $enabled: '%three_brs.passkey.customer.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
@@ -690,7 +690,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyRegistrationOptionsController:
         arguments:
             $optionsBuilder: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyRegistrationOptionsBuilder'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
             $tokenStorage: '@security.token_storage'
             $enabled: '%three_brs.passkey.admin.enabled%'
         tags:
@@ -709,7 +709,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyLoginOptionsController:
         arguments:
             $optionsBuilder: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyAssertionOptionsBuilder'
-            $serializer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\PasskeyWebauthnSerializer'
+            $serializer: '@ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializer'
             $enabled: '%three_brs.passkey.admin.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
