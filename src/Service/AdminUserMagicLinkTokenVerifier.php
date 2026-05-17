@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 
-use Psr\Clock\ClockInterface;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenValidatorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserMagicLinkTokenInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepositoryInterface;
 
@@ -14,7 +14,7 @@ class AdminUserMagicLinkTokenVerifier implements AdminUserMagicLinkTokenVerifier
     public function __construct(
         protected AdminUserMagicLinkTokenRepositoryInterface $repository,
         protected MagicLinkTokenGeneratorInterface $generator,
-        protected ClockInterface $clock,
+        protected MagicLinkTokenValidatorInterface $validator,
     ) {
     }
 
@@ -29,11 +29,7 @@ class AdminUserMagicLinkTokenVerifier implements AdminUserMagicLinkTokenVerifier
             return null;
         }
 
-        if ($token->getUsedAt() !== null) {
-            return null;
-        }
-
-        if ($token->getExpiresAt() < $this->clock->now()) {
+        if (!$this->validator->isUsable($token)) {
             return null;
         }
 

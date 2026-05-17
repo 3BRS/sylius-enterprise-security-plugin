@@ -369,6 +369,8 @@ services:
         arguments:
             $providers: !tagged_iterator 'three_brs.oauth_provider'
 
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\AutoRegistrationPolicy: ~
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandler:
         arguments:
             $customerRepository: '@sylius.repository.customer'
@@ -376,6 +378,7 @@ services:
             $shopUserFactory: '@sylius.factory.shop_user'
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
             $entityManager: '@doctrine.orm.entity_manager'
+            $autoRegistrationPolicy: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\AutoRegistrationPolicy'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandler:
         arguments:
@@ -384,6 +387,7 @@ services:
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
             $entityManager: '@doctrine.orm.entity_manager'
             $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+            $autoRegistrationPolicy: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\AutoRegistrationPolicy'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard:
         arguments:
@@ -726,17 +730,21 @@ services:
 
     ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator: ~
 
+    ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenValidator:
+        arguments:
+            $clock: '@clock'
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerMagicLinkTokenVerifier:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository'
             $generator: '@ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator'
-            $clock: '@clock'
+            $validator: '@ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenValidator'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserMagicLinkTokenVerifier:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserMagicLinkTokenRepository'
             $generator: '@ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator'
-            $clock: '@clock'
+            $validator: '@ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenValidator'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManager:
         arguments:

@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\AutoRegistrationPolicyInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
@@ -26,6 +27,7 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
         protected AdminUserSocialAccountLinkRepositoryInterface $linkRepository,
         protected EntityManagerInterface $entityManager,
         protected SettingsProviderInterface $settings,
+        protected AutoRegistrationPolicyInterface $autoRegistrationPolicy,
     ) {
     }
 
@@ -45,29 +47,7 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
 
     public function canAutoRegister(OAuthUserInfoInterface $info): bool
     {
-        $email = $info->getEmail();
-        if ($email === null || $email === '') {
-            return false;
-        }
-
-        if ($info->isEmailVerified() === false) {
-            return false;
-        }
-
-        $allowedEmailDomains = $this->loadAllowedEmailDomains();
-        if ($allowedEmailDomains === []) {
-            return false;
-        }
-
-        $atPos = strrpos($email, '@');
-        if ($atPos === false) {
-            return false;
-        }
-
-        $domain = strtolower(substr($email, $atPos + 1));
-        $normalized = array_map('strtolower', $allowedEmailDomains);
-
-        return in_array($domain, $normalized, true);
+        return $this->autoRegistrationPolicy->canAutoRegister($info, $this->loadAllowedEmailDomains());
     }
 
     /** @return list<string> */

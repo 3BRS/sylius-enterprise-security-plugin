@@ -9,6 +9,7 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\AutoRegistrationPolicyInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSocialAccountLink;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepositoryInterface;
@@ -26,6 +27,7 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
         protected FactoryInterface $shopUserFactory,
         protected CustomerSocialAccountLinkRepositoryInterface $linkRepository,
         protected EntityManagerInterface $entityManager,
+        protected AutoRegistrationPolicyInterface $autoRegistrationPolicy,
     ) {
     }
 
@@ -50,12 +52,7 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
 
     public function canAutoRegister(OAuthUserInfoInterface $info): bool
     {
-        $email = $info->getEmail();
-        if ($email === null || $email === '') {
-            return false;
-        }
-
-        return $info->isEmailVerified() !== false;
+        return $this->autoRegistrationPolicy->canAutoRegister($info, null);
     }
 
     /** @internal Callers must gate with {@see canAutoRegister()} before invoking. */
