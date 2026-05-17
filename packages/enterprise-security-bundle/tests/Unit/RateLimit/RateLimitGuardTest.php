@@ -42,6 +42,8 @@ class RateLimitGuardTest extends TestCase
 
     public function testConsumeAllowsRequestWhenLimitNotExceeded(): void
     {
+        $this->expectNotToPerformAssertions();
+
         $accepted = $this->createStub(RateLimit::class);
         $accepted->method('isAccepted')->willReturn(true);
 
@@ -52,8 +54,6 @@ class RateLimitGuardTest extends TestCase
         $guard = new RateLimitGuard($factory);
 
         $guard->consume(Request::create('/login', 'POST'), 'customer', 'login', 'user@example.com');
-
-        self::assertTrue(true);
     }
 
     public function testConsumeThrowsWhenLimitExceeded(): void
