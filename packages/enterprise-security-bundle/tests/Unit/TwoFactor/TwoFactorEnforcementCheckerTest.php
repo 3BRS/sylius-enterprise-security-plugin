@@ -6,8 +6,6 @@ namespace Tests\ThreeBRS\EnterpriseSecurityBundle\Unit\TwoFactor;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Sylius\Component\Core\Model\AdminUserInterface;
-use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\PolicyFactoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
@@ -76,27 +74,19 @@ class TwoFactorEnforcementCheckerTest extends TestCase
         self::assertTrue($checker->shouldEnforceForAdminUser($this->adminUser(twoFactorEnabled: false)));
     }
 
-    private function shopUser(bool $twoFactorEnabled): ShopUserInterface&TwoFactorAuthShopUserInterface
+    private function shopUser(bool $twoFactorEnabled): TwoFactorAuthShopUserInterface
     {
-        $user = $this->createStub(CombinedShopUser::class);
+        $user = $this->createStub(TwoFactorAuthShopUserInterface::class);
         $user->method('isTwoFactorEnabled')->willReturn($twoFactorEnabled);
 
         return $user;
     }
 
-    private function adminUser(bool $twoFactorEnabled): AdminUserInterface&TwoFactorAuthAdminUserInterface
+    private function adminUser(bool $twoFactorEnabled): TwoFactorAuthAdminUserInterface
     {
-        $user = $this->createStub(CombinedAdminUser::class);
+        $user = $this->createStub(TwoFactorAuthAdminUserInterface::class);
         $user->method('isTwoFactorEnabled')->willReturn($twoFactorEnabled);
 
         return $user;
     }
-}
-
-interface CombinedShopUser extends ShopUserInterface, TwoFactorAuthShopUserInterface
-{
-}
-
-interface CombinedAdminUser extends AdminUserInterface, TwoFactorAuthAdminUserInterface
-{
 }
