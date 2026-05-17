@@ -6,8 +6,9 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity;
 
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\CustomerDeletionRequestRecordInterface;
 
-interface CustomerDeletionRequestInterface
+interface CustomerDeletionRequestInterface extends CustomerDeletionRequestRecordInterface
 {
     public function getId(): ?int;
 
@@ -15,23 +16,7 @@ interface CustomerDeletionRequestInterface
 
     public function setCustomer(CustomerInterface $customer): void;
 
-    public function getRequestedAt(): \DateTimeImmutable;
-
-    public function getScheduledFor(): \DateTimeImmutable;
-
-    public function setScheduledFor(\DateTimeImmutable $scheduledFor): void;
-
-    public function getCancelledAt(): ?\DateTimeImmutable;
-
-    public function setCancelledAt(?\DateTimeImmutable $cancelledAt): void;
-
     public function getCancelledByAdmin(): ?AdminUserInterface;
 
     public function setCancelledByAdmin(?AdminUserInterface $admin): void;
-
-    public function getCompletedAt(): ?\DateTimeImmutable;
-
-    public function setCompletedAt(?\DateTimeImmutable $completedAt): void;
-
-    public function isPending(): bool;
 }

@@ -12,6 +12,7 @@ use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\GracePeriodCalculator;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequest;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequestInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManagerInterface;
@@ -47,6 +48,7 @@ class CustomerDeletionServiceTest extends TestCase
             $em,
             $this->fixedClock('2026-05-07 10:00:00'),
             $this->createStub(LoggerInterface::class),
+            new GracePeriodCalculator(),
             30,
         );
 
@@ -69,6 +71,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(EntityManagerInterface::class),
             $this->fixedClock('2026-05-07 10:00:00'),
             $this->createStub(LoggerInterface::class),
+            new GracePeriodCalculator(),
             30,
         );
 
@@ -100,6 +103,7 @@ class CustomerDeletionServiceTest extends TestCase
             $em,
             $this->fixedClock('2026-05-10 12:00:00'),
             $this->createStub(LoggerInterface::class),
+            new GracePeriodCalculator(),
             30,
         );
 
@@ -124,6 +128,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(EntityManagerInterface::class),
             $this->fixedClock('2026-05-10 12:00:00'),
             $this->createStub(LoggerInterface::class),
+            new GracePeriodCalculator(),
             30,
         );
 
@@ -169,6 +174,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(EntityManagerInterface::class),
             $this->fixedClock('2026-05-08 10:00:00'),
             $this->createStub(LoggerInterface::class),
+            new GracePeriodCalculator(),
             30,
         );
 

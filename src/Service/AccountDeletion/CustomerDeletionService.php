@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\GracePeriodCalculatorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequest;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequestInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManagerInterface;
@@ -24,6 +25,7 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         protected EntityManagerInterface $entityManager,
         protected ClockInterface $clock,
         protected LoggerInterface $logger,
+        protected GracePeriodCalculatorInterface $gracePeriodCalculator,
         protected int $gracePeriodDays,
     ) {
     }
@@ -38,7 +40,7 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
 
         $request = new CustomerDeletionRequest();
         $request->setCustomer($customer);
-        $request->setScheduledFor($now->add(new \DateInterval('P' . $this->gracePeriodDays . 'D')));
+        $request->setScheduledFor($this->gracePeriodCalculator->calculateScheduledFor($now, $this->gracePeriodDays));
 
         $this->disableShopUser($customer);
 

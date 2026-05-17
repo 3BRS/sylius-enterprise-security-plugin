@@ -1410,6 +1410,8 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManagerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManager
 
+    ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\GracePeriodCalculator: ~
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
@@ -1418,6 +1420,7 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
             $logger: '@logger'
+            $gracePeriodCalculator: '@ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\GracePeriodCalculator'
             $gracePeriodDays: '%three_brs.account_deletion.customer.grace_period_days%'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface:
