@@ -104,7 +104,9 @@ class RateLimitGuardTest extends TestCase
         $guard = new RateLimitGuard($factory);
 
         $guard->consume(
-            Request::create('/register', 'POST', server: ['REMOTE_ADDR' => '203.0.113.42']),
+            Request::create('/register', 'POST', server: [
+                'REMOTE_ADDR' => '203.0.113.42',
+            ]),
             'customer',
             'register',
         );

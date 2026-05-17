@@ -30,14 +30,6 @@ class CidrListValidatorTest extends TestCase
         $this->violationBuilder->method('addViolation');
     }
 
-    private function createValidator(): CidrListValidator
-    {
-        $validator = new CidrListValidator();
-        $validator->initialize($this->context);
-
-        return $validator;
-    }
-
     public function testThrowsOnWrongConstraintType(): void
     {
         $this->context->expects(self::never())->method('buildViolation');
@@ -137,5 +129,13 @@ class CidrListValidatorTest extends TestCase
         ;
 
         $this->createValidator()->validate(['2001:DB8::/32', '2001:db8::/32'], new CidrList());
+    }
+
+    private function createValidator(): CidrListValidator
+    {
+        $validator = new CidrListValidator();
+        $validator->initialize($this->context);
+
+        return $validator;
     }
 }

@@ -16,14 +16,6 @@ use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorMode;
 #[CoversClass(TwoFactorEnforcementChecker::class)]
 class TwoFactorEnforcementCheckerTest extends TestCase
 {
-    private function createChecker(TwoFactorMode $customer, TwoFactorMode $admin): TwoFactorEnforcementChecker
-    {
-        $factory = $this->createStub(PolicyFactoryInterface::class);
-        $factory->method('twoFactorMode')->willReturnCallback(static fn (SettingsScope $scope) => $scope === SettingsScope::ADMIN ? $admin : $customer);
-
-        return new TwoFactorEnforcementChecker($factory);
-    }
-
     public function testShopUserNotEnforcedWhenModeIsDisabled(): void
     {
         $checker = $this->createChecker(TwoFactorMode::DISABLED, TwoFactorMode::ENFORCED);
@@ -72,6 +64,14 @@ class TwoFactorEnforcementCheckerTest extends TestCase
 
         self::assertFalse($checker->shouldEnforceForShopUser($this->shopUser(twoFactorEnabled: false)));
         self::assertTrue($checker->shouldEnforceForAdminUser($this->adminUser(twoFactorEnabled: false)));
+    }
+
+    private function createChecker(TwoFactorMode $customer, TwoFactorMode $admin): TwoFactorEnforcementChecker
+    {
+        $factory = $this->createStub(PolicyFactoryInterface::class);
+        $factory->method('twoFactorMode')->willReturnCallback(static fn (SettingsScope $scope) => $scope === SettingsScope::ADMIN ? $admin : $customer);
+
+        return new TwoFactorEnforcementChecker($factory);
     }
 
     private function shopUser(bool $twoFactorEnabled): TwoFactorAuthShopUserInterface

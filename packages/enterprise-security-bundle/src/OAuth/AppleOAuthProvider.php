@@ -69,7 +69,7 @@ class AppleOAuthProvider implements AppleOAuthProviderInterface
         $this->assertGroup($group);
 
         $state = (string) $request->request->get('state', $request->query->get('state', ''));
-        if ($state === '' || !hash_equals($expectedState, $state)) {
+        if ($state === '' || ! hash_equals($expectedState, $state)) {
             throw new OAuthProviderException('Invalid OAuth state parameter.');
         }
 
@@ -82,7 +82,9 @@ class AppleOAuthProvider implements AppleOAuthProviderInterface
 
         try {
             /** @var AccessToken $token */
-            $token = $client->getAccessToken('authorization_code', ['code' => $code]);
+            $token = $client->getAccessToken('authorization_code', [
+                'code' => $code,
+            ]);
             /** @var AppleResourceOwner $resourceOwner */
             $resourceOwner = $client->getResourceOwner($token);
         } catch (\Throwable $exception) {
@@ -112,7 +114,7 @@ class AppleOAuthProvider implements AppleOAuthProviderInterface
 
     protected function assertGroup(string $group): void
     {
-        if (!in_array($group, ['customer', 'admin'], true)) {
+        if (! in_array($group, ['customer', 'admin'], true)) {
             throw new OAuthProviderException('Group must be "customer" or "admin".');
         }
     }
@@ -120,7 +122,7 @@ class AppleOAuthProvider implements AppleOAuthProviderInterface
     protected function buildClient(string $group, string $redirectUri): Apple
     {
         if ($group === 'customer') {
-            if (!$this->isEnabledForCustomer()) {
+            if (! $this->isEnabledForCustomer()) {
                 throw new OAuthProviderException('Apple OAuth is not enabled for customer.');
             }
 
@@ -133,7 +135,7 @@ class AppleOAuthProvider implements AppleOAuthProviderInterface
             ]);
         }
 
-        if (!$this->isEnabledForAdmin()) {
+        if (! $this->isEnabledForAdmin()) {
             throw new OAuthProviderException('Apple OAuth is not enabled for admin.');
         }
 

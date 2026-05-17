@@ -15,59 +15,6 @@ use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 #[CoversClass(PasswordExpirationChecker::class)]
 class PasswordExpirationCheckerTest extends TestCase
 {
-    private function createChecker(
-        bool $customerEnabled = true,
-        int $customerDays = 90,
-        bool $adminEnabled = true,
-        int $adminDays = 60,
-    ): PasswordExpirationChecker {
-        $settings = $this->createStub(SettingsProviderInterface::class);
-        $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerEnabled, $adminEnabled): bool {
-            if ($path === 'password_expiration.enabled' && $scope === SettingsScope::CUSTOMER) {
-                return $customerEnabled;
-            }
-            if ($path === 'password_expiration.enabled' && $scope === SettingsScope::ADMIN) {
-                return $adminEnabled;
-            }
-
-            return false;
-        });
-        $settings->method('getInt')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerDays, $adminDays): int {
-            if ($path === 'password_expiration.days' && $scope === SettingsScope::CUSTOMER) {
-                return $customerDays;
-            }
-            if ($path === 'password_expiration.days' && $scope === SettingsScope::ADMIN) {
-                return $adminDays;
-            }
-
-            return 0;
-        });
-
-        return new PasswordExpirationChecker($settings);
-    }
-
-    private function shopUser(
-        bool $forcePasswordChange = false,
-        ?\DateTimeImmutable $passwordChangedAt = null,
-    ): PasswordExpirationShopUserInterface {
-        $user = $this->createStub(PasswordExpirationShopUserInterface::class);
-        $user->method('isForcePasswordChange')->willReturn($forcePasswordChange);
-        $user->method('getPasswordChangedAt')->willReturn($passwordChangedAt);
-
-        return $user;
-    }
-
-    private function adminUser(
-        bool $forcePasswordChange = false,
-        ?\DateTimeImmutable $passwordChangedAt = null,
-    ): PasswordExpirationAdminUserInterface {
-        $user = $this->createStub(PasswordExpirationAdminUserInterface::class);
-        $user->method('isForcePasswordChange')->willReturn($forcePasswordChange);
-        $user->method('getPasswordChangedAt')->willReturn($passwordChangedAt);
-
-        return $user;
-    }
-
     public function testShopUserNotExpiredWhenDisabled(): void
     {
         $checker = $this->createChecker(customerEnabled: false);
@@ -152,5 +99,58 @@ class PasswordExpirationCheckerTest extends TestCase
 
         self::assertFalse($checker->isShopUserPasswordExpired($this->shopUser(passwordChangedAt: new \DateTimeImmutable('-999 days'))));
         self::assertTrue($checker->isAdminUserPasswordExpired($this->adminUser(forcePasswordChange: true)));
+    }
+
+    private function createChecker(
+        bool $customerEnabled = true,
+        int $customerDays = 90,
+        bool $adminEnabled = true,
+        int $adminDays = 60,
+    ): PasswordExpirationChecker {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerEnabled, $adminEnabled): bool {
+            if ($path === 'password_expiration.enabled' && $scope === SettingsScope::CUSTOMER) {
+                return $customerEnabled;
+            }
+            if ($path === 'password_expiration.enabled' && $scope === SettingsScope::ADMIN) {
+                return $adminEnabled;
+            }
+
+            return false;
+        });
+        $settings->method('getInt')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerDays, $adminDays): int {
+            if ($path === 'password_expiration.days' && $scope === SettingsScope::CUSTOMER) {
+                return $customerDays;
+            }
+            if ($path === 'password_expiration.days' && $scope === SettingsScope::ADMIN) {
+                return $adminDays;
+            }
+
+            return 0;
+        });
+
+        return new PasswordExpirationChecker($settings);
+    }
+
+    private function shopUser(
+        bool $forcePasswordChange = false,
+        ?\DateTimeImmutable $passwordChangedAt = null,
+    ): PasswordExpirationShopUserInterface {
+        $user = $this->createStub(PasswordExpirationShopUserInterface::class);
+        $user->method('isForcePasswordChange')->willReturn($forcePasswordChange);
+        $user->method('getPasswordChangedAt')->willReturn($passwordChangedAt);
+
+        return $user;
+    }
+
+    private function adminUser(
+        bool $forcePasswordChange = false,
+        ?\DateTimeImmutable $passwordChangedAt = null,
+    ): PasswordExpirationAdminUserInterface {
+        $user = $this->createStub(PasswordExpirationAdminUserInterface::class);
+        $user->method('isForcePasswordChange')->willReturn($forcePasswordChange);
+        $user->method('getPasswordChangedAt')->willReturn($passwordChangedAt);
+
+        return $user;
     }
 }

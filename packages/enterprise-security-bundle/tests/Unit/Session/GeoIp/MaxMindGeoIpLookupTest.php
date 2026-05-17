@@ -35,8 +35,14 @@ class MaxMindGeoIpLookupTest extends TestCase
     public function testReturnsCountryAndCityFromDatabase(): void
     {
         $cityModel = new City([
-            'country' => ['iso_code' => 'CZ'],
-            'city' => ['names' => ['en' => 'Prague']],
+            'country' => [
+                'iso_code' => 'CZ',
+            ],
+            'city' => [
+                'names' => [
+                    'en' => 'Prague',
+                ],
+            ],
         ], ['en']);
 
         $reader = $this->createMock(Reader::class);
@@ -53,8 +59,9 @@ class MaxMindGeoIpLookupTest extends TestCase
     protected function buildLookupWithReader(Reader $reader): MaxMindGeoIpLookup
     {
         return new class($reader) extends MaxMindGeoIpLookup {
-            public function __construct(protected Reader $injected)
-            {
+            public function __construct(
+                protected Reader $injected
+            ) {
                 parent::__construct('/nonexistent.mmdb');
             }
 

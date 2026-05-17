@@ -73,7 +73,10 @@ class GoogleOAuthProviderTest extends TestCase
     public function testFetchUserInfoRejectsInvalidGroup(): void
     {
         $provider = $this->provider(customerEnabled: true);
-        $request = new Request(['state' => 's', 'code' => 'c']);
+        $request = new Request([
+            'state' => 's',
+            'code' => 'c',
+        ]);
 
         $this->expectException(OAuthProviderException::class);
         $provider->fetchUserInfo($request, 'https://example.com/cb', 's', 'invalid');
@@ -82,7 +85,10 @@ class GoogleOAuthProviderTest extends TestCase
     public function testFetchUserInfoRejectsMismatchedState(): void
     {
         $provider = $this->provider(customerEnabled: true);
-        $request = new Request(['state' => 'wrong', 'code' => 'c']);
+        $request = new Request([
+            'state' => 'wrong',
+            'code' => 'c',
+        ]);
 
         $this->expectException(OAuthProviderException::class);
         $this->expectExceptionMessage('Invalid OAuth state');
@@ -92,7 +98,9 @@ class GoogleOAuthProviderTest extends TestCase
     public function testFetchUserInfoRejectsMissingCode(): void
     {
         $provider = $this->provider(customerEnabled: true);
-        $request = new Request(['state' => 's']);
+        $request = new Request([
+            'state' => 's',
+        ]);
 
         $this->expectException(OAuthProviderException::class);
         $this->expectExceptionMessage('Missing authorization code');

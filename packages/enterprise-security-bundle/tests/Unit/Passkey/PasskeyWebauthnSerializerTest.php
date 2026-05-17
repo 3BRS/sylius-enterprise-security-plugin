@@ -50,7 +50,10 @@ class PasskeyWebauthnSerializerTest extends TestCase
         $serializer = new PasskeyWebauthnSerializer();
 
         $entity = $serializer->denormalize(
-            ['name' => 'Example', 'id' => 'example.test'],
+            [
+                'name' => 'Example',
+                'id' => 'example.test',
+            ],
             PublicKeyCredentialRpEntity::class,
         );
 

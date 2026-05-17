@@ -61,7 +61,9 @@ class SettingsDefaultsBuilderTest extends TestCase
         self::assertSame([], $defaults[SettingsScope::ADMIN->value]['oauth.auto_register_allowed_email_domains']);
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array<string, mixed>
+     */
     private function inlineConfig(): array
     {
         $perScopeFeature = static fn (array $extra = []): array => array_merge([
@@ -70,16 +72,30 @@ class SettingsDefaultsBuilderTest extends TestCase
 
         return [
             'password_policy' => [
-                'customer' => ['min_length' => 8, 'max_length' => null],
-                'admin' => ['min_length' => 12, 'max_length' => null],
+                'customer' => [
+                    'min_length' => 8,
+                    'max_length' => null,
+                ],
+                'admin' => [
+                    'min_length' => 12,
+                    'max_length' => null,
+                ],
             ],
             'password_history' => [
-                'customer' => $perScopeFeature(['count' => 5]),
-                'admin' => $perScopeFeature(['count' => 10]),
+                'customer' => $perScopeFeature([
+                    'count' => 5,
+                ]),
+                'admin' => $perScopeFeature([
+                    'count' => 10,
+                ]),
             ],
             'password_expiration' => [
-                'customer' => $perScopeFeature(['days' => 90]),
-                'admin' => $perScopeFeature(['days' => 60]),
+                'customer' => $perScopeFeature([
+                    'days' => 90,
+                ]),
+                'admin' => $perScopeFeature([
+                    'days' => 60,
+                ]),
             ],
             'password_change_notification' => [
                 'customer' => $perScopeFeature(),
@@ -87,17 +103,34 @@ class SettingsDefaultsBuilderTest extends TestCase
             ],
             'two_factor_authentication' => [
                 'issuer' => 'TestIssuer',
-                'customer' => ['mode' => 'disabled'],
-                'admin' => ['mode' => 'disabled'],
-                'recovery_codes' => [
-                    'customer' => ['enabled' => true, 'count' => 8],
-                    'admin' => ['enabled' => true, 'count' => 8],
+                'customer' => [
+                    'mode' => 'disabled',
                 ],
-                'trusted_device' => ['enabled' => true, 'days' => 60],
+                'admin' => [
+                    'mode' => 'disabled',
+                ],
+                'recovery_codes' => [
+                    'customer' => [
+                        'enabled' => true,
+                        'count' => 8,
+                    ],
+                    'admin' => [
+                        'enabled' => true,
+                        'count' => 8,
+                    ],
+                ],
+                'trusted_device' => [
+                    'enabled' => true,
+                    'days' => 60,
+                ],
             ],
             'magic_link' => [
-                'customer' => $perScopeFeature(['expiration_seconds' => 300]),
-                'admin' => $perScopeFeature(['expiration_seconds' => 300]),
+                'customer' => $perScopeFeature([
+                    'expiration_seconds' => 300,
+                ]),
+                'admin' => $perScopeFeature([
+                    'expiration_seconds' => 300,
+                ]),
             ],
             'passkey' => [
                 'customer' => $perScopeFeature(),
@@ -107,17 +140,35 @@ class SettingsDefaultsBuilderTest extends TestCase
                 'skip_2fa_when_user_verified' => false,
             ],
             'account_lockout' => [
-                'customer' => $perScopeFeature(['max_attempts' => 5, 'auto_unlock_after' => null]),
-                'admin' => $perScopeFeature(['max_attempts' => 3, 'auto_unlock_after' => null]),
+                'customer' => $perScopeFeature([
+                    'max_attempts' => 5,
+                    'auto_unlock_after' => null,
+                ]),
+                'admin' => $perScopeFeature([
+                    'max_attempts' => 3,
+                    'auto_unlock_after' => null,
+                ]),
             ],
             'rate_limit' => [
                 'customer' => [
-                    'login' => ['limit' => 5, 'interval' => '15 minutes'],
-                    'password_reset' => ['limit' => 5, 'interval' => '15 minutes'],
+                    'login' => [
+                        'limit' => 5,
+                        'interval' => '15 minutes',
+                    ],
+                    'password_reset' => [
+                        'limit' => 5,
+                        'interval' => '15 minutes',
+                    ],
                 ],
                 'admin' => [
-                    'login' => ['limit' => 5, 'interval' => '15 minutes'],
-                    'password_reset' => ['limit' => 3, 'interval' => '15 minutes'],
+                    'login' => [
+                        'limit' => 5,
+                        'interval' => '15 minutes',
+                    ],
+                    'password_reset' => [
+                        'limit' => 3,
+                        'interval' => '15 minutes',
+                    ],
                 ],
             ],
             'session_management' => [
@@ -130,23 +181,47 @@ class SettingsDefaultsBuilderTest extends TestCase
                 'admin' => $perScopeFeature(),
             ],
             'account_deletion' => [
-                'customer' => $perScopeFeature(['grace_period_days' => 30]),
+                'customer' => $perScopeFeature([
+                    'grace_period_days' => 30,
+                ]),
             ],
             'oauth' => [
                 'customer' => [
                     'default_locale' => 'en_US',
                     'auto_register_allowed_email_domains' => [],
-                    'google' => ['enabled' => false, 'client_id' => null, 'client_secret' => null],
-                    'apple' => ['enabled' => false, 'client_id' => null, 'team_id' => null, 'key_id' => null, 'private_key_path' => null],
+                    'google' => [
+                        'enabled' => false,
+                        'client_id' => null,
+                        'client_secret' => null,
+                    ],
+                    'apple' => [
+                        'enabled' => false,
+                        'client_id' => null,
+                        'team_id' => null,
+                        'key_id' => null,
+                        'private_key_path' => null,
+                    ],
                 ],
                 'admin' => [
                     'default_locale' => 'en_US',
                     'auto_register_allowed_email_domains' => [],
-                    'google' => ['enabled' => false, 'client_id' => null, 'client_secret' => null],
-                    'apple' => ['enabled' => false, 'client_id' => null, 'team_id' => null, 'key_id' => null, 'private_key_path' => null],
+                    'google' => [
+                        'enabled' => false,
+                        'client_id' => null,
+                        'client_secret' => null,
+                    ],
+                    'apple' => [
+                        'enabled' => false,
+                        'client_id' => null,
+                        'team_id' => null,
+                        'key_id' => null,
+                        'private_key_path' => null,
+                    ],
                 ],
             ],
-            'ip_whitelist' => ['enabled' => false],
+            'ip_whitelist' => [
+                'enabled' => false,
+            ],
         ];
     }
 }

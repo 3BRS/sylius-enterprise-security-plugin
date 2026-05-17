@@ -16,8 +16,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PasswordPolicyFilteringValidator implements PasswordPolicyFilteringValidatorInterface
 {
-    public function __construct(protected ValidatorInterface $inner)
-    {
+    public function __construct(
+        protected ValidatorInterface $inner
+    ) {
     }
 
     public function validate(mixed $value, Constraint|array|null $constraints = null, string|GroupSequence|array|null $groups = null): ConstraintViolationListInterface

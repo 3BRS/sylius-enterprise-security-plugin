@@ -15,7 +15,9 @@ class YamlConfigDefaultsProviderTest extends TestCase
     public function testGetReturnsValueWhenPresent(): void
     {
         $provider = new YamlConfigDefaultsProvider([
-            'customer' => ['password_policy.min_length' => 8],
+            'customer' => [
+                'password_policy.min_length' => 8,
+            ],
             'admin' => [],
             'global' => [],
         ]);
@@ -37,9 +39,15 @@ class YamlConfigDefaultsProviderTest extends TestCase
     public function testAllReturnsRawMap(): void
     {
         $defaults = [
-            'customer' => ['x' => 1],
-            'admin' => ['y' => 2],
-            'global' => ['z' => 3],
+            'customer' => [
+                'x' => 1,
+            ],
+            'admin' => [
+                'y' => 2,
+            ],
+            'global' => [
+                'z' => 3,
+            ],
         ];
 
         $provider = new YamlConfigDefaultsProvider($defaults);

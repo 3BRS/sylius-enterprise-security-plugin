@@ -27,6 +27,8 @@ interface PasskeyWebauthnSerializerInterface
      */
     public function denormalize(array $data, string $type): object;
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array<string, mixed>
+     */
     public function normalize(object $data): array;
 }
