@@ -42,6 +42,8 @@ three_brs:
             cidrs: 'Allowed IPs / CIDRs'
             cidrs_help: 'One IP or CIDR per line. IPv4 and IPv6 are supported (e.g. 10.0.0.0/8, 192.168.1.1, 2001:db8::/32).'
     ui:
+        menu:
+            enterprise_security: 'Enterprise Security'
         force_password_change: 'Password Change Required'
         force_password_change_description: 'Your password has expired or an administrator has requested you to change it. Please set a new password to continue.'
         change_password: 'Change Password'
@@ -138,9 +140,12 @@ three_brs:
             title: 'Passkeys'
             intro: 'Passkeys let you sign in with a fingerprint, face scan, screen lock, or hardware security key — no password needed.'
             add_new: 'Add a new passkey'
-            add_new_hint: 'Your browser will prompt you to use your device fingerprint, face, PIN, or security key.'
-            register: 'Register passkey'
+            register: 'Create'
+            name_your_passkey: 'Name your passkey'
+            label_field_label: 'Passkey name'
             label_placeholder: 'e.g. MacBook Touch ID'
+            submit: 'Submit'
+            cancel: 'Cancel'
             your_passkeys: 'Your passkeys'
             none_yet: 'No passkeys registered yet.'
             none_yet_subtitle: 'Register your first passkey to enable passwordless sign-in.'

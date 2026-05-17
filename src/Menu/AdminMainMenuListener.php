@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu;
 
+use Knp\Menu\ItemInterface;
 use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 class AdminMainMenuListener implements AdminMainMenuListenerInterface
 {
+    protected const ENTERPRISE_SECURITY_MENU = 'three_brs_enterprise_security';
+
     public function __construct(
         protected FeatureToggleInterface $features,
     ) {
@@ -21,13 +24,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
+        $this->getOrCreateEnterpriseSecurityMenu($event)
             ->addChild('two_factor_authentication', ['route' => 'three_brs_admin_two_factor_setup'])
             ->setLabel('three_brs.ui.two_factor.menu_item')
             ->setLabelAttribute('icon', 'tabler:shield-lock')
@@ -43,13 +40,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
+        $this->getOrCreateEnterpriseSecurityMenu($event)
             ->addChild('social_accounts', ['route' => 'three_brs_admin_social_accounts'])
             ->setLabel('three_brs.ui.social_login.menu_item')
             ->setLabelAttribute('icon', 'tabler:user-circle')
@@ -62,13 +53,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
+        $this->getOrCreateEnterpriseSecurityMenu($event)
             ->addChild('passkey', ['route' => 'three_brs_admin_passkey_index'])
             ->setLabel('three_brs.ui.passkey.menu_item')
             ->setLabelAttribute('icon', 'tabler:fingerprint')
@@ -81,13 +66,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
+        $this->getOrCreateEnterpriseSecurityMenu($event)
             ->addChild('locked_customers', ['route' => 'three_brs_admin_locked_customers'])
             ->setLabel('three_brs.ui.lockout.customers_menu_item')
             ->setLabelAttribute('icon', 'tabler:user-off')
@@ -100,13 +79,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
+        $this->getOrCreateEnterpriseSecurityMenu($event)
             ->addChild('locked_admins', ['route' => 'three_brs_admin_locked_admins'])
             ->setLabel('three_brs.ui.lockout.admins_menu_item')
             ->setLabelAttribute('icon', 'tabler:lock-off')
@@ -119,13 +92,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
+        $this->getOrCreateEnterpriseSecurityMenu($event)
             ->addChild('three_brs_sessions', ['route' => 'three_brs_admin_sessions'])
             ->setLabel('three_brs.ui.session.menu_item')
             ->setLabelAttribute('icon', 'tabler:devices')
@@ -153,13 +120,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
+        $this->getOrCreateEnterpriseSecurityMenu($event)
             ->addChild('three_brs_account_deletions', ['route' => 'three_brs_admin_account_deletions'])
             ->setLabel('three_brs.ui.account_deletion.admin_title')
             ->setLabelAttribute('icon', 'tabler:user-x')
@@ -172,16 +133,25 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
+        $this->getOrCreateEnterpriseSecurityMenu($event)
             ->addChild('three_brs_ip_whitelist', ['route' => 'three_brs_admin_ip_whitelist_admins'])
             ->setLabel('three_brs.ui.ip_whitelist.menu_item')
             ->setLabelAttribute('icon', 'tabler:shield-lock')
+        ;
+    }
+
+    protected function getOrCreateEnterpriseSecurityMenu(MenuBuilderEvent $event): ItemInterface
+    {
+        $menu = $event->getMenu();
+        $existing = $menu->getChild(static::ENTERPRISE_SECURITY_MENU);
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return $menu
+            ->addChild(static::ENTERPRISE_SECURITY_MENU)
+            ->setLabel('three_brs.ui.menu.enterprise_security')
+            ->setLabelAttribute('icon', 'tabler:shield-check')
         ;
     }
 }
