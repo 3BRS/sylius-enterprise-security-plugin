@@ -35,11 +35,32 @@ sylius-enterprise-security-plugin/
 
 ### `3brs/sylius-enterprise-security-plugin`
 
-Sylius-specific plugin. Contains Doctrine entity extensions for `ShopUser` and `AdminUser`, UI controllers, Behat test suite, and Sylius fixture integration.
+Sylius-specific plugin layer. Contains everything that is coupled to Sylius or Doctrine:
+
+- Doctrine entities and repositories for password history, magic-link tokens, social account links, passkey credentials, sessions, known devices, recovery codes, IP whitelists, deletion requests, and the security settings store
+- Sylius entity traits and interfaces for `Customer`, `ShopUser`, and `AdminUser` (lockable, 2FA-enabled, password-expiration, etc.)
+- Sylius event listeners (Doctrine OnFlush, login/logout events) and `AbstractType` form types for Sylius admin/shop forms
+- Sylius mailer integration (`sylius.email_sender`), email templates, Twig hooks, menu listeners, fixtures, and admin/shop controllers
+- Doctrine implementations of `SettingsProviderInterface` / `SettingsWriterInterface`
+- Behat suite exercising the full Sylius UI
 
 ### `3brs/enterprise-security-bundle`
 
-Standalone Symfony bundle with no dependency on Sylius. Contains reusable interfaces, services, and event listeners that can be used independently of Sylius (e.g. in a plain Symfony app).
+Standalone Symfony bundle with no dependency on Sylius — ready to be extracted into its own repository and reused in a plain Symfony app. Contains the framework-agnostic core:
+
+- **Password policy:** `PasswordPolicy` data class, `PasswordPolicy` constraint + `PasswordPolicyFilteringValidator`, `PasswordPolicyValidatorInterface`, `PasswordHistory` constraint + `PasswordHistoryValidatorInterface`, `PasswordExpirationChecker` + user contract interfaces
+- **Two-factor authentication:** `TotpSecretGenerator`, `RecoveryCodeGenerator`, `QrCodeGenerator`, `TwoFactorMode`, `TwoFactorAuth{Admin,Shop}UserInterface`, `TwoFactorEnforcementChecker`, `TwoFactorAwareAuthenticationSuccessHandler`
+- **OAuth:** `OAuthProviderInterface` + `OAuthProviderRegistry`, `GoogleOAuthProvider`, `AppleOAuthProvider`, `OAuthUserInfo`, `AutoRegistrationPolicy` (email-verified + optional domain whitelist), `SocialAccountLinkRecordInterface`
+- **Magic link:** `MagicLinkTokenGenerator`, `MagicLinkTokenValidator` (used/expired check), `MagicLinkRecordInterface`
+- **Passkey (WebAuthn):** `PasskeyCeremonyStepManagerFactory`, `PasskeyRelyingPartyEntityFactory`, `PasskeyValidatorFactory`, `PasskeyWebauthnSerializer`, `SessionPasskeyOptionsStorage`
+- **Lockout & rate limiting:** `LockoutPolicy`, `Lockable{Admin,Shop}UserInterface`, `DynamicRateLimiterFactory`, `RateLimitGuard`
+- **Session:** `UserAgentParser`, `SessionFingerprintGenerator`, `SessionRecordInterface`, `GeoIpLookupInterface` + `NullGeoIpLookup` + `MaxMindGeoIpLookup`
+- **IP whitelist:** `CidrMatcher`, `CidrList` constraint + `CidrListValidator`, `CidrListDataTransformer`
+- **Settings infrastructure:** `SettingsProviderInterface`, `SettingsWriterInterface`, `SettingsScope`, `FeatureToggle`, `PolicyFactory`, `SettingsDefaultsBuilder` + `YamlConfigDefaultsProvider`
+- **Account deletion:** `GracePeriodCalculator`, `CustomerDeletionRequestRecordInterface`
+- **Utilities:** `DeadlineTimingPadding` (timing-attack mitigation)
+
+The bundle has its own `composer.json`, `phpstan.neon`, `ecs.php`, `phpunit.xml.dist`, and CI workflow ([`.github/workflows/bundle-ci.yml`](./.github/workflows/bundle-ci.yml)). The plugin pulls it in via a path repository entry in `composer.json`.
 
 ## Features
 
