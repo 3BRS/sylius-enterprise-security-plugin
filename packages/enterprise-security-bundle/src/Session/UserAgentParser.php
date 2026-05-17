@@ -30,7 +30,7 @@ class UserAgentParser implements UserAgentParserInterface
 
     protected function stringOrNull(mixed $value): ?string
     {
-        if (! is_string($value)) {
+        if (!is_string($value)) {
             return null;
         }
 

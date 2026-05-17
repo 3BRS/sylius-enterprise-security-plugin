@@ -8,9 +8,7 @@ use ThreeBRS\EnterpriseSecurityBundle\OAuth\Exception\OAuthProviderException;
 
 class OAuthProviderRegistry implements OAuthProviderRegistryInterface
 {
-    /**
-     * @var array<string, OAuthProviderInterface>
-     */
+    /** @var array<string, OAuthProviderInterface> */
     protected array $providers = [];
 
     /**
@@ -25,7 +23,7 @@ class OAuthProviderRegistry implements OAuthProviderRegistryInterface
 
     public function get(string $name): OAuthProviderInterface
     {
-        if (! isset($this->providers[$name])) {
+        if (!isset($this->providers[$name])) {
             throw new OAuthProviderException(sprintf('OAuth provider "%s" is not registered.', $name));
         }
 

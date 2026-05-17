@@ -12,7 +12,7 @@ class CidrListDataTransformer implements CidrListDataTransformerInterface
      */
     public function transform(mixed $value): string
     {
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return '';
         }
 
@@ -32,7 +32,7 @@ class CidrListDataTransformer implements CidrListDataTransformerInterface
      */
     public function reverseTransform(mixed $value): array
     {
-        if (! is_string($value) || $value === '') {
+        if (!is_string($value) || $value === '') {
             return [];
         }
 

@@ -60,7 +60,7 @@ class MaxMindGeoIpLookupTest extends TestCase
     {
         return new class($reader) extends MaxMindGeoIpLookup {
             public function __construct(
-                protected Reader $injected
+                protected Reader $injected,
             ) {
                 parent::__construct('/nonexistent.mmdb');
             }

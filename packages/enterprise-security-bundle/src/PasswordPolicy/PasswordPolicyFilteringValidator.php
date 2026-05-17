@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class PasswordPolicyFilteringValidator implements PasswordPolicyFilteringValidatorInterface
 {
     public function __construct(
-        protected ValidatorInterface $inner
+        protected ValidatorInterface $inner,
     ) {
     }
 
