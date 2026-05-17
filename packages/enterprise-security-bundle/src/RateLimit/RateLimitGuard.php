@@ -21,14 +21,14 @@ class RateLimitGuard implements RateLimitGuardInterface
 
     public function consume(Request $request, string $group, string $action, ?string $userIdentifier = null): void
     {
-        if (!$this->isEnabled($group, $action)) {
+        if (! $this->isEnabled($group, $action)) {
             return;
         }
 
         $key = $this->buildKey($request, $userIdentifier);
         $limit = $this->factory->consume($group, $action, $key);
 
-        if (!$limit->isAccepted()) {
+        if (! $limit->isAccepted()) {
             throw new TooManyRequestsHttpException(
                 $limit->getRetryAfter()->getTimestamp() - time(),
                 'three_brs.rate_limit.too_many_requests',
@@ -38,7 +38,7 @@ class RateLimitGuard implements RateLimitGuardInterface
 
     public function reset(string $group, string $action, string $userIdentifier): void
     {
-        if (!$this->isEnabled($group, $action)) {
+        if (! $this->isEnabled($group, $action)) {
             return;
         }
 

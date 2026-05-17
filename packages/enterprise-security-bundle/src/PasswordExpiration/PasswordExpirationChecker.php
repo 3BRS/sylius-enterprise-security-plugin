@@ -30,7 +30,7 @@ class PasswordExpirationChecker implements PasswordExpirationCheckerInterface
             return true;
         }
 
-        if (!$this->settings->getBool('password_expiration.enabled', $scope)) {
+        if (! $this->settings->getBool('password_expiration.enabled', $scope)) {
             return false;
         }
 

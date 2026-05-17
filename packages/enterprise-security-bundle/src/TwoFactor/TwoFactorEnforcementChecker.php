@@ -16,11 +16,11 @@ class TwoFactorEnforcementChecker implements TwoFactorEnforcementCheckerInterfac
 
     public function shouldEnforceForShopUser(TwoFactorAuthShopUserInterface $user): bool
     {
-        return $this->policyFactory->twoFactorMode(SettingsScope::CUSTOMER)->isEnforced() && !$user->isTwoFactorEnabled();
+        return $this->policyFactory->twoFactorMode(SettingsScope::CUSTOMER)->isEnforced() && ! $user->isTwoFactorEnabled();
     }
 
     public function shouldEnforceForAdminUser(TwoFactorAuthAdminUserInterface $user): bool
     {
-        return $this->policyFactory->twoFactorMode(SettingsScope::ADMIN)->isEnforced() && !$user->isTwoFactorEnabled();
+        return $this->policyFactory->twoFactorMode(SettingsScope::ADMIN)->isEnforced() && ! $user->isTwoFactorEnabled();
     }
 }

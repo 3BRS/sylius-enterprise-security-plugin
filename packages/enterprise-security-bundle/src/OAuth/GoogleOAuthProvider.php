@@ -61,7 +61,7 @@ class GoogleOAuthProvider implements GoogleOAuthProviderInterface
         $this->assertGroup($group);
 
         $state = (string) $request->query->get('state');
-        if ($state === '' || !hash_equals($expectedState, $state)) {
+        if ($state === '' || ! hash_equals($expectedState, $state)) {
             throw new OAuthProviderException('Invalid OAuth state parameter.');
         }
 
@@ -98,7 +98,7 @@ class GoogleOAuthProvider implements GoogleOAuthProviderInterface
 
     protected function assertGroup(string $group): void
     {
-        if (!in_array($group, ['customer', 'admin'], true)) {
+        if (! in_array($group, ['customer', 'admin'], true)) {
             throw new OAuthProviderException('Group must be "customer" or "admin".');
         }
     }
@@ -106,7 +106,7 @@ class GoogleOAuthProvider implements GoogleOAuthProviderInterface
     protected function buildClient(string $group, string $redirectUri): Google
     {
         if ($group === 'customer') {
-            if (!$this->isEnabledForCustomer()) {
+            if (! $this->isEnabledForCustomer()) {
                 throw new OAuthProviderException('Google OAuth is not enabled for customer.');
             }
 
@@ -117,7 +117,7 @@ class GoogleOAuthProvider implements GoogleOAuthProviderInterface
             ]);
         }
 
-        if (!$this->isEnabledForAdmin()) {
+        if (! $this->isEnabledForAdmin()) {
             throw new OAuthProviderException('Google OAuth is not enabled for admin.');
         }
 

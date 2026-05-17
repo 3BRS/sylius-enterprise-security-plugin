@@ -14,7 +14,7 @@ class CidrListValidator extends ConstraintValidator implements CidrListValidator
 {
     public function validate(mixed $value, Constraint $constraint): void
     {
-        if (!$constraint instanceof CidrList) {
+        if (! $constraint instanceof CidrList) {
             throw new UnexpectedTypeException($constraint, CidrList::class);
         }
 
@@ -22,17 +22,17 @@ class CidrListValidator extends ConstraintValidator implements CidrListValidator
             return;
         }
 
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             throw new UnexpectedValueException($value, 'array');
         }
 
         $seen = [];
         foreach ($value as $entry) {
-            if (!is_string($entry) || $entry === '') {
+            if (! is_string($entry) || $entry === '') {
                 continue;
             }
 
-            if (!$this->isValidCidrOrIp($entry)) {
+            if (! $this->isValidCidrOrIp($entry)) {
                 $this->context->buildViolation($constraint->invalidMessage)
                     ->setParameter('{{ value }}', $entry)
                     ->addViolation()
@@ -57,7 +57,7 @@ class CidrListValidator extends ConstraintValidator implements CidrListValidator
 
     protected function isValidCidrOrIp(string $value): bool
     {
-        if (!str_contains($value, '/')) {
+        if (! str_contains($value, '/')) {
             return filter_var($value, \FILTER_VALIDATE_IP) !== false;
         }
 
@@ -68,7 +68,7 @@ class CidrListValidator extends ConstraintValidator implements CidrListValidator
 
         [$address, $prefixStr] = $parts;
 
-        if (!ctype_digit($prefixStr)) {
+        if (! ctype_digit($prefixStr)) {
             return false;
         }
 
