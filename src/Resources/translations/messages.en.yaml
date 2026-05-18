@@ -35,7 +35,7 @@ three_brs:
             if_not_you: 'If this was not you, please change your password and review your active sessions immediately.'
     form:
         admin_user:
-            force_password_change: 'Force password change on next login'
+            force_password_change: 'Force password change on next request'
     ip_whitelist:
         admin:
             enabled: 'Enable per-admin IP whitelist for this administrator'
