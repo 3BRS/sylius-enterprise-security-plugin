@@ -17,8 +17,14 @@
 
                 <div class="card mb-4">
                     <div class="card-body">
-                        <p class="text-muted mb-4">{{ 'three_brs.ui.two_factor.setup_description'|trans }}</p>
+                        <p class="text-muted mb-0">
+                            {{ 'three_brs.ui.two_factor.setup_description'|trans }}
+                        </p>
+                    </div>
+                </div>
 
+                <div class="card mb-4">
+                    <div class="card-body">
                         <div class="row align-items-center mb-4">
                             <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
                                 <img src="{{ qr_data_uri }}" alt="{{ 'three_brs.ui.two_factor.setup_title'|trans }}" class="img-fluid border rounded p-2 bg-white" data-test-two-factor-qr>

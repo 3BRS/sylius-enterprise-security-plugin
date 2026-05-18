@@ -20,7 +20,6 @@
                 <div class="row mt-3 row-gap-2">
                     <div class="col-12">
                         {{ header.h1('three_brs.ui.ip_whitelist.title'|trans) }}
-                        <p class="text-secondary mb-0">{{ 'three_brs.ui.ip_whitelist.intro'|trans }}</p>
                     </div>
                 </div>
             </div>
@@ -30,27 +29,35 @@
 
         <div class="page-body">
             <div class="container-xl">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p class="text-secondary mb-0">
+                            {{ 'three_brs.ui.ip_whitelist.intro'|trans }}
+                        </p>
+                    </div>
+                </div>
+
                 <div class="card mb-3" data-test-three-brs-ip-whitelist-status>
                     <div class="card-body">
                         <p class="mb-2">
                             <strong>{{ 'three_brs.ui.ip_whitelist.feature_state'|trans }}:</strong>
                             {% if featureEnabled %}
-                                <span class="badge bg-success">{{ 'three_brs.ui.ip_whitelist.enabled'|trans }}</span>
+                                <span class="badge bg-success text-white">{{ 'three_brs.ui.ip_whitelist.enabled'|trans }}</span>
                             {% else %}
-                                <span class="badge bg-secondary">{{ 'three_brs.ui.ip_whitelist.disabled'|trans }}</span>
+                                <span class="badge bg-danger text-white">{{ 'three_brs.ui.ip_whitelist.disabled'|trans }}</span>
                             {% endif %}
                         </p>
                         <p class="mb-2">
                             <strong>{{ 'three_brs.ui.ip_whitelist.global_cidrs'|trans }}:</strong>
                             {% if globalCidrs is empty %}
-                                <span class="text-secondary">{{ 'three_brs.ui.ip_whitelist.no_global_cidrs'|trans }}</span>
+                                <span>{{ 'three_brs.ui.ip_whitelist.no_global_cidrs'|trans }}</span>
                             {% else %}
                                 <code>{{ globalCidrs|join(', ') }}</code>
                             {% endif %}
                         </p>
-                        <p class="text-secondary mb-0 small">
+                        <p class="mb-0 small">
                             {{ 'three_brs.ui.ip_whitelist.global_cidrs_hint'|trans }}
-                            <a href="{{ path('three_brs_admin_security_settings_index', {scope: 'global', tab: 'ip_whitelist'}) }}">
+                            <a href="{{ path('three_brs_admin_security_settings_index', {scope: 'admin', tab: 'ip_whitelist'}) }}">
                                 {{ 'three_brs.ui.ip_whitelist.open_security_settings'|trans }}
                             </a>
                         </p>
@@ -75,17 +82,19 @@
                                             <tr>
                                                 <td>{{ row.admin.email }}</td>
                                                 <td>
-                                                    {% if row.whitelist is null %}
-                                                        <span class="badge bg-secondary">{{ 'three_brs.ui.ip_whitelist.not_configured'|trans }}</span>
-                                                    {% elseif row.whitelist.enabled %}
-                                                        <span class="badge bg-success">{{ 'three_brs.ui.ip_whitelist.enabled'|trans }}</span>
+                                                    {% if row.whitelist is not null and row.whitelist.enabled %}
+                                                        {% if row.whitelist.cidrs|length > 0 %}
+                                                            <span class="badge bg-success text-white">{{ 'three_brs.ui.ip_whitelist.enabled'|trans }}</span>
+                                                        {% else %}
+                                                            <span class="badge bg-orange text-white">{{ 'three_brs.ui.ip_whitelist.enabled_empty'|trans }}</span>
+                                                        {% endif %}
                                                     {% else %}
-                                                        <span class="badge bg-secondary">{{ 'three_brs.ui.ip_whitelist.disabled'|trans }}</span>
+                                                        <span class="badge bg-danger text-white">{{ 'three_brs.ui.ip_whitelist.disabled'|trans }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>
                                                     {% if row.whitelist is null or row.whitelist.cidrs|length == 0 %}
-                                                        <span class="text-secondary">—</span>
+                                                        <span>—</span>
                                                     {% else %}
                                                         <code>{{ row.whitelist.cidrs|join(', ') }}</code>
                                                     {% endif %}

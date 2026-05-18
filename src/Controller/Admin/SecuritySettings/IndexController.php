@@ -151,6 +151,14 @@ class IndexController implements IndexControllerInterface
                     'default_locale' => $this->settings->getString('oauth.default_locale', $scope),
                     'auto_register_allowed_email_domains' => is_array($whitelist) ? $whitelist : [],
                 ], ['action' => $this->saveUrl('oauth_admin_policy', $scope)]);
+
+                // IP whitelist is admin-only (no customer counterpart). One switch + one global CIDR
+                // list applied to all admins; per-admin overrides live on the dedicated Admins page.
+                $globalCidrsValue = $this->settings->get('ip_whitelist.global_cidrs', $scope);
+                $forms['ip_whitelist'] = $this->formFactory->create(IpWhitelistSettingsType::class, [
+                    'enabled' => $this->settings->getBool('ip_whitelist.enabled', $scope),
+                    'global_cidrs' => is_array($globalCidrsValue) ? $globalCidrsValue : [],
+                ], ['action' => $this->saveUrl('ip_whitelist', $scope)]);
             }
         }
 
@@ -160,16 +168,6 @@ class IndexController implements IndexControllerInterface
                 'enabled' => $this->settings->getBool('account_deletion.enabled', $scope),
                 'grace_period_days' => $this->settings->getInt('account_deletion.grace_period_days', $scope),
             ], ['action' => $this->saveUrl('account_deletion', $scope)]);
-        }
-
-        // IP whitelist is global-only (one switch + one global CIDR list);
-        // per-admin overrides live on the dedicated Admins page.
-        if ($scope === SettingsScope::GLOBAL) {
-            $globalCidrsValue = $this->settings->get('ip_whitelist.global_cidrs', $scope);
-            $forms['ip_whitelist'] = $this->formFactory->create(IpWhitelistSettingsType::class, [
-                'enabled' => $this->settings->getBool('ip_whitelist.enabled', $scope),
-                'global_cidrs' => is_array($globalCidrsValue) ? $globalCidrsValue : [],
-            ], ['action' => $this->saveUrl('ip_whitelist', $scope)]);
         }
 
         return $forms;

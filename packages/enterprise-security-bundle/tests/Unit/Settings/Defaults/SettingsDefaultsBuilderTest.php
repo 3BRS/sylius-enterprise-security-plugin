@@ -38,8 +38,8 @@ class SettingsDefaultsBuilderTest extends TestCase
         self::assertSame('TestIssuer', $defaults[SettingsScope::GLOBAL->value]['two_factor_authentication.issuer']);
         self::assertSame(60, $defaults[SettingsScope::GLOBAL->value]['two_factor_authentication.trusted_device.days']);
         self::assertNull($defaults[SettingsScope::GLOBAL->value]['passkey.rp_id']);
-        self::assertFalse($defaults[SettingsScope::GLOBAL->value]['ip_whitelist.enabled']);
-        self::assertSame([], $defaults[SettingsScope::GLOBAL->value]['ip_whitelist.global_cidrs']);
+        self::assertFalse($defaults[SettingsScope::ADMIN->value]['ip_whitelist.enabled']);
+        self::assertSame([], $defaults[SettingsScope::ADMIN->value]['ip_whitelist.global_cidrs']);
     }
 
     public function testBuildFlattensRateLimitActions(): void

@@ -206,6 +206,7 @@ three_brs:
             per_admin_state: 'Per-admin whitelist'
             per_admin_cidrs: 'Per-admin allowed IPs / CIDRs'
             not_configured: 'Not configured'
+            enabled_empty: 'Enabled (empty)'
             edit: 'Edit'
             no_admins: 'No administrators found.'
             admin_edit_title: 'IP whitelist for %email%'

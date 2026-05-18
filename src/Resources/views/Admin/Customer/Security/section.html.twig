@@ -21,24 +21,24 @@
             <div class="mb-3">
                 <strong>{{ 'three_brs.ui.customer_security.account_state'|trans }}:</strong>
                 {% if isEnabled %}
-                    <span class="badge bg-success" data-test-three-brs-customer-security-state="enabled">
+                    <span class="badge bg-success text-white" data-test-three-brs-customer-security-state="enabled">
                         {{ 'three_brs.ui.customer_security.state_enabled'|trans }}
                     </span>
                 {% else %}
-                    <span class="badge bg-danger" data-test-three-brs-customer-security-state="blocked">
+                    <span class="badge bg-danger text-white" data-test-three-brs-customer-security-state="blocked">
                         {{ 'three_brs.ui.customer_security.state_blocked'|trans }}
                     </span>
                 {% endif %}
 
                 {% if forceChangeRequested %}
-                    <span class="badge bg-warning"
+                    <span class="badge bg-orange text-white"
                           data-test-three-brs-customer-security-force-change-pending>
                         {{ 'three_brs.ui.customer_security.force_change_pending'|trans }}
                     </span>
                 {% endif %}
 
                 {% if lockedAt %}
-                    <span class="badge bg-secondary" data-test-three-brs-customer-security-locked>
+                    <span class="badge bg-secondary text-white" data-test-three-brs-customer-security-locked>
                         {{ 'three_brs.ui.customer_security.locked_at'|trans({'%date%': lockedAt|date('Y-m-d H:i')}) }}
                     </span>
                 {% endif %}

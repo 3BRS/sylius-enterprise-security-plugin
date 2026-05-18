@@ -129,7 +129,7 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
 
     public function addIpWhitelistItem(MenuBuilderEvent $event): void
     {
-        if (!$this->features->isEnabled('ip_whitelist', SettingsScope::GLOBAL)) {
+        if (!$this->features->isEnabled('ip_whitelist', SettingsScope::ADMIN)) {
             return;
         }
 
@@ -148,10 +148,29 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return $existing;
         }
 
-        return $menu
+        $item = $menu
             ->addChild(static::ENTERPRISE_SECURITY_MENU)
             ->setLabel('three_brs.ui.menu.enterprise_security')
             ->setLabelAttribute('icon', 'tabler:shield-check')
         ;
+
+        $this->placeBeforeConfiguration($menu, $item);
+
+        return $item;
+    }
+
+    protected function placeBeforeConfiguration(ItemInterface $menu, ItemInterface $item): void
+    {
+        $names = array_keys($menu->getChildren());
+        if (!in_array('configuration', $names, true)) {
+            return;
+        }
+
+        $itemName = $item->getName();
+        $names = array_values(array_filter($names, static fn (string $name): bool => $name !== $itemName));
+        $configurationIndex = (int) array_search('configuration', $names, true);
+        array_splice($names, $configurationIndex, 0, $itemName);
+
+        $menu->reorderChildren($names);
     }
 }

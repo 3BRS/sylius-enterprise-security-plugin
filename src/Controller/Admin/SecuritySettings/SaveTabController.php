@@ -130,6 +130,7 @@ class SaveTabController implements SaveTabControllerInterface
                 'type' => IpWhitelistSettingsType::class,
                 'prefix' => 'ip_whitelist',
                 'options' => [],
+                'scopes' => [SettingsScope::ADMIN],
             ],
         ];
     }

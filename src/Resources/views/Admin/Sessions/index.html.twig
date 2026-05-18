@@ -21,7 +21,6 @@
                     <div class="col-12 d-flex justify-content-between align-items-center gap-3 flex-wrap">
                         <div>
                             {{ header.h1('three_brs.ui.session.admin_title'|trans) }}
-                            <p class="text-secondary mb-0">{{ 'three_brs.ui.session.admin_intro'|trans }}</p>
                         </div>
                         {% if rows|length > 1 %}
                             <form method="POST"
@@ -44,6 +43,14 @@
 
         <div class="page-body">
             <div class="container-xl">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p class="text-secondary mb-0">
+                            {{ 'three_brs.ui.session.admin_intro'|trans }}
+                        </p>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-body">
                         {% if rows|length > 0 %}
@@ -65,7 +72,7 @@
                                                 <td>
                                                     {{ row.userAgent.browser ?: 'three_brs.ui.session.unknown_browser'|trans }}{% if row.userAgent.operatingSystem %} ({{ row.userAgent.operatingSystem }}){% endif %}
                                                     {% if row.isCurrent %}
-                                                        <span class="badge bg-success ms-2" data-test-three-brs-session-current>{{ 'three_brs.ui.session.current'|trans }}</span>
+                                                        <span class="badge bg-success text-white ms-2" data-test-three-brs-session-current>{{ 'three_brs.ui.session.current'|trans }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ row.session.ipAddress ?: '—' }}</td>

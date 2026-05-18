@@ -35,7 +35,7 @@ class IpWhitelistContext implements Context
     public function adminIpWhitelistIsEnabledWithGlobalCidrs(string $cidrs): void
     {
         $list = $this->splitCidrs($cidrs);
-        $this->settingsWriter->setMany(SettingsScope::GLOBAL, [
+        $this->settingsWriter->setMany(SettingsScope::ADMIN, [
             'ip_whitelist.enabled' => true,
             'ip_whitelist.global_cidrs' => $list,
         ]);
@@ -47,7 +47,7 @@ class IpWhitelistContext implements Context
      */
     public function adminIpWhitelistIsEnabledWithNoGlobalCidrs(): void
     {
-        $this->settingsWriter->setMany(SettingsScope::GLOBAL, [
+        $this->settingsWriter->setMany(SettingsScope::ADMIN, [
             'ip_whitelist.enabled' => true,
             'ip_whitelist.global_cidrs' => [],
         ]);
@@ -59,7 +59,7 @@ class IpWhitelistContext implements Context
      */
     public function adminIpWhitelistIsDisabled(): void
     {
-        $this->settingsWriter->setMany(SettingsScope::GLOBAL, [
+        $this->settingsWriter->setMany(SettingsScope::ADMIN, [
             'ip_whitelist.enabled' => false,
             'ip_whitelist.global_cidrs' => [],
         ]);

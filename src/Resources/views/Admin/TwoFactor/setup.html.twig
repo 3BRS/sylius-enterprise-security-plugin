@@ -27,10 +27,16 @@
 
         <div class="page-body">
             <div class="container-xl">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p class="text-secondary mb-0">
+                            {{ 'three_brs.ui.two_factor.setup_description'|trans }}
+                        </p>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-body">
-                        <p class="text-muted mb-4">{{ 'three_brs.ui.two_factor.setup_description'|trans }}</p>
-
                         <div class="row align-items-center mb-4">
                             <div class="col-md-5 text-center mb-3 mb-md-0">
                                 <img src="{{ qr_data_uri }}" alt="{{ 'three_brs.ui.two_factor.setup_title'|trans }}" class="img-fluid border rounded p-2 bg-white" data-test-two-factor-qr>
