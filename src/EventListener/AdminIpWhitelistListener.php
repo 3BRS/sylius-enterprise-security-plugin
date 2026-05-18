@@ -52,7 +52,7 @@ class AdminIpWhitelistListener implements AdminIpWhitelistListenerInterface
         }
 
         $event->setResponse(new Response(
-            'Access denied: your IP address is not in the admin panel whitelist.',
+            'Access denied',
             Response::HTTP_FORBIDDEN,
             ['Content-Type' => 'text/plain; charset=UTF-8'],
         ));
