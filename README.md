@@ -642,7 +642,7 @@ The section is rendered via the Sylius twig hook `sylius_admin.customer.show.con
 
 Available actions, each behind a CSRF-protected confirmation prompt:
 
-- **Force password reset** — sets `forcePasswordChange = true` on the shop user. The next time the customer signs in, the existing password-expiration listener (shipped with this plugin) redirects them to the change-password page before they can browse.
+- **Force password reset** — sets `forcePasswordChange = true` on the shop user. On the customer's next request — whether they are already signed in or sign in afterward — the existing password-expiration listener (shipped with this plugin) redirects them to the change-password page before they can continue browsing.
 - **Block account** — sets the customer's `enabled` flag to `false` and revokes every active session in one step. Sylius's user checker then rejects further sign-in attempts until you unblock. This is **manual** and **permanent** (until reversed), distinct from the **automatic, time-bounded** account-lockout feature triggered by failed-login attempts: block is for "this customer is misbehaving, lock them out," lockout is for "too many wrong passwords, cool off."
 - **Unblock account** — sets `enabled = true`. The customer can sign in again immediately.
 - **Sign out from all devices** — revokes every active `CustomerSession` row. Useful after a stolen-device report or a password reset. Distinct from per-session sign-out below.
@@ -651,7 +651,7 @@ Available actions, each behind a CSRF-protected confirmation prompt:
 Two read-only tables also live in the section:
 
 - **Active sessions** — every non-revoked `CustomerSession`, with IP, location (country / city if GeoIP is configured), device (user agent), signed-in / last-activity timestamps, and a per-row Sign-out button.
-- **Login history** — the last 20 sessions (active and revoked), oldest first. Each row shows whether the session is currently active or when it was ended. The list is populated by the session-tracking listener, so it only contains data captured **after** session management was enabled — historical sign-ins from before then are not retroactively visible.
+- **Login history** — the last 20 sessions (active and revoked), newest first. Each row shows whether the session is currently active or when it was ended. The list is populated by the session-tracking listener, so it only contains data captured **after** session management was enabled — historical sign-ins from before then are not retroactively visible.
 
 #### Prerequisites and interactions
 
