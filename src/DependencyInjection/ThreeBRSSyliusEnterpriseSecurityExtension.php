@@ -97,6 +97,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerSessionManagement($container, $config['session_management']);
         $this->registerLoginNotifications($container, $config['login_notifications']);
         $this->registerAccountDeletion($container, $config['account_deletion']);
+        $this->registerIpWhitelist($container, $config['ip_whitelist']);
         $this->registerSecuritySettingsDefaults($container, $config);
     }
 
@@ -112,6 +113,12 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     {
         $container->setParameter('three_brs.account_deletion.customer.enabled', (bool) $config['customer']['enabled']);
         $container->setParameter('three_brs.account_deletion.customer.grace_period_days', (int) $config['customer']['grace_period_days']);
+    }
+
+    /** @param array<string, mixed> $config */
+    protected function registerIpWhitelist(ContainerBuilder $container, array $config): void
+    {
+        $container->setParameter('three_brs.ip_whitelist.enabled', (bool) $config['enabled']);
     }
 
     /** @param array<string, mixed> $config */

@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountDeletionSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountLockoutSettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\IpWhitelistSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\MagicLinkSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthSettingsType;
@@ -159,6 +160,16 @@ class IndexController implements IndexControllerInterface
                 'enabled' => $this->settings->getBool('account_deletion.enabled', $scope),
                 'grace_period_days' => $this->settings->getInt('account_deletion.grace_period_days', $scope),
             ], ['action' => $this->saveUrl('account_deletion', $scope)]);
+        }
+
+        // IP whitelist is global-only (one switch + one global CIDR list);
+        // per-admin overrides live on the dedicated Admins page.
+        if ($scope === SettingsScope::GLOBAL) {
+            $globalCidrsValue = $this->settings->get('ip_whitelist.global_cidrs', $scope);
+            $forms['ip_whitelist'] = $this->formFactory->create(IpWhitelistSettingsType::class, [
+                'enabled' => $this->settings->getBool('ip_whitelist.enabled', $scope),
+                'global_cidrs' => is_array($globalCidrsValue) ? $globalCidrsValue : [],
+            ], ['action' => $this->saveUrl('ip_whitelist', $scope)]);
         }
 
         return $forms;

@@ -195,4 +195,22 @@ sylius_fixtures:
                 three_brs_security_settings:
                     options:
                         reset: true
-                        overrides: {}
+                        overrides:
+                            global:
+                                # Dev safety net: even if an admin flips the IP whitelist master
+                                # switch on through the UI, localhost AND the standard private
+                                # ranges are pre-allowed so the dev environment doesn't lock
+                                # everyone out. Docker Compose places services on a 172.x bridge
+                                # network, so Symfony's getClientIp() reports the bridge gateway
+                                # (e.g. 172.18.0.1) rather than 127.0.0.1 — without these
+                                # ranges, a flipped master switch immediately 403s the admin.
+                                ip_whitelist.global_cidrs:
+                                    - 127.0.0.1
+                                    - ::1
+                                    - 10.0.0.0/8
+                                    - 172.16.0.0/12
+                                    - 192.168.0.0/16
+
+                three_brs_ip_whitelist:
+                    options:
+                        admins: []

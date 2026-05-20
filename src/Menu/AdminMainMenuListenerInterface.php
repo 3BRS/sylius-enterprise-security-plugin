@@ -23,4 +23,6 @@ interface AdminMainMenuListenerInterface
     public function addSecuritySettingsItem(MenuBuilderEvent $event): void;
 
     public function addAccountDeletionsItem(MenuBuilderEvent $event): void;
+
+    public function addIpWhitelistItem(MenuBuilderEvent $event): void;
 }

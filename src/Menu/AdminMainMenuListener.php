@@ -165,4 +165,23 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             ->setLabelAttribute('icon', 'tabler:user-x')
         ;
     }
+
+    public function addIpWhitelistItem(MenuBuilderEvent $event): void
+    {
+        if (!$this->features->isEnabled('ip_whitelist', SettingsScope::GLOBAL)) {
+            return;
+        }
+
+        $configuration = $event->getMenu()->getChild('configuration');
+
+        if ($configuration === null) {
+            return;
+        }
+
+        $configuration
+            ->addChild('three_brs_ip_whitelist', ['route' => 'three_brs_admin_ip_whitelist_admins'])
+            ->setLabel('three_brs.ui.ip_whitelist.menu_item')
+            ->setLabelAttribute('icon', 'tabler:shield-lock')
+        ;
+    }
 }

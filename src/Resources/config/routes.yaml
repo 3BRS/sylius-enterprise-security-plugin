@@ -327,3 +327,15 @@ three_brs_admin_account_deletion_cancel:
     methods: [POST]
     requirements:
         id: '\d+'
+
+three_brs_admin_ip_whitelist_admins:
+    path: /admin/ip-whitelist/admins
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpWhitelistAdminsController
+    methods: [GET]
+
+three_brs_admin_ip_whitelist_admin_edit:
+    path: /admin/ip-whitelist/admins/{id}
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpWhitelistAdminEditController
+    methods: [GET, POST]
+    requirements:
+        id: '\d+'

@@ -314,6 +314,7 @@ services:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSessionsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSecuritySettingsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addAccountDeletionsItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addIpWhitelistItem' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController:
         arguments:
@@ -1366,6 +1367,7 @@ services:
             $writer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter'
             $formFactory: '@form.factory'
             $router: '@router'
+            $translator: '@translator'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -1458,6 +1460,72 @@ services:
         arguments:
             $customerRepository: '@sylius.repository.customer'
             $anonymizer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerAnonymizer'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker:
+        arguments:
+            $settingsProvider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+            $adminWhitelistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistCheckerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\CidrListValidator:
+        tags:
+            - { name: 'validator.constraint_validator', alias: 'three_brs.validator.cidr_list' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminIpWhitelistListener:
+        arguments:
+            $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker'
+            $tokenStorage: '@security.token_storage'
+        tags:
+            # Priority 4: after Symfony security firewall (priority 8) so the
+            # token storage already has the authenticated admin available.
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\IpWhitelistSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\AdminUserIpWhitelistType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpWhitelistAdminsController:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $whitelistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository'
+            $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpWhitelistAdminEditController:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $whitelistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $formFactory: '@form.factory'
+            $router: '@router'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\IpWhitelistFixture:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $whitelistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository'
             $entityManager: '@doctrine.orm.entity_manager'
         tags:
             - { name: 'sylius_fixtures.fixture' }

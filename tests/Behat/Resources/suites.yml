@@ -33,3 +33,4 @@ imports:
     - suites/admin_security_settings.yml
     - suites/shop_account_deletion.yml
     - suites/admin_account_deletion.yml
+    - suites/admin_ip_whitelist.yml

@@ -36,6 +36,11 @@ three_brs:
     form:
         admin_user:
             force_password_change: 'Force password change on next login'
+    ip_whitelist:
+        admin:
+            enabled: 'Enable per-admin IP whitelist for this administrator'
+            cidrs: 'Allowed IPs / CIDRs'
+            cidrs_help: 'One IP or CIDR per line. IPv4 and IPv6 are supported (e.g. 10.0.0.0/8, 192.168.1.1, 2001:db8::/32).'
     ui:
         force_password_change: 'Password Change Required'
         force_password_change_description: 'Your password has expired or an administrator has requested you to change it. Please set a new password to continue.'
@@ -149,6 +154,27 @@ three_brs:
             registration_failed: 'Passkey registration failed. Please try again.'
             login_cancelled: 'Passkey sign-in was cancelled or not allowed by the device.'
             login_failed: 'Passkey sign-in failed. Please try again.'
+        ip_whitelist:
+            menu_item: 'Admin IP whitelist'
+            title: 'Admin IP whitelist'
+            intro: 'Restrict admin panel access by IP address. Configure the global allow list in Security settings; toggle per-admin overrides here.'
+            feature_state: 'Feature state'
+            enabled: 'Enabled'
+            disabled: 'Disabled'
+            global_cidrs: 'Global allowed IPs / CIDRs'
+            no_global_cidrs: 'No global IPs configured'
+            global_cidrs_hint: 'Per-admin entries below extend the global list — they do not replace it.'
+            open_security_settings: 'Open Security settings'
+            username: 'Administrator'
+            per_admin_state: 'Per-admin whitelist'
+            per_admin_cidrs: 'Per-admin allowed IPs / CIDRs'
+            not_configured: 'Not configured'
+            edit: 'Edit'
+            no_admins: 'No administrators found.'
+            admin_edit_title: 'IP whitelist for %email%'
+            admin_edit_intro: 'Configure additional IP addresses or CIDR ranges from which this administrator is allowed to sign in. Entries here are additive to the global list.'
+            save: 'Save'
+            cancel: 'Cancel'
         session:
             menu_item: 'Active sessions'
             title: 'Active sessions'
@@ -174,6 +200,7 @@ three_brs:
             intro: 'Configure authentication and security policies for customers and administrators. Changes apply immediately on next request.'
             scope_customer: 'Customers'
             scope_admin: 'Administrators'
+            scope_global: 'Global'
             save: 'Save'
             password_policy:
                 title: 'Password policy'
@@ -264,10 +291,15 @@ three_brs:
                 default_locale_help: 'Locale code (e.g. en_US, cs_CZ) applied to admins auto-registered via OAuth.'
                 auto_register_allowed_email_domains: 'Whitelisted email domains'
                 auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to disable auto-registration entirely.'
-                invalid_domain: 'This value is not a valid email domain.'
             account_deletion:
                 title: 'Account deletion'
                 description: 'Self-service account deletion (GDPR right to erasure) with admin-cancellable grace period.'
                 enabled: 'Enable self-service account deletion'
                 grace_period_days: 'Grace period (days)'
                 grace_period_days_help: 'Number of days between the customer''s request and the actual anonymization. During this window, only an administrator can cancel the deletion.'
+            ip_whitelist:
+                title: 'Admin IP whitelist'
+                description: 'Restrict admin panel access by IP address. Enable here and configure the global CIDR list; per-admin overrides live on the IP whitelist page.'
+                enabled: 'Enable admin IP whitelist'
+                global_cidrs: 'Global allowed IPs / CIDRs'
+                global_cidrs_help: 'One IP or CIDR per line. IPv4 and IPv6 are supported (e.g. 10.0.0.0/8, 192.168.1.1, 2001:db8::/32). Leave empty to restrict all admins to their per-admin lists only.'

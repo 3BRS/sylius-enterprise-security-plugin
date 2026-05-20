@@ -1,0 +1,57 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
+{% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+
+{% block title %}{{ parent() }} | {{ 'three_brs.ui.ip_whitelist.admin_edit_title'|trans({'%email%': admin.email}) }}{% endblock %}
+
+{% block body %}
+    {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
+
+    <div class="page-wrapper">
+        {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
+
+        <div class="page-header" data-sticky-header>
+            <div class="container-xl">
+                {{ breadcrumbs([
+                    { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'three_brs.ui.ip_whitelist.title', url: path('three_brs_admin_ip_whitelist_admins'), active: false },
+                    { name: admin.email, active: true },
+                ]) }}
+                <div class="row mt-3 row-gap-2">
+                    <div class="col-12">
+                        {{ header.h1('three_brs.ui.ip_whitelist.admin_edit_title'|trans({'%email%': admin.email})) }}
+                        <p class="text-secondary mb-0">{{ 'three_brs.ui.ip_whitelist.admin_edit_intro'|trans }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include '@SyliusAdmin/shared/crud/common/content/flashes.html.twig' %}
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="card">
+                    <div class="card-body">
+                        {% form_theme form '@SyliusAdmin/shared/form_theme.html.twig' %}
+                        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'data-test-three-brs-ip-whitelist-form': ''}}) }}
+                            {{ form_errors(form) }}
+                            {{ form_rest(form) }}
+                            <div class="mt-4 pt-3 border-top d-flex gap-2">
+                                <button type="submit"
+                                        class="btn btn-primary"
+                                        data-test-three-brs-ip-whitelist-save>
+                                    {{ 'three_brs.ui.ip_whitelist.save'|trans }}
+                                </button>
+                                <a class="btn btn-link"
+                                   href="{{ path('three_brs_admin_ip_whitelist_admins') }}">
+                                    {{ 'three_brs.ui.ip_whitelist.cancel'|trans }}
+                                </a>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

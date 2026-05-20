@@ -12,9 +12,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountDeletionSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountLockoutSettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\IpWhitelistSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\MagicLinkSettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthSettingsType;
@@ -53,6 +55,7 @@ class SaveTabController implements SaveTabControllerInterface
         protected SettingsWriterInterface $writer,
         protected FormFactoryInterface $formFactory,
         protected RouterInterface $router,
+        protected TranslatorInterface $translator,
     ) {
         $rateLimitKeyMap = [];
         foreach (['login', 'password_reset', 'register', 'magic_link'] as $action) {
@@ -122,6 +125,11 @@ class SaveTabController implements SaveTabControllerInterface
                 'prefix' => 'account_deletion',
                 'options' => [],
                 'scopes' => [SettingsScope::CUSTOMER],
+            ],
+            'ip_whitelist' => [
+                'type' => IpWhitelistSettingsType::class,
+                'prefix' => 'ip_whitelist',
+                'options' => [],
             ],
         ];
     }
@@ -202,13 +210,21 @@ class SaveTabController implements SaveTabControllerInterface
 
         $this->addFlashMessage($request, 'error', 'three_brs.security_settings.invalid');
 
+        // Form error messages are translation keys (Symfony's default — both
+        // constraint violations and our manual `addError(new FormError($key))`
+        // calls pass the raw key). The Sylius flash partial trans-filters the
+        // whole flash string with the `flashes` domain only, so a raw key from
+        // `validators` would render literally. Pre-translate here via the
+        // `validators` domain (Symfony's default for form errors) and emit the
+        // already-human-readable string — translation messages name the field
+        // explicitly when relevant, so we don't prefix with the field name.
         foreach ($form->getErrors(true) as $error) {
-            $field = $error->getOrigin()?->getName() ?? '?';
-            $this->addFlashMessage(
-                $request,
-                'error',
-                sprintf('%s: %s', $field, $error->getMessage()),
+            $message = $this->translator->trans(
+                $error->getMessage(),
+                $error->getMessageParameters(),
+                'validators',
             );
+            $this->addFlashMessage($request, 'error', $message);
         }
     }
 
