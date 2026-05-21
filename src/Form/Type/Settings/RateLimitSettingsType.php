@@ -6,8 +6,8 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -35,9 +35,18 @@ class RateLimitSettingsType extends AbstractType implements RateLimitSettingsTyp
                     'required' => true,
                     'constraints' => [new Positive()],
                 ])
-                ->add($action . '_interval', TextType::class, [
+                ->add($action . '_interval', ChoiceType::class, [
                     'label' => 'three_brs.ui.security_settings.rate_limit.' . $action . '.interval',
-                    'help' => 'three_brs.ui.security_settings.rate_limit.interval_help',
+                    'choices' => [
+                        'three_brs.ui.security_settings.rate_limit.interval_options.1_minute' => '1 minute',
+                        'three_brs.ui.security_settings.rate_limit.interval_options.5_minutes' => '5 minutes',
+                        'three_brs.ui.security_settings.rate_limit.interval_options.10_minutes' => '10 minutes',
+                        'three_brs.ui.security_settings.rate_limit.interval_options.15_minutes' => '15 minutes',
+                        'three_brs.ui.security_settings.rate_limit.interval_options.30_minutes' => '30 minutes',
+                        'three_brs.ui.security_settings.rate_limit.interval_options.1_hour' => '1 hour',
+                        'three_brs.ui.security_settings.rate_limit.interval_options.2_hours' => '2 hours',
+                        'three_brs.ui.security_settings.rate_limit.interval_options.5_hours' => '5 hours',
+                    ],
                     'required' => true,
                     'constraints' => [new NotBlank()],
                 ])

@@ -24,3 +24,5 @@ three_brs:
         enabled_requires_cidrs: 'You enabled the IP whitelist but left the global CIDR list empty. Without at least one global CIDR — or a per-admin override that covers your current IP — every admin (including you) will be locked out on the next request. Add at least one CIDR before saving.'
     oauth_admin_policy:
         invalid_domain: 'This value is not a valid email domain.'
+    oauth_customer_policy:
+        invalid_domain: 'This value is not a valid email domain.'

@@ -1,5 +1,7 @@
 {% extends '@SyliusShop/shared/layout/base.html.twig' %}
 
+{% import '@ThreeBRSSyliusEnterpriseSecurityPlugin/_shared/_macros.html.twig' as shared %}
+
 {% block title %}{{ 'three_brs.ui.session.menu_item'|trans }} | {{ parent() }}{% endblock %}
 
 {% block content %}
@@ -27,16 +29,13 @@
                     <div class="card-header d-flex justify-content-between align-items-center gap-3 flex-wrap">
                         <h2 class="h5 mb-0">{{ 'three_brs.ui.session.your_sessions'|trans }}</h2>
                         {% if rows|length > 1 %}
-                            <form method="POST"
-                                  action="{{ path('three_brs_shop_sessions_revoke_others') }}"
-                                  onsubmit="return confirm('{{ 'three_brs.ui.session.revoke_others_confirm'|trans|e('js') }}');">
-                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_revoke_other_sessions') }}">
-                                <button type="submit"
-                                        class="btn btn-outline-danger"
-                                        data-test-three-brs-revoke-other-sessions>
-                                    {{ 'three_brs.ui.session.revoke_others'|trans }}
-                                </button>
-                            </form>
+                            <button type="button"
+                                    class="btn btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#three-brs-shop-session-revoke-others-modal"
+                                    data-test-three-brs-revoke-other-sessions>
+                                {{ 'three_brs.ui.session.revoke_others'|trans }}
+                            </button>
                         {% endif %}
                     </div>
                     <div class="card-body">
@@ -64,16 +63,13 @@
                                                 </div>
                                             </div>
                                             {% if not row.isCurrent %}
-                                                <form method="POST"
-                                                      action="{{ path('three_brs_shop_session_revoke', {'id': row.session.id}) }}"
-                                                      onsubmit="return confirm('{{ 'three_brs.ui.session.revoke_confirm'|trans|e('js') }}');">
-                                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_revoke_session') }}">
-                                                    <button type="submit"
-                                                            class="btn btn-outline-danger"
-                                                            data-test-three-brs-revoke-session="{{ row.session.id }}">
-                                                        {{ 'three_brs.ui.session.revoke'|trans }}
-                                                    </button>
-                                                </form>
+                                                <button type="button"
+                                                        class="btn btn-outline-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#three-brs-shop-session-revoke-modal-{{ row.session.id }}"
+                                                        data-test-three-brs-revoke-session="{{ row.session.id }}">
+                                                    {{ 'three_brs.ui.session.revoke'|trans }}
+                                                </button>
                                             {% endif %}
                                         </div>
                                     </li>
@@ -89,4 +85,30 @@
             </div>
         </div>
     </div>
+
+    {% if rows|length > 1 %}
+        {{ shared.confirmation_modal(
+            'three-brs-shop-session-revoke-others-modal',
+            'three_brs.ui.session.revoke_others'|trans,
+            'three_brs.ui.session.revoke_others_confirm'|trans,
+            path('three_brs_shop_sessions_revoke_others'),
+            'three_brs_revoke_other_sessions',
+            'three_brs.ui.session.revoke_others'|trans,
+            'btn-danger',
+        ) }}
+    {% endif %}
+
+    {% for row in rows %}
+        {% if not row.isCurrent %}
+            {{ shared.confirmation_modal(
+                'three-brs-shop-session-revoke-modal-' ~ row.session.id,
+                'three_brs.ui.session.revoke'|trans,
+                'three_brs.ui.session.revoke_confirm'|trans,
+                path('three_brs_shop_session_revoke', {'id': row.session.id}),
+                'three_brs_revoke_session',
+                'three_brs.ui.session.revoke'|trans,
+                'btn-danger',
+            ) }}
+        {% endif %}
+    {% endfor %}
 {% endblock %}

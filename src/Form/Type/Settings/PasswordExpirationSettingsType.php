@@ -18,15 +18,15 @@ class PasswordExpirationSettingsType extends AbstractType implements PasswordExp
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('days', IntegerType::class, [
-                'label' => 'three_brs.ui.security_settings.password_expiration.days',
-                'required' => true,
-                'constraints' => [new Positive()],
-            ])
             ->add('enabled', CheckboxType::class, [
                 'label' => 'three_brs.ui.security_settings.password_expiration.enabled',
                 'required' => false,
                 'label_attr' => ['class' => 'checkbox-switch'],
+            ])
+            ->add('days', IntegerType::class, [
+                'label' => 'three_brs.ui.security_settings.password_expiration.days',
+                'required' => true,
+                'constraints' => [new Positive()],
             ])
         ;
     }

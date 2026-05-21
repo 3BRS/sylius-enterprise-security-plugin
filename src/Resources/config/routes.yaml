@@ -303,11 +303,9 @@ three_brs_admin_security_settings_index:
     methods: [GET]
 
 three_brs_admin_security_settings_save:
-    path: /admin/security-settings/save/{tab}
+    path: /admin/security-settings/save
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\SaveTabController
     methods: [POST]
-    requirements:
-        tab: '[a-z_]+'
 
 three_brs_shop_account_deletion_request:
     path: /{_locale}/account/delete

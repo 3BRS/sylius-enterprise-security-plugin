@@ -2,6 +2,7 @@
 
 {% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
 {% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
+{% import '@ThreeBRSSyliusEnterpriseSecurityPlugin/_shared/_macros.html.twig' as shared %}
 
 {% block title %}{{ parent() }} | {{ 'three_brs.ui.passkey.menu_item'|trans }}{% endblock %}
 
@@ -15,6 +16,9 @@
             <div class="container-xl">
                 {{ breadcrumbs([
                     { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
+                    { name: 'sylius.menu.admin.main.configuration.admin_users', url: path('sylius_admin_admin_user_index'), active: false },
+                    { name: app.user.id, url: path('sylius_admin_admin_user_update', {'id': app.user.id}), active: false },
+                    { name: 'sylius.ui.edit', url: path('sylius_admin_admin_user_update', {'id': app.user.id}), active: false },
                     { name: 'three_brs.ui.passkey.menu_item', active: true },
                 ]) }}
                 <div class="row mt-3 row-gap-2">
@@ -72,16 +76,13 @@
                                                 </div>
                                             </div>
                                             <div class="col-auto">
-                                                <form method="POST"
-                                                      action="{{ path('three_brs_admin_passkey_delete', {'id': credential.id}) }}"
-                                                      onsubmit="return confirm('{{ 'three_brs.ui.passkey.delete_confirm'|trans|e('js') }}');">
-                                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_admin_passkey_delete') }}">
-                                                    <button type="submit"
-                                                            class="btn btn-outline-danger"
-                                                            data-test-three-brs-passkey-delete="{{ credential.id }}">
-                                                        {{ 'three_brs.ui.passkey.delete'|trans }}
-                                                    </button>
-                                                </form>
+                                                <button type="button"
+                                                        class="btn btn-outline-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#three-brs-admin-passkey-delete-modal-{{ credential.id }}"
+                                                        data-test-three-brs-passkey-delete="{{ credential.id }}">
+                                                    {{ 'three_brs.ui.passkey.delete'|trans }}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -141,6 +142,18 @@
             </div>
         </div>
     </div>
+
+    {% for credential in credentials %}
+        {{ shared.confirmation_modal(
+            'three-brs-admin-passkey-delete-modal-' ~ credential.id,
+            'three_brs.ui.passkey.delete'|trans,
+            'three_brs.ui.passkey.delete_confirm'|trans({'%label%': credential.label}),
+            path('three_brs_admin_passkey_delete', {'id': credential.id}),
+            'three_brs_admin_passkey_delete',
+            'three_brs.ui.passkey.delete'|trans,
+            'btn-danger',
+        ) }}
+    {% endfor %}
 
     <script src="{{ asset('bundles/threebrssyliusenterprisesecurityplugin/js/passkey.js') }}"></script>
 {% endblock %}

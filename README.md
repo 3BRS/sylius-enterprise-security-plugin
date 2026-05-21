@@ -1,4 +1,4 @@
-<p align="center">
+a <p align="center">
     <a href="https://www.3brs.com" target="_blank">
         <img src="https://3brs1.fra1.cdn.digitaloceanspaces.com/3brs/logo/3BRS-logo-sylius-200.png"/>
     </a>
@@ -17,50 +17,22 @@
     </a>
 </h1>
 
-## Repository Structure
+## 3BRS Enterprise Security
 
-This is a monorepo containing two packages:
-
-```
-sylius-enterprise-security-plugin/
-├── packages/
-│   └── enterprise-security-bundle/
-│       ├── src/
-│       └── composer.json
-├── src/
-├── tests/
-│   └── Application/
-└── composer.json
-```
-
-### `3brs/sylius-enterprise-security-plugin`
-
-Sylius-specific plugin layer. Contains everything that is coupled to Sylius or Doctrine:
-
-- Doctrine entities and repositories for password history, magic-link tokens, social account links, passkey credentials, sessions, known devices, recovery codes, IP whitelists, deletion requests, and the security settings store
-- Sylius entity traits and interfaces for `Customer`, `ShopUser`, and `AdminUser` (lockable, 2FA-enabled, password-expiration, etc.)
-- Sylius event listeners (Doctrine OnFlush, login/logout events) and `AbstractType` form types for Sylius admin/shop forms
-- Sylius mailer integration (`sylius.email_sender`), email templates, Twig hooks, menu listeners, fixtures, and admin/shop controllers
-- Doctrine implementations of `SettingsProviderInterface` / `SettingsWriterInterface`
-- Behat suite exercising the full Sylius UI
-
-### `3brs/enterprise-security-bundle`
-
-Standalone Symfony bundle with no dependency on Sylius — ready to be extracted into its own repository and reused in a plain Symfony app. Contains the framework-agnostic core:
-
-- **Password policy:** `PasswordPolicy` data class, `PasswordPolicy` constraint + `PasswordPolicyFilteringValidator`, `PasswordPolicyValidatorInterface`, `PasswordHistory` constraint + `PasswordHistoryValidatorInterface`, `PasswordExpirationChecker` + user contract interfaces
-- **Two-factor authentication:** `TotpSecretGenerator`, `RecoveryCodeGenerator`, `QrCodeGenerator`, `TwoFactorMode`, `TwoFactorAuth{Admin,Shop}UserInterface`, `TwoFactorEnforcementChecker`, `TwoFactorAwareAuthenticationSuccessHandler`
-- **OAuth:** `OAuthProviderInterface` + `OAuthProviderRegistry`, `GoogleOAuthProvider`, `AppleOAuthProvider`, `OAuthUserInfo`, `AutoRegistrationPolicy` (email-verified + optional domain whitelist), `SocialAccountLinkRecordInterface`
-- **Magic link:** `MagicLinkTokenGenerator`, `MagicLinkTokenValidator` (used/expired check), `MagicLinkRecordInterface`
-- **Passkey (WebAuthn):** `PasskeyCeremonyStepManagerFactory`, `PasskeyRelyingPartyEntityFactory`, `PasskeyValidatorFactory`, `PasskeyWebauthnSerializer`, `SessionPasskeyOptionsStorage`
-- **Lockout & rate limiting:** `LockoutPolicy`, `Lockable{Admin,Shop}UserInterface`, `DynamicRateLimiterFactory`, `RateLimitGuard`
-- **Session:** `UserAgentParser`, `SessionFingerprintGenerator`, `SessionRecordInterface`, `GeoIpLookupInterface` + `NullGeoIpLookup` + `MaxMindGeoIpLookup`
-- **IP whitelist:** `CidrMatcher`, `CidrList` constraint + `CidrListValidator`, `CidrListDataTransformer`
-- **Settings infrastructure:** `SettingsProviderInterface`, `SettingsWriterInterface`, `SettingsScope`, `FeatureToggle`, `PolicyFactory`, `SettingsDefaultsBuilder` + `YamlConfigDefaultsProvider`
-- **Account deletion:** `GracePeriodCalculator`, `CustomerDeletionRequestRecordInterface`
-- **Utilities:** `DeadlineTimingPadding` (timing-attack mitigation)
-
-The bundle has its own `composer.json`, `phpstan.neon`, `ecs.php`, `phpunit.xml.dist`, and CI workflow ([`.github/workflows/bundle-ci.yml`](./.github/workflows/bundle-ci.yml)). The plugin pulls it in via a path repository entry in `composer.json`.
+- Password Policy
+- Password History
+- Password Expiration
+- Password Change Notifications
+- Two-Factor Authentication
+- 3rd-party OAuth (Social Login)
+- Magic Link Login
+- Passkey Login (WebAuthn / FIDO2)
+- Account Lockout & Rate Limiting
+- Session Management & Login Notifications
+- Centralized Security Settings UI
+- Self-Service Account Deletion (GDPR)
+- Admin IP Whitelist
+- Admin Customer Management
 
 ## Features
 
@@ -220,7 +192,7 @@ security:
 
 The admin firewall does not need a custom `success_handler` — Sylius does not override it there, so the default Symfony handler is used and scheb's `TwoFactorAccessListener` transparently redirects authenticated-but-not-yet-verified admins to `/admin/2fa` on the next request.
 
-### Social Login (OAuth)
+### 3rd-party OAuth (Social Login)
 
 - **Google and Apple sign-in** for shop customers and admin users — sign-in buttons are rendered on the shop login + register pages and on the admin login page
 - **Independent shop/admin configuration** — each provider is enabled and configured separately for the shop and admin groups, so you can register two distinct OAuth clients (different client IDs, consent screens, redirect URIs). Useful when the shop-facing app and the internal admin app live as separate applications on the provider side
@@ -238,6 +210,8 @@ The admin firewall does not need a custom `success_handler` — Sylius does not 
 three_brs_sylius_enterprise_security:
     oauth:
         customer:
+            default_locale: 'en_US'                    # locale stored for auto-registered customers (reserved — Sylius Customer has no localeCode yet)
+            auto_register_allowed_email_domains: []    # empty = no restriction (any verified email); add e.g. ['yourcompany.com'] to restrict
             google:
                 enabled: false
                 client_id: '%env(GOOGLE_CLIENT_ID)%'
@@ -273,6 +247,8 @@ Callback URLs to register with the providers:
 > **Warning:** the `allowed_email_domains` whitelist should include **only domains you fully control**.
 > Anyone with a working email in these domains can auto-create an admin account with full `ROLE_ADMINISTRATION_ACCESS`.
 > For external/shared domains or when fine-grained control is needed, leave the whitelist empty — admins will need to be created manually before their first OAuth login.
+
+> **Customer auto-registration:** by default `auto_register_allowed_email_domains` is empty and any verified OAuth identity can auto-register as a customer (preserves the commercial signup-friendly default). Populate the list to restrict customer auto-registration to specific domains (useful e.g. for B2B stores or as a bot-mitigation measure).
 
 #### Google Cloud setup
 
@@ -558,7 +534,7 @@ A single admin page consolidates configuration for every security feature shippe
 - **Scopes**: separate `Customers` and `Administrators` views, plus an internal `global` scope for values that have no scope dimension (2FA issuer, trusted-device window, passkey relying-party data, GeoIP service ID).
 - **Storage**: one row per `(path, scope)` pair, value stored as JSON. The `SettingsProvider` reads the table once per request, in-memory cached, and falls back to YAML defaults when a row is missing — so plugins keep working out of the box and the install command is opt-in.
 - **Runtime applied**: `PasswordPolicyValidator`, `PasswordHistoryValidator`, `PasswordExpirationChecker`, `PasswordChangeNotificationListener`, `TwoFactorEnforcementChecker`, lockout policies, `DynamicRateLimiterFactory`, OAuth providers (`isEnabledForCustomer/Admin` reads), `AdminSocialLoginHandler` (whitelist + locale), menu listeners and Twig extensions all read live values via `SettingsProviderInterface` / `PolicyFactoryInterface` / `FeatureToggleInterface`. Compile-time-only values (passkey `rp_id` / `rp_name`, GeoIP service ID, OAuth client secrets / Apple key paths) keep coming from YAML — they are deployment-integration plumbing, not user-facing knobs.
-- **Tabs in the UI**: Password policy, Password history, Password expiration, Password change notification, Two-factor authentication, Magic link, Passkey, Account lockout, Rate limiting, Session management, Login notifications, Social login (OAuth), OAuth admin auto-registration (admin scope only).
+- **Tabs in the UI**: Password policy, Password history, Password expiration, Password change notification, Two-factor authentication, Magic link, Passkey, Account lockout, Rate limiting, Session management, Login notifications, 3rd-party OAuth, OAuth admin auto-registration (admin scope only).
 - **Allowed / Enforced / Disabled**: the `Two-factor authentication` tab exposes the tri-state mode (`disabled` / `allowed` / `enforced`); other auth methods (Magic link, Passkey, OAuth) are login channels — they use a 2-state `enabled` toggle (`Enforced` would mean "this is the only login channel", which is a different concern handled outside this UI).
 - **Fixture**: `three_brs_security_settings` (Sylius fixture) writes the YAML defaults into the table on a fresh install. By default it resets the table; set `options.reset: false` to merge instead. Per-scope `overrides` allow seeding non-default values from fixtures.
 
@@ -573,11 +549,11 @@ sylius_fixtures:
                         overrides: {}
 ```
 
-OAuth credentials (`client_id`, `client_secret`, Apple `team_id` / `key_id` / `private_key_path`) stay in YAML / `.env.local` — they are deployment-time secrets; putting them in the database would leak them through admin UI display, DB dumps and audit logs. The `Social login (OAuth)` UI tab exposes only the per-provider `enabled` toggle (changing it at runtime takes effect on the next OAuth attempt — providers read the flag through `SettingsProvider`). The `OAuth admin auto-registration` tab (admin scope only) holds the email-domain whitelist and the default locale assigned to admins auto-registered via OAuth — both are policy values, not secrets.
+OAuth credentials (`client_id`, `client_secret`, Apple `team_id` / `key_id` / `private_key_path`) stay in YAML / `.env.local` — they are deployment-time secrets; putting them in the database would leak them through admin UI display, DB dumps and audit logs. The `3rd-party OAuth` UI tab exposes only the per-provider `enabled` toggle (changing it at runtime takes effect on the next OAuth attempt — providers read the flag through `SettingsProvider`). The `OAuth admin auto-registration` tab (admin scope only) holds the email-domain whitelist and the default locale assigned to admins auto-registered via OAuth — both are policy values, not secrets.
 
 Passkey `rp_id` and `rp_name` similarly stay in YAML — the browser WebAuthn API binds registered credentials to the relying-party ID, so changing it at runtime would invalidate every passkey already registered. The GeoIP service ID is a Symfony service alias resolved at compile time; the implementation behind the alias is a deployment choice, not a runtime knob. Both surface only through YAML.
 
-The `Linked social accounts` shop menu item and the admin Configuration *Linked social accounts* item are now gated through `FeatureToggle` against the same `oauth.google.enabled` / `oauth.apple.enabled` paths used by the providers themselves — toggling a provider off in the Settings UI hides the menu entry on the next request.
+The `Linked 3rd-party OAuth accounts` shop menu item and the admin Configuration *Linked 3rd-party OAuth accounts* item are now gated through `FeatureToggle` against the same `oauth.google.enabled` / `oauth.apple.enabled` paths used by the providers themselves — toggling a provider off in the Settings UI hides the menu entry on the next request.
 
 ### Self-Service Account Deletion (GDPR)
 

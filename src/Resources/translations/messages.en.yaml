@@ -42,8 +42,13 @@ three_brs:
             cidrs: 'Allowed IPs / CIDRs'
             cidrs_help: 'One IP or CIDR per line. IPv4 and IPv6 are supported (e.g. 10.0.0.0/8, 192.168.1.1, 2001:db8::/32).'
     ui:
-        menu:
-            enterprise_security: 'Enterprise Security'
+        cancel: 'Cancel'
+        confirm: 'Confirm'
+        copy: 'Copy'
+        copied: 'Copied!'
+        admin_security:
+            title: 'Security'
+            intro: 'Manage your security settings — two-factor authentication, linked social logins, passkeys, and active sessions.'
         force_password_change: 'Password Change Required'
         force_password_change_description: 'Your password has expired or an administrator has requested you to change it. Please set a new password to continue.'
         change_password: 'Change Password'
@@ -74,17 +79,19 @@ three_brs:
             invalid_recovery_code: 'This recovery code is invalid or already used.'
             menu_item: 'Two-factor authentication'
         social_login:
-            menu_item: 'Linked social accounts'
+            menu_item: '3rd-party OAuth'
             or_continue_with: 'Or continue with'
-            linked_accounts_title: 'Linked social accounts'
+            linked_accounts_title: 'Linked 3rd-party OAuth accounts'
             available_providers_title: 'Available providers'
-            no_links_yet: 'You have not linked any social accounts yet.'
+            no_links_yet: 'You have not linked any 3rd-party OAuth accounts yet.'
             no_links_yet_subtitle: 'Link a provider from the list to sign in faster next time.'
             all_linked: 'All available providers are already linked.'
             admin_intro: 'Link your Google or Apple account to sign in to the admin panel without entering a password. You can unlink a provider at any time — as long as you keep either a password or another linked provider.'
             customer_intro: 'Link your Google or Apple account to sign in faster next time. You can unlink a provider at any time — as long as you keep either a password or another linked provider.'
             unlink: 'Unlink'
             link_provider: 'Link %provider%'
+            provider_column: 'Provider'
+            email_column: 'Email'
             provider:
                 google: 'Google'
                 apple: 'Apple'
@@ -93,7 +100,7 @@ three_brs:
             password_label: 'Password'
             confirm_and_link: 'Confirm and link account'
             invalid_password: 'Invalid password.'
-            unlink_confirm: 'Are you sure you want to unlink this social account?'
+            unlink_confirm: 'Are you sure you want to unlink this 3rd-party OAuth account?'
         magic_link:
             request_title: 'Sign in with a magic link'
             request_intro: 'Enter your email address and we will send you a link to sign in without a password.'
@@ -152,7 +159,7 @@ three_brs:
             added: 'Added'
             last_used: 'Last used'
             delete: 'Remove'
-            delete_confirm: 'Remove this passkey?'
+            delete_confirm: 'Remove the passkey "%label%"?'
             sign_in_with_passkey: 'Sign in with a passkey'
             browser_unsupported: 'Your browser does not support passkeys.'
             registration_cancelled: 'Passkey registration was cancelled or not allowed by the device.'
@@ -300,7 +307,15 @@ three_brs:
             rate_limit:
                 title: 'Rate limiting'
                 description: 'Throttle authentication-related routes to slow down brute-force and enumeration attacks. Limits apply per username (for login) or per client IP (for anonymous routes).'
-                interval_help: 'Human-readable interval, e.g. "15 minutes", "1 hour".'
+                interval_options:
+                    1_minute: '1 minute'
+                    5_minutes: '5 minutes'
+                    10_minutes: '10 minutes'
+                    15_minutes: '15 minutes'
+                    30_minutes: '30 minutes'
+                    1_hour: '1 hour'
+                    2_hours: '2 hours'
+                    5_hours: '5 hours'
                 login:
                     enabled: 'Enable login rate limiting'
                     limit: 'Login attempts per interval'
@@ -318,8 +333,8 @@ three_brs:
                     limit: 'Magic link requests per interval'
                     interval: 'Magic link interval'
             oauth:
-                title: 'Social login (OAuth)'
-                description: 'Toggle Google and Apple social login per scope. Provider credentials (client_id, secret, etc.) remain in YAML configuration — only the enabled flag is runtime-mutable here.'
+                title: '3rd-party OAuth'
+                description: 'Provider credentials (client_id, secret, etc.) remain in YAML configuration — only the enabled flag is runtime-mutable here.'
                 google_enabled: 'Enable Google'
                 apple_enabled: 'Enable Apple'
             oauth_admin_policy:
@@ -329,6 +344,13 @@ three_brs:
                 default_locale_help: 'Locale code (e.g. en_US, cs_CZ) applied to admins auto-registered via OAuth.'
                 auto_register_allowed_email_domains: 'Whitelisted email domains'
                 auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to disable auto-registration entirely.'
+            oauth_customer_policy:
+                title: 'OAuth customer auto-registration'
+                description: 'Policy applied when a customer signs in via OAuth and no matching account exists yet. Limit auto-registration to specific email domains (e.g. to reduce bot signups).'
+                default_locale: 'Default locale for new customers'
+                default_locale_help: 'Locale code (e.g. en_US, cs_CZ) applied to customers auto-registered via OAuth.'
+                auto_register_allowed_email_domains: 'Whitelisted email domains'
+                auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to allow auto-registration from any verified email address.'
             account_deletion:
                 title: 'Account deletion'
                 description: 'Self-service account deletion (GDPR right to erasure) with admin-cancellable grace period.'

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -47,15 +48,13 @@ class SecuritySettingsContext implements Context
     public function iChangeTheCustomerMinimumPasswordLengthTo(int $length): void
     {
         $this->iSwitchToTheScope('customer');
-        $page = $this->session->getPage();
-        $form = $page->find('css', '[data-test-three-brs-security-settings-tab="password_policy"] form');
-        Assert::notNull($form, 'Password policy form not found.');
+        $form = $this->getSettingsForm();
 
-        $field = $form->find('css', '#three_brs_password_policy_settings_min_length');
+        $field = $form->find('css', '#three_brs_security_settings_password_policy_min_length');
         Assert::notNull($field, 'min_length field not found.');
         $field->setValue((string) $length);
 
-        $form->find('css', '[data-test-three-brs-security-settings-save="password_policy"]')?->click();
+        $this->submit();
     }
 
     /**
@@ -64,15 +63,13 @@ class SecuritySettingsContext implements Context
     public function iEnableCustomerPasskey(): void
     {
         $this->iSwitchToTheScope('customer');
-        $page = $this->session->getPage();
-        $form = $page->find('css', '[data-test-three-brs-security-settings-tab="passkey"] form');
-        Assert::notNull($form, 'Passkey form not found.');
+        $form = $this->getSettingsForm();
 
-        $field = $form->find('css', '#three_brs_passkey_settings_enabled');
+        $field = $form->find('css', '#three_brs_security_settings_passkey_enabled');
         Assert::notNull($field, 'enabled field not found.');
         $field->check();
 
-        $form->find('css', '[data-test-three-brs-security-settings-save="passkey"]')?->click();
+        $this->submit();
     }
 
     /**
@@ -81,21 +78,19 @@ class SecuritySettingsContext implements Context
     public function iTightenCustomerLoginRateLimitToPerMinute(int $count): void
     {
         $this->iSwitchToTheScope('customer');
-        $page = $this->session->getPage();
-        $form = $page->find('css', '[data-test-three-brs-security-settings-tab="rate_limit"] form');
-        Assert::notNull($form, 'Rate limit form not found.');
+        $form = $this->getSettingsForm();
 
-        $form->find('css', '#three_brs_rate_limit_settings_login_enabled')?->check();
+        $form->find('css', '#three_brs_security_settings_rate_limit_login_enabled')?->check();
 
-        $limitField = $form->find('css', '#three_brs_rate_limit_settings_login_limit');
+        $limitField = $form->find('css', '#three_brs_security_settings_rate_limit_login_limit');
         Assert::notNull($limitField, 'login_limit field not found.');
         $limitField->setValue((string) $count);
 
-        $intervalField = $form->find('css', '#three_brs_rate_limit_settings_login_interval');
+        $intervalField = $form->find('css', '#three_brs_security_settings_rate_limit_login_interval');
         Assert::notNull($intervalField, 'login_interval field not found.');
         $intervalField->setValue('1 minute');
 
-        $form->find('css', '[data-test-three-brs-security-settings-save="rate_limit"]')?->click();
+        $this->submit();
     }
 
     /**
@@ -104,15 +99,13 @@ class SecuritySettingsContext implements Context
     public function iDisableCustomerGoogleOAuth(): void
     {
         $this->iSwitchToTheScope('customer');
-        $page = $this->session->getPage();
-        $form = $page->find('css', '[data-test-three-brs-security-settings-tab="oauth"] form');
-        Assert::notNull($form, 'OAuth form not found.');
+        $form = $this->getSettingsForm();
 
-        $field = $form->find('css', '#three_brs_oauth_settings_google_enabled');
+        $field = $form->find('css', '#three_brs_security_settings_oauth_google_enabled');
         Assert::notNull($field, 'google_enabled field not found.');
         $field->uncheck();
 
-        $form->find('css', '[data-test-three-brs-security-settings-save="oauth"]')?->click();
+        $this->submit();
     }
 
     /**
@@ -121,16 +114,14 @@ class SecuritySettingsContext implements Context
     public function iEnableCustomerAccountLockoutWithMaxAttempts(int $count): void
     {
         $this->iSwitchToTheScope('customer');
-        $page = $this->session->getPage();
-        $form = $page->find('css', '[data-test-three-brs-security-settings-tab="account_lockout"] form');
-        Assert::notNull($form, 'Account lockout form not found.');
+        $form = $this->getSettingsForm();
 
-        $form->find('css', '#three_brs_account_lockout_settings_enabled')?->check();
-        $maxField = $form->find('css', '#three_brs_account_lockout_settings_max_attempts');
+        $form->find('css', '#three_brs_security_settings_account_lockout_enabled')?->check();
+        $maxField = $form->find('css', '#three_brs_security_settings_account_lockout_max_attempts');
         Assert::notNull($maxField, 'max_attempts field not found.');
         $maxField->setValue((string) $count);
 
-        $form->find('css', '[data-test-three-brs-security-settings-save="account_lockout"]')?->click();
+        $this->submit();
     }
 
     /**
@@ -224,5 +215,20 @@ class SecuritySettingsContext implements Context
             $this->settingsProvider->getBool('oauth.google.enabled', SettingsScope::CUSTOMER),
             'Customer Google OAuth is still enabled in DB.',
         );
+    }
+
+    protected function getSettingsForm(): NodeElement
+    {
+        $form = $this->session->getPage()->find('css', '#three-brs-security-settings-form');
+        Assert::notNull($form, 'Security settings form not found.');
+
+        return $form;
+    }
+
+    protected function submit(): void
+    {
+        $button = $this->session->getPage()->find('css', '[data-test-three-brs-security-settings-save]');
+        Assert::notNull($button, 'Global save button not found.');
+        $button->click();
     }
 }

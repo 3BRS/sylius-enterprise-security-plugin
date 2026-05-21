@@ -18,7 +18,7 @@ The bundle is framework-agnostic (any Symfony 6.4 / 7.4 app) and is the engine p
 - Session list / revoke / revoke others
 - Passkey list / delete
 - Two-factor disable / regenerate recovery codes
-- Social account unlink
+- 3rd-party OAuth account unlink
 - Account deletion request (with grace period)
 
 **Admin actions** (abstract base controllers):

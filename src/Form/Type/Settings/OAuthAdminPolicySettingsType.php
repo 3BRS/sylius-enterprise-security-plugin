@@ -12,6 +12,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
@@ -21,16 +22,21 @@ class OAuthAdminPolicySettingsType extends AbstractType implements OAuthAdminPol
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var string $prefix */
+        $prefix = $options['translation_prefix'];
+        /** @var string $invalidDomainKey */
+        $invalidDomainKey = $options['invalid_domain_translation_key'];
+
         $builder
             ->add('default_locale', TextType::class, [
-                'label' => 'three_brs.ui.security_settings.oauth_admin_policy.default_locale',
+                'label' => $prefix . '.default_locale',
                 'required' => true,
                 'constraints' => [new NotBlank()],
-                'help' => 'three_brs.ui.security_settings.oauth_admin_policy.default_locale_help',
+                'help' => $prefix . '.default_locale_help',
             ])
             ->add('auto_register_allowed_email_domains', TextareaType::class, [
-                'label' => 'three_brs.ui.security_settings.oauth_admin_policy.auto_register_allowed_email_domains',
-                'help' => 'three_brs.ui.security_settings.oauth_admin_policy.auto_register_allowed_email_domains_help',
+                'label' => $prefix . '.auto_register_allowed_email_domains',
+                'help' => $prefix . '.auto_register_allowed_email_domains_help',
                 'required' => false,
                 'attr' => ['rows' => 4],
             ])
@@ -67,7 +73,7 @@ class OAuthAdminPolicySettingsType extends AbstractType implements OAuthAdminPol
         // blob, not each domain individually.
         $builder->get('auto_register_allowed_email_domains')->addEventListener(
             FormEvents::POST_SUBMIT,
-            static function (FormEvent $event): void {
+            static function (FormEvent $event) use ($invalidDomainKey): void {
                 $data = $event->getData();
                 if (!is_array($data)) {
                     return;
@@ -75,15 +81,21 @@ class OAuthAdminPolicySettingsType extends AbstractType implements OAuthAdminPol
                 $pattern = '/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i';
                 foreach ($data as $domain) {
                     if (!is_string($domain) || preg_match($pattern, $domain) !== 1) {
-                        $event->getForm()->addError(new FormError(
-                            'three_brs.ui.security_settings.oauth_admin_policy.invalid_domain',
-                        ));
+                        $event->getForm()->addError(new FormError($invalidDomainKey));
 
                         return;
                     }
                 }
             },
         );
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setRequired('translation_prefix');
+        $resolver->setAllowedTypes('translation_prefix', 'string');
+        $resolver->setRequired('invalid_domain_translation_key');
+        $resolver->setAllowedTypes('invalid_domain_translation_key', 'string');
     }
 
     public function getBlockPrefix(): string

@@ -18,15 +18,15 @@ class PasswordHistorySettingsType extends AbstractType implements PasswordHistor
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('count', IntegerType::class, [
-                'label' => 'three_brs.ui.security_settings.password_history.count',
-                'required' => true,
-                'constraints' => [new Positive()],
-            ])
             ->add('enabled', CheckboxType::class, [
                 'label' => 'three_brs.ui.security_settings.password_history.enabled',
                 'required' => false,
                 'label_attr' => ['class' => 'checkbox-switch'],
+            ])
+            ->add('count', IntegerType::class, [
+                'label' => 'three_brs.ui.security_settings.password_history.count',
+                'required' => true,
+                'constraints' => [new Positive()],
             ])
         ;
     }

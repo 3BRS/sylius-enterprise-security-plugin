@@ -3,6 +3,8 @@
 {% from '@SyliusAdmin/shared/helper/breadcrumbs.html.twig' import breadcrumbs %}
 {% import '@SyliusAdmin/shared/helper/header.html.twig' as header %}
 
+{% form_theme form '@SyliusAdmin/shared/form_theme.html.twig' %}
+
 {% block title %}{{ parent() }} | {{ 'three_brs.ui.security_settings.title'|trans }}{% endblock %}
 
 {% block body %}
@@ -17,10 +19,18 @@
                     { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
                     { name: 'three_brs.ui.security_settings.title', active: true },
                 ]) }}
-                <div class="row mt-3 row-gap-2">
-                    <div class="col-12">
+                <div class="row mt-3 row-gap-2 align-items-center">
+                    <div class="col">
                         {{ header.h1('three_brs.ui.security_settings.title'|trans) }}
                         <p class="text-secondary mb-0">{{ 'three_brs.ui.security_settings.intro'|trans }}</p>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit"
+                                form="three-brs-security-settings-form"
+                                class="btn btn-primary"
+                                data-test-three-brs-security-settings-save>
+                            {{ 'three_brs.ui.security_settings.save'|trans }}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -51,28 +61,40 @@
                     </div>
                 </div>
 
-                {% for tab, form in forms %}
-                    {% form_theme form '@SyliusAdmin/shared/form_theme.html.twig' %}
-                    <div class="card mb-4" data-test-three-brs-security-settings-tab="{{ tab }}">
-                        <div class="card-header">
-                            <h3 class="card-title mb-0">{{ ('three_brs.ui.security_settings.' ~ tab ~ '.title')|trans }}</h3>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-secondary mb-4">{{ ('three_brs.ui.security_settings.' ~ tab ~ '.description')|trans }}</p>
-                            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-                                {{ form_errors(form) }}
-                                {{ form_rest(form) }}
-                                <div class="mt-4 pt-3 border-top">
-                                    <button type="submit"
-                                            class="btn btn-primary"
-                                            data-test-three-brs-security-settings-save="{{ tab }}">
-                                        {{ 'three_brs.ui.security_settings.save'|trans }}
-                                    </button>
+                {{ form_start(form, {'attr': {'id': 'three-brs-security-settings-form', 'novalidate': 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="three-brs-security-settings-masonry">
+                        {% for tab in form.children %}
+                            {% if tab.vars.name != '_token' %}
+                                <div class="card mb-3 three-brs-security-settings-masonry-item"
+                                     data-test-three-brs-security-settings-tab="{{ tab.vars.name }}">
+                                    <div class="card-header">
+                                        <h3 class="card-title mb-0">{{ ('three_brs.ui.security_settings.' ~ tab.vars.name ~ '.title')|trans }}</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-secondary mb-4">{{ ('three_brs.ui.security_settings.' ~ tab.vars.name ~ '.description')|trans }}</p>
+                                        {{ form_widget(tab) }}
+                                        {{ form_errors(tab) }}
+                                    </div>
                                 </div>
-                            {{ form_end(form) }}
-                        </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                {% endfor %}
+                {{ form_end(form) }}
+
+                <style>
+                    @media (min-width: 992px) {
+                        .three-brs-security-settings-masonry {
+                            column-count: 2;
+                            column-gap: 1rem;
+                        }
+                        .three-brs-security-settings-masonry-item {
+                            break-inside: avoid;
+                            -webkit-column-break-inside: avoid;
+                            page-break-inside: avoid;
+                        }
+                    }
+                </style>
             </div>
         </div>
     </div>

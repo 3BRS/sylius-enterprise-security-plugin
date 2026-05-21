@@ -3701,6 +3701,8 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     },
  *     oauth?: array{
  *         customer?: array{
+ *             default_locale?: scalar|Param|null, // Default: "en_US"
+ *             auto_register_allowed_email_domains?: list<scalar|Param|null>,
  *             google?: array{
  *                 enabled?: bool|Param, // Default: false
  *                 client_id?: scalar|Param|null, // Default: null

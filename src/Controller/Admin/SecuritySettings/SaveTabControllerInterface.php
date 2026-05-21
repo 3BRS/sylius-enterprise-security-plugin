@@ -9,5 +9,5 @@ use Symfony\Component\HttpFoundation\Response;
 
 interface SaveTabControllerInterface
 {
-    public function __invoke(Request $request, string $tab): Response;
+    public function __invoke(Request $request): Response;
 }

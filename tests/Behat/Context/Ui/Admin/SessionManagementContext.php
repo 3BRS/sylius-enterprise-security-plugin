@@ -145,8 +145,9 @@ class SessionManagementContext implements Context
         Assert::notNull($record, sprintf('Admin session "%s" not found.', $sessionId));
 
         $page = $this->session->getPage();
-        $button = $page->find('css', sprintf('[data-test-three-brs-revoke-session="%d"]', $record->getId()));
-        Assert::notNull($button, sprintf('Revoke button for admin session "%s" not found.', $sessionId));
+        $modalId = 'three-brs-admin-session-revoke-modal-' . $record->getId();
+        $button = $page->find('css', sprintf('[data-test-three-brs-modal-confirm="%s"]', $modalId));
+        Assert::notNull($button, sprintf('Revoke confirm button for admin session "%s" not found in modal.', $sessionId));
         $button->click();
     }
 
@@ -156,8 +157,8 @@ class SessionManagementContext implements Context
     public function iRevokeAllOtherAdminSessions(): void
     {
         $page = $this->session->getPage();
-        $button = $page->find('css', '[data-test-three-brs-revoke-other-sessions]');
-        Assert::notNull($button, 'Revoke-other-sessions button not found.');
+        $button = $page->find('css', '[data-test-three-brs-modal-confirm="three-brs-admin-session-revoke-others-modal"]');
+        Assert::notNull($button, 'Revoke-other-sessions confirm button not found in modal.');
         $button->click();
     }
 

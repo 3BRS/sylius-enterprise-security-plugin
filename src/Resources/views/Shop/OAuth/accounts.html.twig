@@ -1,5 +1,7 @@
 {% extends '@SyliusShop/shared/layout/base.html.twig' %}
 
+{% import '@ThreeBRSSyliusEnterpriseSecurityPlugin/_shared/_macros.html.twig' as shared %}
+
 {% block title %}{{ 'three_brs.ui.social_login.menu_item'|trans }} | {{ parent() }}{% endblock %}
 
 {% block content %}
@@ -49,16 +51,13 @@
                                                                 <div class="text-muted small">{{ link.email }}</div>
                                                             {% endif %}
                                                         </div>
-                                                        <form method="POST"
-                                                              action="{{ path('three_brs_shop_social_account_unlink', {'provider': link.provider}) }}"
-                                                              onsubmit="return confirm('{{ 'three_brs.ui.social_login.unlink_confirm'|trans|e('js') }}');">
-                                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_shop_social_unlink_' ~ link.provider) }}">
-                                                            <button type="submit"
-                                                                    class="btn btn-outline-danger"
-                                                                    data-test-three-brs-social-unlink="{{ link.provider }}">
-                                                                {{ 'three_brs.ui.social_login.unlink'|trans }}
-                                                            </button>
-                                                        </form>
+                                                        <button type="button"
+                                                                class="btn btn-outline-danger"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#three-brs-shop-social-unlink-modal-{{ link.provider }}"
+                                                                data-test-three-brs-social-unlink="{{ link.provider }}">
+                                                            {{ 'three_brs.ui.social_login.unlink'|trans }}
+                                                        </button>
                                                     </div>
                                                 </li>
                                             {% endfor %}
@@ -100,4 +99,18 @@
             </div>
         </div>
     </div>
+
+    {% if user is not null %}
+        {% for link in links %}
+            {{ shared.confirmation_modal(
+                'three-brs-shop-social-unlink-modal-' ~ link.provider,
+                'three_brs.ui.social_login.unlink'|trans,
+                'three_brs.ui.social_login.unlink_confirm'|trans,
+                path('three_brs_shop_social_account_unlink', {'provider': link.provider}),
+                'three_brs_shop_social_unlink_' ~ link.provider,
+                'three_brs.ui.social_login.unlink'|trans,
+                'btn-danger',
+            ) }}
+        {% endfor %}
+    {% endif %}
 {% endblock %}

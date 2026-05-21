@@ -25,6 +25,11 @@ class TwoFactorSettingsType extends AbstractType implements TwoFactorSettingsTyp
         }
 
         $builder
+            ->add('recovery_codes_enabled', CheckboxType::class, [
+                'label' => 'three_brs.ui.security_settings.two_factor.recovery_codes_enabled',
+                'required' => false,
+                'label_attr' => ['class' => 'checkbox-switch'],
+            ])
             ->add('mode', ChoiceType::class, [
                 'label' => 'three_brs.ui.security_settings.two_factor.mode',
                 'choices' => $modeChoices,
@@ -35,11 +40,6 @@ class TwoFactorSettingsType extends AbstractType implements TwoFactorSettingsTyp
                 'label' => 'three_brs.ui.security_settings.two_factor.recovery_codes_count',
                 'required' => true,
                 'constraints' => [new Positive()],
-            ])
-            ->add('recovery_codes_enabled', CheckboxType::class, [
-                'label' => 'three_brs.ui.security_settings.two_factor.recovery_codes_enabled',
-                'required' => false,
-                'label_attr' => ['class' => 'checkbox-switch'],
             ])
         ;
     }

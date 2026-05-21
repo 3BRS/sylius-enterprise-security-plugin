@@ -57,6 +57,8 @@ class SettingsDefaultsBuilderTest extends TestCase
 
         self::assertFalse($defaults[SettingsScope::CUSTOMER->value]['oauth.google.enabled']);
         self::assertNull($defaults[SettingsScope::CUSTOMER->value]['oauth.google.client_id']);
+        self::assertSame('en_US', $defaults[SettingsScope::CUSTOMER->value]['oauth.default_locale']);
+        self::assertSame([], $defaults[SettingsScope::CUSTOMER->value]['oauth.auto_register_allowed_email_domains']);
         self::assertSame('en_US', $defaults[SettingsScope::ADMIN->value]['oauth.default_locale']);
         self::assertSame([], $defaults[SettingsScope::ADMIN->value]['oauth.auto_register_allowed_email_domains']);
     }
