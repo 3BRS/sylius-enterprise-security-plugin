@@ -4,29 +4,27 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractLockedUsersListController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepositoryInterface;
 use Twig\Environment;
 
-class LockedAdminsController implements LockedAdminsControllerInterface
+class LockedAdminsController extends AbstractLockedUsersListController implements LockedAdminsControllerInterface
 {
     public function __construct(
         protected LockedAdminUserRepositoryInterface $repository,
-        protected Environment $twig,
-        protected bool $enabled,
+        Environment $twig,
+        bool $enabled,
     ) {
+        parent::__construct($twig, $enabled);
     }
 
-    public function __invoke(): Response
+    protected function findAllLockedUsers(): iterable
     {
-        if (!$this->enabled) {
-            throw new NotFoundHttpException();
-        }
+        return $this->repository->findAllLocked();
+    }
 
-        return new Response($this->twig->render(
-            '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Lockout/admins.html.twig',
-            ['users' => $this->repository->findAllLocked()],
-        ));
+    protected function getTemplate(): string
+    {
+        return '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Lockout/admins.html.twig';
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller;
+namespace ThreeBRS\EnterpriseSecurityBundle\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
@@ -13,7 +13,7 @@ trait FirewallRedirectTrait
 
     protected function resolveRedirectUrl(Request $request, string $firewallName, string $defaultUrl): string
     {
-        if (!$request->hasSession()) {
+        if (! $request->hasSession()) {
             return $defaultUrl;
         }
 

@@ -7,79 +7,69 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
+use Symfony\Component\Security\Core\User\UserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractAccountDeletionRequestController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\AccountDeletionRequestType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface;
 use Twig\Environment;
 
-class AccountDeletionRequestController implements AccountDeletionRequestControllerInterface
+class AccountDeletionRequestController extends AbstractAccountDeletionRequestController implements AccountDeletionRequestControllerInterface
 {
-    use FlashHelperTrait;
-
     public function __construct(
         protected FormFactoryInterface $formFactory,
         protected CustomerDeletionServiceInterface $deletionService,
-        protected UserPasswordHasherInterface $passwordHasher,
-        protected TokenStorageInterface $tokenStorage,
-        protected RouterInterface $router,
-        protected Environment $twig,
-        protected bool $enabled,
+        UserPasswordHasherInterface $passwordHasher,
+        TokenStorageInterface $tokenStorage,
+        RouterInterface $router,
+        Environment $twig,
+        bool $enabled,
     ) {
+        parent::__construct($tokenStorage, $passwordHasher, $router, $twig, $enabled);
     }
 
-    public function __invoke(Request $request): Response
+    protected function isAcceptableUser(UserInterface $user): bool
     {
-        if (!$this->enabled) {
-            throw new NotFoundHttpException();
-        }
-
-        $shopUser = $this->getShopUser();
-        $customer = $shopUser->getCustomer();
-        if (!$customer instanceof CustomerInterface) {
-            throw new NotFoundHttpException();
-        }
-
-        $form = $this->formFactory->create(AccountDeletionRequestType::class);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $providedPassword = (string) $form->get('currentPassword')->getData();
-            if (!$this->passwordHasher->isPasswordValid($shopUser, $providedPassword)) {
-                $this->addFlashMessage($request, 'error', 'three_brs.account_deletion.invalid_password');
-
-                return new RedirectResponse($this->router->generate('three_brs_shop_account_deletion_request'));
-            }
-
-            $this->deletionService->requestDeletion($customer);
-            $this->tokenStorage->setToken(null);
-            $request->getSession()->invalidate();
-
-            $this->addFlashMessage($request, 'success', 'three_brs.account_deletion.requested');
-
-            return new RedirectResponse($this->router->generate('sylius_shop_homepage'));
-        }
-
-        return new Response($this->twig->render(
-            '@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/AccountDeletion/request.html.twig',
-            ['form' => $form->createView()],
-        ));
+        return $user instanceof ShopUserInterface;
     }
 
-    protected function getShopUser(): ShopUserInterface
+    protected function hasDeletableSubject(UserInterface $user): bool
     {
-        $token = $this->tokenStorage->getToken();
-        $user = $token?->getUser();
-        if (!$user instanceof ShopUserInterface) {
-            throw new NotFoundHttpException();
-        }
+        \assert($user instanceof ShopUserInterface);
 
-        return $user;
+        return $user->getCustomer() instanceof CustomerInterface;
+    }
+
+    protected function createDeletionRequestForm(): FormInterface
+    {
+        return $this->formFactory->create(AccountDeletionRequestType::class);
+    }
+
+    protected function dispatchDeletionRequest(UserInterface $user): void
+    {
+        \assert($user instanceof ShopUserInterface);
+
+        $customer = $user->getCustomer();
+        \assert($customer instanceof CustomerInterface);
+
+        $this->deletionService->requestDeletion($customer);
+    }
+
+    protected function getRequestFormUrl(): string
+    {
+        return $this->router->generate('three_brs_shop_account_deletion_request');
+    }
+
+    protected function getPostDeletionUrl(): string
+    {
+        return $this->router->generate('sylius_shop_homepage');
+    }
+
+    protected function getTemplate(): string
+    {
+        return '@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/AccountDeletion/request.html.twig';
     }
 }

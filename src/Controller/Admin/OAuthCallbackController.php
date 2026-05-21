@@ -7,184 +7,135 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
-use ThreeBRS\EnterpriseSecurityBundle\OAuth\Exception\OAuthProviderException;
+use Symfony\Component\Security\Core\User\UserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractOAuthCallbackController;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FirewallRedirectTrait;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandlerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface;
 
-class OAuthCallbackController implements OAuthCallbackControllerInterface
+class OAuthCallbackController extends AbstractOAuthCallbackController implements OAuthCallbackControllerInterface
 {
-    use FirewallRedirectTrait;
-    use FlashHelperTrait;
-
     public const CONFIRM_PENDING_SESSION_KEY = 'three_brs_oauth_pending_admin';
 
-    protected const FIREWALL_NAME = 'admin';
-
     public function __construct(
-        protected OAuthProviderRegistryInterface $registry,
+        OAuthProviderRegistryInterface $registry,
         protected AdminSocialLoginHandlerInterface $handler,
-        protected RouterInterface $router,
-        protected TokenStorageInterface $tokenStorage,
-        protected Security $security,
-        protected LoggerInterface $logger,
+        RouterInterface $router,
+        TokenStorageInterface $tokenStorage,
+        Security $security,
+        LoggerInterface $logger,
         protected AdminUserSessionLoginHandlerInterface $sessionLoginHandler,
     ) {
+        parent::__construct($registry, $router, $tokenStorage, $security, $logger);
     }
 
-    public function __invoke(Request $request, string $provider): Response
+    protected function getOAuthGroup(): string
     {
-        if (!$this->registry->has($provider)) {
-            throw new OAuthProviderException(sprintf('Unknown OAuth provider "%s".', $provider));
-        }
-
-        $oauthProvider = $this->registry->get($provider);
-
-        $session = $request->getSession();
-        $expectedState = (string) $session->get(OAuthInitiateController::STATE_SESSION_KEY . '_' . $provider, '');
-        $session->remove(OAuthInitiateController::STATE_SESSION_KEY . '_' . $provider);
-        $intent = (string) $session->get(OAuthInitiateController::INTENT_SESSION_KEY, 'login');
-        $session->remove(OAuthInitiateController::INTENT_SESSION_KEY);
-
-        $redirectUri = $this->router->generate(
-            'three_brs_admin_oauth_callback',
-            ['provider' => $provider],
-            RouterInterface::ABSOLUTE_URL,
-        );
-
-        try {
-            $info = $oauthProvider->fetchUserInfo($request, $redirectUri, $expectedState, 'admin');
-        } catch (OAuthProviderException $exception) {
-            $this->addFlashMessage($request, 'error', $exception->getMessage());
-
-            return new RedirectResponse($this->router->generate('sylius_admin_login'));
-        }
-
-        if ($intent === 'link') {
-            return $this->handleLinkIntent($request, $info);
-        }
-
-        return $this->handleLoginIntent($request, $info);
+        return 'admin';
     }
 
-    protected function handleLinkIntent(Request $request, OAuthUserInfoInterface $info): Response
+    protected function getCallbackRouteName(): string
     {
-        $currentUser = $this->security->getUser();
-        if (!$currentUser instanceof AdminUserInterface) {
-            $this->addFlashMessage($request, 'error', 'three_brs.ui.social_login.not_logged_in');
-
-            return new RedirectResponse($this->router->generate('sylius_admin_login'));
-        }
-
-        $existing = $this->handler->findExistingLinkUser($info);
-        if ($existing !== null && $existing->getId() !== $currentUser->getId()) {
-            $this->auditLog('link_refused_owned_by_other', $info, $request, ['admin_id' => $currentUser->getId()]);
-            $this->addFlashMessage($request, 'error', 'three_brs.ui.social_login.already_linked_other_account');
-
-            return new RedirectResponse($this->router->generate('three_brs_admin_social_accounts'));
-        }
-
-        if ($existing !== null) {
-            $this->addFlashMessage($request, 'info', 'three_brs.ui.social_login.already_linked');
-
-            return new RedirectResponse($this->router->generate('three_brs_admin_social_accounts'));
-        }
-
-        $this->handler->linkExistingUser($currentUser, $info);
-        $this->auditLog('linked', $info, $request, ['admin_id' => $currentUser->getId()]);
-        $this->addFlashMessage($request, 'success', 'three_brs.ui.social_login.linked');
-
-        return new RedirectResponse($this->router->generate('three_brs_admin_social_accounts'));
+        return 'three_brs_admin_oauth_callback';
     }
 
-    protected function handleLoginIntent(Request $request, OAuthUserInfoInterface $info): Response
+    protected function getFirewallName(): string
     {
-        $existing = $this->handler->findExistingLinkUser($info);
-        if ($existing !== null) {
-            $this->handler->touchLastUsed($existing, $info);
-            $this->authenticate($request, $existing);
-            $this->auditLog('login_success', $info, $request, ['admin_id' => $existing->getId()]);
-
-            return new RedirectResponse($this->resolveRedirectUrl($request, static::FIREWALL_NAME, $this->router->generate('sylius_admin_dashboard')));
-        }
-
-        $email = $info->getEmail();
-        if ($email === null || $email === '') {
-            $this->auditLog('register_refused_missing_email', $info, $request);
-            $this->addFlashMessage($request, 'error', 'three_brs.ui.social_login.missing_email');
-
-            return new RedirectResponse($this->router->generate('sylius_admin_login'));
-        }
-
-        $userByEmail = $this->handler->findUserByEmail($email);
-        if ($userByEmail !== null) {
-            $request->getSession()->set(self::CONFIRM_PENDING_SESSION_KEY, [
-                'provider' => $info->getProvider(),
-                'provider_user_id' => $info->getProviderUserId(),
-                'email' => $info->getEmail(),
-                'first_name' => $info->getFirstName(),
-                'last_name' => $info->getLastName(),
-            ]);
-
-            return new RedirectResponse($this->router->generate('three_brs_admin_oauth_confirm_link'));
-        }
-
-        if (!$this->handler->canAutoRegister($info)) {
-            $this->auditLog('register_refused', $info, $request);
-            $this->addFlashMessage($request, 'error', 'three_brs.ui.social_login.auto_register_refused');
-
-            return new RedirectResponse($this->router->generate('sylius_admin_login'));
-        }
-
-        $newUser = $this->handler->registerAndLink($info);
-        $this->authenticate($request, $newUser);
-        $this->auditLog('registered_and_logged_in', $info, $request, ['admin_id' => $newUser->getId()]);
-
-        return new RedirectResponse($this->resolveRedirectUrl($request, static::FIREWALL_NAME, $this->router->generate('sylius_admin_dashboard')));
+        return 'admin';
     }
 
-    protected function authenticate(Request $request, AdminUserInterface $user): void
+    protected function getStateSessionKey(): string
     {
-        // Session fixation defence: rotate the session ID before binding the
-        // newly authenticated token to it, so the pre-authentication session ID
-        // (which an attacker could have planted via XSS / set-cookie injection)
-        // cannot be reused to ride the resulting authenticated session.
-        if ($request->hasSession()) {
-            $request->getSession()->migrate(true);
-        }
-
-        $token = new PostAuthenticationToken($user, static::FIREWALL_NAME, $user->getRoles());
-        $this->tokenStorage->setToken($token);
-
-        if ($request->hasSession()) {
-            $request->getSession()->set('_security_' . static::FIREWALL_NAME, serialize($token));
-        }
-
-        // Symfony's LoginSuccessEvent is dispatched by the firewall authenticator;
-        // OAuth bypasses that machinery and writes the token directly, so the
-        // standard session-tracking listener never fires. Invoke the handler
-        // directly so OAuth sign-ins land in the Active sessions list and trigger
-        // the new-device email like a regular password login.
-        $this->sessionLoginHandler->handle($user, $request);
+        return OAuthInitiateController::STATE_SESSION_KEY;
     }
 
-    /** @param array<string, mixed> $extra */
-    protected function auditLog(string $event, OAuthUserInfoInterface $info, Request $request, array $extra = []): void
+    protected function getIntentSessionKey(): string
     {
-        $this->logger->info(sprintf('three_brs.social_login.admin.%s', $event), array_merge([
-            'provider' => $info->getProvider(),
-            'provider_user_id' => $info->getProviderUserId(),
-            'email' => $info->getEmail(),
-            'ip' => $request->getClientIp(),
-        ], $extra));
+        return OAuthInitiateController::INTENT_SESSION_KEY;
+    }
+
+    protected function getConfirmPendingSessionKey(): string
+    {
+        return self::CONFIRM_PENDING_SESSION_KEY;
+    }
+
+    protected function getLoginRoute(): string
+    {
+        return 'sylius_admin_login';
+    }
+
+    protected function getDashboardUrl(): string
+    {
+        return $this->router->generate('sylius_admin_dashboard');
+    }
+
+    protected function getSocialAccountsRoute(): string
+    {
+        return 'three_brs_admin_social_accounts';
+    }
+
+    protected function getConfirmLinkRoute(): string
+    {
+        return 'three_brs_admin_oauth_confirm_link';
+    }
+
+    protected function getAuditChannel(): string
+    {
+        return 'three_brs.social_login.admin';
+    }
+
+    protected function getAuditUserIdKey(): string
+    {
+        return 'admin_id';
+    }
+
+    protected function isAcceptableCurrentUser(?UserInterface $user): bool
+    {
+        return $user instanceof AdminUserInterface;
+    }
+
+    protected function findExistingLinkUser(OAuthUserInfoInterface $info): ?UserInterface
+    {
+        return $this->handler->findExistingLinkUser($info);
+    }
+
+    protected function findUserByEmail(string $email): ?UserInterface
+    {
+        return $this->handler->findUserByEmail($email);
+    }
+
+    protected function canAutoRegister(OAuthUserInfoInterface $info): bool
+    {
+        return $this->handler->canAutoRegister($info);
+    }
+
+    protected function registerAndLink(OAuthUserInfoInterface $info): UserInterface
+    {
+        return $this->handler->registerAndLink($info);
+    }
+
+    protected function linkExistingUser(UserInterface $user, OAuthUserInfoInterface $info): void
+    {
+        \assert($user instanceof AdminUserInterface);
+
+        $this->handler->linkExistingUser($user, $info);
+    }
+
+    protected function touchLastUsed(UserInterface $user, OAuthUserInfoInterface $info): void
+    {
+        \assert($user instanceof AdminUserInterface);
+
+        $this->handler->touchLastUsed($user, $info);
+    }
+
+    protected function handlePostLogin(UserInterface $user, Request $request): void
+    {
+        if ($user instanceof AdminUserInterface) {
+            $this->sessionLoginHandler->handle($user, $request);
+        }
     }
 }

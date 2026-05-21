@@ -4,29 +4,27 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractLockedUsersListController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepositoryInterface;
 use Twig\Environment;
 
-class LockedCustomersController implements LockedCustomersControllerInterface
+class LockedCustomersController extends AbstractLockedUsersListController implements LockedCustomersControllerInterface
 {
     public function __construct(
         protected LockedShopUserRepositoryInterface $repository,
-        protected Environment $twig,
-        protected bool $enabled,
+        Environment $twig,
+        bool $enabled,
     ) {
+        parent::__construct($twig, $enabled);
     }
 
-    public function __invoke(): Response
+    protected function findAllLockedUsers(): iterable
     {
-        if (!$this->enabled) {
-            throw new NotFoundHttpException();
-        }
+        return $this->repository->findAllLocked();
+    }
 
-        return new Response($this->twig->render(
-            '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Lockout/customers.html.twig',
-            ['users' => $this->repository->findAllLocked()],
-        ));
+    protected function getTemplate(): string
+    {
+        return '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Lockout/customers.html.twig';
     }
 }

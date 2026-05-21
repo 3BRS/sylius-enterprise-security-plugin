@@ -6,15 +6,14 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
-use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractTwoFactorSetupController;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\QrCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TotpSecretGeneratorInterface;
@@ -23,96 +22,120 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\TwoFactorVerifyType;
 use Twig\Environment;
 
-class TwoFactorSetupController implements TwoFactorSetupControllerInterface
+class TwoFactorSetupController extends AbstractTwoFactorSetupController implements TwoFactorSetupControllerInterface
 {
     public const SESSION_PENDING_SECRET = 'three_brs_admin_two_factor_pending_secret';
 
     public const SESSION_PLAIN_RECOVERY_CODES = 'three_brs_admin_two_factor_plain_recovery_codes';
 
     public function __construct(
-        protected TokenStorageInterface $tokenStorage,
-        protected TotpSecretGeneratorInterface $totpGenerator,
-        protected QrCodeGeneratorInterface $qrGenerator,
-        protected RecoveryCodeGeneratorInterface $recoveryGenerator,
         protected EntityManagerInterface $entityManager,
         protected FormFactoryInterface $formFactory,
-        protected RouterInterface $router,
-        protected Environment $twig,
-        protected TranslatorInterface $translator,
-        protected CsrfTokenManagerInterface $csrfTokenManager,
-        protected string $issuer,
-        protected bool $recoveryCodesEnabled,
-        protected int $recoveryCodesCount,
+        TokenStorageInterface $tokenStorage,
+        TotpSecretGeneratorInterface $totpGenerator,
+        QrCodeGeneratorInterface $qrGenerator,
+        RecoveryCodeGeneratorInterface $recoveryGenerator,
+        RouterInterface $router,
+        Environment $twig,
+        TranslatorInterface $translator,
+        CsrfTokenManagerInterface $csrfTokenManager,
+        string $issuer,
+        bool $recoveryCodesEnabled,
+        int $recoveryCodesCount,
     ) {
+        parent::__construct(
+            $tokenStorage,
+            $totpGenerator,
+            $qrGenerator,
+            $recoveryGenerator,
+            $router,
+            $twig,
+            $translator,
+            $csrfTokenManager,
+            $issuer,
+            $recoveryCodesEnabled,
+            $recoveryCodesCount,
+        );
     }
 
-    public function __invoke(Request $request): Response
+    protected function isAcceptableUser(UserInterface $user): bool
     {
-        $user = $this->tokenStorage->getToken()?->getUser();
-        if (!$user instanceof AdminUserInterface || !$user instanceof TwoFactorAuthAdminUserInterface) {
-            return new RedirectResponse($this->router->generate('sylius_admin_login'));
+        return $user instanceof AdminUserInterface && $user instanceof TwoFactorAuthAdminUserInterface;
+    }
+
+    protected function isTwoFactorAlreadyEnabled(UserInterface $user): bool
+    {
+        \assert($user instanceof TwoFactorAuthAdminUserInterface);
+
+        return $user->isTwoFactorEnabled();
+    }
+
+    protected function getUsernameForProvisioning(UserInterface $user): string
+    {
+        \assert($user instanceof AdminUserInterface);
+
+        return (string) $user->getEmail();
+    }
+
+    protected function createVerifyForm(): FormInterface
+    {
+        return $this->formFactory->create(TwoFactorVerifyType::class);
+    }
+
+    protected function enableTwoFactorAndPersistRecoveryCodes(UserInterface $user, string $secret, array $plainCodes): void
+    {
+        \assert($user instanceof AdminUserInterface && $user instanceof TwoFactorAuthAdminUserInterface);
+
+        $user->setTotpSecret($secret);
+        $user->setTwoFactorEnabled(true);
+
+        foreach ($plainCodes as $plain) {
+            $record = new AdminUserRecoveryCode();
+            $record->setAdminUser($user);
+            $record->setCodeHash($this->recoveryGenerator->hash($plain));
+            $this->entityManager->persist($record);
         }
 
-        if ($user->isTwoFactorEnabled()) {
-            return new Response($this->twig->render(
-                '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/TwoFactor/manage.html.twig',
-                [
-                    'disable_csrf_token' => $this->csrfTokenManager->getToken(TwoFactorDisableController::CSRF_TOKEN_ID)->getValue(),
-                    'regenerate_csrf_token' => $this->csrfTokenManager->getToken(TwoFactorRegenerateRecoveryCodesController::CSRF_TOKEN_ID)->getValue(),
-                    'recovery_codes_enabled' => $this->recoveryCodesEnabled,
-                ],
-            ));
-        }
+        $this->entityManager->flush();
+    }
 
-        $session = $request->getSession();
-        $secret = $session->get(self::SESSION_PENDING_SECRET);
-        if (!is_string($secret) || $secret === '') {
-            $secret = $this->totpGenerator->generateSecret();
-            $session->set(self::SESSION_PENDING_SECRET, $secret);
-        }
+    protected function getLoginUrl(): string
+    {
+        return $this->router->generate('sylius_admin_login');
+    }
 
-        $form = $this->formFactory->create(TwoFactorVerifyType::class);
-        $form->handleRequest($request);
+    protected function getSetupTemplate(): string
+    {
+        return '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/TwoFactor/setup.html.twig';
+    }
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $code = str_replace('-', '', (string) $form->get('code')->getData());
-            if ($this->totpGenerator->verifyCode($secret, $code)) {
-                $user->setTotpSecret($secret);
-                $user->setTwoFactorEnabled(true);
+    protected function getManageTemplate(): string
+    {
+        return '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/TwoFactor/manage.html.twig';
+    }
 
-                $plainCodes = [];
-                if ($this->recoveryCodesEnabled) {
-                    $plainCodes = $this->recoveryGenerator->generate($this->recoveryCodesCount);
-                    foreach ($plainCodes as $plain) {
-                        $record = new AdminUserRecoveryCode();
-                        $record->setAdminUser($user);
-                        $record->setCodeHash($this->recoveryGenerator->hash($plain));
-                        $this->entityManager->persist($record);
-                    }
-                }
+    protected function getRecoveryCodesDisplayUrl(): string
+    {
+        return $this->router->generate('three_brs_admin_two_factor_recovery_codes');
+    }
 
-                $this->entityManager->flush();
-                $session->remove(self::SESSION_PENDING_SECRET);
-                $session->set(self::SESSION_PLAIN_RECOVERY_CODES, $plainCodes);
+    protected function getPendingSecretSessionKey(): string
+    {
+        return self::SESSION_PENDING_SECRET;
+    }
 
-                return new RedirectResponse($this->router->generate('three_brs_admin_two_factor_recovery_codes'));
-            }
+    protected function getPlainRecoveryCodesSessionKey(): string
+    {
+        return self::SESSION_PLAIN_RECOVERY_CODES;
+    }
 
-            $form->get('code')->addError(new FormError(
-                $this->translator->trans('three_brs.two_factor.invalid_code', [], 'validators'),
-            ));
-        }
+    protected function getDisableCsrfTokenId(): string
+    {
+        return TwoFactorDisableController::CSRF_TOKEN_ID;
+    }
 
-        $username = (string) $user->getEmail();
-        $uri = $this->totpGenerator->buildProvisioningUri($secret, $username, $this->issuer);
-
-        return new Response($this->twig->render(
-            '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/TwoFactor/setup.html.twig',
-            [
-                'form' => $form->createView(),
-                'qr_data_uri' => $this->qrGenerator->generateDataUri($uri),
-                'secret' => $secret,
-            ],
-        ));
+    protected function getRegenerateCsrfTokenId(): string
+    {
+        return TwoFactorRegenerateRecoveryCodesController::CSRF_TOKEN_ID;
     }
 }

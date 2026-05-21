@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\FlashHelperTrait;
 
 /**
  * Shared shell for the five admin customer-security POST handlers: CSRF check,

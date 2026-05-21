@@ -5,51 +5,39 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
 
 use Sylius\Component\Core\Model\ShopUserInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractSessionsListController;
 use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 use Twig\Environment;
 
-class SessionsController implements SessionsControllerInterface
+class SessionsController extends AbstractSessionsListController implements SessionsControllerInterface
 {
     public function __construct(
         protected CustomerSessionRepositoryInterface $repository,
-        protected TokenStorageInterface $tokenStorage,
-        protected UserAgentParserInterface $userAgentParser,
-        protected Environment $twig,
-        protected bool $enabled,
+        TokenStorageInterface $tokenStorage,
+        UserAgentParserInterface $userAgentParser,
+        Environment $twig,
+        bool $enabled,
     ) {
+        parent::__construct($tokenStorage, $userAgentParser, $twig, $enabled);
     }
 
-    public function __invoke(Request $request): Response
+    protected function isAcceptableUser(UserInterface $user): bool
     {
-        if (!$this->enabled) {
-            throw new NotFoundHttpException();
-        }
+        return $user instanceof ShopUserInterface;
+    }
 
-        $user = $this->tokenStorage->getToken()?->getUser();
-        if (!$user instanceof ShopUserInterface) {
-            throw new AccessDeniedHttpException();
-        }
+    protected function findActiveSessionsForUser(UserInterface $user): iterable
+    {
+        \assert($user instanceof ShopUserInterface);
 
-        $sessions = $this->repository->findActiveForShopUser($user);
-        $currentSessionId = $request->hasSession() ? $request->getSession()->getId() : '';
+        return $this->repository->findActiveForShopUser($user);
+    }
 
-        $rows = [];
-        foreach ($sessions as $session) {
-            $rows[] = [
-                'session' => $session,
-                'userAgent' => $this->userAgentParser->parse($session->getUserAgent()),
-                'isCurrent' => $session->getSessionId() === $currentSessionId,
-            ];
-        }
-
-        return new Response($this->twig->render('@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/Sessions/index.html.twig', [
-            'rows' => $rows,
-        ]));
+    protected function getTemplate(): string
+    {
+        return '@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/Sessions/index.html.twig';
     }
 }

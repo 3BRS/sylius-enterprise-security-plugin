@@ -18,29 +18,9 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
 {
     public function prepend(ContainerBuilder $container): void
     {
-        // Dedicated cache pool for the dynamic rate limiter. Symfony's default
-        // `cache.rate_limiter` pool is only auto-created when `framework.rate_limiter`
-        // is configured — we don't use Symfony's compile-time limiter registration
-        // any more (DynamicRateLimiterFactory builds limiters at request time from
-        // DB settings), so we ship our own pool and pin the storage to it.
-        //
-        // We back it with `cache.app` (not `cache.adapter.filesystem`) because
-        // multi-pod deployments (Kubernetes, autoscaled containers) do not share
-        // a filesystem — each pod would have its own counters and an attacker
-        // could just retry on a different replica to bypass the limit. In a
-        // single-instance deployment cache.app defaults to filesystem and the
-        // behaviour is identical; in a clustered setup the app already needs
-        // cache.app pointing at a shared backend (Redis / Memcached) for
-        // Symfony's session, doctrine cache, etc. — we piggyback on that.
-        $container->prependExtensionConfig('framework', [
-            'cache' => [
-                'pools' => [
-                    'three_brs.rate_limiter.cache_pool' => [
-                        'adapter' => 'cache.app',
-                    ],
-                ],
-            ],
-        ]);
+        // The rate-limiter cache pool (three_brs.rate_limiter.cache_pool) is
+        // prepended by the bundle's ThreeBRSEnterpriseSecurityExtension — we do
+        // not duplicate it here.
 
         $container->prependExtensionConfig('sylius_mailer', [
             'emails' => [

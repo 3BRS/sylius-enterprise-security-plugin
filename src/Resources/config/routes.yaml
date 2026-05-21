@@ -194,7 +194,7 @@ three_brs_shop_passkey_register_verify:
 
 three_brs_shop_passkey_login_options:
     path: /passkey/login/options
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyLoginOptionsController
+    controller: three_brs.controller.shop.passkey_login_options
     methods: [POST]
 
 three_brs_shop_passkey_login_verify:
@@ -226,7 +226,7 @@ three_brs_admin_passkey_register_verify:
 
 three_brs_admin_passkey_login_options:
     path: /admin/passkey/login/options
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyLoginOptionsController
+    controller: three_brs.controller.admin.passkey_login_options
     methods: [POST]
 
 three_brs_admin_passkey_login_verify:

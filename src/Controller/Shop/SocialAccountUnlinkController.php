@@ -8,67 +8,71 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractSocialAccountUnlinkController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuardInterface;
 
-class SocialAccountUnlinkController implements SocialAccountUnlinkControllerInterface
+class SocialAccountUnlinkController extends AbstractSocialAccountUnlinkController implements SocialAccountUnlinkControllerInterface
 {
-    use FlashHelperTrait;
-
     public function __construct(
-        protected Security $security,
         protected CustomerSocialAccountLinkRepositoryInterface $linkRepository,
         protected LastAuthMethodGuardInterface $guard,
         protected EntityManagerInterface $entityManager,
-        protected CsrfTokenManagerInterface $csrfTokenManager,
-        protected RouterInterface $router,
-        protected LoggerInterface $logger,
+        Security $security,
+        CsrfTokenManagerInterface $csrfTokenManager,
+        RouterInterface $router,
+        LoggerInterface $logger,
     ) {
+        parent::__construct($security, $csrfTokenManager, $router, $logger);
     }
 
-    public function __invoke(Request $request, string $provider): Response
+    protected function getCsrfTokenId(string $provider): string
     {
-        $user = $this->security->getUser();
-        if (!$user instanceof ShopUserInterface) {
-            throw new AccessDeniedException();
-        }
+        return 'three_brs_shop_social_unlink_' . $provider;
+    }
 
-        $token = (string) $request->request->get('_csrf_token');
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('three_brs_shop_social_unlink_' . $provider, $token))) {
-            throw new AccessDeniedException('Invalid CSRF token.');
-        }
+    protected function isAcceptableUser(UserInterface $user): bool
+    {
+        return $user instanceof ShopUserInterface;
+    }
 
-        if (!$this->guard->canUnlinkSocialForShopUser($user, $provider)) {
-            $this->logger->info('three_brs.social_login.shop.unlink_refused_last_method', [
-                'provider' => $provider,
-                'user_id' => $user->getId(),
-                'ip' => $request->getClientIp(),
-            ]);
-            $this->addFlashMessage($request, 'error', 'three_brs.ui.social_login.cannot_unlink_last_method');
+    protected function canUnlinkProvider(UserInterface $user, string $provider): bool
+    {
+        \assert($user instanceof ShopUserInterface);
 
-            return new RedirectResponse($this->router->generate('three_brs_shop_social_accounts'));
-        }
+        return $this->guard->canUnlinkSocialForShopUser($user, $provider);
+    }
+
+    protected function deleteLinkForProvider(UserInterface $user, string $provider): bool
+    {
+        \assert($user instanceof ShopUserInterface);
 
         $link = $this->linkRepository->findOneByShopUserAndProvider($user, $provider);
-        if ($link !== null) {
-            $this->entityManager->remove($link);
-            $this->entityManager->flush();
-            $this->logger->info('three_brs.social_login.shop.unlinked', [
-                'provider' => $provider,
-                'user_id' => $user->getId(),
-                'ip' => $request->getClientIp(),
-            ]);
-            $this->addFlashMessage($request, 'success', 'three_brs.ui.social_login.unlinked');
+        if ($link === null) {
+            return false;
         }
 
-        return new RedirectResponse($this->router->generate('three_brs_shop_social_accounts'));
+        $this->entityManager->remove($link);
+        $this->entityManager->flush();
+
+        return true;
+    }
+
+    protected function getSocialAccountsUrl(): string
+    {
+        return $this->router->generate('three_brs_shop_social_accounts');
+    }
+
+    protected function getAuditChannel(): string
+    {
+        return 'three_brs.social_login.shop';
+    }
+
+    protected function getAuditUserIdKey(): string
+    {
+        return 'user_id';
     }
 }

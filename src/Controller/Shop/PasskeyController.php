@@ -5,39 +5,37 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
 
 use Sylius\Component\Core\Model\ShopUserInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractPasskeyListController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepositoryInterface;
 use Twig\Environment;
 
-class PasskeyController implements PasskeyControllerInterface
+class PasskeyController extends AbstractPasskeyListController implements PasskeyControllerInterface
 {
     public function __construct(
         protected CustomerPasskeyCredentialRepositoryInterface $credentialRepository,
-        protected TokenStorageInterface $tokenStorage,
-        protected Environment $twig,
-        protected bool $enabled,
+        TokenStorageInterface $tokenStorage,
+        Environment $twig,
+        bool $enabled,
     ) {
+        parent::__construct($tokenStorage, $twig, $enabled);
     }
 
-    public function __invoke(Request $request): Response
+    protected function isAcceptableUser(UserInterface $user): bool
     {
-        if (!$this->enabled) {
-            throw new NotFoundHttpException();
-        }
+        return $user instanceof ShopUserInterface;
+    }
 
-        $user = $this->tokenStorage->getToken()?->getUser();
-        if (!$user instanceof ShopUserInterface) {
-            throw new AccessDeniedHttpException();
-        }
+    protected function findCredentialsForUser(UserInterface $user): iterable
+    {
+        \assert($user instanceof ShopUserInterface);
 
-        $credentials = $this->credentialRepository->findAllByShopUser($user);
+        return $this->credentialRepository->findAllByShopUser($user);
+    }
 
-        return new Response($this->twig->render('@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/Passkey/index.html.twig', [
-            'credentials' => $credentials,
-        ]));
+    protected function getTemplate(): string
+    {
+        return '@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/Passkey/index.html.twig';
     }
 }

@@ -5,50 +5,44 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
 
 use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Routing\RouterInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\FlashHelperTrait;
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractMagicLinkRequestController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\MagicLinkRequestType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandlerInterface;
 use Twig\Environment;
 
-class MagicLinkRequestController implements MagicLinkRequestControllerInterface
+class MagicLinkRequestController extends AbstractMagicLinkRequestController implements MagicLinkRequestControllerInterface
 {
-    use FlashHelperTrait;
-
     public function __construct(
         protected ShopMagicLinkRequestHandlerInterface $handler,
         protected FormFactoryInterface $formFactory,
-        protected RouterInterface $router,
-        protected Environment $twig,
-        protected bool $enabled,
+        RouterInterface $router,
+        Environment $twig,
+        bool $enabled,
     ) {
+        parent::__construct($router, $twig, $enabled);
     }
 
-    public function __invoke(Request $request): Response
+    protected function createForm(): FormInterface
     {
-        if (!$this->enabled) {
-            throw new NotFoundHttpException();
-        }
+        return $this->formFactory->create(MagicLinkRequestType::class);
+    }
 
-        $form = $this->formFactory->create(MagicLinkRequestType::class);
-        $form->handleRequest($request);
+    protected function dispatchFromForm(FormInterface $form): void
+    {
+        /** @var array{email: string} $data */
+        $data = $form->getData();
+        $this->handler->request($data['email']);
+    }
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            /** @var array{email: string} $data */
-            $data = $form->getData();
-            $this->handler->request($data['email']);
+    protected function getRedirectRoute(): string
+    {
+        return 'three_brs_shop_magic_link_request';
+    }
 
-            $this->addFlashMessage($request, 'success', 'three_brs.ui.magic_link.request_sent');
-
-            return new RedirectResponse($this->router->generate('three_brs_shop_magic_link_request'));
-        }
-
-        return new Response($this->twig->render('@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/MagicLink/request.html.twig', [
-            'form' => $form->createView(),
-        ]));
+    protected function getTemplate(): string
+    {
+        return '@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/MagicLink/request.html.twig';
     }
 }
