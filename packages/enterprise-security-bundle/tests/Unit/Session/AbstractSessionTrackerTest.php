@@ -256,8 +256,8 @@ class AbstractSessionTrackerTest extends TestCase
 
                     public ?\DateTimeImmutable $revokedAt = null;
 
-                    public function __construct()
-                    {
+                    public function __construct(
+                    ) {
                         $this->createdAt = new \DateTimeImmutable();
                         $this->lastActivityAt = new \DateTimeImmutable();
                     }
