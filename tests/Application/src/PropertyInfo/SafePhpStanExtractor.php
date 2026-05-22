@@ -4,18 +4,44 @@ declare(strict_types=1);
 
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo;
 
+use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyDescriptionExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyDocBlockExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyInitializableExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyListExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyReadInfoExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyWriteInfoExtractorInterface;
+use Symfony\Component\PropertyInfo\Type as LegacyType;
 use Symfony\Component\TypeInfo\Exception\InvalidArgumentException;
 use Symfony\Component\TypeInfo\Type;
 
 /**
- * Decorator around Symfony's PhpStanExtractor that swallows TypeInfo exceptions
- * caused by upstream PHPDoc tags Symfony cannot parse (e.g. `@template T of Loggable|object`
- * in Gedmo's LoggableListener — Symfony's TypeInfo rejects unions of `object` and a class).
+ * Decorator around any Symfony property-info extractor that swallows TypeInfo
+ * exceptions caused by upstream PHPDoc tags Symfony cannot parse (e.g.
+ * `@template T of Loggable|object` in Gedmo's LoggableListener, or
+ * `@template T of object` paired with `@var list<T>` — TypeInfo rejects
+ * unions like `object|ClassName` when api-platform's `LegacyTypeConverter`
+ * widens generic bounds during property metadata scanning).
  *
- * Without this wrapper, api_platform metadata factory crashes when scanning Sylius entities.
+ * Implements every property-info extractor interface and forwards to the
+ * inner extractor — both PhpDocExtractor and ReflectionExtractor in the chain
+ * can surface the poison type, and any uncaught throw aborts api-platform's
+ * route loader. Forwarded methods are no-ops when the inner does not
+ * implement the corresponding interface.
+ *
+ * Despite the name, this decorator is reused for all property-info extractors;
+ * the name is kept for git history.
  */
-class SafePhpStanExtractor implements PropertyTypeExtractorInterface
+class SafePhpStanExtractor implements
+    PropertyTypeExtractorInterface,
+    PropertyDescriptionExtractorInterface,
+    PropertyAccessExtractorInterface,
+    PropertyInitializableExtractorInterface,
+    PropertyListExtractorInterface,
+    PropertyDocBlockExtractorInterface,
+    PropertyReadInfoExtractorInterface,
+    PropertyWriteInfoExtractorInterface
 {
     public function __construct(
         protected PropertyTypeExtractorInterface $inner,
@@ -34,9 +60,108 @@ class SafePhpStanExtractor implements PropertyTypeExtractorInterface
     public function getTypes(string $class, string $property, array $context = []): ?array
     {
         try {
-            return $this->inner->getTypes($class, $property, $context);
+            $types = $this->inner->getTypes($class, $property, $context);
         } catch (InvalidArgumentException) {
             return null;
         }
+
+        return $types === null ? null : $this->stripGenericObjectWhenMixedWithClass($types);
+    }
+
+    public function getShortDescription(string $class, string $property, array $context = []): ?string
+    {
+        return $this->inner instanceof PropertyDescriptionExtractorInterface
+            ? $this->inner->getShortDescription($class, $property, $context)
+            : null;
+    }
+
+    public function getLongDescription(string $class, string $property, array $context = []): ?string
+    {
+        return $this->inner instanceof PropertyDescriptionExtractorInterface
+            ? $this->inner->getLongDescription($class, $property, $context)
+            : null;
+    }
+
+    public function isReadable(string $class, string $property, array $context = []): ?bool
+    {
+        return $this->inner instanceof PropertyAccessExtractorInterface
+            ? $this->inner->isReadable($class, $property, $context)
+            : null;
+    }
+
+    public function isWritable(string $class, string $property, array $context = []): ?bool
+    {
+        return $this->inner instanceof PropertyAccessExtractorInterface
+            ? $this->inner->isWritable($class, $property, $context)
+            : null;
+    }
+
+    public function isInitializable(string $class, string $property, array $context = []): ?bool
+    {
+        return $this->inner instanceof PropertyInitializableExtractorInterface
+            ? $this->inner->isInitializable($class, $property, $context)
+            : null;
+    }
+
+    public function getProperties(string $class, array $context = []): ?array
+    {
+        return $this->inner instanceof PropertyListExtractorInterface
+            ? $this->inner->getProperties($class, $context)
+            : null;
+    }
+
+    public function getDocBlock(string $class, string $property): ?\phpDocumentor\Reflection\DocBlock
+    {
+        return $this->inner instanceof PropertyDocBlockExtractorInterface
+            ? $this->inner->getDocBlock($class, $property)
+            : null;
+    }
+
+    public function getReadInfo(string $class, string $property, array $context = []): ?\Symfony\Component\PropertyInfo\PropertyReadInfo
+    {
+        return $this->inner instanceof PropertyReadInfoExtractorInterface
+            ? $this->inner->getReadInfo($class, $property, $context)
+            : null;
+    }
+
+    public function getWriteInfo(string $class, string $property, array $context = []): ?\Symfony\Component\PropertyInfo\PropertyWriteInfo
+    {
+        return $this->inner instanceof PropertyWriteInfoExtractorInterface
+            ? $this->inner->getWriteInfo($class, $property, $context)
+            : null;
+    }
+
+    /**
+     * Drop the bare `object` legacy type when a specific class type is also
+     * present — otherwise api-platform tries to build `union(object, Foo)`
+     * which the TypeInfo component rejects.
+     *
+     * @param list<LegacyType> $types
+     *
+     * @return list<LegacyType>
+     */
+    protected function stripGenericObjectWhenMixedWithClass(array $types): array
+    {
+        $hasGenericObject = false;
+        $hasSpecificObject = false;
+        foreach ($types as $type) {
+            if ($type->getBuiltinType() !== LegacyType::BUILTIN_TYPE_OBJECT) {
+                continue;
+            }
+            if ($type->getClassName() === null) {
+                $hasGenericObject = true;
+            } else {
+                $hasSpecificObject = true;
+            }
+        }
+
+        if (!$hasGenericObject || !$hasSpecificObject) {
+            return $types;
+        }
+
+        return array_values(array_filter(
+            $types,
+            static fn (LegacyType $type): bool => $type->getBuiltinType() !== LegacyType::BUILTIN_TYPE_OBJECT || $type->getClassName() !== null,
+        ));
     }
 }
