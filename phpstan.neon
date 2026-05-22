@@ -35,6 +35,7 @@ parameters:
                 - src/Fixture/SecuritySettingsFixture.php
                 - src/Fixture/AccountDeletionFixture.php
                 - src/Fixture/IpWhitelistFixture.php
+                - src/Fixture/IpBlacklistFixture.php
                 - src/Fixture/CustomerSecurityStatesFixture.php
         -
             # Same root cause: ArrayNodeDefinition generic TParent not resolved on lowest phpstan-symfony.
@@ -52,6 +53,7 @@ parameters:
                 - src/Fixture/SecuritySettingsFixture.php
                 - src/Fixture/AccountDeletionFixture.php
                 - src/Fixture/IpWhitelistFixture.php
+                - src/Fixture/IpBlacklistFixture.php
                 - src/Fixture/CustomerSecurityStatesFixture.php
 
     doctrine:

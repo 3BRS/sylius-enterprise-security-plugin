@@ -294,6 +294,7 @@ services:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSecuritySettingsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addAccountDeletionsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addIpWhitelistItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addIpBlacklistItem' }
 
     three_brs.controller.admin.social_accounts:
         class: ThreeBRS\EnterpriseSecurityBundle\Controller\SocialAccountsOverviewController
@@ -1390,6 +1391,71 @@ services:
         arguments:
             $adminUserRepository: '@sylius.repository.admin_user'
             $whitelistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpBlacklistRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpBlacklistRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpBlacklistRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpBlacklist\IpBlacklistChecker:
+        arguments:
+            $settingsProvider: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpBlacklistRepository'
+            $cidrMatcher: '@ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcher'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpBlacklist\IpBlacklistCheckerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpBlacklist\IpBlacklistChecker
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminIpBlacklistListener:
+        arguments:
+            $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpBlacklist\IpBlacklistChecker'
+            $tokenStorage: '@security.token_storage'
+        tags:
+            # Priority 5: BEFORE the whitelist listener (priority 4). A blacklist
+            # hit short-circuits via setResponse() so the whitelist check never
+            # runs. Both run after Symfony security firewall (priority 8) so the
+            # token storage already has the authenticated admin available.
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 5 }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\IpBlacklistSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\AdminUserIpBlacklistType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpBlacklistAdminsController:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $blacklistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpBlacklistRepository'
+            $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpBlacklist\IpBlacklistChecker'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpBlacklistAdminEditController:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $blacklistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpBlacklistRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $formFactory: '@form.factory'
+            $router: '@router'
+            $twig: '@twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\IpBlacklistFixture:
+        arguments:
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $blacklistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpBlacklistRepository'
             $entityManager: '@doctrine.orm.entity_manager'
         tags:
             - { name: 'sylius_fixtures.fixture' }

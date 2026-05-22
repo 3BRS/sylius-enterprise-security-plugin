@@ -109,6 +109,32 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
         $this->placeItemAfter($configuration, 'three_brs_ip_whitelist', $anchor);
     }
 
+    public function addIpBlacklistItem(MenuBuilderEvent $event): void
+    {
+        if (!$this->features->isEnabled('ip_blacklist', SettingsScope::ADMIN)) {
+            return;
+        }
+
+        $configuration = $event->getMenu()->getChild('configuration');
+        if ($configuration === null) {
+            return;
+        }
+
+        $configuration
+            ->addChild('three_brs_ip_blacklist', ['route' => 'three_brs_admin_ip_blacklist_admins'])
+            ->setLabel('three_brs.ui.ip_blacklist.menu_item')
+            ->setLabelAttribute('icon', 'tabler:shield-x')
+        ;
+
+        // Place right under ip_whitelist when both are present; fall back to locked_admins / admin_users.
+        $anchor = match (true) {
+            $configuration->getChild('three_brs_ip_whitelist') !== null => 'three_brs_ip_whitelist',
+            $configuration->getChild('locked_admins') !== null => 'locked_admins',
+            default => 'admin_users',
+        };
+        $this->placeItemAfter($configuration, 'three_brs_ip_blacklist', $anchor);
+    }
+
     protected function placeItemAfter(ItemInterface $parent, string $newItem, string $afterItem): void
     {
         $names = array_keys($parent->getChildren());

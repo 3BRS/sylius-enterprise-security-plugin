@@ -25,6 +25,9 @@ three_brs:
     ip_whitelist:
         admin:
             saved: 'IP whitelist saved for this administrator.'
+    ip_blacklist:
+        admin:
+            saved: 'IP blacklist saved for this administrator.'
     customer_security:
         password_reset_forced: 'The customer will be required to change their password on next sign-in.'
         blocked: 'Customer account has been blocked. Active sessions were signed out.'

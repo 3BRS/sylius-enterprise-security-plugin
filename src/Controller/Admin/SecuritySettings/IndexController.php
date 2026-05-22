@@ -122,6 +122,12 @@ class IndexController implements IndexControllerInterface
                 'enabled' => $this->settings->getBool('ip_whitelist.enabled', $scope),
                 'global_cidrs' => is_array($globalCidrsValue) ? $globalCidrsValue : [],
             ];
+
+            $blacklistCidrsValue = $this->settings->get('ip_blacklist.global_cidrs', $scope);
+            $data['ip_blacklist'] = [
+                'enabled' => $this->settings->getBool('ip_blacklist.enabled', $scope),
+                'global_cidrs' => is_array($blacklistCidrsValue) ? $blacklistCidrsValue : [],
+            ];
         }
 
         if ($scope === SettingsScope::CUSTOMER) {

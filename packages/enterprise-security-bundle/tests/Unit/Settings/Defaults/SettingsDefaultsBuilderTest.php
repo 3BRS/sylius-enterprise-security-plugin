@@ -40,6 +40,8 @@ class SettingsDefaultsBuilderTest extends TestCase
         self::assertNull($defaults[SettingsScope::GLOBAL->value]['passkey.rp_id']);
         self::assertFalse($defaults[SettingsScope::ADMIN->value]['ip_whitelist.enabled']);
         self::assertSame([], $defaults[SettingsScope::ADMIN->value]['ip_whitelist.global_cidrs']);
+        self::assertFalse($defaults[SettingsScope::ADMIN->value]['ip_blacklist.enabled']);
+        self::assertSame([], $defaults[SettingsScope::ADMIN->value]['ip_blacklist.global_cidrs']);
     }
 
     public function testBuildFlattensRateLimitActions(): void
@@ -222,6 +224,9 @@ class SettingsDefaultsBuilderTest extends TestCase
                 ],
             ],
             'ip_whitelist' => [
+                'enabled' => false,
+            ],
+            'ip_blacklist' => [
                 'enabled' => false,
             ],
         ];
