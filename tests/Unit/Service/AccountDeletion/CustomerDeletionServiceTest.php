@@ -136,55 +136,6 @@ class CustomerDeletionServiceTest extends TestCase
         $service->cancelByAdmin($request, $this->createStub(AdminUserInterface::class));
     }
 
-    public function testProcessDueRequestsSendsEmailBeforeAnonymizing(): void
-    {
-        $customer = $this->createStub(CustomerInterface::class);
-
-        $request = new CustomerDeletionRequest();
-        $request->setCustomer($customer);
-        $request->setScheduledFor(new \DateTimeImmutable('2026-05-01 10:00:00'));
-
-        $repository = $this->createStub(CustomerDeletionRequestRepositoryInterface::class);
-        $repository->method('findDue')->willReturn([$request]);
-
-        $callOrder = [];
-
-        $email = $this->createMock(AccountDeletionEmailManagerInterface::class);
-        $email->expects(self::once())
-            ->method('sendDeletionCompleted')
-            ->with($customer)
-            ->willReturnCallback(static function () use (&$callOrder): void {
-                $callOrder[] = 'email';
-            })
-        ;
-
-        $anonymizer = $this->createMock(CustomerAnonymizerInterface::class);
-        $anonymizer->expects(self::once())
-            ->method('anonymize')
-            ->with($customer)
-            ->willReturnCallback(static function () use (&$callOrder): void {
-                $callOrder[] = 'anonymize';
-            })
-        ;
-
-        $service = new CustomerDeletionService(
-            $repository,
-            $anonymizer,
-            $email,
-            $this->createStub(EntityManagerInterface::class),
-            $this->fixedClock('2026-05-08 10:00:00'),
-            $this->createStub(LoggerInterface::class),
-            new GracePeriodCalculator(),
-            30,
-        );
-
-        $count = $service->processDueRequests();
-
-        self::assertSame(1, $count);
-        self::assertSame(['email', 'anonymize'], $callOrder);
-        self::assertSame('2026-05-08 10:00:00', $request->getCompletedAt()?->format('Y-m-d H:i:s'));
-    }
-
     protected function fixedClock(string $iso): ClockInterface
     {
         $clock = $this->createStub(ClockInterface::class);

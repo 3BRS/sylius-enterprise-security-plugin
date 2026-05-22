@@ -1253,6 +1253,18 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManagerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManager
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessor:
+        arguments:
+            $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
+            $clock: '@clock'
+            $anonymizer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerAnonymizer'
+            $emailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManager'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $logger: '@logger'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessorInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessor
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService:
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
@@ -1306,7 +1318,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Command\ProcessDueAccountDeletionsCommand:
         arguments:
-            $deletionService: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService'
+            $dueProcessor: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessor'
         tags:
             - { name: 'console.command' }
 

@@ -8,17 +8,17 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Command\ProcessDueAccountDeletionsCommand;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessorInterface;
 
 #[CoversClass(ProcessDueAccountDeletionsCommand::class)]
 class ProcessDueAccountDeletionsCommandTest extends TestCase
 {
     public function testReportsProcessedCount(): void
     {
-        $service = $this->createStub(CustomerDeletionServiceInterface::class);
-        $service->method('processDueRequests')->willReturn(3);
+        $processor = $this->createStub(CustomerDueDeletionsProcessorInterface::class);
+        $processor->method('process')->willReturn(3);
 
-        $tester = new CommandTester(new ProcessDueAccountDeletionsCommand($service));
+        $tester = new CommandTester(new ProcessDueAccountDeletionsCommand($processor));
         $exitCode = $tester->execute([]);
 
         self::assertSame(0, $exitCode);

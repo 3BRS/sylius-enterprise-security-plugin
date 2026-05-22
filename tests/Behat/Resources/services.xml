@@ -313,7 +313,7 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessor"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
 		</service>

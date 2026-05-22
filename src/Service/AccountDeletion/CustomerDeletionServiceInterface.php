@@ -22,13 +22,4 @@ interface CustomerDeletionServiceInterface
      * sets cancelledAt + cancelledByAdmin on the request.
      */
     public function cancelByAdmin(CustomerDeletionRequestInterface $request, AdminUserInterface $admin): void;
-
-    /**
-     * Process every request whose scheduledFor is in the past:
-     * send completion email FIRST (still has live customer.email), then
-     * anonymize, then mark completedAt.
-     *
-     * @return int  number of requests processed
-     */
-    public function processDueRequests(): int;
 }

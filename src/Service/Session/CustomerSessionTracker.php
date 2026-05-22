@@ -8,108 +8,101 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\AbstractSessionTracker;
 use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\SessionRecordInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSessionInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 
-class CustomerSessionTracker implements CustomerSessionTrackerInterface
+class CustomerSessionTracker extends AbstractSessionTracker implements CustomerSessionTrackerInterface
 {
-    protected const ACTIVITY_TOUCH_THROTTLE_SECONDS = 60;
-
     public function __construct(
         protected CustomerSessionRepositoryInterface $repository,
         protected EntityManagerInterface $entityManager,
-        protected GeoIpLookupInterface $geoIpLookup,
-        protected ClockInterface $clock,
+        GeoIpLookupInterface $geoIpLookup,
+        ClockInterface $clock,
     ) {
+        parent::__construct($geoIpLookup, $clock);
     }
 
     public function track(
-        ShopUserInterface $user,
+        UserInterface $user,
         string $sessionId,
         ?string $userAgent,
         ?string $ipAddress,
     ): CustomerSessionInterface {
-        $existing = $this->repository->findOneBySessionId($sessionId);
-        if ($existing !== null) {
-            return $existing;
+        $result = parent::track($user, $sessionId, $userAgent, $ipAddress);
+        \assert($result instanceof CustomerSessionInterface);
+
+        return $result;
+    }
+
+    public function revokeAll(ShopUserInterface $user): void
+    {
+        // Customer-specific bulk revoke — used when an admin blocks a customer
+        // account or the customer triggers it from session management UI.
+        $now = $this->clock->now();
+        foreach ($this->repository->findActiveForShopUser($user) as $session) {
+            $session->setRevokedAt($now);
+        }
+        $this->commit();
+    }
+
+    protected function findOneBySessionId(string $sessionId): ?SessionRecordInterface
+    {
+        return $this->repository->findOneBySessionId($sessionId);
+    }
+
+    protected function findActiveForUser(UserInterface $user): iterable
+    {
+        if (!$user instanceof ShopUserInterface) {
+            return [];
         }
 
-        $geo = $this->geoIpLookup->lookup($ipAddress);
+        return $this->repository->findActiveForShopUser($user);
+    }
+
+    protected function createNewRecord(
+        UserInterface $user,
+        string $sessionId,
+        ?string $userAgent,
+        ?string $ipAddress,
+        ?string $country,
+        ?string $city,
+    ): SessionRecordInterface {
+        \assert($user instanceof ShopUserInterface);
 
         $session = new CustomerSession();
         $session->setShopUser($user);
         $session->setSessionId($sessionId);
         $session->setUserAgent($userAgent);
         $session->setIpAddress($ipAddress);
-        $session->setCountry($geo?->countryCode);
-        $session->setCity($geo?->city);
-
-        try {
-            $this->entityManager->persist($session);
-            $this->entityManager->flush();
-        } catch (UniqueConstraintViolationException) {
-            // Concurrent login with the same PHP session ID raced ahead. Detach our
-            // unflushed entity and return the persisted one so the caller still gets
-            // a tracked session.
-            $this->entityManager->detach($session);
-            $existing = $this->repository->findOneBySessionId($sessionId);
-            if ($existing !== null) {
-                return $existing;
-            }
-
-            throw new \RuntimeException('Failed to persist session tracker row.');
-        }
+        $session->setCountry($country);
+        $session->setCity($city);
 
         return $session;
     }
 
-    public function touch(string $sessionId): void
+    protected function save(SessionRecordInterface $record): void
     {
-        $session = $this->repository->findOneBySessionId($sessionId);
-        if ($session === null || $session->isRevoked()) {
-            return;
-        }
-
-        $now = $this->clock->now();
-        $diff = $now->getTimestamp() - $session->getLastActivityAt()->getTimestamp();
-        if ($diff < self::ACTIVITY_TOUCH_THROTTLE_SECONDS) {
-            return;
-        }
-
-        $session->setLastActivityAt($now);
+        $this->entityManager->persist($record);
         $this->entityManager->flush();
     }
 
-    public function revoke(CustomerSessionInterface $session): void
+    protected function discardUnflushed(SessionRecordInterface $record): void
     {
-        if ($session->isRevoked()) {
-            return;
-        }
+        $this->entityManager->detach($record);
+    }
 
-        $session->setRevokedAt($this->clock->now());
+    protected function commit(): void
+    {
         $this->entityManager->flush();
     }
 
-    public function revokeOthers(string $currentSessionId, ShopUserInterface $user): void
+    protected function isConcurrentInsertConflict(\Throwable $exception): bool
     {
-        $now = $this->clock->now();
-        foreach ($this->repository->findActiveForShopUser($user) as $session) {
-            if ($session->getSessionId() === $currentSessionId) {
-                continue;
-            }
-            $session->setRevokedAt($now);
-        }
-        $this->entityManager->flush();
-    }
-
-    public function revokeAll(ShopUserInterface $user): void
-    {
-        $now = $this->clock->now();
-        foreach ($this->repository->findActiveForShopUser($user) as $session) {
-            $session->setRevokedAt($now);
-        }
-        $this->entityManager->flush();
+        return $exception instanceof UniqueConstraintViolationException;
     }
 }

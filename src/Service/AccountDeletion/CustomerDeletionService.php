@@ -76,37 +76,6 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         $this->entityManager->flush();
     }
 
-    public function processDueRequests(): int
-    {
-        $now = $this->clock->now();
-        $due = $this->repository->findDue($now);
-        $processed = 0;
-
-        foreach ($due as $request) {
-            $customer = $request->getCustomer();
-
-            // Send the completion email BEFORE anonymizing — afterwards
-            // customer.email points at deleted-{id}@anonymized.invalid.
-            // Caught: SMTP failure must not block the deletion (otherwise the
-            // customer's PII would linger because of an external system fault);
-            // log + carry on with anonymisation.
-            try {
-                $this->emailManager->sendDeletionCompleted($customer);
-            } catch (\Throwable $exception) {
-                $this->logger->warning('three_brs.account_deletion.completed_email_failed', [
-                    'customer_id' => $customer->getId(),
-                    'reason' => $exception->getMessage(),
-                ]);
-            }
-            $this->anonymizer->anonymize($customer);
-            $request->setCompletedAt($now);
-            $this->entityManager->flush();
-            ++$processed;
-        }
-
-        return $processed;
-    }
-
     protected function disableShopUser(CustomerInterface $customer): void
     {
         $user = $customer->getUser();
