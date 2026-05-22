@@ -64,6 +64,26 @@ class AbstractTwoFactorSetupControllerTest extends TestCase
         self::assertSame('<setup/>', $response->getContent());
     }
 
+    public function testOverriddenGettersTakePrecedenceOverConstructorValues(): void
+    {
+        // Constructor passes enabled=true / count=10 — subclass override flips
+        // enabled to false at runtime, so the manage view sees recovery codes
+        // as disabled even though the cached constructor value disagrees.
+        // Ensures the plugin pattern (read settings runtime via getter
+        // override) is honoured by `__invoke`.
+        $captured = [];
+        $controller = $this->makeController(
+            alreadyEnabled: true,
+            overrideEnabled: false,
+            templateCapture: $captured,
+        );
+
+        $response = $controller($this->requestWithSession());
+
+        self::assertInstanceOf(Response::class, $response);
+        self::assertFalse($captured['recovery_codes_enabled']);
+    }
+
     protected function requestWithSession(): Request
     {
         $request = new Request();
@@ -74,11 +94,15 @@ class AbstractTwoFactorSetupControllerTest extends TestCase
 
     /**
      * @param FormInterface<mixed>|null $form
+     * @param array<string, mixed>      $templateCapture
      */
     protected function makeController(
         bool $acceptUser = true,
         bool $alreadyEnabled = false,
         ?FormInterface $form = null,
+        ?bool $overrideEnabled = null,
+        ?int $overrideCount = null,
+        array &$templateCapture = [],
     ): AbstractTwoFactorSetupController {
         $token = $this->createStub(TokenInterface::class);
         $token->method('getUser')->willReturn(new TestUser());
@@ -100,7 +124,9 @@ class AbstractTwoFactorSetupControllerTest extends TestCase
         $router->method('generate')->willReturn('/login');
 
         $twig = $this->createStub(Environment::class);
-        $twig->method('render')->willReturnCallback(static function (string $template): string {
+        $twig->method('render')->willReturnCallback(static function (string $template, array $context = []) use (&$templateCapture): string {
+            $templateCapture = $context;
+
             return $template === '@Foo/manage.html.twig' ? '<manage/>' : '<setup/>';
         });
 
@@ -112,7 +138,7 @@ class AbstractTwoFactorSetupControllerTest extends TestCase
 
         $form ??= $this->createStub(FormInterface::class);
 
-        return new class($tokenStorage, $totp, $qr, $recovery, $router, $twig, $translator, $csrf, 'Example', true, 10, $acceptUser, $alreadyEnabled, $form) extends AbstractTwoFactorSetupController {
+        return new class($tokenStorage, $totp, $qr, $recovery, $router, $twig, $translator, $csrf, 'Example', true, 10, $acceptUser, $alreadyEnabled, $form, $overrideEnabled, $overrideCount) extends AbstractTwoFactorSetupController {
             /**
              * @param FormInterface<mixed> $form
              */
@@ -131,8 +157,20 @@ class AbstractTwoFactorSetupControllerTest extends TestCase
                 protected bool $acceptUser,
                 protected bool $alreadyEnabled,
                 protected FormInterface $form,
+                protected ?bool $overrideEnabled,
+                protected ?int $overrideCount,
             ) {
                 parent::__construct($tokenStorage, $totp, $qr, $recovery, $router, $twig, $translator, $csrf, $issuer, $recoveryEnabled, $recoveryCount);
+            }
+
+            protected function isRecoveryCodesEnabled(): bool
+            {
+                return $this->overrideEnabled ?? parent::isRecoveryCodesEnabled();
+            }
+
+            protected function getRecoveryCodesCount(): int
+            {
+                return $this->overrideCount ?? parent::getRecoveryCodesCount();
             }
 
             protected function isAcceptableUser(UserInterface $user): bool

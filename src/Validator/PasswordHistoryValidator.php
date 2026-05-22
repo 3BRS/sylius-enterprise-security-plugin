@@ -14,14 +14,18 @@ use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\Constraint\PasswordHistory;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\PasswordHistoryValidatorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\PasswordSimilarityCheckerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryCheckerInterface;
 
 class PasswordHistoryValidator extends ConstraintValidator implements PasswordHistoryValidatorInterface
 {
+    protected const SIMILAR_TO_CURRENT_MESSAGE = 'three_brs.password_history.similar_to_current';
+
     public function __construct(
         protected PasswordHistoryCheckerInterface $checker,
+        protected PasswordSimilarityCheckerInterface $similarityChecker,
         protected TokenStorageInterface $tokenStorage,
         protected SettingsProviderInterface $settings,
     ) {
@@ -39,6 +43,18 @@ class PasswordHistoryValidator extends ConstraintValidator implements PasswordHi
 
         $object = $this->context->getObject();
         $plainPassword = (string) $value;
+
+        // Similarity check against the form-supplied current password — covers
+        // the "1234" → "12345" case the bcrypt history lookup cannot detect
+        // because each hash is unique to its plain. Only available in flows
+        // where the user submits their current password (shop ChangePassword
+        // form); admin-edits-another-admin form has no currentPassword field.
+        if ($object instanceof ChangePassword) {
+            $currentPassword = (string) $object->getCurrentPassword();
+            if ($currentPassword !== '' && $this->similarityChecker->isSimilar($currentPassword, $plainPassword)) {
+                $this->context->buildViolation(self::SIMILAR_TO_CURRENT_MESSAGE)->addViolation();
+            }
+        }
 
         if ($object instanceof AdminUserInterface) {
             $this->validateForAdminUser($object, $plainPassword, $constraint);

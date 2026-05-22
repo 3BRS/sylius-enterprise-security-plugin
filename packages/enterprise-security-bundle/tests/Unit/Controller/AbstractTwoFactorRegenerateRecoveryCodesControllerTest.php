@@ -63,10 +63,35 @@ class AbstractTwoFactorRegenerateRecoveryCodesControllerTest extends TestCase
         self::assertSame(['a', 'b'], $request->getSession()->get('plain_codes_key'));
     }
 
+    public function testOverriddenGettersTakePrecedenceOverConstructorValues(): void
+    {
+        $request = new Request();
+        $request->setSession(new Session(new MockArraySessionStorage()));
+
+        // Constructor says enabled=false (would redirect to dashboard), but the
+        // subclass override flips it to true and asks for 4 codes — ensuring
+        // subclasses that read settings at runtime (the plugin pattern) are
+        // honoured by `__invoke` instead of being shadowed by the cached
+        // constructor parameters.
+        $controller = $this->makeController(
+            recoveryCodesEnabled: false,
+            overrideEnabled: true,
+            overrideCount: 4,
+        );
+
+        $response = $controller($request);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('/recovery', $response->getTargetUrl());
+        self::assertSame([1, 2, 3, 4], $request->getSession()->get('plain_codes_key'));
+    }
+
     protected function makeController(
         bool $twoFactorEnabled = true,
         bool $recoveryCodesEnabled = true,
         bool $csrfValid = true,
+        ?bool $overrideEnabled = null,
+        ?int $overrideCount = null,
     ): AbstractTwoFactorRegenerateRecoveryCodesController {
         $csrf = $this->createStub(CsrfTokenManagerInterface::class);
         $csrf->method('isTokenValid')->willReturn($csrfValid);
@@ -78,11 +103,11 @@ class AbstractTwoFactorRegenerateRecoveryCodesControllerTest extends TestCase
         $tokenStorage->method('getToken')->willReturn($token);
 
         $generator = $this->createStub(RecoveryCodeGeneratorInterface::class);
-        $generator->method('generate')->willReturn(['a', 'b']);
+        $generator->method('generate')->willReturnCallback(static fn (int $count): array => $count === 2 ? ['a', 'b'] : range(1, $count));
 
         $router = $this->createStub(RouterInterface::class);
 
-        return new class($tokenStorage, $generator, $csrf, $router, $recoveryCodesEnabled, 2, $twoFactorEnabled) extends AbstractTwoFactorRegenerateRecoveryCodesController {
+        return new class($tokenStorage, $generator, $csrf, $router, $recoveryCodesEnabled, 2, $twoFactorEnabled, $overrideEnabled, $overrideCount) extends AbstractTwoFactorRegenerateRecoveryCodesController {
             public function __construct(
                 TokenStorageInterface $tokenStorage,
                 RecoveryCodeGeneratorInterface $generator,
@@ -91,8 +116,20 @@ class AbstractTwoFactorRegenerateRecoveryCodesControllerTest extends TestCase
                 bool $recoveryCodesEnabled,
                 int $recoveryCodesCount,
                 protected bool $twoFactorEnabled,
+                protected ?bool $overrideEnabled,
+                protected ?int $overrideCount,
             ) {
                 parent::__construct($tokenStorage, $generator, $csrf, $router, $recoveryCodesEnabled, $recoveryCodesCount);
+            }
+
+            protected function isRecoveryCodesEnabled(): bool
+            {
+                return $this->overrideEnabled ?? parent::isRecoveryCodesEnabled();
+            }
+
+            protected function getRecoveryCodesCount(): int
+            {
+                return $this->overrideCount ?? parent::getRecoveryCodesCount();
             }
 
             protected function getCsrfTokenId(): string

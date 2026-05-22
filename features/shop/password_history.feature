@@ -22,3 +22,9 @@ Feature: Customer password history
         When I want to change my password
         And I change my password from "CurrentPass1!" to "BrandNewPass1!"
         Then my password should be changed successfully
+
+    @ui
+    Scenario: Customer cannot change password to one too similar to the current
+        When I want to change my password
+        And I change my password from "CurrentPass1!" to "CurrentPass1!extra"
+        Then I should be notified that the new password is too similar to the current one

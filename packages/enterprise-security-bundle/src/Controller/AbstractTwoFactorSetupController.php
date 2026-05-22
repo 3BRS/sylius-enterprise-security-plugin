@@ -47,7 +47,7 @@ abstract class AbstractTwoFactorSetupController
             return new Response($this->twig->render($this->getManageTemplate(), [
                 'disable_csrf_token' => $this->csrfTokenManager->getToken($this->getDisableCsrfTokenId())->getValue(),
                 'regenerate_csrf_token' => $this->csrfTokenManager->getToken($this->getRegenerateCsrfTokenId())->getValue(),
-                'recovery_codes_enabled' => $this->recoveryCodesEnabled,
+                'recovery_codes_enabled' => $this->isRecoveryCodesEnabled(),
             ]));
         }
 
@@ -64,8 +64,8 @@ abstract class AbstractTwoFactorSetupController
         if ($form->isSubmitted() && $form->isValid()) {
             $code = str_replace('-', '', (string) $form->get('code')->getData());
             if ($this->totpGenerator->verifyCode($secret, $code)) {
-                $plainCodes = $this->recoveryCodesEnabled
-                    ? $this->recoveryGenerator->generate($this->recoveryCodesCount)
+                $plainCodes = $this->isRecoveryCodesEnabled()
+                    ? $this->recoveryGenerator->generate($this->getRecoveryCodesCount())
                     : [];
 
                 $this->enableTwoFactorAndPersistRecoveryCodes($user, $secret, $plainCodes);
@@ -125,4 +125,18 @@ abstract class AbstractTwoFactorSetupController
     abstract protected function getDisableCsrfTokenId(): string;
 
     abstract protected function getRegenerateCsrfTokenId(): string;
+
+    /**
+     * Subclass may override to read the toggle at runtime (e.g. from DB-backed
+     * settings) rather than the constructor parameter passed at compile time.
+     */
+    protected function isRecoveryCodesEnabled(): bool
+    {
+        return $this->recoveryCodesEnabled;
+    }
+
+    protected function getRecoveryCodesCount(): int
+    {
+        return $this->recoveryCodesCount;
+    }
 }

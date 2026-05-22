@@ -31,6 +31,13 @@ services:
             $inner: '@ThreeBRS\EnterpriseSecurityBundle\PasswordPolicy\PasswordPolicyFilteringValidator.inner'
         decorates: validator
 
+    # Password history
+
+    ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\PasswordSimilarityChecker: ~
+
+    ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\PasswordSimilarityCheckerInterface:
+        alias: ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\PasswordSimilarityChecker
+
     # Password expiration
 
     ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationChecker:

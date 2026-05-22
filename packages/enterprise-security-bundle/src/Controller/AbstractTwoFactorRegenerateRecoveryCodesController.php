@@ -34,7 +34,7 @@ abstract class AbstractTwoFactorRegenerateRecoveryCodesController
             return new RedirectResponse($this->getLoginUrl());
         }
 
-        if (! $this->recoveryCodesEnabled) {
+        if (! $this->isRecoveryCodesEnabled()) {
             return new RedirectResponse($this->getDashboardUrl());
         }
 
@@ -43,7 +43,7 @@ abstract class AbstractTwoFactorRegenerateRecoveryCodesController
             throw new BadRequestHttpException('Invalid CSRF token.');
         }
 
-        $plainCodes = $this->recoveryGenerator->generate($this->recoveryCodesCount);
+        $plainCodes = $this->recoveryGenerator->generate($this->getRecoveryCodesCount());
         $this->replaceRecoveryCodesAndCommit($user, $plainCodes);
 
         $request->getSession()->set($this->getPlainRecoveryCodesSessionKey(), $plainCodes);
@@ -70,4 +70,18 @@ abstract class AbstractTwoFactorRegenerateRecoveryCodesController
     abstract protected function getDashboardUrl(): string;
 
     abstract protected function getRecoveryCodesDisplayUrl(): string;
+
+    /**
+     * Subclass may override to read the toggle at runtime (e.g. from DB-backed
+     * settings) rather than the constructor parameter passed at compile time.
+     */
+    protected function isRecoveryCodesEnabled(): bool
+    {
+        return $this->recoveryCodesEnabled;
+    }
+
+    protected function getRecoveryCodesCount(): int
+    {
+        return $this->recoveryCodesCount;
+    }
 }

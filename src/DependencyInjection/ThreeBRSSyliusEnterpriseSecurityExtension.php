@@ -54,10 +54,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $twoFactor = $config['two_factor_authentication'];
 
         $container->setParameter('three_brs.two_factor.issuer', $twoFactor['issuer']);
-        $container->setParameter('three_brs.two_factor.customer.recovery_codes_enabled', $twoFactor['recovery_codes']['customer']['enabled']);
-        $container->setParameter('three_brs.two_factor.customer.recovery_codes_count', $twoFactor['recovery_codes']['customer']['count']);
-        $container->setParameter('three_brs.two_factor.admin.recovery_codes_enabled', $twoFactor['recovery_codes']['admin']['enabled']);
-        $container->setParameter('three_brs.two_factor.admin.recovery_codes_count', $twoFactor['recovery_codes']['admin']['count']);
         $container->setParameter('three_brs.two_factor.trusted_device_enabled', $twoFactor['trusted_device']['enabled']);
         $container->setParameter('three_brs.two_factor.trusted_device_lifetime', (int) $twoFactor['trusted_device']['days'] * 86400);
     }

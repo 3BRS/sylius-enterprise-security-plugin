@@ -11,6 +11,7 @@ three_brs:
         changed_successfully: 'Your password has been changed successfully.'
     password_history:
         reused: 'This password has been used recently. Please choose a different password.'
+        similar_to_current: 'New password is too similar to the current password. Please choose a different password.'
     password_policy:
         min_length: 'Password must be at least {{ limit }} characters long.'
         max_length: 'Password must not exceed {{ limit }} characters.'
