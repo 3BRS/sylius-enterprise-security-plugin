@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings;
 
-interface SecuritySettingsTypeInterface
+use Symfony\Component\Form\FormTypeInterface;
+
+/**
+ * @extends FormTypeInterface<array<string, mixed>>
+ */
+interface SecuritySettingsTypeInterface extends FormTypeInterface
 {
 }

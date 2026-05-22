@@ -18,7 +18,7 @@ use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SecuritySettingsType;
 
-class SaveTabController implements SaveTabControllerInterface
+class SaveController implements SaveControllerInterface
 {
     use FlashHelperTrait;
 

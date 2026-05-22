@@ -1193,7 +1193,7 @@ services:
         tags:
             - { name: 'form.type' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType:
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAutoRegistrationPolicySettingsType:
         tags:
             - { name: 'form.type' }
 
@@ -1214,7 +1214,7 @@ services:
         tags:
             - { name: 'controller.service_arguments' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\SaveTabController:
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\SaveController:
         arguments:
             $writer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter'
             $formFactory: '@form.factory'

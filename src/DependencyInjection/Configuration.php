@@ -341,7 +341,6 @@ class Configuration implements ConfigurationInterface
                         ->arrayNode('customer')
                             ->addDefaultsIfNotSet()
                             ->children()
-                                ->scalarNode('default_locale')->defaultValue('en_US')->cannotBeEmpty()->end()
                                 ->arrayNode('auto_register_allowed_email_domains')
                                     ->scalarPrototype()->end()
                                     ->defaultValue([])

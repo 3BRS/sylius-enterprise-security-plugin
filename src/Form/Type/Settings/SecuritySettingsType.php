@@ -51,7 +51,7 @@ class SecuritySettingsType extends AbstractType implements SecuritySettingsTypeI
 
         if ($scope === SettingsScope::ADMIN) {
             $builder
-                ->add('oauth_admin_policy', OAuthAdminPolicySettingsType::class, [
+                ->add('oauth_admin_policy', OAuthAutoRegistrationPolicySettingsType::class, [
                     'translation_prefix' => 'three_brs.ui.security_settings.oauth_admin_policy',
                     'invalid_domain_translation_key' => 'three_brs.oauth_admin_policy.invalid_domain',
                 ])
@@ -61,9 +61,10 @@ class SecuritySettingsType extends AbstractType implements SecuritySettingsTypeI
 
         if ($scope === SettingsScope::CUSTOMER) {
             $builder
-                ->add('oauth_customer_policy', OAuthAdminPolicySettingsType::class, [
+                ->add('oauth_customer_policy', OAuthAutoRegistrationPolicySettingsType::class, [
                     'translation_prefix' => 'three_brs.ui.security_settings.oauth_customer_policy',
                     'invalid_domain_translation_key' => 'three_brs.oauth_customer_policy.invalid_domain',
+                    'include_default_locale' => false,
                 ])
                 ->add('account_deletion', AccountDeletionSettingsType::class)
             ;

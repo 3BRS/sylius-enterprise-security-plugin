@@ -751,7 +751,7 @@ The bundle ships **flow controllers** (login ceremonies, CSRF-protected actions)
 
 If you wire `SettingsWriterInterface` for runtime-mutable settings, you also need an admin page that renders the form, validates input, and persists. Any form solution works — the bundle only requires submitted values to reach `SettingsWriterInterface::write(...)`.
 
-Sylius plugin reference: `src/Controller/Admin/SecuritySettings/{IndexController,SaveTabController}.php` (compound Symfony form wrapping per-tab subforms).
+Sylius plugin reference: `src/Controller/Admin/SecuritySettings/{IndexController,SaveController}.php` (compound Symfony form wrapping per-tab subforms).
 
 ### 2. Admin actions targeting another user
 

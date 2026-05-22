@@ -7,7 +7,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySetti
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-interface SaveTabControllerInterface
+interface SaveControllerInterface
 {
     public function __invoke(Request $request): Response;
 }

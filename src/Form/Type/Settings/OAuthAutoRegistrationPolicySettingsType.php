@@ -18,7 +18,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 /**
  * @extends AbstractType<array<string, mixed>>
  */
-class OAuthAdminPolicySettingsType extends AbstractType implements OAuthAdminPolicySettingsTypeInterface
+class OAuthAutoRegistrationPolicySettingsType extends AbstractType implements OAuthAutoRegistrationPolicySettingsTypeInterface
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -26,21 +26,24 @@ class OAuthAdminPolicySettingsType extends AbstractType implements OAuthAdminPol
         $prefix = $options['translation_prefix'];
         /** @var string $invalidDomainKey */
         $invalidDomainKey = $options['invalid_domain_translation_key'];
+        /** @var bool $includeDefaultLocale */
+        $includeDefaultLocale = $options['include_default_locale'];
 
-        $builder
-            ->add('default_locale', TextType::class, [
+        if ($includeDefaultLocale) {
+            $builder->add('default_locale', TextType::class, [
                 'label' => $prefix . '.default_locale',
                 'required' => true,
                 'constraints' => [new NotBlank()],
                 'help' => $prefix . '.default_locale_help',
-            ])
-            ->add('auto_register_allowed_email_domains', TextareaType::class, [
-                'label' => $prefix . '.auto_register_allowed_email_domains',
-                'help' => $prefix . '.auto_register_allowed_email_domains_help',
-                'required' => false,
-                'attr' => ['rows' => 4],
-            ])
-        ;
+            ]);
+        }
+
+        $builder->add('auto_register_allowed_email_domains', TextareaType::class, [
+            'label' => $prefix . '.auto_register_allowed_email_domains',
+            'help' => $prefix . '.auto_register_allowed_email_domains_help',
+            'required' => false,
+            'attr' => ['rows' => 4],
+        ]);
 
         $builder->get('auto_register_allowed_email_domains')->addModelTransformer(new CallbackTransformer(
             // model → view: list<string> → newline-joined text
@@ -96,10 +99,12 @@ class OAuthAdminPolicySettingsType extends AbstractType implements OAuthAdminPol
         $resolver->setAllowedTypes('translation_prefix', 'string');
         $resolver->setRequired('invalid_domain_translation_key');
         $resolver->setAllowedTypes('invalid_domain_translation_key', 'string');
+        $resolver->setDefault('include_default_locale', true);
+        $resolver->setAllowedTypes('include_default_locale', 'bool');
     }
 
     public function getBlockPrefix(): string
     {
-        return 'three_brs_oauth_admin_policy_settings';
+        return 'three_brs_oauth_auto_registration_policy_settings';
     }
 }

@@ -15,6 +15,19 @@
  # @param confirm_btn_class   Bootstrap btn-* class for confirm button (e.g. 'btn-danger').
  # @param test_attr           Optional raw data-test-* attribute string for the submit button.
  #}
+{#
+ # Returns the Tabler icon class for an OAuth provider. Falls back to a
+ # generic `ti-link` icon for providers Tabler doesn't ship a brand glyph
+ # for, so a future provider with a non-Tabler name (e.g. a niche identity
+ # provider) renders a visible icon instead of a blank space.
+ #
+ # @param provider  Lowercase provider name (matches OAuthProviderInterface::getName()).
+ #}
+{% macro provider_icon_class(provider) %}
+    {%- set known = ['google', 'apple', 'github', 'microsoft', 'meta', 'facebook', 'twitter', 'x', 'linkedin', 'gitlab', 'bitbucket'] -%}
+    {{- provider in known ? 'ti-brand-' ~ provider : 'ti-link' -}}
+{% endmacro %}
+
 {% macro confirmation_modal(modal_id, title, body, action_url, csrf_id, confirm_label, confirm_btn_class, test_attr = '') %}
     <div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

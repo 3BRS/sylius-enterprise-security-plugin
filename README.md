@@ -210,7 +210,6 @@ The admin firewall does not need a custom `success_handler` — Sylius does not 
 three_brs_sylius_enterprise_security:
     oauth:
         customer:
-            default_locale: 'en_US'                    # locale stored for auto-registered customers (reserved — Sylius Customer has no localeCode yet)
             auto_register_allowed_email_domains: []    # empty = no restriction (any verified email); add e.g. ['yourcompany.com'] to restrict
             google:
                 enabled: false

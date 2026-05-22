@@ -127,7 +127,6 @@ class IndexController implements IndexControllerInterface
         if ($scope === SettingsScope::CUSTOMER) {
             $customerWhitelist = $this->settings->get('oauth.auto_register_allowed_email_domains', $scope);
             $data['oauth_customer_policy'] = [
-                'default_locale' => $this->settings->getString('oauth.default_locale', $scope),
                 'auto_register_allowed_email_domains' => is_array($customerWhitelist) ? $customerWhitelist : [],
             ];
 

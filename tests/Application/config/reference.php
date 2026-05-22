@@ -2509,7 +2509,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             create?: bool|Param, // Default: false
  *             ssl?: bool|Param, // Default: false
  *             utf8?: bool|Param, // Default: false
- *             mode?: scalar|Param|null, // Default: null
+ *             mode?: scalar|Param|null, // Default: 1
  *         },
  *         phpseclib_sftp?: array{
  *             phpseclib_sftp_id?: scalar|Param|null,
@@ -3701,7 +3701,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     },
  *     oauth?: array{
  *         customer?: array{
- *             default_locale?: scalar|Param|null, // Default: "en_US"
  *             auto_register_allowed_email_domains?: list<scalar|Param|null>,
  *             google?: array{
  *                 enabled?: bool|Param, // Default: false

@@ -81,21 +81,9 @@
                         {% endfor %}
                     </div>
                 {{ form_end(form) }}
-
-                <style>
-                    @media (min-width: 992px) {
-                        .three-brs-security-settings-masonry {
-                            column-count: 2;
-                            column-gap: 1rem;
-                        }
-                        .three-brs-security-settings-masonry-item {
-                            break-inside: avoid;
-                            -webkit-column-break-inside: avoid;
-                            page-break-inside: avoid;
-                        }
-                    }
-                </style>
             </div>
         </div>
     </div>
+
+    <link rel="stylesheet" href="{{ asset('bundles/threebrssyliusenterprisesecurityplugin/css/security_settings_masonry.css') }}">
 {% endblock %}

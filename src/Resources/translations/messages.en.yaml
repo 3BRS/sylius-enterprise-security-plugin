@@ -45,10 +45,8 @@ three_brs:
         cancel: 'Cancel'
         confirm: 'Confirm'
         copy: 'Copy'
-        copied: 'Copied!'
         admin_security:
             title: 'Security'
-            intro: 'Manage your security settings — two-factor authentication, linked social logins, passkeys, and active sessions.'
         force_password_change: 'Password Change Required'
         force_password_change_description: 'Your password has expired or an administrator has requested you to change it. Please set a new password to continue.'
         change_password: 'Change Password'
@@ -86,7 +84,6 @@ three_brs:
             no_links_yet: 'You have not linked any 3rd-party OAuth accounts yet.'
             no_links_yet_subtitle: 'Link a provider from the list to sign in faster next time.'
             all_linked: 'All available providers are already linked.'
-            admin_intro: 'Link your Google or Apple account to sign in to the admin panel without entering a password. You can unlink a provider at any time — as long as you keep either a password or another linked provider.'
             customer_intro: 'Link your Google or Apple account to sign in faster next time. You can unlink a provider at any time — as long as you keep either a password or another linked provider.'
             unlink: 'Unlink'
             link_provider: 'Link %provider%'
@@ -335,8 +332,8 @@ three_brs:
             oauth:
                 title: '3rd-party OAuth'
                 description: 'Provider credentials (client_id, secret, etc.) remain in YAML configuration — only the enabled flag is runtime-mutable here.'
-                google_enabled: 'Enable Google'
-                apple_enabled: 'Enable Apple'
+                google_enabled: 'Google'
+                apple_enabled: 'Apple'
             oauth_admin_policy:
                 title: 'OAuth admin auto-registration'
                 description: 'Policy applied when an administrator signs in via OAuth and no matching account exists yet. Only emails from the whitelisted domains can be auto-registered.'
@@ -347,8 +344,6 @@ three_brs:
             oauth_customer_policy:
                 title: 'OAuth customer auto-registration'
                 description: 'Policy applied when a customer signs in via OAuth and no matching account exists yet. Limit auto-registration to specific email domains (e.g. to reduce bot signups).'
-                default_locale: 'Default locale for new customers'
-                default_locale_help: 'Locale code (e.g. en_US, cs_CZ) applied to customers auto-registered via OAuth.'
                 auto_register_allowed_email_domains: 'Whitelisted email domains'
                 auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to allow auto-registration from any verified email address.'
             account_deletion:
