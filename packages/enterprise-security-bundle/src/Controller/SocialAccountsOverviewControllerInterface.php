@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
+namespace ThreeBRS\EnterpriseSecurityBundle\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
 
-interface SocialAccountsControllerInterface
+interface SocialAccountsOverviewControllerInterface
 {
     public function __invoke(): Response;
 }

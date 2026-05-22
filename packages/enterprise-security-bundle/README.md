@@ -41,7 +41,13 @@ The bundle is framework-agnostic (any Symfony 6.4 / 7.4 app) and is the engine p
 - `DeadlineTimingPaddingInterface` — constant-time response padding against enumeration
 
 **Persisted-record contracts** (interfaces — your Doctrine entities implement them):
-- `MagicLinkRecordInterface`, `SessionRecordInterface`, `SocialAccountLinkRecordInterface`, `CustomerDeletionRequestRecordInterface`
+- `MagicLinkRecordInterface`, `SessionRecordInterface`, `SocialAccountLinkRecordInterface`, `CustomerDeletionRequestRecordInterface`, `PasskeyCredentialRecordInterface`
+
+**Repository contracts** (interfaces — your Doctrine repositories implement them):
+- `LockedUserRepositoryInterface`, `CustomerDeletionRequestRepositoryInterface`, `PasskeyCredentialRepositoryInterface`
+
+**Anonymization contract** (interface — your app implements when wiring GDPR self-service deletion):
+- `UserAnonymizerInterface`
 
 **User-mixin contracts** (add to your `User` entity, per feature):
 - `TwoFactorAuthShopUserInterface` / `TwoFactorAuthAdminUserInterface`
@@ -236,7 +242,7 @@ The bundle defines **record contracts** for some entities; for others it just co
 | `UserSession` | implements `SessionRecordInterface` | id, user FK, sessionId, userAgent, ipAddress, country, city, createdAt, lastActivityAt, revokedAt |
 | `UserSocialAccountLink` | implements `SocialAccountLinkRecordInterface` | id, user FK, provider, providerUserId, email, linkedAt, lastUsedAt |
 | `UserDeletionRequest` | implements `CustomerDeletionRequestRecordInterface` | id, user FK, requestedAt, scheduledFor, cancelledAt, requestedByAdmin |
-| `UserPasskeyCredential` | *(your shape — used by your `PasskeyAssertionVerifier` impl)* | id, user FK, publicKeyCredentialId, publicKey, signCount, label, createdAt, lastUsedAt |
+| `UserPasskeyCredential` | implements `PasskeyCredentialRecordInterface` | id, user FK, credentialId, credentialSource (array), label, createdAt, lastUsedAt |
 | `UserRecoveryCode` | *(your shape — hash via bundle's `RecoveryCodeGeneratorInterface`)* | id, user FK, codeHash, consumedAt |
 | `UserPasswordHistory` | *(optional — only if you wire `PasswordHistory` constraint into your password-change form)* | id, user FK, passwordHash, createdAt |
 
@@ -549,6 +555,52 @@ Repeat for every flow you want enabled (typically ~15–25 controllers across al
 
 If your app has **separate firewalls** (e.g. `shop` for customers, `admin` for staff), write **two** subclasses per feature — one per firewall — each returning its own `getFirewallName()`, route names, and templates. Register two service instances. The Sylius plugin does this throughout `src/Controller/Shop/` and `src/Controller/Admin/`.
 
+### Example: registering a concrete list controller
+
+The list / overview controllers (`LockedUsersListController`, `AccountDeletionsListController`, `SocialAccountsOverviewController`) need no subclass — register them directly with the appropriate DI arguments and tag as a controller:
+
+```yaml
+services:
+    app.controller.admin.locked_users:
+        class: ThreeBRS\EnterpriseSecurityBundle\Controller\LockedUsersListController
+        arguments:
+            $repository: '@App\Repository\LockedUserRepository'
+            $twig: '@twig'
+            $template: 'admin/locked_users.html.twig'
+            $enabled: '%app.lockout.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    app.controller.admin.account_deletions:
+        class: ThreeBRS\EnterpriseSecurityBundle\Controller\AccountDeletionsListController
+        arguments:
+            $repository: '@App\Repository\CustomerDeletionRequestRepository'
+            $twig: '@twig'
+            $template: 'admin/pending_deletions.html.twig'
+            $enabled: '%app.account_deletion.enabled%'
+        tags:
+            - { name: 'controller.service_arguments' }
+
+    app.controller.shop.social_accounts:
+        class: ThreeBRS\EnterpriseSecurityBundle\Controller\SocialAccountsOverviewController
+        arguments:
+            $twig: '@twig'
+            $template: 'account/social_accounts.html.twig'
+        tags:
+            - { name: 'controller.service_arguments' }
+```
+
+Then reference the service IDs (not class names) in `routes.yaml`:
+
+```yaml
+app_admin_locked_users:
+    path: /admin/locked-users
+    controller: app.controller.admin.locked_users
+    methods: [GET]
+```
+
+For multi-firewall apps register the same class twice with different repos + templates (one per firewall).
+
 ---
 
 ## Routes reference
@@ -576,10 +628,12 @@ URLs are up to you — these are the controllers and the typical HTTP verbs. Pic
 | `AbstractSessionsListController` | GET | `/account/sessions` | List active sessions |
 | `AbstractSessionRevokeController` | POST | `/account/sessions/{id}/revoke` | CSRF-protected |
 | `AbstractSessionRevokeOthersController` | POST | `/account/sessions/revoke-others` | CSRF-protected |
-| `AbstractLockedUsersListController` | GET | `/admin/locked-users` | Admin list |
+| `LockedUsersListController` *(concrete)* | GET | `/admin/locked-users` | Admin list |
 | `AbstractUnlockUserController` | POST | `/admin/locked-users/{id}/unlock` | Admin CSRF-protected |
 | `AbstractAccountDeletionRequestController` | GET, POST | `/account/delete` | Customer request form |
+| `AccountDeletionsListController` *(concrete)* | GET | `/admin/deletions` | Admin list of pending deletions |
 | `AbstractAccountDeletionCancelController` | POST | `/admin/deletions/{id}/cancel` | Admin CSRF-protected |
+| `SocialAccountsOverviewController` *(concrete)* | GET | `/account/social-accounts` | Render-only overview of linked accounts |
 
 ---
 
@@ -666,10 +720,10 @@ Each lives in `ThreeBRS\EnterpriseSecurityBundle\Controller\`. Number after the 
 - `AbstractOAuthInitiateController` (5) — state CSRF + provider redirect
 - `AbstractOAuthCallbackController` (20) — fetch user info + login or link branching
 - `AbstractOAuthConfirmLinkController` (12) — password verify + link existing user
-- `AbstractTwoFactorSetupController` (13) — TOTP + QR + recovery-code wizard
+- `AbstractTwoFactorSetupController` (13) — TOTP + QR + recovery-code wizard. After verification, writes plaintext recovery codes to session under the key returned by `getPlainRecoveryCodesSessionKey()` and redirects to `getRecoveryCodesDisplayUrl()` — that URL **must** point to a one-shot display controller you provide (see "Other controllers your app must provide" §5 below).
 - `AbstractTwoFactorRecoveryChallengeController` (5) — recovery-code login completion
 - `AbstractTwoFactorDisableController` (5) — disable + invalidate codes + rotate trusted-token
-- `AbstractTwoFactorRegenerateRecoveryCodesController` (7) — generate + replace
+- `AbstractTwoFactorRegenerateRecoveryCodesController` (7) — generate + replace. Same session-handoff pattern as setup (writes to `getPlainRecoveryCodesSessionKey()`, redirects to `getRecoveryCodesDisplayUrl()`); the redirect target is the same one-shot display controller you wrote for setup.
 
 **Self-service / admin actions:**
 - `AbstractSessionRevokeController` (4)
@@ -677,12 +731,99 @@ Each lives in `ThreeBRS\EnterpriseSecurityBundle\Controller\`. Number after the 
 - `AbstractSessionsListController` (3)
 - `AbstractSocialAccountUnlinkController` (7) — CSRF + last-method guard + delete + audit
 - `AbstractUnlockUserController` (3) — admin: CSRF + lockoutManager.unlock
-- `AbstractLockedUsersListController` (2)
 - `AbstractAccountDeletionCancelController` (2) — admin: cancel pending deletion
 - `AbstractAccountDeletionRequestController` (7) — customer: password verify + grace period
 
-**Concrete (no extension needed — just register two instances per firewall):**
-- `PasskeyLoginOptionsController` — pure JSON API, returns WebAuthn request options
+**Concrete (no extension needed — register one or more instances per firewall with the appropriate DI arguments):**
+- `PasskeyLoginOptionsController` — pure JSON API; inject `PasskeyAssertionOptionsBuilderInterface` impl + `PasskeyWebauthnSerializerInterface` + `bool $enabled` (throws 404 when disabled)
+- `LockedUsersListController` — render-only list; inject `LockedUserRepositoryInterface` impl + `Twig\Environment` + `string $template` + `bool $enabled` (throws 404 when disabled)
+- `AccountDeletionsListController` — render-only list of pending deletion requests; inject `CustomerDeletionRequestRepositoryInterface` impl + `Twig\Environment` + `string $template` + `bool $enabled` (throws 404 when disabled)
+- `SocialAccountsOverviewController` — render-only overview of the current user's linked social accounts; inject `Twig\Environment` + `string $template` (logic lives in the template, iterating `user.socialAccounts`)
+
+---
+
+## Other controllers your app must provide
+
+The bundle ships **flow controllers** (login ceremonies, CSRF-protected actions) — but several pieces of a complete security UI are intentionally not abstracted because they are framework- or admin-UI-specific. You write them. The Sylius plugin has reference implementations of all of these under `src/Controller/`.
+
+### 1. Settings admin UI
+
+If you wire `SettingsWriterInterface` for runtime-mutable settings, you also need an admin page that renders the form, validates input, and persists. Any form solution works — the bundle only requires submitted values to reach `SettingsWriterInterface::write(...)`.
+
+Sylius plugin reference: `src/Controller/Admin/SecuritySettings/{IndexController,SaveTabController}.php` (compound Symfony form wrapping per-tab subforms).
+
+### 2. Admin actions targeting another user
+
+When an admin acts on a specific user (block their account, force a password reset on next login, kill all their active sessions, kill one specific session), you write small POST handlers — each does CSRF check + repository lookup + one mutation + flash + redirect back to the user detail page. The bundle has no abstracts because admin URL structures and detail-page route names vary too much per framework.
+
+Sylius plugin reference (5 controllers + shared base): `src/Controller/Admin/Customer/{BlockAccount,UnblockAccount,ForcePasswordReset,RevokeAllSessions,RevokeSession}Controller.php`. The shared `AbstractCustomerSecurityActionController` handles CSRF + lookup + flash; concrete controllers only fill in the mutation.
+
+### 3. Force-password-change UI
+
+`PasswordExpirationChecker` flags users whose password has expired or who have `forcePasswordChange = true` on their user entity. Your app needs:
+
+- An **event listener** (`kernel.request`) that redirects flagged users to a change-password page from anywhere they navigate to.
+- The **change-password page itself**: form + handler that hashes the new password, clears the flag, invalidates the session, redirects to login.
+
+Without this UI, the expiration flag never leads anywhere — the checker only knows the user *should* change their password, not how to make them.
+
+Sylius plugin reference: `src/Controller/Admin/ForcePasswordChangeController.php` (~65 lines).
+
+### 4. IP whitelist admin UI
+
+`CidrMatcherInterface` and the `CidrList` Symfony constraint are the building blocks; the admin UI is yours. Typical shape:
+
+- A **list page** showing admins × their per-user whitelist (enabled flag + CIDR list).
+- An **edit page** with a form (enabled toggle + CIDR list, validated by the bundle's `CidrList` constraint) that persists to your `AdminUserIpWhitelist` entity.
+
+Sylius plugin reference: `src/Controller/Admin/IpWhitelistAdmins{,Edit}Controller.php`.
+
+### 5. Recovery-codes one-shot display page **(critical)**
+
+When `AbstractTwoFactorSetupController` or `AbstractTwoFactorRegenerateRecoveryCodesController` succeed, they write the **plaintext recovery codes** to session (under the key returned from `getPlainRecoveryCodesSessionKey()`) and redirect to the URL returned from `getRecoveryCodesDisplayUrl()`. That redirect target **must** be a controller you write that:
+
+1. reads codes from session under the same key,
+2. removes them from session (one-shot, never displayed again),
+3. renders them so the user can write them down.
+
+**If you forget this controller, the user never sees their recovery codes** — the codes exist only in session and the user is sent to a URL that does nothing with them. Both setup and regenerate flows depend on this display controller.
+
+Sylius plugin reference: `src/Controller/{Admin,Shop}/TwoFactorRecoveryCodesController.php` (~44 lines each).
+
+Skeleton:
+
+```php
+class TwoFactorRecoveryCodesController
+{
+    public const SESSION_KEY = 'app_plain_recovery_codes';
+
+    public function __construct(
+        protected TokenStorageInterface $tokenStorage,
+        protected RouterInterface $router,
+        protected Environment $twig,
+    ) {}
+
+    public function __invoke(Request $request): Response
+    {
+        $user = $this->tokenStorage->getToken()?->getUser();
+        if (!$user instanceof UserInterface) {
+            return new RedirectResponse($this->router->generate('app_login'));
+        }
+
+        $session = $request->getSession();
+        $codes = $session->get(self::SESSION_KEY);
+        if (!is_array($codes) || $codes === []) {
+            return new RedirectResponse($this->router->generate('app_dashboard'));
+        }
+
+        $session->remove(self::SESSION_KEY);
+
+        return new Response($this->twig->render('account/two_factor/recovery_codes.html.twig', ['codes' => $codes]));
+    }
+}
+```
+
+Your setup + regenerate subclasses then return `TwoFactorRecoveryCodesController::SESSION_KEY` from `getPlainRecoveryCodesSessionKey()`, and `$this->router->generate('app_two_factor_recovery_codes')` from `getRecoveryCodesDisplayUrl()`.
 
 ---
 

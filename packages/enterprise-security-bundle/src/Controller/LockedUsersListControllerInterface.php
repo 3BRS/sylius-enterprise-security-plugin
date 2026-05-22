@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
+namespace ThreeBRS\EnterpriseSecurityBundle\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
 
-interface LockedCustomersControllerInterface
+interface LockedUsersListControllerInterface
 {
     public function __invoke(): Response;
 }

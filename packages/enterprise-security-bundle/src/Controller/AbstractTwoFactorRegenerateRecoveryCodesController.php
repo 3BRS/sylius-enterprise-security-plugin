@@ -46,9 +46,9 @@ abstract class AbstractTwoFactorRegenerateRecoveryCodesController
         $plainCodes = $this->recoveryGenerator->generate($this->recoveryCodesCount);
         $this->replaceRecoveryCodesAndCommit($user, $plainCodes);
 
-        $request->getSession()->set($this->getPlainCodesSessionKey(), $plainCodes);
+        $request->getSession()->set($this->getPlainRecoveryCodesSessionKey(), $plainCodes);
 
-        return new RedirectResponse($this->getRecoveryCodesUrl());
+        return new RedirectResponse($this->getRecoveryCodesDisplayUrl());
     }
 
     abstract protected function getCsrfTokenId(): string;
@@ -63,11 +63,11 @@ abstract class AbstractTwoFactorRegenerateRecoveryCodesController
      */
     abstract protected function replaceRecoveryCodesAndCommit(UserInterface $user, array $plainCodes): void;
 
-    abstract protected function getPlainCodesSessionKey(): string;
+    abstract protected function getPlainRecoveryCodesSessionKey(): string;
 
     abstract protected function getLoginUrl(): string;
 
     abstract protected function getDashboardUrl(): string;
 
-    abstract protected function getRecoveryCodesUrl(): string;
+    abstract protected function getRecoveryCodesDisplayUrl(): string;
 }

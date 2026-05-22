@@ -277,9 +277,11 @@ services:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSessionsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addAccountDeletionItem' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountsController:
+    three_brs.controller.shop.social_accounts:
+        class: ThreeBRS\EnterpriseSecurityBundle\Controller\SocialAccountsOverviewController
         arguments:
             $twig: '@twig'
+            $template: '@@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/OAuth/accounts.html.twig'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -297,9 +299,11 @@ services:
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addAccountDeletionsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addIpWhitelistItem' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController:
+    three_brs.controller.admin.social_accounts:
+        class: ThreeBRS\EnterpriseSecurityBundle\Controller\SocialAccountsOverviewController
         arguments:
             $twig: '@twig'
+            $template: '@@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/OAuth/accounts.html.twig'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -434,12 +438,6 @@ services:
             $logger: '@logger'
         tags:
             - { name: 'controller.service_arguments' }
-
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\SocialProvidersExtension:
-        arguments:
-            $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
-        tags:
-            - { name: 'twig.extension' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\SocialAccountLinksExtension:
         arguments:
@@ -756,18 +754,6 @@ services:
         tags:
             - { name: 'controller.service_arguments' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\MagicLinkExtension:
-        arguments:
-            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
-        tags:
-            - { name: 'twig.extension' }
-
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\PasskeyExtension:
-        arguments:
-            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
-        tags:
-            - { name: 'twig.extension' }
-
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\MagicLinkFixture:
         arguments:
             $customerRepository: '@sylius.repository.customer'
@@ -866,18 +852,22 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepositoryInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepository
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedCustomersController:
+    three_brs.controller.admin.locked_customers:
+        class: ThreeBRS\EnterpriseSecurityBundle\Controller\LockedUsersListController
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepository'
             $twig: '@twig'
+            $template: '@@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Lockout/customers.html.twig'
             $enabled: '%three_brs.account_lockout.customer.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedAdminsController:
+    three_brs.controller.admin.locked_admins:
+        class: ThreeBRS\EnterpriseSecurityBundle\Controller\LockedUsersListController
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepository'
             $twig: '@twig'
+            $template: '@@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Lockout/admins.html.twig'
             $enabled: '%three_brs.account_lockout.admin.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
@@ -1244,7 +1234,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository:
         arguments:
-            - '@doctrine'
+            $registry: '@doctrine'
         tags:
             - { name: 'doctrine.repository_service' }
 
@@ -1293,10 +1283,12 @@ services:
         tags:
             - { name: 'controller.service_arguments' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\AccountDeletionsController:
+    three_brs.controller.admin.account_deletions:
+        class: ThreeBRS\EnterpriseSecurityBundle\Controller\AccountDeletionsListController
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
             $twig: '@twig'
+            $template: '@@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AccountDeletion/index.html.twig'
             $enabled: '%three_brs.account_deletion.customer.enabled%'
         tags:
             - { name: 'controller.service_arguments' }

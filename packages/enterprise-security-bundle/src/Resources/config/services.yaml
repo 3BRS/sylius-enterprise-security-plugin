@@ -4,6 +4,26 @@ services:
         autoconfigure: false
         public: false
 
+    # Twig extensions
+
+    ThreeBRS\EnterpriseSecurityBundle\Twig\MagicLinkExtension:
+        arguments:
+            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+        tags:
+            - { name: 'twig.extension' }
+
+    ThreeBRS\EnterpriseSecurityBundle\Twig\PasskeyExtension:
+        arguments:
+            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+        tags:
+            - { name: 'twig.extension' }
+
+    ThreeBRS\EnterpriseSecurityBundle\Twig\SocialProvidersExtension:
+        arguments:
+            $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
+        tags:
+            - { name: 'twig.extension' }
+
     # Password policy
 
     ThreeBRS\EnterpriseSecurityBundle\PasswordPolicy\PasswordPolicyFilteringValidator:

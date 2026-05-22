@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig;
+namespace ThreeBRS\EnterpriseSecurityBundle\Twig;
 
 interface PasskeyExtensionInterface
 {

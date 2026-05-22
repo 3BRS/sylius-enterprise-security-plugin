@@ -109,7 +109,7 @@ class AbstractTwoFactorRegenerateRecoveryCodesControllerTest extends TestCase
             {
             }
 
-            protected function getPlainCodesSessionKey(): string
+            protected function getPlainRecoveryCodesSessionKey(): string
             {
                 return 'plain_codes_key';
             }
@@ -124,7 +124,7 @@ class AbstractTwoFactorRegenerateRecoveryCodesControllerTest extends TestCase
                 return '/dashboard';
             }
 
-            protected function getRecoveryCodesUrl(): string
+            protected function getRecoveryCodesDisplayUrl(): string
             {
                 return '/recovery';
             }

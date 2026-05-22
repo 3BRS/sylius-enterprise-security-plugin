@@ -68,7 +68,7 @@ class TwoFactorRegenerateRecoveryCodesController extends AbstractTwoFactorRegene
         $this->entityManager->flush();
     }
 
-    protected function getPlainCodesSessionKey(): string
+    protected function getPlainRecoveryCodesSessionKey(): string
     {
         return TwoFactorSetupController::SESSION_PLAIN_RECOVERY_CODES;
     }
@@ -83,7 +83,7 @@ class TwoFactorRegenerateRecoveryCodesController extends AbstractTwoFactorRegene
         return $this->router->generate('sylius_admin_dashboard');
     }
 
-    protected function getRecoveryCodesUrl(): string
+    protected function getRecoveryCodesDisplayUrl(): string
     {
         return $this->router->generate('three_brs_admin_two_factor_recovery_codes');
     }
