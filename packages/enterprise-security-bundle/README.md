@@ -38,7 +38,7 @@ The bundle is framework-agnostic (any Symfony 6.4 / 7.4 app) and is the engine p
 - `RateLimitGuardInterface`, `DynamicRateLimiterFactoryInterface`
 - `LockoutPolicyInterface`, `FeatureToggleInterface`, `PolicyFactoryInterface`
 - `SettingsProviderInterface`, `SettingsWriterInterface` — runtime-configurable settings store contracts
-- `DeadlineTimingPaddingInterface` — constant-time response padding against enumeration
+- `TimingPaddingInterface` (impl: `DeadlineTimingPadding`) — constant-time response padding against enumeration
 
 **Persisted-record contracts** (interfaces — your Doctrine entities implement them):
 - `MagicLinkRecordInterface`, `SessionRecordInterface`, `SocialAccountLinkRecordInterface`, `CustomerDeletionRequestRecordInterface`, `PasskeyCredentialRecordInterface`
@@ -156,23 +156,24 @@ Set the `three_brs.security_settings.defaults` parameter in your kernel extensio
 
 ### 4. Required scalar parameters
 
-Several controllers read scalar parameters. Define them in your `services.yaml` `parameters:` block:
+The bundle's `services.yaml` reads a handful of scalar parameters directly. Define them in your `services.yaml` `parameters:` block:
 
 ```yaml
 parameters:
-    # Two-factor authentication
-    three_brs.two_factor.issuer: '%env(APP_NAME)%'
-
-    # Passkey
+    # Passkey — relying-party identity (bound to credentials at registration; do not change at runtime)
     three_brs.passkey.rp_id: 'example.com'
     three_brs.passkey.rp_name: 'Example App'
-    three_brs.passkey.skip_2fa_when_user_verified: true
 
     # OAuth — deployment-time secrets
     three_brs.oauth.customer.google.client_id: '%env(GOOGLE_CLIENT_ID)%'
     three_brs.oauth.customer.google.client_secret: '%env(GOOGLE_CLIENT_SECRET)%'
     # … plus Apple if used; admin variants if you have a separate admin firewall
 ```
+
+Two more parameters are not read by the bundle directly but typically belong in the same block because your wiring depends on them:
+
+- `three_brs.passkey.skip_2fa_when_user_verified` — passed through the **subclass** constructor of `AbstractPasskeyLoginVerifyController` (see "Wiring up controllers" below). You define the parameter and reference it as `'%three_brs.passkey.skip_2fa_when_user_verified%'` in the controller's service definition.
+- `three_brs.two_factor.issuer` — used to configure **`scheb/2fa-bundle`** (the bundle's 2FA dependency), e.g. via `prepend()` in your extension when wiring `scheb_two_factor.totp.issuer`. The bundle controllers themselves do not read it.
 
 ---
 
@@ -776,7 +777,7 @@ Sylius plugin reference: `src/Controller/Admin/ForcePasswordChangeController.php
 - A **list page** showing admins × their per-user whitelist (enabled flag + CIDR list).
 - An **edit page** with a form (enabled toggle + CIDR list, validated by the bundle's `CidrList` constraint) that persists to your `AdminUserIpWhitelist` entity.
 
-Sylius plugin reference: `src/Controller/Admin/IpWhitelistAdmins{,Edit}Controller.php`.
+Sylius plugin reference: `src/Controller/Admin/IpWhitelistAdminsController.php` (list) and `src/Controller/Admin/IpWhitelistAdminEditController.php` (edit).
 
 ### 5. Recovery-codes one-shot display page **(critical)**
 
@@ -879,7 +880,7 @@ If you clone the source (to fork, contribute, or debug a problem):
 ```bash
 cd packages/enterprise-security-bundle
 composer install
-vendor/bin/phpunit              # 244 tests across services + abstract controllers
+vendor/bin/phpunit              # services + abstract controllers (~280 tests)
 vendor/bin/phpstan analyse      # level=max, generics + symfony extensions
 vendor/bin/ecs check            # coding standard
 ```
