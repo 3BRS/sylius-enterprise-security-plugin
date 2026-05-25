@@ -6,7 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
 
 class LockedShopUserRepository implements LockedShopUserRepositoryInterface
 {

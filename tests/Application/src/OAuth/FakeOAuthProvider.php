@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth;
 
 use Symfony\Component\HttpFoundation\Request;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\Exception\OAuthProviderException;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthProviderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfoInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\Exception\OAuthProviderException;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 class FakeOAuthProvider implements OAuthProviderInterface
 {

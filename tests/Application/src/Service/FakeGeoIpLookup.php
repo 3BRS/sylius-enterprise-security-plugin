@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpResult;
+use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpResult;
 
 /**
  * Dev-only fake. Maps a handful of well-known IP prefixes (Docker bridge,

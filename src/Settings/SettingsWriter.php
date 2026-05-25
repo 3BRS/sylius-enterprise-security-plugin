@@ -6,10 +6,13 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\Exception\ConcurrentSettingsWriteException;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\SecuritySetting;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\SecuritySettingInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepositoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Exception\ConcurrentSettingsWriteException;
 
 class SettingsWriter implements SettingsWriterInterface
 {

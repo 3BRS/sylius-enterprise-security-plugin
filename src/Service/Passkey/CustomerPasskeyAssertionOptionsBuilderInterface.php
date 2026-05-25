@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 
-use Webauthn\PublicKeyCredentialRequestOptions;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyAssertionOptionsBuilderInterface;
 
-interface CustomerPasskeyAssertionOptionsBuilderInterface
+interface CustomerPasskeyAssertionOptionsBuilderInterface extends PasskeyAssertionOptionsBuilderInterface
 {
-    public function build(): PublicKeyCredentialRequestOptions;
 }

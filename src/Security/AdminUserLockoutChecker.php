@@ -6,7 +6,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Security;
 
 use Symfony\Component\Security\Core\Exception\LockedException;
 use Symfony\Component\Security\Core\User\UserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManagerInterface;
 
 class AdminUserLockoutChecker implements AdminUserLockoutCheckerInterface

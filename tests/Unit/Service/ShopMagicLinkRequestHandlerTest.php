@@ -12,9 +12,9 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManagerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\TimingPaddingInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Timing\TimingPaddingInterface;
 
 #[CoversClass(ShopMagicLinkRequestHandler::class)]
 class ShopMagicLinkRequestHandlerTest extends TestCase

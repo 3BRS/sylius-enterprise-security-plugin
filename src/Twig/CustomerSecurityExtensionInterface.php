@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig;
 
 use Sylius\Component\Core\Model\ShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentInfo;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSessionInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentInfo;
 
 interface CustomerSecurityExtensionInterface
 {

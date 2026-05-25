@@ -6,10 +6,10 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriterInterface;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorMode;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use Webmozart\Assert\Assert;
 
 class TwoFactorEnforcementContext implements Context

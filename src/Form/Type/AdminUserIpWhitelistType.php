@@ -8,8 +8,8 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\DataTransformer\CidrListDataTransformer;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\CidrList;
+use ThreeBRS\EnterpriseSecurityBundle\Form\DataTransformer\CidrListDataTransformer;
+use ThreeBRS\EnterpriseSecurityBundle\Validator\Constraint\CidrList;
 
 /**
  * @extends AbstractType<array<string, mixed>>

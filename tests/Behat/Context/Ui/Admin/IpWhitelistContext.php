@@ -13,8 +13,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelist;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriterInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use Webmozart\Assert\Assert;
 
 class IpWhitelistContext implements Context

@@ -17,7 +17,7 @@ use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Command\ProcessDueAccountDeletionsCommand;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequest;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessorInterface;
 use Webmozart\Assert\Assert;
 
 class AccountDeletionContext implements Context
@@ -27,7 +27,7 @@ class AccountDeletionContext implements Context
         protected RouterInterface $router,
         protected CustomerRepositoryInterface $customerRepository,
         protected CustomerDeletionRequestRepositoryInterface $deletionRepository,
-        protected CustomerDeletionServiceInterface $deletionService,
+        protected CustomerDueDeletionsProcessorInterface $dueProcessor,
         protected EntityManagerInterface $entityManager,
         protected SharedStorageInterface $sharedStorage,
     ) {
@@ -84,7 +84,7 @@ class AccountDeletionContext implements Context
      */
     public function theAccountDeletionProcessDueCommandRuns(): void
     {
-        $tester = new CommandTester(new ProcessDueAccountDeletionsCommand($this->deletionService));
+        $tester = new CommandTester(new ProcessDueAccountDeletionsCommand($this->dueProcessor));
         $tester->execute([]);
     }
 

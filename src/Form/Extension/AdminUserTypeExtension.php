@@ -8,7 +8,7 @@ use Sylius\Bundle\AdminBundle\Form\Type\AdminUserType;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
 
 class AdminUserTypeExtension extends AbstractTypeExtension implements AdminUserTypeExtensionInterface
 {

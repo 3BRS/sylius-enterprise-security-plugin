@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 
 use Sylius\Component\Core\Model\ShopUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfoInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
 
 interface ShopSocialLoginHandlerInterface
 {

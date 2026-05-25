@@ -11,9 +11,10 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\AutoRegistrationPolicy;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfo;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSocialAccountLink;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSocialAccountLinkInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfo;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandler;
 
@@ -29,13 +30,7 @@ class ShopSocialLoginHandlerTest extends TestCase
         $linkRepository = $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class);
         $linkRepository->method('findByProviderAndProviderUserId')->willReturn($link);
 
-        $handler = new ShopSocialLoginHandler(
-            $this->createStub(CustomerRepositoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $linkRepository,
-            $this->createStub(EntityManagerInterface::class),
-        );
+        $handler = $this->handler(linkRepository: $linkRepository);
 
         self::assertSame($shopUser, $handler->findExistingLinkUser(new OAuthUserInfo('google', '123', 'a@b.com')));
     }
@@ -45,13 +40,7 @@ class ShopSocialLoginHandlerTest extends TestCase
         $linkRepository = $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class);
         $linkRepository->method('findByProviderAndProviderUserId')->willReturn(null);
 
-        $handler = new ShopSocialLoginHandler(
-            $this->createStub(CustomerRepositoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $linkRepository,
-            $this->createStub(EntityManagerInterface::class),
-        );
+        $handler = $this->handler(linkRepository: $linkRepository);
 
         self::assertNull($handler->findExistingLinkUser(new OAuthUserInfo('google', '123', 'a@b.com')));
     }
@@ -68,13 +57,7 @@ class ShopSocialLoginHandlerTest extends TestCase
             ->with(['emailCanonical' => 'a@b.com'])
             ->willReturn($customer);
 
-        $handler = new ShopSocialLoginHandler(
-            $customerRepository,
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
-            $this->createStub(EntityManagerInterface::class),
-        );
+        $handler = $this->handler(customerRepository: $customerRepository);
 
         self::assertSame($shopUser, $handler->findUserByEmail('a@b.com'));
     }
@@ -84,13 +67,7 @@ class ShopSocialLoginHandlerTest extends TestCase
         $customerRepository = $this->createStub(CustomerRepositoryInterface::class);
         $customerRepository->method('findOneBy')->willReturn(null);
 
-        $handler = new ShopSocialLoginHandler(
-            $customerRepository,
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
-            $this->createStub(EntityManagerInterface::class),
-        );
+        $handler = $this->handler(customerRepository: $customerRepository);
 
         self::assertNull($handler->findUserByEmail('a@b.com'));
     }
@@ -103,13 +80,7 @@ class ShopSocialLoginHandlerTest extends TestCase
         $customerRepository = $this->createStub(CustomerRepositoryInterface::class);
         $customerRepository->method('findOneBy')->willReturn($customer);
 
-        $handler = new ShopSocialLoginHandler(
-            $customerRepository,
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
-            $this->createStub(EntityManagerInterface::class),
-        );
+        $handler = $this->handler(customerRepository: $customerRepository);
 
         self::assertNull($handler->findUserByEmail('a@b.com'));
     }
@@ -141,12 +112,10 @@ class ShopSocialLoginHandlerTest extends TestCase
             });
         $entityManager->expects($this->once())->method('flush');
 
-        $handler = new ShopSocialLoginHandler(
-            $this->createStub(CustomerRepositoryInterface::class),
-            $customerFactory,
-            $shopUserFactory,
-            $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
-            $entityManager,
+        $handler = $this->handler(
+            customerFactory: $customerFactory,
+            shopUserFactory: $shopUserFactory,
+            entityManager: $entityManager,
         );
 
         $result = $handler->registerAndLink(new OAuthUserInfo('google', 'g-123', 'new@example.com', 'John', 'Doe'));
@@ -163,13 +132,7 @@ class ShopSocialLoginHandlerTest extends TestCase
 
     public function testRegisterAndLinkThrowsWhenEmailIsNull(): void
     {
-        $handler = new ShopSocialLoginHandler(
-            $this->createStub(CustomerRepositoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
-            $this->createStub(EntityManagerInterface::class),
-        );
+        $handler = $this->handler();
 
         $this->expectException(\LogicException::class);
         $handler->registerAndLink(new OAuthUserInfo('google', 'g-123', null));
@@ -177,13 +140,7 @@ class ShopSocialLoginHandlerTest extends TestCase
 
     public function testRegisterAndLinkThrowsWhenEmailIsEmpty(): void
     {
-        $handler = new ShopSocialLoginHandler(
-            $this->createStub(CustomerRepositoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
-            $this->createStub(EntityManagerInterface::class),
-        );
+        $handler = $this->handler();
 
         $this->expectException(\LogicException::class);
         $handler->registerAndLink(new OAuthUserInfo('google', 'g-123', ''));
@@ -202,13 +159,7 @@ class ShopSocialLoginHandlerTest extends TestCase
             });
         $entityManager->expects($this->once())->method('flush');
 
-        $handler = new ShopSocialLoginHandler(
-            $this->createStub(CustomerRepositoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
-            $entityManager,
-        );
+        $handler = $this->handler(entityManager: $entityManager);
 
         $handler->linkExistingUser($user, new OAuthUserInfo('apple', 'a-42', 'x@y.com', 'X', 'Y'));
 
@@ -232,13 +183,7 @@ class ShopSocialLoginHandlerTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->once())->method('flush');
 
-        $handler = new ShopSocialLoginHandler(
-            $this->createStub(CustomerRepositoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $linkRepository,
-            $entityManager,
-        );
+        $handler = $this->handler(linkRepository: $linkRepository, entityManager: $entityManager);
 
         $handler->touchLastUsed($user, new OAuthUserInfo('google', 'g-1', 'x@y.com'));
     }
@@ -253,14 +198,25 @@ class ShopSocialLoginHandlerTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->never())->method('flush');
 
-        $handler = new ShopSocialLoginHandler(
-            $this->createStub(CustomerRepositoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $this->createStub(FactoryInterface::class),
-            $linkRepository,
-            $entityManager,
-        );
+        $handler = $this->handler(linkRepository: $linkRepository, entityManager: $entityManager);
 
         $handler->touchLastUsed($user, new OAuthUserInfo('google', 'g-1', 'x@y.com'));
+    }
+
+    protected function handler(
+        ?CustomerRepositoryInterface $customerRepository = null,
+        ?FactoryInterface $customerFactory = null,
+        ?FactoryInterface $shopUserFactory = null,
+        ?CustomerSocialAccountLinkRepositoryInterface $linkRepository = null,
+        ?EntityManagerInterface $entityManager = null,
+    ): ShopSocialLoginHandler {
+        return new ShopSocialLoginHandler(
+            $customerRepository ?? $this->createStub(CustomerRepositoryInterface::class),
+            $customerFactory ?? $this->createStub(FactoryInterface::class),
+            $shopUserFactory ?? $this->createStub(FactoryInterface::class),
+            $linkRepository ?? $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
+            $entityManager ?? $this->createStub(EntityManagerInterface::class),
+            new AutoRegistrationPolicy(),
+        );
     }
 }

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
 use Sylius\Component\Core\Model\CustomerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\CustomerDeletionRequestRepositoryInterface as BundleCustomerDeletionRequestRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequestInterface;
 
-interface CustomerDeletionRequestRepositoryInterface
+interface CustomerDeletionRequestRepositoryInterface extends BundleCustomerDeletionRequestRepositoryInterface
 {
     public function findActiveForCustomer(CustomerInterface $customer): ?CustomerDeletionRequestInterface;
 

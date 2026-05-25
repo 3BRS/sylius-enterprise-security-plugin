@@ -16,10 +16,10 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerPasswordHistory;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AbstractPasswordHistoryListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ShopUserPasswordHistoryListener;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepositoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 /** @internal test double: shop user with expiration tracking */
 interface TestShopUserForHistory extends ShopUserInterface, PasswordExpirationShopUserInterface

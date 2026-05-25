@@ -8,10 +8,11 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelistInterface;
+use ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcher;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 #[CoversClass(IpWhitelistChecker::class)]
 class IpWhitelistCheckerTest extends TestCase
@@ -46,7 +47,7 @@ class IpWhitelistCheckerTest extends TestCase
         $repository->method('findOneByAdminUser')->willReturn($perAdmin);
         $repository->method('findAllEnabled')->willReturn($allEnabled);
 
-        return new IpWhitelistChecker($settings, $repository);
+        return new IpWhitelistChecker($settings, $repository, new CidrMatcher());
     }
 
     private function admin(): AdminUserInterface
@@ -148,7 +149,7 @@ class IpWhitelistCheckerTest extends TestCase
         $settings->method('get')->willReturn(['10.0.0.0/8', '', 42, null, '192.168.1.1']);
         $repository = $this->createStub(AdminUserIpWhitelistRepositoryInterface::class);
 
-        $checker = new IpWhitelistChecker($settings, $repository);
+        $checker = new IpWhitelistChecker($settings, $repository, new CidrMatcher());
 
         self::assertSame(['10.0.0.0/8', '192.168.1.1'], $checker->getGlobalCidrs());
     }

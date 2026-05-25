@@ -18,7 +18,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\ForcePasswordResetController;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 
 /** @internal */
 interface TestShopUserForcePassword extends \Sylius\Component\Core\Model\ShopUserInterface, PasswordExpirationShopUserInterface

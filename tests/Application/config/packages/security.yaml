@@ -83,7 +83,7 @@ security:
             provider: sylius_shop_user_provider
             user_checker: security.user_checker.chain.shop
             form_login:
-                success_handler: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler.shop
+                success_handler: ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler.shop
                 failure_handler: sylius.authentication.failure_handler
                 provider: sylius_shop_user_provider
                 login_path: sylius_shop_login

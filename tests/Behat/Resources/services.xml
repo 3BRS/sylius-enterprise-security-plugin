@@ -84,7 +84,7 @@
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator"/>
+			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.two_factor_login"
@@ -100,7 +100,7 @@
 			<argument type="service" id="sylius.repository.admin_user"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator"/>
+			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.two_factor_login"
@@ -115,7 +115,7 @@
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator"/>
+			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository"/>
 		</service>
 
@@ -124,7 +124,7 @@
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.admin_user"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator"/>
+			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository"/>
 		</service>
 
@@ -180,7 +180,7 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\MagicLinkContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.customer"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator"/>
+			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
 
@@ -188,7 +188,7 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\MagicLinkContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.admin_user"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\MagicLinkTokenGenerator"/>
+			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
 
@@ -313,7 +313,7 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessor"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
 		</service>

@@ -13,7 +13,7 @@ services:
     # buttons appear and the flow works without external credentials. The fake
     # honors the runtime enabled flag from SettingsProvider — admin can toggle
     # Google off in the Settings UI and the button disappears like in prod.
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\GoogleOAuthProvider:
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\GoogleOAuthProvider:
         class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
         arguments:
             $name: 'google'
@@ -23,7 +23,7 @@ services:
             - { name: 'three_brs.oauth_provider' }
 
     # Override the real Apple OAuth provider with a fake one in dev.
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\AppleOAuthProvider:
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\AppleOAuthProvider:
         class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
         arguments:
             $name: 'apple'
@@ -36,5 +36,5 @@ services:
     # information for Docker/local IPs without requiring a MaxMind database.
     Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\FakeGeoIpLookup: ~
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface:
+    ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface:
         alias: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\FakeGeoIpLookup

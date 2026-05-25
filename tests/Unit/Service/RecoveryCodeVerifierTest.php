@@ -14,7 +14,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCodeInterfac
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerRecoveryCodeInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepositoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeGenerator;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeVerifier;
 
 #[CoversClass(RecoveryCodeVerifier::class)]

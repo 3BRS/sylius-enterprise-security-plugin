@@ -133,12 +133,12 @@ three_brs_admin_social_account_unlink:
 
 three_brs_admin_social_accounts:
     path: /admin/social-accounts
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountsController
+    controller: three_brs.controller.admin.social_accounts
     methods: [GET]
 
 three_brs_shop_social_accounts:
     path: /{_locale}/account/social-accounts
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountsController
+    controller: three_brs.controller.shop.social_accounts
     methods: [GET]
     requirements:
         _locale: '[a-z]{2}(?:_[A-Z]{2})?'
@@ -194,7 +194,7 @@ three_brs_shop_passkey_register_verify:
 
 three_brs_shop_passkey_login_options:
     path: /passkey/login/options
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyLoginOptionsController
+    controller: three_brs.controller.shop.passkey_login_options
     methods: [POST]
 
 three_brs_shop_passkey_login_verify:
@@ -226,7 +226,7 @@ three_brs_admin_passkey_register_verify:
 
 three_brs_admin_passkey_login_options:
     path: /admin/passkey/login/options
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyLoginOptionsController
+    controller: three_brs.controller.admin.passkey_login_options
     methods: [POST]
 
 three_brs_admin_passkey_login_verify:
@@ -236,7 +236,7 @@ three_brs_admin_passkey_login_verify:
 
 three_brs_admin_locked_customers:
     path: /admin/locked-customers
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedCustomersController
+    controller: three_brs.controller.admin.locked_customers
     methods: [GET]
 
 three_brs_admin_locked_customer_unlock:
@@ -248,7 +248,7 @@ three_brs_admin_locked_customer_unlock:
 
 three_brs_admin_locked_admins:
     path: /admin/locked-admins
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedAdminsController
+    controller: three_brs.controller.admin.locked_admins
     methods: [GET]
 
 three_brs_admin_locked_admin_unlock:
@@ -318,7 +318,7 @@ three_brs_shop_account_deletion_request:
 
 three_brs_admin_account_deletions:
     path: /admin/account-deletions
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\AccountDeletionsController
+    controller: three_brs.controller.admin.account_deletions
     methods: [GET]
 
 three_brs_admin_account_deletion_cancel:

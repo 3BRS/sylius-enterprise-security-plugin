@@ -1,4 +1,4 @@
-.PHONY: run up down init var ci
+.PHONY: run up down init var ci bundle-install bundle-phpstan bundle-ecs bundle-phpunit bundle-tests bundle-fix
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
 export COMPOSE_FILE := compose.yml:compose.override.yaml
@@ -117,9 +117,26 @@ fixtures: schema-reset bare-fixtures
 
 static: phpstan ecs lint
 
-tests: static behat
+tests: static behat bundle-tests
 
 ci: init-tests tests
+
+bundle-install:
+	./bin-docker/docker-bash -c "cd packages/enterprise-security-bundle && composer install --no-interaction --no-progress"
+
+bundle-phpstan: bundle-install
+	./bin-docker/docker-bash -c "cd packages/enterprise-security-bundle && vendor/bin/phpstan analyse --memory-limit=1G --no-progress"
+
+bundle-ecs: bundle-install
+	./bin-docker/docker-bash -c "cd packages/enterprise-security-bundle && vendor/bin/ecs check"
+
+bundle-fix: bundle-install
+	./bin-docker/docker-bash -c "cd packages/enterprise-security-bundle && vendor/bin/ecs check --fix"
+
+bundle-phpunit: bundle-install
+	./bin-docker/docker-bash -c "cd packages/enterprise-security-bundle && vendor/bin/phpunit"
+
+bundle-tests: bundle-phpstan bundle-ecs bundle-phpunit
 
 say-ok:
 	@echo "✅ OK ✅"

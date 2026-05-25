@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu;
 
 use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\FeatureToggleInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 {

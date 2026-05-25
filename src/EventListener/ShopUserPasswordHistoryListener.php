@@ -6,10 +6,10 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener;
 
 use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerPasswordHistory;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasswordHistoryRepositoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 /**
  * @extends AbstractPasswordHistoryListener<ShopUserInterface>

@@ -100,7 +100,12 @@
     "repositories": [
         {
             "type": "path",
-            "url": "./packages/enterprise-security-bundle"
+            "url": "./packages/enterprise-security-bundle",
+            "options": {
+                "versions": {
+                    "3brs/enterprise-security-bundle": "1.0.0"
+                }
+            }
         }
     ],
     "autoload": {
@@ -112,7 +117,7 @@
         "psr-4": {
             "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\": "tests/Application/src/",
             "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\Behat\\": "tests/Behat/",
-            "Tests\\ThreeBRS\\SyliusEnterpriseSecurityBundle\\": "packages/enterprise-security-bundle/tests/"
+            "Tests\\ThreeBRS\\EnterpriseSecurityBundle\\": "packages/enterprise-security-bundle/tests/"
         }
     },
     "config": {

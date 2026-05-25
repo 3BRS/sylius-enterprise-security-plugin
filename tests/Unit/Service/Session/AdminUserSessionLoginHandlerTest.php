@@ -15,11 +15,11 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEma
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserNewDeviceDetectorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTrackerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpResult;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionFingerprintGeneratorInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentInfo;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\UserAgentParserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpResult;
+use ThreeBRS\EnterpriseSecurityBundle\Session\SessionFingerprintGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentInfo;
+use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParserInterface;
 
 #[CoversClass(AdminUserSessionLoginHandler::class)]
 class AdminUserSessionLoginHandlerTest extends TestCase

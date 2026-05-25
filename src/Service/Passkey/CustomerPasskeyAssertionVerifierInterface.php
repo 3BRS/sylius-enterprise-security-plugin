@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 
-interface CustomerPasskeyAssertionVerifierInterface
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyAssertionVerifierInterface;
+
+interface CustomerPasskeyAssertionVerifierInterface extends PasskeyAssertionVerifierInterface
 {
     public function verify(string $credentialResponseJson, string $host): CustomerPasskeyAssertionResultInterface;
 }

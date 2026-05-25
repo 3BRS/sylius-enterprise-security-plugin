@@ -10,7 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Routing\RouterInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
 use Webmozart\Assert\Assert;
 
 class PasswordExpirationContext implements Context

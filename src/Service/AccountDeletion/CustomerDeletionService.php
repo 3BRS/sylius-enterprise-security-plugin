@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\GracePeriodCalculatorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequest;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequestInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManagerInterface;
@@ -24,6 +25,7 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         protected EntityManagerInterface $entityManager,
         protected ClockInterface $clock,
         protected LoggerInterface $logger,
+        protected GracePeriodCalculatorInterface $gracePeriodCalculator,
         protected int $gracePeriodDays,
     ) {
     }
@@ -38,7 +40,7 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
 
         $request = new CustomerDeletionRequest();
         $request->setCustomer($customer);
-        $request->setScheduledFor($now->add(new \DateInterval('P' . $this->gracePeriodDays . 'D')));
+        $request->setScheduledFor($this->gracePeriodCalculator->calculateScheduledFor($now, $this->gracePeriodDays));
 
         $this->disableShopUser($customer);
 
@@ -72,37 +74,6 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         $this->enableShopUser($request->getCustomer());
 
         $this->entityManager->flush();
-    }
-
-    public function processDueRequests(): int
-    {
-        $now = $this->clock->now();
-        $due = $this->repository->findDue($now);
-        $processed = 0;
-
-        foreach ($due as $request) {
-            $customer = $request->getCustomer();
-
-            // Send the completion email BEFORE anonymizing — afterwards
-            // customer.email points at deleted-{id}@anonymized.invalid.
-            // Caught: SMTP failure must not block the deletion (otherwise the
-            // customer's PII would linger because of an external system fault);
-            // log + carry on with anonymisation.
-            try {
-                $this->emailManager->sendDeletionCompleted($customer);
-            } catch (\Throwable $exception) {
-                $this->logger->warning('three_brs.account_deletion.completed_email_failed', [
-                    'customer_id' => $customer->getId(),
-                    'reason' => $exception->getMessage(),
-                ]);
-            }
-            $this->anonymizer->anonymize($customer);
-            $request->setCompletedAt($now);
-            $this->entityManager->flush();
-            ++$processed;
-        }
-
-        return $processed;
     }
 
     protected function disableShopUser(CustomerInterface $customer): void

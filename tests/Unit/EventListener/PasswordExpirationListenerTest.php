@@ -15,9 +15,9 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordExpirationListener;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordExpirationCheckerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationCheckerInterface;
 
 /** @internal test double: shop user with expiration support */
 interface TestShopUser extends PasswordExpirationShopUserInterface, UserInterface

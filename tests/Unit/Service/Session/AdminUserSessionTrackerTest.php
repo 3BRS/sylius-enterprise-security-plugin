@@ -12,8 +12,8 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserSession;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpLookupInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\GeoIpResult;
+use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpResult;
 
 #[CoversClass(AdminUserSessionTracker::class)]
 class AdminUserSessionTrackerTest extends TestCase

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
 use Sylius\Component\Core\Model\ShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyCredentialRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerPasskeyCredentialInterface;
 
-interface CustomerPasskeyCredentialRepositoryInterface
+interface CustomerPasskeyCredentialRepositoryInterface extends PasskeyCredentialRepositoryInterface
 {
     public function findOneByCredentialId(string $credentialId): ?CustomerPasskeyCredentialInterface;
 

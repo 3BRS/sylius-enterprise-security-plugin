@@ -9,10 +9,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\LockoutPolicy;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RateLimit\RateLimitGuardInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockoutPolicy;
+use ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuardInterface;
 
 /** @internal */
 interface TestLockableAdminUser extends LockableAdminUserInterface, AdminUserInterface

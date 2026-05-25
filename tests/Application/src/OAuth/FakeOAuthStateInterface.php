@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth;
 
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\OAuthUserInfoInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
 
 interface FakeOAuthStateInterface
 {

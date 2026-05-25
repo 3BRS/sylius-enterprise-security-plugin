@@ -10,7 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Positive;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorMode;
+use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorMode;
 
 /**
  * @extends AbstractType<array<string, mixed>>

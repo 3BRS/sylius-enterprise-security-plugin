@@ -6,10 +6,10 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener;
 
 use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasswordHistory;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasswordHistoryRepositoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
 
 /**
  * @extends AbstractPasswordHistoryListener<AdminUserInterface>

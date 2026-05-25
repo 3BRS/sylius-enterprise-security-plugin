@@ -12,10 +12,11 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\Constraint\PasswordHistory;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\PasswordHistoryValidatorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryCheckerInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProviderInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Validator\Constraint\PasswordHistory;
 
 class PasswordHistoryValidator extends ConstraintValidator implements PasswordHistoryValidatorInterface
 {

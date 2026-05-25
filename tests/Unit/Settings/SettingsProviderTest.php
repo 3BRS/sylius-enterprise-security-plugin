@@ -8,9 +8,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\SecuritySetting;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\SecuritySettingRepositoryInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\Defaults\SettingsDefaultsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\Defaults\SettingsDefaultsProviderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 #[CoversClass(SettingsProvider::class)]
 class SettingsProviderTest extends TestCase
