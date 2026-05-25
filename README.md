@@ -245,7 +245,7 @@ three_brs_sylius_enterprise_security:
                 enabled: false
                 client_id: '%env(MICROSOFT_ADMIN_CLIENT_ID)%'
                 client_secret: '%env(MICROSOFT_ADMIN_CLIENT_SECRET)%'
-                tenant: 'organizations'                # admin recommendation: restrict to work/school accounts (or a tenant GUID for a single org)
+                tenant: 'common'                       # for admin/B2B consider 'organizations' (work/school only) or a tenant GUID (single org)
 ```
 
 Callback URLs to register with the providers:
