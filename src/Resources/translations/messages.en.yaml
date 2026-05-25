@@ -80,6 +80,7 @@ three_brs:
             menu_item: '3rd-party OAuth'
             or_continue_with: 'Or continue with'
             linked_accounts_title: 'Linked 3rd-party OAuth accounts'
+            link_accounts_title: 'Link 3rd-party OAuth accounts'
             available_providers_title: 'Available providers'
             no_links_yet: 'You have not linked any 3rd-party OAuth accounts yet.'
             no_links_yet_subtitle: 'Link a provider from the list to sign in faster next time.'

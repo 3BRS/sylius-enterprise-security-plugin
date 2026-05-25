@@ -14,7 +14,7 @@
             </div>
             <div class="col-12 col-md-9">
                 <div class="mb-4">
-                    <h1>{{ 'three_brs.ui.social_login.linked_accounts_title'|trans }}</h1>
+                    <h1>{{ 'three_brs.ui.social_login.menu_item'|trans }}</h1>
                 </div>
 
                 <div class="card mb-4">
@@ -31,68 +31,75 @@
                     {% set providers = three_brs_social_providers('customer') %}
                     {% set linkable = providers|filter(p => links|filter(l => l.provider == p)|length == 0) %}
 
-                    <div class="row g-3" data-test-three-brs-social-links>
-                        <div class="col-12 col-lg-7">
-                            <div class="card h-100">
-                                <div class="card-header">
-                                    <h2 class="h5 card-title mb-0">{{ 'three_brs.ui.social_login.linked_accounts_title'|trans }}</h2>
-                                </div>
-                                <div class="card-body">
-                                    {% if links|length > 0 %}
-                                        <ul class="list-group list-group-flush">
-                                            {% for link in links %}
-                                                <li class="list-group-item px-0 py-3">
-                                                    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
-                                                        <div>
-                                                            <div class="fw-semibold fs-5">
-                                                                {{ ('three_brs.ui.social_login.provider.' ~ link.provider)|trans }}
-                                                            </div>
-                                                            {% if link.email %}
-                                                                <div class="text-muted small">{{ link.email }}</div>
-                                                            {% endif %}
-                                                        </div>
-                                                        <button type="button"
-                                                                class="btn btn-outline-danger"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#three-brs-shop-social-unlink-modal-{{ link.provider }}"
-                                                                data-test-three-brs-social-unlink="{{ link.provider }}">
-                                                            {{ 'three_brs.ui.social_login.unlink'|trans }}
-                                                        </button>
-                                                    </div>
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% else %}
-                                        <div class="text-center py-4">
-                                            <p class="text-muted mb-1 fw-semibold">{{ 'three_brs.ui.social_login.no_links_yet'|trans }}</p>
-                                            <p class="text-muted small mb-0">{{ 'three_brs.ui.social_login.no_links_yet_subtitle'|trans }}</p>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-lg-5">
-                            <div class="card h-100">
-                                <div class="card-header">
-                                    <h2 class="h5 card-title mb-0">{{ 'three_brs.ui.social_login.available_providers_title'|trans }}</h2>
-                                </div>
-                                <div class="card-body">
-                                    {% if linkable|length > 0 %}
-                                        <div class="d-flex flex-column gap-2">
-                                            {% for provider in linkable %}
-                                                <a href="{{ path('three_brs_shop_oauth_initiate', {'provider': provider, 'intent': 'link'}) }}"
-                                                   class="btn btn-outline-primary btn-lg w-100"
+                    <div class="card" data-test-three-brs-social-links>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="h5 mb-0">{{ 'three_brs.ui.social_login.link_accounts_title'|trans }}</h2>
+                            {% if linkable|length > 0 %}
+                                <div class="dropdown">
+                                    <button type="button"
+                                            class="btn btn-primary dropdown-toggle"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                            data-test-three-brs-social-create>
+                                        {{ 'sylius.ui.create'|trans }}
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        {% for provider in linkable %}
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="{{ path('three_brs_shop_oauth_initiate', {'provider': provider, 'intent': 'link'}) }}"
                                                    data-test-three-brs-social-link="{{ provider }}">
-                                                    {{ 'three_brs.ui.social_login.link_provider'|trans({'%provider%': ('three_brs.ui.social_login.provider.' ~ provider)|trans}) }}
+                                                    <i class="icon ti {{ shared.provider_icon_class(provider) }} me-2"></i>
+                                                    {{ ('three_brs.ui.social_login.provider.' ~ provider)|trans }}
                                                 </a>
-                                            {% endfor %}
-                                        </div>
-                                    {% else %}
-                                        <p class="text-muted text-center mb-0 py-4">{{ 'three_brs.ui.social_login.all_linked'|trans }}</p>
-                                    {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
                                 </div>
-                            </div>
+                            {% elseif links|length > 0 %}
+                                <span class="text-secondary d-inline-flex align-items-center"
+                                      data-test-three-brs-social-all-linked>
+                                    <i class="icon ti ti-check me-1"></i>
+                                    {{ 'three_brs.ui.social_login.all_linked'|trans }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% if links|length > 0 %}
+                                <ul class="list-group list-group-flush">
+                                    {% for link in links %}
+                                        <li class="list-group-item px-0 py-3">
+                                            <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <span class="avatar bg-secondary-lt">
+                                                        <i class="icon ti {{ shared.provider_icon_class(link.provider) }}"></i>
+                                                    </span>
+                                                    <div>
+                                                        <div class="fw-semibold fs-5">
+                                                            {{ ('three_brs.ui.social_login.provider.' ~ link.provider)|trans }}
+                                                        </div>
+                                                        {% if link.email %}
+                                                            <div class="text-muted small">{{ link.email }}</div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <button type="button"
+                                                        class="btn btn-outline-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#three-brs-shop-social-unlink-modal-{{ link.provider }}"
+                                                        data-test-three-brs-social-unlink="{{ link.provider }}">
+                                                    {{ 'three_brs.ui.social_login.unlink'|trans }}
+                                                </button>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <p class="text-muted mb-1 fw-semibold">{{ 'three_brs.ui.social_login.no_links_yet'|trans }}</p>
+                                    <p class="text-muted small mb-0">{{ 'three_brs.ui.social_login.no_links_yet_subtitle'|trans }}</p>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 {% endif %}
