@@ -7,12 +7,12 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Model;
 class PasswordPolicy implements PasswordPolicyInterface
 {
     public function __construct(
-        private int $minLength,
-        private ?int $maxLength,
-        private bool $requireUppercase,
-        private bool $requireLowercase,
-        private bool $requireNumbers,
-        private bool $requireSpecialCharacters,
+        protected int $minLength,
+        protected ?int $maxLength,
+        protected bool $requireUppercase,
+        protected bool $requireLowercase,
+        protected bool $requireNumbers,
+        protected bool $requireSpecialCharacters,
     ) {
     }
 

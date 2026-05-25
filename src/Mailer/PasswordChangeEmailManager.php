@@ -13,8 +13,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class PasswordChangeEmailManager implements PasswordChangeEmailManagerInterface
 {
     public function __construct(
-        private SenderInterface $emailSender,
-        private UrlGeneratorInterface $router,
+        protected SenderInterface $emailSender,
+        protected UrlGeneratorInterface $router,
     ) {
     }
 

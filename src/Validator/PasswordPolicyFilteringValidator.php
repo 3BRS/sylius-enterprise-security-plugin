@@ -16,7 +16,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PasswordPolicyFilteringValidator implements PasswordPolicyFilteringValidatorInterface
 {
-    public function __construct(private ValidatorInterface $inner)
+    public function __construct(protected ValidatorInterface $inner)
     {
     }
 
@@ -55,7 +55,7 @@ class PasswordPolicyFilteringValidator implements PasswordPolicyFilteringValidat
         return $this->inner->hasMetadataFor($value);
     }
 
-    private function filter(ConstraintViolationListInterface $violations): ConstraintViolationListInterface
+    protected function filter(ConstraintViolationListInterface $violations): ConstraintViolationListInterface
     {
         $passwordPolicyPaths = [];
         foreach ($violations as $violation) {

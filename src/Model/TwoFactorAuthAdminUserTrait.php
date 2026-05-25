@@ -11,13 +11,13 @@ use Scheb\TwoFactorBundle\Model\Totp\TotpConfigurationInterface;
 trait TwoFactorAuthAdminUserTrait
 {
     #[ORM\Column(name: 'totp_secret', type: 'string', nullable: true)]
-    private ?string $totpSecret = null;
+    protected ?string $totpSecret = null;
 
     #[ORM\Column(name: 'two_factor_enabled', type: 'boolean', options: ['default' => false])]
-    private bool $twoFactorEnabled = false;
+    protected bool $twoFactorEnabled = false;
 
     #[ORM\Column(name: 'trusted_token_version', type: 'integer', options: ['default' => 0])]
-    private int $trustedTokenVersion = 0;
+    protected int $trustedTokenVersion = 0;
 
     public function getTotpSecret(): ?string
     {

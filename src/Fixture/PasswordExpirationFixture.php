@@ -19,9 +19,9 @@ class PasswordExpirationFixture extends AbstractFixture implements PasswordExpir
      * @param UserRepositoryInterface<\Sylius\Component\User\Model\UserInterface>         $adminUserRepository
      */
     public function __construct(
-        private CustomerRepositoryInterface $customerRepository,
-        private UserRepositoryInterface $adminUserRepository,
-        private EntityManagerInterface $entityManager,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected UserRepositoryInterface $adminUserRepository,
+        protected EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -60,7 +60,7 @@ class PasswordExpirationFixture extends AbstractFixture implements PasswordExpir
     }
 
     /** @param array<string, mixed> $entry */
-    private function applyExpiration(PasswordExpirationShopUserInterface|PasswordExpirationAdminUserInterface $user, array $entry): void
+    protected function applyExpiration(PasswordExpirationShopUserInterface|PasswordExpirationAdminUserInterface $user, array $entry): void
     {
         if ((bool) $entry['force_change']) {
             $user->setForcePasswordChange(true);
