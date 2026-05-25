@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo;
 
+use phpDocumentor\Reflection\DocBlock;
 use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyDescriptionExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyDocBlockExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyInitializableExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyListExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyReadInfo;
 use Symfony\Component\PropertyInfo\PropertyReadInfoExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyWriteInfo;
 use Symfony\Component\PropertyInfo\PropertyWriteInfoExtractorInterface;
 use Symfony\Component\PropertyInfo\Type as LegacyType;
 use Symfony\Component\TypeInfo\Exception\InvalidArgumentException;
@@ -32,6 +35,10 @@ use Symfony\Component\TypeInfo\Type;
  *
  * Despite the name, this decorator is reused for all property-info extractors;
  * the name is kept for git history.
+ *
+ * TODO: Remove once api-platform / Symfony TypeInfo fixes the regression
+ *       introduced in api-platform 4.3.6 (LegacyTypeConverter rejecting
+ *       `object|ClassName` unions widened from generic `@template` bounds).
  */
 class SafePhpStanExtractor implements
     PropertyTypeExtractorInterface,
@@ -110,21 +117,21 @@ class SafePhpStanExtractor implements
             : null;
     }
 
-    public function getDocBlock(string $class, string $property): ?\phpDocumentor\Reflection\DocBlock
+    public function getDocBlock(string $class, string $property): ?DocBlock
     {
         return $this->inner instanceof PropertyDocBlockExtractorInterface
             ? $this->inner->getDocBlock($class, $property)
             : null;
     }
 
-    public function getReadInfo(string $class, string $property, array $context = []): ?\Symfony\Component\PropertyInfo\PropertyReadInfo
+    public function getReadInfo(string $class, string $property, array $context = []): ?PropertyReadInfo
     {
         return $this->inner instanceof PropertyReadInfoExtractorInterface
             ? $this->inner->getReadInfo($class, $property, $context)
             : null;
     }
 
-    public function getWriteInfo(string $class, string $property, array $context = []): ?\Symfony\Component\PropertyInfo\PropertyWriteInfo
+    public function getWriteInfo(string $class, string $property, array $context = []): ?PropertyWriteInfo
     {
         return $this->inner instanceof PropertyWriteInfoExtractorInterface
             ? $this->inner->getWriteInfo($class, $property, $context)
