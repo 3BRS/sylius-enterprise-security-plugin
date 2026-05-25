@@ -102,4 +102,13 @@ class CustomerSessionTracker implements CustomerSessionTrackerInterface
         }
         $this->entityManager->flush();
     }
+
+    public function revokeAll(ShopUserInterface $user): void
+    {
+        $now = $this->clock->now();
+        foreach ($this->repository->findActiveForShopUser($user) as $session) {
+            $session->setRevokedAt($now);
+        }
+        $this->entityManager->flush();
+    }
 }

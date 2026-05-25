@@ -57,4 +57,31 @@ class CustomerSessionRepository extends ServiceEntityRepository implements Custo
             ->getOneOrNullResult()
         ;
     }
+
+    public function findAllForShopUser(ShopUserInterface $user, int $limit = 50): array
+    {
+        /** @var list<CustomerSession> $result */
+        $result = $this->createQueryBuilder('s')
+            ->where('s.shopUser = :user')
+            ->setParameter('user', $user)
+            ->orderBy('s.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult()
+        ;
+
+        return $result;
+    }
+
+    public function findByIdAndShopUser(int $id, ShopUserInterface $user): ?CustomerSessionInterface
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.id = :id')
+            ->andWhere('s.shopUser = :user')
+            ->setParameter('id', $id)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
 }

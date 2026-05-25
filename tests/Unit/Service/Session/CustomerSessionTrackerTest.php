@@ -173,6 +173,31 @@ class CustomerSessionTrackerTest extends TestCase
         self::assertNotNull($other->getRevokedAt());
     }
 
+    public function testRevokeAllRevokesEveryActiveSession(): void
+    {
+        $a = new CustomerSession();
+        $a->setSessionId('sess-a');
+        $b = new CustomerSession();
+        $b->setSessionId('sess-b');
+
+        $repository = $this->createStub(CustomerSessionRepositoryInterface::class);
+        $repository->method('findActiveForShopUser')->willReturn([$a, $b]);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::once())->method('flush');
+
+        $tracker = new CustomerSessionTracker(
+            $repository,
+            $em,
+            $this->createStub(GeoIpLookupInterface::class),
+            $this->fixedClock('2026-04-30 10:00:00'),
+        );
+        $tracker->revokeAll($this->createStub(ShopUserInterface::class));
+
+        self::assertEquals(new \DateTimeImmutable('2026-04-30 10:00:00'), $a->getRevokedAt());
+        self::assertEquals(new \DateTimeImmutable('2026-04-30 10:00:00'), $b->getRevokedAt());
+    }
+
     protected function fixedClock(string $datetime): ClockInterface
     {
         $clock = $this->createStub(ClockInterface::class);

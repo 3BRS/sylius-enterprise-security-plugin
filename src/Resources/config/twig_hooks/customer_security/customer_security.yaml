@@ -1,0 +1,6 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_admin.customer.show.content.sections':
+            three_brs_customer_security:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Customer/Security/section.html.twig'
+                priority: -100

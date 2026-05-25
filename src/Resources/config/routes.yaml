@@ -339,3 +339,39 @@ three_brs_admin_ip_whitelist_admin_edit:
     methods: [GET, POST]
     requirements:
         id: '\d+'
+
+three_brs_admin_customer_force_password_reset:
+    path: /admin/customers/{id}/force-password-reset
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\ForcePasswordResetController
+    methods: [POST]
+    requirements:
+        id: '\d+'
+
+three_brs_admin_customer_block:
+    path: /admin/customers/{id}/block
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\BlockAccountController
+    methods: [POST]
+    requirements:
+        id: '\d+'
+
+three_brs_admin_customer_unblock:
+    path: /admin/customers/{id}/unblock
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\UnblockAccountController
+    methods: [POST]
+    requirements:
+        id: '\d+'
+
+three_brs_admin_customer_revoke_all_sessions:
+    path: /admin/customers/{id}/revoke-all-sessions
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\RevokeAllSessionsController
+    methods: [POST]
+    requirements:
+        id: '\d+'
+
+three_brs_admin_customer_revoke_session:
+    path: /admin/customers/{id}/sessions/{sessionId}/revoke
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\RevokeSessionController
+    methods: [POST]
+    requirements:
+        id: '\d+'
+        sessionId: '\d+'
