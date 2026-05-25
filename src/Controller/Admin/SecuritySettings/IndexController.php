@@ -96,6 +96,7 @@ class IndexController implements IndexControllerInterface
             'oauth' => [
                 'google_enabled' => $this->settings->getBool('oauth.google.enabled', $scope),
                 'apple_enabled' => $this->settings->getBool('oauth.apple.enabled', $scope),
+                'microsoft_enabled' => $this->settings->getBool('oauth.microsoft.enabled', $scope),
             ],
         ];
 

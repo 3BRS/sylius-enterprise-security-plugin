@@ -196,6 +196,11 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
             $container->setParameter(sprintf('three_brs.oauth.%s.apple.team_id', $group), $apple['team_id']);
             $container->setParameter(sprintf('three_brs.oauth.%s.apple.key_id', $group), $apple['key_id']);
             $container->setParameter(sprintf('three_brs.oauth.%s.apple.private_key_path', $group), $apple['private_key_path']);
+
+            $microsoft = $config[$group]['microsoft'];
+            $container->setParameter(sprintf('three_brs.oauth.%s.microsoft.client_id', $group), $microsoft['client_id']);
+            $container->setParameter(sprintf('three_brs.oauth.%s.microsoft.client_secret', $group), $microsoft['client_secret']);
+            $container->setParameter(sprintf('three_brs.oauth.%s.microsoft.tenant', $group), $microsoft['tenant']);
         }
     }
 

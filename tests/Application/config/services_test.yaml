@@ -33,3 +33,13 @@ services:
             $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
         tags:
             - { name: 'three_brs.oauth_provider' }
+
+    # Override the real Microsoft OAuth provider with a fake one during tests.
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\MicrosoftOAuthProvider:
+        class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
+        arguments:
+            $name: 'microsoft'
+            $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+        tags:
+            - { name: 'three_brs.oauth_provider' }

@@ -217,6 +217,7 @@ class SaveController implements SaveControllerInterface
             return [
                 'google_enabled' => 'google.enabled',
                 'apple_enabled' => 'apple.enabled',
+                'microsoft_enabled' => 'microsoft.enabled',
             ];
         }
 

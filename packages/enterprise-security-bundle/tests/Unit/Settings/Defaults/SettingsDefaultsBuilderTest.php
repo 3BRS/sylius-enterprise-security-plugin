@@ -59,10 +59,14 @@ class SettingsDefaultsBuilderTest extends TestCase
 
         self::assertFalse($defaults[SettingsScope::CUSTOMER->value]['oauth.google.enabled']);
         self::assertNull($defaults[SettingsScope::CUSTOMER->value]['oauth.google.client_id']);
+        self::assertFalse($defaults[SettingsScope::CUSTOMER->value]['oauth.microsoft.enabled']);
+        self::assertNull($defaults[SettingsScope::CUSTOMER->value]['oauth.microsoft.client_id']);
+        self::assertSame('common', $defaults[SettingsScope::CUSTOMER->value]['oauth.microsoft.tenant']);
         self::assertSame('en_US', $defaults[SettingsScope::CUSTOMER->value]['oauth.default_locale']);
         self::assertSame([], $defaults[SettingsScope::CUSTOMER->value]['oauth.auto_register_allowed_email_domains']);
         self::assertSame('en_US', $defaults[SettingsScope::ADMIN->value]['oauth.default_locale']);
         self::assertSame([], $defaults[SettingsScope::ADMIN->value]['oauth.auto_register_allowed_email_domains']);
+        self::assertFalse($defaults[SettingsScope::ADMIN->value]['oauth.microsoft.enabled']);
     }
 
     /**
@@ -205,6 +209,12 @@ class SettingsDefaultsBuilderTest extends TestCase
                         'key_id' => null,
                         'private_key_path' => null,
                     ],
+                    'microsoft' => [
+                        'enabled' => false,
+                        'client_id' => null,
+                        'client_secret' => null,
+                        'tenant' => 'common',
+                    ],
                 ],
                 'admin' => [
                     'default_locale' => 'en_US',
@@ -220,6 +230,12 @@ class SettingsDefaultsBuilderTest extends TestCase
                         'team_id' => null,
                         'key_id' => null,
                         'private_key_path' => null,
+                    ],
+                    'microsoft' => [
+                        'enabled' => false,
+                        'client_id' => null,
+                        'client_secret' => null,
+                        'tenant' => 'common',
                     ],
                 ],
             ],

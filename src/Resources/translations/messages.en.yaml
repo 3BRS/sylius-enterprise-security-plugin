@@ -85,7 +85,7 @@ three_brs:
             no_links_yet: 'You have not linked any 3rd-party OAuth accounts yet.'
             no_links_yet_subtitle: 'Link a provider from the list to sign in faster next time.'
             all_linked: 'All available providers are already linked.'
-            customer_intro: 'Link your Google or Apple account to sign in faster next time. You can unlink a provider at any time — as long as you keep either a password or another linked provider.'
+            customer_intro: 'Link your Google, Apple or Microsoft account to sign in faster next time. You can unlink a provider at any time — as long as you keep either a password or another linked provider.'
             unlink: 'Unlink'
             link_provider: 'Link %provider%'
             provider_column: 'Provider'
@@ -93,6 +93,7 @@ three_brs:
             provider:
                 google: 'Google'
                 apple: 'Apple'
+                microsoft: 'Microsoft'
             confirm_link_title: 'Confirm account linking'
             confirm_link_intro: 'An account with the email %email% already exists. Enter its password to link your %provider% account.'
             password_label: 'Password'
@@ -335,6 +336,7 @@ three_brs:
                 description: 'Provider credentials (client_id, secret, etc.) remain in YAML configuration — only the enabled flag is runtime-mutable here.'
                 google_enabled: 'Google'
                 apple_enabled: 'Apple'
+                microsoft_enabled: 'Microsoft'
             oauth_admin_policy:
                 title: 'OAuth admin auto-registration'
                 description: 'Policy applied when an administrator signs in via OAuth and no matching account exists yet. Only emails from the whitelisted domains can be auto-registered.'

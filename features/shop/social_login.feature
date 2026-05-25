@@ -66,3 +66,18 @@ Feature: Customer social login (OAuth)
         And I am logged in as "existing@example.com"
         When I unlink my "google" social account
         Then the customer "existing@example.com" should still be linked to "google"
+
+    @ui
+    Scenario: First-time Microsoft social login creates a new account and logs me in
+        Given the "microsoft" OAuth provider will return user "ms-new-1" with email "ms-new@example.com"
+        When I click the "microsoft" social login button
+        Then I should be logged in as "ms-new@example.com"
+        And the customer "ms-new@example.com" should exist
+        And a social link should exist for "ms-new@example.com" with "microsoft" and provider id "ms-new-1"
+
+    @ui
+    Scenario: Logged-in customer links a Microsoft account from the social accounts page
+        Given I am logged in as "existing@example.com"
+        And the "microsoft" OAuth provider will return user "ms-link-1" with email "existing@example.com"
+        When I click the "microsoft" link button on the social accounts page
+        Then a social link should exist for "existing@example.com" with "microsoft" and provider id "ms-link-1"

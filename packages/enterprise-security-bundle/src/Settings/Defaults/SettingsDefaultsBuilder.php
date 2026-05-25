@@ -49,7 +49,7 @@ class SettingsDefaultsBuilder implements SettingsDefaultsBuilderInterface
             }
 
             foreach ($processedConfig['oauth'][$scope] as $key => $value) {
-                if ($key === 'google' || $key === 'apple') {
+                if ($key === 'google' || $key === 'apple' || $key === 'microsoft') {
                     foreach ($value as $providerKey => $providerValue) {
                         $result[$scope]['oauth.' . $key . '.' . $providerKey] = $providerValue;
                     }
