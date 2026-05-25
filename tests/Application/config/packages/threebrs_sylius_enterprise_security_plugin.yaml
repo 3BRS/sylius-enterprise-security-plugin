@@ -138,6 +138,11 @@ three_brs_sylius_enterprise_security:
             enabled: true
         admin:
             enabled: true
+    password_login_control:
+        customer:
+            enabled: true
+        admin:
+            enabled: true
     account_deletion:
         customer:
             enabled: true
