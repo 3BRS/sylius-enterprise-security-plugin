@@ -13,6 +13,7 @@ use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\AutoRegistrationPolicy;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfo;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSocialAccountLink;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSocialAccountLinkInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepositoryInterface;
@@ -209,6 +210,7 @@ class ShopSocialLoginHandlerTest extends TestCase
         ?FactoryInterface $shopUserFactory = null,
         ?CustomerSocialAccountLinkRepositoryInterface $linkRepository = null,
         ?EntityManagerInterface $entityManager = null,
+        ?SettingsProviderInterface $settings = null,
     ): ShopSocialLoginHandler {
         return new ShopSocialLoginHandler(
             $customerRepository ?? $this->createStub(CustomerRepositoryInterface::class),
@@ -216,6 +218,7 @@ class ShopSocialLoginHandlerTest extends TestCase
             $shopUserFactory ?? $this->createStub(FactoryInterface::class),
             $linkRepository ?? $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
             $entityManager ?? $this->createStub(EntityManagerInterface::class),
+            $settings ?? $this->createStub(SettingsProviderInterface::class),
             new AutoRegistrationPolicy(),
         );
     }

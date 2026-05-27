@@ -38,8 +38,8 @@ class SettingsDefaultsBuilderTest extends TestCase
         self::assertSame('TestIssuer', $defaults[SettingsScope::GLOBAL->value]['two_factor_authentication.issuer']);
         self::assertSame(60, $defaults[SettingsScope::GLOBAL->value]['two_factor_authentication.trusted_device.days']);
         self::assertNull($defaults[SettingsScope::GLOBAL->value]['passkey.rp_id']);
-        self::assertFalse($defaults[SettingsScope::GLOBAL->value]['ip_whitelist.enabled']);
-        self::assertSame([], $defaults[SettingsScope::GLOBAL->value]['ip_whitelist.global_cidrs']);
+        self::assertFalse($defaults[SettingsScope::ADMIN->value]['ip_whitelist.enabled']);
+        self::assertSame([], $defaults[SettingsScope::ADMIN->value]['ip_whitelist.global_cidrs']);
     }
 
     public function testBuildFlattensRateLimitActions(): void
@@ -57,6 +57,8 @@ class SettingsDefaultsBuilderTest extends TestCase
 
         self::assertFalse($defaults[SettingsScope::CUSTOMER->value]['oauth.google.enabled']);
         self::assertNull($defaults[SettingsScope::CUSTOMER->value]['oauth.google.client_id']);
+        self::assertSame('en_US', $defaults[SettingsScope::CUSTOMER->value]['oauth.default_locale']);
+        self::assertSame([], $defaults[SettingsScope::CUSTOMER->value]['oauth.auto_register_allowed_email_domains']);
         self::assertSame('en_US', $defaults[SettingsScope::ADMIN->value]['oauth.default_locale']);
         self::assertSame([], $defaults[SettingsScope::ADMIN->value]['oauth.auto_register_allowed_email_domains']);
     }

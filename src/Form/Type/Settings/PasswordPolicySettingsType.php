@@ -18,16 +18,6 @@ class PasswordPolicySettingsType extends AbstractType implements PasswordPolicyS
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('min_length', IntegerType::class, [
-                'label' => 'three_brs.ui.security_settings.password_policy.min_length',
-                'required' => true,
-                'constraints' => [new Positive()],
-            ])
-            ->add('max_length', IntegerType::class, [
-                'label' => 'three_brs.ui.security_settings.password_policy.max_length',
-                'required' => false,
-                'constraints' => [new Positive()],
-            ])
             ->add('require_uppercase', CheckboxType::class, [
                 'label' => 'three_brs.ui.security_settings.password_policy.require_uppercase',
                 'required' => false,
@@ -47,6 +37,16 @@ class PasswordPolicySettingsType extends AbstractType implements PasswordPolicyS
                 'label' => 'three_brs.ui.security_settings.password_policy.require_special_characters',
                 'required' => false,
                 'label_attr' => ['class' => 'checkbox-switch'],
+            ])
+            ->add('min_length', IntegerType::class, [
+                'label' => 'three_brs.ui.security_settings.password_policy.min_length',
+                'required' => true,
+                'constraints' => [new Positive()],
+            ])
+            ->add('max_length', IntegerType::class, [
+                'label' => 'three_brs.ui.security_settings.password_policy.max_length',
+                'required' => false,
+                'constraints' => [new Positive()],
             ])
         ;
     }

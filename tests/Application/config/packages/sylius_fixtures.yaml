@@ -211,7 +211,7 @@ sylius_fixtures:
                     options:
                         reset: true
                         overrides:
-                            global:
+                            admin:
                                 # Dev safety net: even if an admin flips the IP whitelist master
                                 # switch on through the UI, localhost AND the standard private
                                 # ranges are pre-allowed so the dev environment doesn't lock

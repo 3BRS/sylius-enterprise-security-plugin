@@ -29,14 +29,14 @@ class IpWhitelistCheckerTest extends TestCase
     ): IpWhitelistChecker {
         $settings = $this->createStub(SettingsProviderInterface::class);
         $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($enabled): bool {
-            if ($path === 'ip_whitelist.enabled' && $scope === SettingsScope::GLOBAL) {
+            if ($path === 'ip_whitelist.enabled' && $scope === SettingsScope::ADMIN) {
                 return $enabled;
             }
 
             return false;
         });
         $settings->method('get')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($globalCidrs): mixed {
-            if ($path === 'ip_whitelist.global_cidrs' && $scope === SettingsScope::GLOBAL) {
+            if ($path === 'ip_whitelist.global_cidrs' && $scope === SettingsScope::ADMIN) {
                 return $globalCidrs;
             }
 

@@ -90,8 +90,9 @@ class PasskeyContext implements Context
         Assert::notNull($stored, sprintf('Passkey "%s" not stored.', $credentialId));
 
         $page = $this->session->getPage();
-        $button = $page->find('css', sprintf('[data-test-three-brs-passkey-delete="%d"]', $stored->getId()));
-        Assert::notNull($button, sprintf('Delete button for passkey "%s" not found.', $credentialId));
+        $modalId = 'three-brs-shop-passkey-delete-modal-' . $stored->getId();
+        $button = $page->find('css', sprintf('[data-test-three-brs-modal-confirm="%s"]', $modalId));
+        Assert::notNull($button, sprintf('Delete confirm button for passkey "%s" not found in modal.', $credentialId));
         $button->click();
     }
 

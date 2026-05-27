@@ -9,6 +9,6 @@ use Symfony\Component\Form\FormTypeInterface;
 /**
  * @extends FormTypeInterface<array<string, mixed>>
  */
-interface OAuthAdminPolicySettingsTypeInterface extends FormTypeInterface
+interface OAuthAutoRegistrationPolicySettingsTypeInterface extends FormTypeInterface
 {
 }

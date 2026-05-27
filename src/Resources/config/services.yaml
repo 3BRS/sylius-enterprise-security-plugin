@@ -289,12 +289,8 @@ services:
         arguments:
             $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
         tags:
-            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addTwoFactorItem' }
-            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSocialAccountsItem' }
-            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addPasskeyItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addLockedCustomersItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addLockedAdminsItem' }
-            - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSessionsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addSecuritySettingsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addAccountDeletionsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.admin.main', method: 'addIpWhitelistItem' }
@@ -333,6 +329,7 @@ services:
             $shopUserFactory: '@sylius.factory.shop_user'
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
             $entityManager: '@doctrine.orm.entity_manager'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $autoRegistrationPolicy: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\AutoRegistrationPolicy'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandler:
@@ -1196,11 +1193,15 @@ services:
         tags:
             - { name: 'form.type' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAdminPolicySettingsType:
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAutoRegistrationPolicySettingsType:
         tags:
             - { name: 'form.type' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\AccountDeletionSettingsType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SecuritySettingsType:
         tags:
             - { name: 'form.type' }
 
@@ -1213,7 +1214,7 @@ services:
         tags:
             - { name: 'controller.service_arguments' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\SaveTabController:
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\SaveController:
         arguments:
             $writer: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter'
             $formFactory: '@form.factory'

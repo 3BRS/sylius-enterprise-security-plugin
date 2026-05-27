@@ -18,16 +18,16 @@ class AccountDeletionSettingsType extends AbstractType implements AccountDeletio
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('enabled', CheckboxType::class, [
+                'label' => 'three_brs.ui.security_settings.account_deletion.enabled',
+                'required' => false,
+                'label_attr' => ['class' => 'checkbox-switch'],
+            ])
             ->add('grace_period_days', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.account_deletion.grace_period_days',
                 'help' => 'three_brs.ui.security_settings.account_deletion.grace_period_days_help',
                 'required' => true,
                 'constraints' => [new Positive()],
-            ])
-            ->add('enabled', CheckboxType::class, [
-                'label' => 'three_brs.ui.security_settings.account_deletion.enabled',
-                'required' => false,
-                'label_attr' => ['class' => 'checkbox-switch'],
             ])
         ;
     }

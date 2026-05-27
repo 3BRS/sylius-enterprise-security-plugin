@@ -21,7 +21,7 @@ class IpWhitelistChecker implements IpWhitelistCheckerInterface
 
     public function isFeatureEnabled(): bool
     {
-        return $this->settingsProvider->getBool('ip_whitelist.enabled', SettingsScope::GLOBAL);
+        return $this->settingsProvider->getBool('ip_whitelist.enabled', SettingsScope::ADMIN);
     }
 
     public function isAllowedByGlobal(string $ip): bool
@@ -64,7 +64,7 @@ class IpWhitelistChecker implements IpWhitelistCheckerInterface
 
     public function getGlobalCidrs(): array
     {
-        $value = $this->settingsProvider->get('ip_whitelist.global_cidrs', SettingsScope::GLOBAL);
+        $value = $this->settingsProvider->get('ip_whitelist.global_cidrs', SettingsScope::ADMIN);
         if (!is_array($value)) {
             return [];
         }

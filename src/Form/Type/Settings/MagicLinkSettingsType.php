@@ -18,15 +18,15 @@ class MagicLinkSettingsType extends AbstractType implements MagicLinkSettingsTyp
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('expiration_seconds', IntegerType::class, [
-                'label' => 'three_brs.ui.security_settings.magic_link.expiration_seconds',
-                'required' => true,
-                'constraints' => [new GreaterThanOrEqual(60)],
-            ])
             ->add('enabled', CheckboxType::class, [
                 'label' => 'three_brs.ui.security_settings.magic_link.enabled',
                 'required' => false,
                 'label_attr' => ['class' => 'checkbox-switch'],
+            ])
+            ->add('expiration_seconds', IntegerType::class, [
+                'label' => 'three_brs.ui.security_settings.magic_link.expiration_seconds',
+                'required' => true,
+                'constraints' => [new GreaterThanOrEqual(60)],
             ])
         ;
     }

@@ -108,8 +108,9 @@ class SocialLoginContext implements Context
     public function iUnlinkMyAdminSocialAccount(string $provider): void
     {
         $this->session->visit('/admin/social-accounts');
-        $button = $this->session->getPage()->find('css', sprintf('[data-test-three-brs-social-unlink="%s"]', $provider));
-        Assert::notNull($button, sprintf('Admin unlink button for "%s" not found on social accounts page.', $provider));
+        $modalId = 'three-brs-admin-social-unlink-modal-' . $provider;
+        $button = $this->session->getPage()->find('css', sprintf('[data-test-three-brs-modal-confirm="%s"]', $modalId));
+        Assert::notNull($button, sprintf('Admin unlink confirm button for "%s" not found in modal.', $provider));
         $button->click();
     }
 

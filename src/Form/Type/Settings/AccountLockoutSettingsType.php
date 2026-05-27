@@ -18,6 +18,11 @@ class AccountLockoutSettingsType extends AbstractType implements AccountLockoutS
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('enabled', CheckboxType::class, [
+                'label' => 'three_brs.ui.security_settings.account_lockout.enabled',
+                'required' => false,
+                'label_attr' => ['class' => 'checkbox-switch'],
+            ])
             ->add('max_attempts', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.account_lockout.max_attempts',
                 'required' => true,
@@ -28,11 +33,6 @@ class AccountLockoutSettingsType extends AbstractType implements AccountLockoutS
                 'required' => false,
                 'help' => 'three_brs.ui.security_settings.account_lockout.auto_unlock_after_help',
                 'constraints' => [new Positive()],
-            ])
-            ->add('enabled', CheckboxType::class, [
-                'label' => 'three_brs.ui.security_settings.account_lockout.enabled',
-                'required' => false,
-                'label_attr' => ['class' => 'checkbox-switch'],
             ])
         ;
     }

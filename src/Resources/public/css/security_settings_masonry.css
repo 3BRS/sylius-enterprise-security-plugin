@@ -1,0 +1,11 @@
+@media (min-width: 992px) {
+    .three-brs-security-settings-masonry {
+        column-count: 2;
+        column-gap: 1rem;
+    }
+    .three-brs-security-settings-masonry-item {
+        break-inside: avoid;
+        -webkit-column-break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}

@@ -46,7 +46,7 @@ class IpWhitelistSettingsType extends AbstractType implements IpWhitelistSetting
         // an admin who really wants pure per-admin mode can add `0.0.0.0/0`
         // (and IPv6 `::/0`) to the global list as an explicit acknowledgement.
         // The error is attached to the `global_cidrs` field (not the root) so
-        // SaveTabController's CSRF detection — which treats root errors as
+        // SaveController's CSRF detection — which treats root errors as
         // expired-session — doesn't misclassify this as a CSRF mismatch.
         $builder->addEventListener(FormEvents::POST_SUBMIT, static function (FormEvent $event): void {
             $data = $event->getData();

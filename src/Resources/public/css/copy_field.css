@@ -1,0 +1,38 @@
+.three-brs-copy-field {
+    cursor: pointer;
+    padding-right: 2.75rem !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.three-brs-copy-field:hover,
+.three-brs-copy-field:focus-visible {
+    border-color: var(--bs-primary) !important;
+    outline: none;
+}
+
+.three-brs-copy-field-icon {
+    position: absolute;
+    right: 0.625rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--bs-secondary-color, #6c757d);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+    line-height: 0;
+}
+
+.three-brs-copy-field:hover .three-brs-copy-field-icon,
+.three-brs-copy-field:focus-visible .three-brs-copy-field-icon,
+.three-brs-copy-field.is-copied .three-brs-copy-field-icon {
+    opacity: 1;
+}
+
+.three-brs-copy-field.is-copied {
+    background-color: var(--bs-success-bg-subtle, #d1e7dd) !important;
+    border-color: var(--bs-success, #198754) !important;
+}
+
+.three-brs-copy-field.is-copied .three-brs-copy-field-icon {
+    color: var(--bs-success, #198754);
+}

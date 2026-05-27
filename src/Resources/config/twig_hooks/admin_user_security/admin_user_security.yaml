@@ -1,0 +1,9 @@
+sylius_twig_hooks:
+    hooks:
+        # Renders the Security card in the right column of the admin user
+        # update (edit) page, below Personal information — visually next to
+        # the Roles card sitting at the bottom of the left column.
+        'sylius_admin.admin_user.update.content.form.sections#right':
+            three_brs_admin_security:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/Security/section.html.twig'
+                priority: -100

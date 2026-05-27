@@ -20,7 +20,6 @@
                 <div class="row mt-3 row-gap-2">
                     <div class="col-12">
                         {{ header.h1('three_brs.ui.lockout.admins_title'|trans) }}
-                        <p class="text-secondary mb-0">{{ 'three_brs.ui.lockout.admins_intro'|trans }}</p>
                     </div>
                 </div>
             </div>
@@ -30,6 +29,14 @@
 
         <div class="page-body">
             <div class="container-xl">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p class="text-secondary mb-0">
+                            {{ 'three_brs.ui.lockout.admins_intro'|trans }}
+                        </p>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-body">
                         {% if users|length > 0 %}

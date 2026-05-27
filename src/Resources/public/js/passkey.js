@@ -191,7 +191,19 @@
         }
 
         if (registerButton) {
-            registerButton.addEventListener('click', function () { registerPasskey(registerButton); });
+            registerButton.addEventListener('click', function () {
+                // The submit button lives inside a Bootstrap modal — close the modal first
+                // so the browser's WebAuthn prompt isn't visually stacked on top of it.
+                var modalSelector = registerButton.getAttribute('data-modal-target');
+                if (modalSelector && typeof bootstrap !== 'undefined') {
+                    var modalEl = document.querySelector(modalSelector);
+                    if (modalEl) {
+                        var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                    }
+                }
+                registerPasskey(registerButton);
+            });
         }
         if (loginButton) {
             loginButton.addEventListener('click', function () { loginWithPasskey(loginButton); });

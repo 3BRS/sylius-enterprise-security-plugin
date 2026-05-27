@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu;
 
+use Knp\Menu\ItemInterface;
 use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
@@ -15,79 +16,18 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
     ) {
     }
 
-    public function addTwoFactorItem(MenuBuilderEvent $event): void
-    {
-        if (!$this->features->isTwoFactorActive(SettingsScope::ADMIN)) {
-            return;
-        }
-
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
-            ->addChild('two_factor_authentication', ['route' => 'three_brs_admin_two_factor_setup'])
-            ->setLabel('three_brs.ui.two_factor.menu_item')
-            ->setLabelAttribute('icon', 'tabler:shield-lock')
-        ;
-    }
-
-    public function addSocialAccountsItem(MenuBuilderEvent $event): void
-    {
-        if (
-            !$this->features->isEnabled('oauth.google', SettingsScope::ADMIN) &&
-            !$this->features->isEnabled('oauth.apple', SettingsScope::ADMIN)
-        ) {
-            return;
-        }
-
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
-            ->addChild('social_accounts', ['route' => 'three_brs_admin_social_accounts'])
-            ->setLabel('three_brs.ui.social_login.menu_item')
-            ->setLabelAttribute('icon', 'tabler:user-circle')
-        ;
-    }
-
-    public function addPasskeyItem(MenuBuilderEvent $event): void
-    {
-        if (!$this->features->isEnabled('passkey', SettingsScope::ADMIN)) {
-            return;
-        }
-
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
-            ->addChild('passkey', ['route' => 'three_brs_admin_passkey_index'])
-            ->setLabel('three_brs.ui.passkey.menu_item')
-            ->setLabelAttribute('icon', 'tabler:fingerprint')
-        ;
-    }
-
     public function addLockedCustomersItem(MenuBuilderEvent $event): void
     {
         if (!$this->features->isEnabled('account_lockout', SettingsScope::CUSTOMER)) {
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
+        $customers = $event->getMenu()->getChild('customers');
+        if ($customers === null) {
             return;
         }
 
-        $configuration
+        $customers
             ->addChild('locked_customers', ['route' => 'three_brs_admin_locked_customers'])
             ->setLabel('three_brs.ui.lockout.customers_menu_item')
             ->setLabelAttribute('icon', 'tabler:user-off')
@@ -101,7 +41,6 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
         }
 
         $configuration = $event->getMenu()->getChild('configuration');
-
         if ($configuration === null) {
             return;
         }
@@ -111,25 +50,8 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             ->setLabel('three_brs.ui.lockout.admins_menu_item')
             ->setLabelAttribute('icon', 'tabler:lock-off')
         ;
-    }
 
-    public function addSessionsItem(MenuBuilderEvent $event): void
-    {
-        if (!$this->features->isEnabled('session_management', SettingsScope::ADMIN)) {
-            return;
-        }
-
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
-            return;
-        }
-
-        $configuration
-            ->addChild('three_brs_sessions', ['route' => 'three_brs_admin_sessions'])
-            ->setLabel('three_brs.ui.session.menu_item')
-            ->setLabelAttribute('icon', 'tabler:devices')
-        ;
+        $this->placeItemAfter($configuration, 'locked_admins', 'admin_users');
     }
 
     public function addSecuritySettingsItem(MenuBuilderEvent $event): void
@@ -153,13 +75,12 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             return;
         }
 
-        $configuration = $event->getMenu()->getChild('configuration');
-
-        if ($configuration === null) {
+        $customers = $event->getMenu()->getChild('customers');
+        if ($customers === null) {
             return;
         }
 
-        $configuration
+        $customers
             ->addChild('three_brs_account_deletions', ['route' => 'three_brs_admin_account_deletions'])
             ->setLabel('three_brs.ui.account_deletion.admin_title')
             ->setLabelAttribute('icon', 'tabler:user-x')
@@ -168,12 +89,11 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
 
     public function addIpWhitelistItem(MenuBuilderEvent $event): void
     {
-        if (!$this->features->isEnabled('ip_whitelist', SettingsScope::GLOBAL)) {
+        if (!$this->features->isEnabled('ip_whitelist', SettingsScope::ADMIN)) {
             return;
         }
 
         $configuration = $event->getMenu()->getChild('configuration');
-
         if ($configuration === null) {
             return;
         }
@@ -183,5 +103,23 @@ class AdminMainMenuListener implements AdminMainMenuListenerInterface
             ->setLabel('three_brs.ui.ip_whitelist.menu_item')
             ->setLabelAttribute('icon', 'tabler:shield-lock')
         ;
+
+        // Place right under locked_admins when both are present; fall back to admin_users.
+        $anchor = $configuration->getChild('locked_admins') !== null ? 'locked_admins' : 'admin_users';
+        $this->placeItemAfter($configuration, 'three_brs_ip_whitelist', $anchor);
+    }
+
+    protected function placeItemAfter(ItemInterface $parent, string $newItem, string $afterItem): void
+    {
+        $names = array_keys($parent->getChildren());
+        if (!in_array($newItem, $names, true) || !in_array($afterItem, $names, true)) {
+            return;
+        }
+
+        $names = array_values(array_filter($names, static fn (string $name): bool => $name !== $newItem));
+        $anchorIndex = (int) array_search($afterItem, $names, true);
+        array_splice($names, $anchorIndex + 1, 0, $newItem);
+
+        $parent->reorderChildren($names);
     }
 }

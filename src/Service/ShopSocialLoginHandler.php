@@ -11,6 +11,8 @@ use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\AutoRegistrationPolicyInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSocialAccountLink;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepositoryInterface;
 
@@ -27,6 +29,7 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
         protected FactoryInterface $shopUserFactory,
         protected CustomerSocialAccountLinkRepositoryInterface $linkRepository,
         protected EntityManagerInterface $entityManager,
+        protected SettingsProviderInterface $settings,
         protected AutoRegistrationPolicyInterface $autoRegistrationPolicy,
     ) {
     }
@@ -52,7 +55,31 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
 
     public function canAutoRegister(OAuthUserInfoInterface $info): bool
     {
-        return $this->autoRegistrationPolicy->canAutoRegister($info, null);
+        $domains = $this->loadAllowedEmailDomains();
+
+        // Customer-scope semantics: empty whitelist = no restriction (allow any
+        // verified email). Preserves the historical default where any verified
+        // OAuth signup was accepted. Admins who want to restrict customer
+        // auto-registration (e.g. to reduce bot signups) can populate the list.
+        return $this->autoRegistrationPolicy->canAutoRegister($info, $domains === [] ? null : $domains);
+    }
+
+    /** @return list<string> */
+    protected function loadAllowedEmailDomains(): array
+    {
+        $value = $this->settings->get('oauth.auto_register_allowed_email_domains', SettingsScope::CUSTOMER);
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($value as $domain) {
+            if (is_string($domain) && $domain !== '') {
+                $result[] = $domain;
+            }
+        }
+
+        return $result;
     }
 
     /** @internal Callers must gate with {@see canAutoRegister()} before invoking. */

@@ -47,6 +47,10 @@ class AdminSocialLoginHandler implements AdminSocialLoginHandlerInterface
 
     public function canAutoRegister(OAuthUserInfoInterface $info): bool
     {
+        // Admin-scope semantics: empty whitelist = strict (no auto-registration).
+        // The bundle's AutoRegistrationPolicy treats `[]` as "no domain matches"
+        // → returns false. Counterpart in ShopSocialLoginHandler maps `[]` to
+        // `null` for the opposite ("no restriction") customer-scope default.
         return $this->autoRegistrationPolicy->canAutoRegister($info, $this->loadAllowedEmailDomains());
     }
 
