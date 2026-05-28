@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings;
 
 use LogicException;
+use Sylius\Component\Core\Model\AdminUserInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\FlashHelperTrait;
 use ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcherInterface;
@@ -18,6 +20,7 @@ use ThreeBRS\EnterpriseSecurityBundle\Settings\Exception\ConcurrentSettingsWrite
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SecuritySettingsType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 
 class SaveController implements SaveControllerInterface
 {
@@ -29,6 +32,8 @@ class SaveController implements SaveControllerInterface
         protected RouterInterface $router,
         protected TranslatorInterface $translator,
         protected CidrMatcherInterface $cidrMatcher,
+        protected TokenStorageInterface $tokenStorage,
+        protected AdminUserIpWhitelistRepositoryInterface $adminWhitelistRepository,
     ) {
     }
 
@@ -75,10 +80,11 @@ class SaveController implements SaveControllerInterface
         }
 
         if ($scope === SettingsScope::ADMIN && $this->locksOutCurrentAdmin($request, $values)) {
-            // The admin just blacklisted their own current IP — the redirect to
-            // the settings page will be denied (403) by the IP blacklist listener.
-            // Skip the success flash so it isn't left unconsumed in the session
-            // and then rendered on the next page the admin can still reach (e.g.
+            // The admin just locked themselves out of the admin panel — blacklisted
+            // their own IP, or removed it from an enabled whitelist. The redirect to
+            // the settings page will be denied (403) by the IP restriction listener,
+            // so skip the success flash: otherwise it lingers unconsumed in the
+            // session and renders on the next page the admin can still reach (e.g.
             // the shop front end).
             return $this->redirect($scope);
         }
@@ -89,20 +95,74 @@ class SaveController implements SaveControllerInterface
     }
 
     /**
-     * Whether the just-saved global IP blacklist covers the current request IP —
-     * i.e. the admin is locking themselves out of the admin panel.
+     * Whether the just-saved admin IP restriction settings would deny the current
+     * request IP from the admin panel — i.e. the admin is locking themselves out.
+     * Mirrors the request listeners: a global blacklist hit denies; with the
+     * whitelist enabled, an IP matching neither the global list nor the admin's own
+     * per-admin entry is denied.
      *
      * @param array<string, mixed> $values
      */
     protected function locksOutCurrentAdmin(Request $request, array $values): bool
     {
+        $ip = (string) $request->getClientIp();
+
+        return $this->blacklistDenies($ip, $values) || $this->whitelistDenies($ip, $values);
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     */
+    protected function blacklistDenies(string $ip, array $values): bool
+    {
         if (($values['ip_blacklist.enabled'] ?? false) !== true) {
             return false;
         }
 
-        $cidrs = $values['ip_blacklist.global_cidrs'] ?? [];
-        if (!is_array($cidrs)) {
+        return $this->cidrMatcher->matchesAny($ip, $this->cidrList($values['ip_blacklist.global_cidrs'] ?? null));
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     */
+    protected function whitelistDenies(string $ip, array $values): bool
+    {
+        if (($values['ip_whitelist.enabled'] ?? false) !== true) {
             return false;
+        }
+
+        // Allowed by the just-saved global list → not locked out.
+        if ($this->cidrMatcher->matchesAny($ip, $this->cidrList($values['ip_whitelist.global_cidrs'] ?? null))) {
+            return false;
+        }
+
+        // The admin's own per-admin whitelist entry (unaffected by this save) can
+        // still grant access even when the global list no longer covers them.
+        $admin = $this->currentAdmin();
+        if ($admin !== null) {
+            $entry = $this->adminWhitelistRepository->findOneByAdminUser($admin);
+            if ($entry !== null && $entry->isEnabled() && $this->cidrMatcher->matchesAny($ip, $entry->getCidrs())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function currentAdmin(): ?AdminUserInterface
+    {
+        $user = $this->tokenStorage->getToken()?->getUser();
+
+        return $user instanceof AdminUserInterface ? $user : null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function cidrList(mixed $cidrs): array
+    {
+        if (!is_array($cidrs)) {
+            return [];
         }
 
         $list = [];
@@ -112,7 +172,7 @@ class SaveController implements SaveControllerInterface
             }
         }
 
-        return $this->cidrMatcher->matchesAny((string) $request->getClientIp(), $list);
+        return $list;
     }
 
     protected function prefixForTab(string $tab): string

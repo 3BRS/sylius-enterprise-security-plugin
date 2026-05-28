@@ -1218,6 +1218,8 @@ services:
             $router: '@router'
             $translator: '@translator'
             $cidrMatcher: '@ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcher'
+            $tokenStorage: '@security.token_storage'
+            $adminWhitelistRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository'
         tags:
             - { name: 'controller.service_arguments' }
 

@@ -9,7 +9,6 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
-use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
 
@@ -23,12 +22,10 @@ class TwoFactorVerifyType extends AbstractType implements TwoFactorVerifyTypeInt
             'label' => 'three_brs.ui.two_factor.code',
             'constraints' => [
                 new NotBlank(message: 'three_brs.two_factor.code_required'),
-                new Length(
-                    min: 6,
-                    max: 6,
-                    exactMessage: 'three_brs.two_factor.invalid_code_length',
-                ),
-                new Regex(pattern: '/^\d{6}$/', message: 'three_brs.two_factor.invalid_code_format'),
+                // One rule (not separate length + digits checks): a numeric but
+                // wrong-length code like "12345" would otherwise surface two
+                // overlapping error messages.
+                new Regex(pattern: '/^\d{6}$/', message: 'three_brs.two_factor.invalid_code_length'),
             ],
             'attr' => [
                 'autocomplete' => 'one-time-code',
