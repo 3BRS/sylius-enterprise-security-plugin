@@ -28,7 +28,10 @@ class RevokeAllSessionsController extends AbstractCustomerSecurityActionControll
 
     public function __invoke(Request $request, int $id): Response
     {
-        $this->verifyCsrfTokenOrThrow($request, self::CSRF_TOKEN_ID);
+        $csrfFailure = $this->csrfFailureRedirect($request, self::CSRF_TOKEN_ID, $id);
+        if ($csrfFailure !== null) {
+            return $csrfFailure;
+        }
 
         $shopUser = $this->loadShopUserOr404($id);
         $this->sessionTracker->revokeAll($shopUser);

@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
@@ -48,8 +47,9 @@ class ForcePasswordResetControllerTest extends TestCase
     {
         $controller = $this->createController(null, validToken: false, expectFlush: false);
 
-        $this->expectException(BadRequestHttpException::class);
-        $controller(self::request('invalid-token'), 42);
+        $response = $controller(self::request('invalid-token'), 42);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
     }
 
     public function testThrows404WhenCustomerNotFound(): void

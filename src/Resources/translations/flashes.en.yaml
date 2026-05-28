@@ -26,11 +26,17 @@ three_brs:
         admin:
             saved: 'IP whitelist saved for this administrator.'
     customer_security:
+        session_expired: 'Your session was renewed (for example after signing in or out in another tab). Please try again.'
         password_reset_forced: 'The customer will be required to change their password on next sign-in.'
         blocked: 'Customer account has been blocked. Active sessions were signed out.'
         unblocked: 'Customer account has been unblocked.'
         sessions_revoked: 'All active sessions for this customer have been signed out.'
         session_revoked: 'The selected session has been signed out.'
+    password_login_control:
+        customer:
+            enabled: 'Password login has been enabled for this customer.'
+            disabled: 'Password login has been disabled for this customer.'
+            cannot_disable_last_method: 'Password login cannot be disabled — this customer has no other sign-in method (a connected social account, a passkey, or magic link).'
     ui:
         social_login:
             already_linked: 'This 3rd-party account is already linked to your account.'

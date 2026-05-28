@@ -28,9 +28,10 @@ abstract class AbstractPasswordLoginCheckListener implements EventSubscriberInte
 
     public static function getSubscribedEvents(): array
     {
-        // Priority 256 puts the check before Symfony's default UserBadge / PasswordCredentials
-        // resolution listener (priority 0) — we want to reject before the password hash is
-        // verified to avoid leaking a timing side-channel on whether the password was correct.
+        // Priority 256 runs the check before Symfony's CheckCredentialsListener (which
+        // verifies the password hash) — we reject a disabled password login up front to
+        // avoid leaking a timing side-channel on whether the password was correct. The user
+        // is already resolved here (UserProviderListener runs earlier, at priority 1024).
         return [
             CheckPassportEvent::class => ['onCheckPassport', 256],
         ];
@@ -48,12 +49,21 @@ abstract class AbstractPasswordLoginCheckListener implements EventSubscriberInte
             return;
         }
 
+        // Feature gate lives behind an abstract hook so the bundle stays
+        // settings-agnostic; the concrete binds it to the relevant scope toggle.
+        // When the feature is off, existing per-user preferences are ignored.
+        if (! $this->isFeatureEnabled()) {
+            return;
+        }
+
         if ($this->preferenceRepository->isPasswordLoginAllowedForUser($user)) {
             return;
         }
 
         throw new CustomUserMessageAuthenticationException($this->getErrorMessageKey());
     }
+
+    abstract protected function isFeatureEnabled(): bool;
 
     abstract protected function isAcceptableUser(UserInterface $user): bool;
 

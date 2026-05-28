@@ -84,6 +84,10 @@ services:
             - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension\AdminUserTypeExtension:
+        arguments:
+            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
+            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $translator: '@translator'
         tags:
             - { name: 'form.type_extension' }
 
@@ -344,6 +348,8 @@ services:
             $adminLinkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
             $customerPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository'
             $adminPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository'
+            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $oauthRegistry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthInitiateController:
         arguments:
@@ -444,6 +450,15 @@ services:
         arguments:
             $customerRepository: '@sylius.repository.customer'
             $adminUserRepository: '@sylius.repository.admin_user'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'sylius_fixtures.fixture' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\PasswordLoginControlFixture:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $adminUserRepository: '@sylius.repository.admin_user'
+            $customerPreferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository'
             $entityManager: '@doctrine.orm.entity_manager'
         tags:
             - { name: 'sylius_fixtures.fixture' }
@@ -1331,6 +1346,47 @@ services:
         tags:
             - { name: 'sylius_fixtures.fixture' }
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository:
+        arguments:
+            $registry: '@doctrine'
+        tags:
+            - { name: 'doctrine.repository_service' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepositoryInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserPasswordLoginPreferenceProvider: ~
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserPasswordLoginPreferenceProviderInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserPasswordLoginPreferenceProvider
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerPasswordLoginCheckListener:
+        arguments:
+            $preferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository'
+            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+        tags:
+            # Subscribes to CheckPassportEvent at priority 256 via getSubscribedEvents()
+            # (single source of truth in AbstractPasswordLoginCheckListener).
+            - { name: 'kernel.event_subscriber' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordLoginCheckListener:
+        arguments:
+            $preferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserPasswordLoginPreferenceProviderInterface'
+            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+        tags:
+            - { name: 'kernel.event_subscriber' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\CustomerPasswordLoginController:
+        arguments:
+            $customerRepository: '@sylius.repository.customer'
+            $preferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository'
+            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $router: '@router'
+        tags:
+            - { name: 'controller.service_arguments' }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository:
         arguments:
             $registry: '@doctrine'
@@ -1464,6 +1520,14 @@ services:
         arguments:
             $sessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
             $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
+        tags:
+            - { name: 'twig.extension' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\PasswordLoginControlExtension:
+        arguments:
+            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $customerPreferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository'
+            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
         tags:
             - { name: 'twig.extension' }
 

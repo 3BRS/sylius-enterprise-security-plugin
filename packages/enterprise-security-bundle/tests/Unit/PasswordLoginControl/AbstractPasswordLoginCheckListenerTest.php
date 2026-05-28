@@ -60,6 +60,19 @@ class AbstractPasswordLoginCheckListenerTest extends TestCase
         $this->listener($repo, acceptable: false)->onCheckPassport($event);
     }
 
+    public function testIgnoresWhenFeatureDisabled(): void
+    {
+        // Feature toggled off for the scope — existing per-user preferences must be
+        // ignored, so the repository is never consulted and no exception is thrown.
+        $user = $this->createStub(UserInterface::class);
+        $repo = $this->createMock(PasswordLoginPreferenceRepositoryInterface::class);
+        $repo->expects(self::never())->method('isPasswordLoginAllowedForUser');
+
+        $event = $this->eventWithPasswordBadge($user);
+
+        $this->listener($repo, acceptable: true, featureEnabled: false)->onCheckPassport($event);
+    }
+
     public function testAllowsPasswordLoginWhenPreferenceAllowed(): void
     {
         // Mock's expects(once) asserts the repository WAS consulted and the listener
@@ -90,16 +103,23 @@ class AbstractPasswordLoginCheckListenerTest extends TestCase
         $this->listener($repo, true)->onCheckPassport($event);
     }
 
-    private function listener(
+    protected function listener(
         PasswordLoginPreferenceRepositoryInterface $repository,
         bool $acceptable,
+        bool $featureEnabled = true,
     ): AbstractPasswordLoginCheckListener {
-        return new class($repository, $acceptable) extends AbstractPasswordLoginCheckListener {
+        return new class($repository, $acceptable, $featureEnabled) extends AbstractPasswordLoginCheckListener {
             public function __construct(
                 PasswordLoginPreferenceRepositoryInterface $repository,
                 private bool $acceptable,
+                private bool $featureEnabled,
             ) {
                 parent::__construct($repository);
+            }
+
+            protected function isFeatureEnabled(): bool
+            {
+                return $this->featureEnabled;
             }
 
             protected function isAcceptableUser(UserInterface $user): bool
@@ -114,7 +134,7 @@ class AbstractPasswordLoginCheckListenerTest extends TestCase
         };
     }
 
-    private function eventWithPasswordBadge(UserInterface $user): CheckPassportEvent
+    protected function eventWithPasswordBadge(UserInterface $user): CheckPassportEvent
     {
         $passport = new Passport(
             new UserBadge('u', static fn () => $user),
@@ -124,7 +144,7 @@ class AbstractPasswordLoginCheckListenerTest extends TestCase
         return new CheckPassportEvent($this->stubAuthenticator(), $passport);
     }
 
-    private function stubAuthenticator(): AuthenticatorInterface
+    protected function stubAuthenticator(): AuthenticatorInterface
     {
         return new class() implements AuthenticatorInterface {
             public function supports(Request $request): ?bool

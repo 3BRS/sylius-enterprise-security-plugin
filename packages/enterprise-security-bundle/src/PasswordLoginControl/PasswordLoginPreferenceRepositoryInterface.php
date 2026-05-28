@@ -8,8 +8,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 interface PasswordLoginPreferenceRepositoryInterface
 {
-    public function findByUser(UserInterface $user): ?PasswordLoginPreferenceInterface;
-
     /**
      * Returns true if the user may sign in with username/email + password. When no record
      * exists for the user, the default is true (= unchanged vanilla behavior).

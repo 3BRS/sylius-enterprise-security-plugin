@@ -1,4 +1,9 @@
 three_brs:
+    # Admin login renders the auth error via `messageKey|trans` (default `messages`
+    # domain), while the shop login uses the `security` domain — so this key lives in
+    # both messages.en.yaml and security.en.yaml.
+    password_login_control:
+        disabled_for_user: 'Password login is disabled for this account. Please use one of the other available ways to sign in.'
     emails:
         password_changed:
             subject: 'Your password has been changed'
@@ -36,6 +41,8 @@ three_brs:
     form:
         admin_user:
             force_password_change: 'Force password change on next request'
+            password_login_allowed: 'Allow password login'
+            password_login_allowed_help: 'When unchecked, this administrator cannot sign in with a password — they must use a magic link, a passkey, or a connected social account.'
     ip_whitelist:
         admin:
             enabled: 'Enable per-admin IP whitelist for this administrator'
@@ -238,6 +245,13 @@ three_brs:
             revoke_confirm: 'Sign out from this session?'
             revoke_others_confirm: 'Sign out from every other session?'
             none: 'No active sessions.'
+        password_login_control:
+            label: 'Password login'
+            allowed: 'Allowed'
+            state_disabled: 'Disabled'
+            enable: 'Enable password login'
+            disable: 'Disable password login'
+            cannot_disable_hint: 'Cannot be disabled — this account has no other sign-in method (a connected social account, a passkey, or magic link).'
         security_settings:
             menu_item: 'Security settings'
             title: 'Security settings'
@@ -246,6 +260,10 @@ three_brs:
             scope_admin: 'Administrators'
             scope_global: 'Global'
             save: 'Save'
+            password_login_control:
+                title: 'Password login'
+                description: 'Control whether users may sign in with their email and password. When enabled, you can disable password login per user — they must then use a magic link, a passkey, or a connected social account.'
+                enabled: 'Enable password login control'
             password_policy:
                 title: 'Password policy'
                 description: 'Minimum length, maximum length and complexity requirements applied during password validation.'

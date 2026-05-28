@@ -36,6 +36,7 @@ parameters:
                 - src/Fixture/AccountDeletionFixture.php
                 - src/Fixture/IpWhitelistFixture.php
                 - src/Fixture/CustomerSecurityStatesFixture.php
+                - src/Fixture/PasswordLoginControlFixture.php
         -
             # Same root cause: ArrayNodeDefinition generic TParent not resolved on lowest phpstan-symfony.
             identifier: missingType.generics
@@ -53,6 +54,7 @@ parameters:
                 - src/Fixture/AccountDeletionFixture.php
                 - src/Fixture/IpWhitelistFixture.php
                 - src/Fixture/CustomerSecurityStatesFixture.php
+                - src/Fixture/PasswordLoginControlFixture.php
 
     doctrine:
         objectManagerLoader: tests/phpstan_object_manager.php

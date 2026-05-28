@@ -373,3 +373,10 @@ three_brs_admin_customer_revoke_session:
     requirements:
         id: '\d+'
         sessionId: '\d+'
+
+three_brs_admin_customer_password_login:
+    path: /admin/customers/{id}/password-login
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\CustomerPasswordLoginController
+    methods: [POST]
+    requirements:
+        id: '\d+'
