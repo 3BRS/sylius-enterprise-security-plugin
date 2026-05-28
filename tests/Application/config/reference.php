@@ -3699,6 +3699,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     ip_whitelist?: array{
  *         enabled?: bool|Param, // Default: false
  *     },
+ *     ip_blacklist?: array{
+ *         enabled?: bool|Param, // Default: false
+ *     },
  *     oauth?: array{
  *         customer?: array{
  *             auto_register_allowed_email_domains?: list<scalar|Param|null>,

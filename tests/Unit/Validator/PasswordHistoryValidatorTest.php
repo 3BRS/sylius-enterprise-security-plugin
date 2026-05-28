@@ -18,6 +18,8 @@ use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordHistoryCheckerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\PasswordSimilarityChecker;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\PasswordSimilarityCheckerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordHistory\Constraint\PasswordHistory;
@@ -47,6 +49,7 @@ class PasswordHistoryValidatorTest extends TestCase
         int $customerCount = 5,
         bool $adminEnabled = true,
         int $adminCount = 10,
+        ?PasswordSimilarityCheckerInterface $similarityChecker = null,
     ): PasswordHistoryValidator {
         $settings = $this->createStub(SettingsProviderInterface::class);
         $settings->method('getBool')->willReturnCallback(static function (string $path, SettingsScope $scope) use ($customerEnabled, $adminEnabled): bool {
@@ -66,6 +69,7 @@ class PasswordHistoryValidatorTest extends TestCase
 
         $validator = new PasswordHistoryValidator(
             $checker ?? $this->createStub(PasswordHistoryCheckerInterface::class),
+            $similarityChecker ?? new PasswordSimilarityChecker(),
             $tokenStorage ?? $this->createStub(TokenStorageInterface::class),
             $settings,
         );
@@ -217,6 +221,43 @@ class PasswordHistoryValidatorTest extends TestCase
         $this->expectException(ConstraintDefinitionException::class);
 
         $this->createValidator(checker: $checker)->validate('anyPass', new PasswordHistory());
+    }
+
+    public function testBuildsViolationWhenNewPasswordContainsCurrentPassword(): void
+    {
+        $change = new ChangePassword();
+        $change->setCurrentPassword('1234');
+        $change->setNewPassword('12345');
+
+        // Disable history-based checks so this test focuses on similarity only.
+        $checker = $this->createStub(PasswordHistoryCheckerInterface::class);
+        $checker->method('wasPasswordUsedByShopUser')->willReturn(false);
+
+        $tokenStorage = $this->stubTokenStorageWithUser($this->shopUser());
+
+        $this->context->method('getObject')->willReturn($change);
+        $this->context->expects(self::once())
+            ->method('buildViolation')
+            ->with('three_brs.password_history.similar_to_current')
+            ->willReturn($this->violationBuilder);
+
+        $this->createValidator(checker: $checker, tokenStorage: $tokenStorage)
+            ->validate('12345', new PasswordHistory());
+    }
+
+    public function testSkipsSimilarityCheckWhenCurrentPasswordIsEmpty(): void
+    {
+        $change = new ChangePassword();
+        $change->setCurrentPassword('');
+        $change->setNewPassword('Heslo123!');
+
+        $tokenStorage = $this->stubTokenStorageWithUser($this->shopUser());
+
+        $this->context->method('getObject')->willReturn($change);
+        $this->context->expects(self::never())->method('buildViolation');
+
+        $this->createValidator(tokenStorage: $tokenStorage)
+            ->validate('Heslo123!', new PasswordHistory());
     }
 
     public function testFallsBackToTokenStorageWhenObjectIsNull(): void

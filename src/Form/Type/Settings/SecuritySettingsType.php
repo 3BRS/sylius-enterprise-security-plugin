@@ -56,6 +56,7 @@ class SecuritySettingsType extends AbstractType implements SecuritySettingsTypeI
                     'invalid_domain_translation_key' => 'three_brs.oauth_admin_policy.invalid_domain',
                 ])
                 ->add('ip_whitelist', IpWhitelistSettingsType::class)
+                ->add('ip_blacklist', IpBlacklistSettingsType::class)
             ;
         }
 

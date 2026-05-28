@@ -72,6 +72,8 @@ class SettingsDefaultsBuilder implements SettingsDefaultsBuilderInterface
         $result[SettingsScope::GLOBAL->value]['session_management.geoip_service'] = $processedConfig['session_management']['geoip_service'];
         $result[SettingsScope::ADMIN->value]['ip_whitelist.enabled'] = (bool) $processedConfig['ip_whitelist']['enabled'];
         $result[SettingsScope::ADMIN->value]['ip_whitelist.global_cidrs'] = [];
+        $result[SettingsScope::ADMIN->value]['ip_blacklist.enabled'] = (bool) $processedConfig['ip_blacklist']['enabled'];
+        $result[SettingsScope::ADMIN->value]['ip_blacklist.global_cidrs'] = [];
 
         return $result;
     }

@@ -49,4 +49,15 @@ class PasswordHistoryContext implements Context
             'Expected password history validation error not found on page.',
         );
     }
+
+    /**
+     * @Then I should be notified that the new password is too similar to the current one
+     */
+    public function iShouldBeNotifiedThatNewPasswordIsTooSimilarToCurrent(): void
+    {
+        Assert::true(
+            $this->session->getPage()->hasContent('New password is too similar to the current password'),
+            'Expected similarity validation error not found on page.',
+        );
+    }
 }

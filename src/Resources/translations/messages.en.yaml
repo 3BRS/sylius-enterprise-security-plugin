@@ -359,3 +359,9 @@ three_brs:
                 enabled: 'Enable admin IP whitelist'
                 global_cidrs: 'Global allowed IPs / CIDRs'
                 global_cidrs_help: 'One IP or CIDR per line. IPv4 and IPv6 are supported (e.g. 10.0.0.0/8, 192.168.1.1, 2001:db8::/32). Leave empty to restrict all admins to their per-admin lists only.'
+            ip_blacklist:
+                title: 'Admin IP blacklist'
+                description: 'Block admin panel access for specific IPs. Blacklist always wins over whitelist — a blacklisted IP cannot sign in even when the whitelist would allow it.'
+                enabled: 'Enable admin IP blacklist'
+                global_cidrs: 'Global denied IPs / CIDRs'
+                global_cidrs_help: 'One IP or CIDR per line. IPv4 and IPv6 are supported (e.g. 10.0.0.0/8, 192.168.1.1, 2001:db8::/32). Empty list with feature enabled = no IPs blocked.'

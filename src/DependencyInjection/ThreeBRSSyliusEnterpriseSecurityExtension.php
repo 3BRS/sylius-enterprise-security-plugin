@@ -54,10 +54,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $twoFactor = $config['two_factor_authentication'];
 
         $container->setParameter('three_brs.two_factor.issuer', $twoFactor['issuer']);
-        $container->setParameter('three_brs.two_factor.customer.recovery_codes_enabled', $twoFactor['recovery_codes']['customer']['enabled']);
-        $container->setParameter('three_brs.two_factor.customer.recovery_codes_count', $twoFactor['recovery_codes']['customer']['count']);
-        $container->setParameter('three_brs.two_factor.admin.recovery_codes_enabled', $twoFactor['recovery_codes']['admin']['enabled']);
-        $container->setParameter('three_brs.two_factor.admin.recovery_codes_count', $twoFactor['recovery_codes']['admin']['count']);
         $container->setParameter('three_brs.two_factor.trusted_device_enabled', $twoFactor['trusted_device']['enabled']);
         $container->setParameter('three_brs.two_factor.trusted_device_lifetime', (int) $twoFactor['trusted_device']['days'] * 86400);
     }
@@ -78,6 +74,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerLoginNotifications($container, $config['login_notifications']);
         $this->registerAccountDeletion($container, $config['account_deletion']);
         $this->registerIpWhitelist($container, $config['ip_whitelist']);
+        $this->registerIpBlacklist($container, $config['ip_blacklist']);
         $this->registerSecuritySettingsDefaults($container, $config);
     }
 
@@ -99,6 +96,12 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     protected function registerIpWhitelist(ContainerBuilder $container, array $config): void
     {
         $container->setParameter('three_brs.ip_whitelist.enabled', (bool) $config['enabled']);
+    }
+
+    /** @param array<string, mixed> $config */
+    protected function registerIpBlacklist(ContainerBuilder $container, array $config): void
+    {
+        $container->setParameter('three_brs.ip_blacklist.enabled', (bool) $config['enabled']);
     }
 
     /** @param array<string, mixed> $config */
