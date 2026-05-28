@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\FlashHelperTrait;
+use ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcherInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\Exception\ConcurrentSettingsWriteException;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
@@ -27,6 +28,7 @@ class SaveController implements SaveControllerInterface
         protected FormFactoryInterface $formFactory,
         protected RouterInterface $router,
         protected TranslatorInterface $translator,
+        protected CidrMatcherInterface $cidrMatcher,
     ) {
     }
 
@@ -72,9 +74,45 @@ class SaveController implements SaveControllerInterface
             return $this->redirect($scope);
         }
 
+        if ($scope === SettingsScope::ADMIN && $this->locksOutCurrentAdmin($request, $values)) {
+            // The admin just blacklisted their own current IP — the redirect to
+            // the settings page will be denied (403) by the IP blacklist listener.
+            // Skip the success flash so it isn't left unconsumed in the session
+            // and then rendered on the next page the admin can still reach (e.g.
+            // the shop front end).
+            return $this->redirect($scope);
+        }
+
         $this->addFlashMessage($request, 'success', 'three_brs.security_settings.saved');
 
         return $this->redirect($scope);
+    }
+
+    /**
+     * Whether the just-saved global IP blacklist covers the current request IP —
+     * i.e. the admin is locking themselves out of the admin panel.
+     *
+     * @param array<string, mixed> $values
+     */
+    protected function locksOutCurrentAdmin(Request $request, array $values): bool
+    {
+        if (($values['ip_blacklist.enabled'] ?? false) !== true) {
+            return false;
+        }
+
+        $cidrs = $values['ip_blacklist.global_cidrs'] ?? [];
+        if (!is_array($cidrs)) {
+            return false;
+        }
+
+        $list = [];
+        foreach ($cidrs as $cidr) {
+            if (is_string($cidr) && $cidr !== '') {
+                $list[] = $cidr;
+            }
+        }
+
+        return $this->cidrMatcher->matchesAny((string) $request->getClientIp(), $list);
     }
 
     protected function prefixForTab(string $tab): string

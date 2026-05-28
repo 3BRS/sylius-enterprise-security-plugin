@@ -338,18 +338,6 @@ three_brs_admin_ip_whitelist_admin_edit:
     requirements:
         id: '\d+'
 
-three_brs_admin_ip_blacklist_admins:
-    path: /admin/ip-blacklist/admins
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpBlacklistAdminsController
-    methods: [GET]
-
-three_brs_admin_ip_blacklist_admin_edit:
-    path: /admin/ip-blacklist/admins/{id}
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpBlacklistAdminEditController
-    methods: [GET, POST]
-    requirements:
-        id: '\d+'
-
 three_brs_admin_customer_force_password_reset:
     path: /admin/customers/{id}/force-password-reset
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\ForcePasswordResetController

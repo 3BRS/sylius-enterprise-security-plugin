@@ -630,14 +630,13 @@ It's **not** the right control when admins log in from rotating home IPs (PPPoE 
 
 ### Admin IP Blacklist
 
-Inverse of the whitelist — instead of saying "only these IPs can reach the panel", say "these specific IPs cannot reach the panel". Same two-layer structure (global list + per-admin list) but flipped semantics. Useful when you don't want to lock everyone to a fixed network but need to block a specific bad actor: a former colleague's home IP, an exit node from an abuse report, a particular admin's stolen device IP that needs immediate quarantine while the account is being recovered.
+Inverse of the whitelist — instead of saying "only these IPs can reach the panel", say "these specific IPs cannot reach the panel". A single **global** deny-list applies to every request under `/admin`. Useful when you don't want to lock everyone to a fixed network but need to block a specific bad actor: a former colleague's home IP, an exit node from an abuse report, or a host hammering the login form.
 
-- **Global list** — block this IP/CIDR for **every** administrator. Configured under Security settings → Administrators → "Admin IP blacklist".
-- **Per-admin list** — block this IP/CIDR only for **a specific** administrator. Managed on `/admin/ip-blacklist/admins`. The match is identity-bound — admin A's blacklisted home IP doesn't affect admin B.
+The global list is configured under Security settings → Administrators → "Admin IP blacklist".
 
 **Blacklist always wins over the whitelist.** A blacklisted IP cannot sign in, even if the whitelist would otherwise allow it. The blacklist request listener runs at priority 5, before the whitelist listener at priority 4, so a blacklist hit short-circuits the whitelist check entirely. This ordering means you can keep a permissive whitelist (or none) for the team while still being able to block individual abusive IPs.
 
-Access is denied when **either** the request IP matches the global list **or** the per-admin list of the authenticated admin matches. Pre-authentication (on `/admin/login`), the listener denies if the IP matches the global list or **any** enabled per-admin entry — this is so a known-bad IP cannot keep hitting the login form to harvest credentials even before the admin is identified. A failed check returns HTTP 403 with a plain-text body.
+The check is identity-agnostic: any request whose client IP matches the global list is denied with HTTP 403 (plain-text body), whether or not anyone is signed in — so a known-bad IP cannot even reach the login form.
 
 ```yaml
 three_brs_sylius_enterprise_security:
@@ -647,13 +646,14 @@ three_brs_sylius_enterprise_security:
 
 #### Defaults for IP blacklist
 
+- `ip_blacklist.enabled` defaults to `false`.
 - `ip_blacklist.global_cidrs` defaults to `[]` (no IPs configured). This is admin-scope only and is edited through the Security settings UI.
 
-The Configuration node only exposes the master switch. The actual deny-lists live in the database (DB-backed settings + a per-admin entity, `three_brs_admin_user_ip_blacklist`) so that operators can change them at runtime without redeploying.
+The Configuration node only exposes the master switch. The actual deny-list lives in the database (DB-backed settings) so that operators can change it at runtime without redeploying.
 
-> **Fail-open by default.** Unlike the whitelist, enabling the blacklist with an empty global list (and no per-admin entries) does **not** lock anyone out — an empty deny list blocks nothing. This makes the blacklist safe to toggle on as a precaution and populate later.
+> **Fail-open by default.** Unlike the whitelist, enabling the blacklist with an empty global list does **not** lock anyone out — an empty deny list blocks nothing. This makes the blacklist safe to toggle on as a precaution and populate later.
 
-> **Operator note.** If you accidentally blacklist your own IP and lock yourself out, recover via SQL: `DELETE FROM three_brs_security_setting WHERE scope = 'admin' AND path IN ('ip_blacklist.enabled', 'ip_blacklist.global_cidrs')` (resets the global list and feature flag) or `DELETE FROM three_brs_admin_user_ip_blacklist WHERE admin_user_id = …` (removes a per-admin entry). CIDR validation accepts both IPv4 and IPv6.
+> **Operator note.** If you accidentally blacklist your own IP and lock yourself out, recover via SQL: `DELETE FROM three_brs_security_setting WHERE scope = 'admin' AND path IN ('ip_blacklist.enabled', 'ip_blacklist.global_cidrs')` (resets the global list and feature flag). CIDR validation accepts both IPv4 and IPv6.
 
 If you're behind a reverse proxy or load balancer, configure Symfony's `framework.trusted_proxies` so that `Request::getClientIp()` returns the real client IP rather than the proxy address — otherwise the listener compares the proxy IP against your CIDR list and you'll either let everyone in or lock everyone out.
 

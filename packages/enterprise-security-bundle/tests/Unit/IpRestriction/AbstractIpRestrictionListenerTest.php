@@ -10,9 +10,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\IpRestriction\AbstractIpRestrictionListener;
 
 #[CoversClass(AbstractIpRestrictionListener::class)]
@@ -20,7 +17,7 @@ class AbstractIpRestrictionListenerTest extends TestCase
 {
     public function testIgnoresWhenFeatureDisabled(): void
     {
-        $listener = $this->createListener(false, false, $this->tokenStorageEmpty());
+        $listener = $this->createListener(false, false);
 
         $event = $this->createEvent();
         $listener->onKernelRequest($event);
@@ -30,7 +27,7 @@ class AbstractIpRestrictionListenerTest extends TestCase
 
     public function testIgnoresNonAdminPath(): void
     {
-        $listener = $this->createListener(true, false, $this->tokenStorageEmpty());
+        $listener = $this->createListener(true, false);
 
         $event = $this->createEvent('/shop/checkout');
         $listener->onKernelRequest($event);
@@ -40,7 +37,7 @@ class AbstractIpRestrictionListenerTest extends TestCase
 
     public function testIgnoresPathPrefixMatch(): void
     {
-        $listener = $this->createListener(true, false, $this->tokenStorageEmpty());
+        $listener = $this->createListener(true, false);
 
         // `/admin-other` should NOT be matched by `/admin` prefix; only `/admin` or `/admin/...`.
         $event = $this->createEvent('/admin-other/x');
@@ -51,7 +48,7 @@ class AbstractIpRestrictionListenerTest extends TestCase
 
     public function testPassesWhenRequestAllowed(): void
     {
-        $listener = $this->createListener(true, true, $this->tokenStorageEmpty());
+        $listener = $this->createListener(true, true);
 
         $event = $this->createEvent('/admin/login');
         $listener->onKernelRequest($event);
@@ -61,7 +58,7 @@ class AbstractIpRestrictionListenerTest extends TestCase
 
     public function testDenies403WhenRequestNotAllowed(): void
     {
-        $listener = $this->createListener(true, false, $this->tokenStorageEmpty());
+        $listener = $this->createListener(true, false);
 
         $event = $this->createEvent('/admin/login');
         $listener->onKernelRequest($event);
@@ -73,33 +70,9 @@ class AbstractIpRestrictionListenerTest extends TestCase
         self::assertSame('Access denied', $response->getContent());
     }
 
-    public function testPassesAuthenticatedUserWhenAllowed(): void
-    {
-        $user = $this->createStub(UserInterface::class);
-        $listener = $this->createListener(true, true, $this->tokenStorageWithUser($user));
-
-        $event = $this->createEvent('/admin/dashboard');
-        $listener->onKernelRequest($event);
-
-        self::assertNull($event->getResponse());
-    }
-
-    public function testDeniesAuthenticatedUserWhenNotAllowed(): void
-    {
-        $user = $this->createStub(UserInterface::class);
-        $listener = $this->createListener(true, false, $this->tokenStorageWithUser($user));
-
-        $event = $this->createEvent('/admin/dashboard');
-        $listener->onKernelRequest($event);
-
-        $response = $event->getResponse();
-        self::assertNotNull($response);
-        self::assertSame(Response::HTTP_FORBIDDEN, $response->getStatusCode());
-    }
-
     public function testIgnoresSubRequests(): void
     {
-        $listener = $this->createListener(true, false, $this->tokenStorageEmpty());
+        $listener = $this->createListener(true, false);
 
         $request = Request::create('/admin/dashboard');
         $event = new RequestEvent(
@@ -116,15 +89,13 @@ class AbstractIpRestrictionListenerTest extends TestCase
     private function createListener(
         bool $featureEnabled,
         bool $requestAllowed,
-        TokenStorageInterface $tokenStorage,
     ): AbstractIpRestrictionListener {
-        return new class($featureEnabled, $requestAllowed, $tokenStorage) extends AbstractIpRestrictionListener {
+        return new class($featureEnabled, $requestAllowed) extends AbstractIpRestrictionListener {
             public function __construct(
                 protected bool $featureEnabled,
                 protected bool $requestAllowed,
-                TokenStorageInterface $tokenStorage,
             ) {
-                parent::__construct($tokenStorage);
+                parent::__construct();
             }
 
             protected function isFeatureEnabled(): bool
@@ -132,7 +103,7 @@ class AbstractIpRestrictionListenerTest extends TestCase
                 return $this->featureEnabled;
             }
 
-            protected function isRequestAllowed(?UserInterface $user, string $ip): bool
+            protected function isRequestAllowed(string $ip): bool
             {
                 return $this->requestAllowed;
             }
@@ -150,24 +121,5 @@ class AbstractIpRestrictionListenerTest extends TestCase
             $request,
             HttpKernelInterface::MAIN_REQUEST,
         );
-    }
-
-    private function tokenStorageEmpty(): TokenStorageInterface
-    {
-        $tokenStorage = $this->createStub(TokenStorageInterface::class);
-        $tokenStorage->method('getToken')->willReturn(null);
-
-        return $tokenStorage;
-    }
-
-    private function tokenStorageWithUser(UserInterface $user): TokenStorageInterface
-    {
-        $token = $this->createStub(TokenInterface::class);
-        $token->method('getUser')->willReturn($user);
-
-        $tokenStorage = $this->createStub(TokenStorageInterface::class);
-        $tokenStorage->method('getToken')->willReturn($token);
-
-        return $tokenStorage;
     }
 }

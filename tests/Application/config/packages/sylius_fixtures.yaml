@@ -230,10 +230,6 @@ sylius_fixtures:
                     options:
                         admins: []
 
-                three_brs_ip_blacklist:
-                    options:
-                        admins: []
-
                 three_brs_customer_security_states:
                     options:
                         blocked:

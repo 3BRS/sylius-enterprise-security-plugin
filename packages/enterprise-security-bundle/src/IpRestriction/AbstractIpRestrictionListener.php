@@ -6,20 +6,19 @@ namespace ThreeBRS\EnterpriseSecurityBundle\IpRestriction;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * Generic kernel.request listener for IP-restriction enforcement (whitelist OR
- * blacklist). Handles the framework plumbing — main-request check, admin path
- * prefix match, current-user resolution, 403 plain-text response on deny.
+ * Generic kernel.request listener for global IP-restriction enforcement
+ * (whitelist OR blacklist). Handles the framework plumbing — main-request
+ * check, admin path prefix match, client IP resolution, 403 plain-text
+ * response on deny. The check is identity-agnostic: a global CIDR list applies
+ * to every request regardless of which user (if any) is authenticated.
  * Subclass plugs in the feature toggle + the allow/deny decision (which is
  * where the whitelist↔blacklist semantic inversion lives).
  */
 abstract class AbstractIpRestrictionListener
 {
     public function __construct(
-        protected TokenStorageInterface $tokenStorage,
         protected string $adminPathPrefix = '/admin',
     ) {
     }
@@ -45,10 +44,7 @@ abstract class AbstractIpRestrictionListener
 
         $ip = (string) $request->getClientIp();
 
-        $token = $this->tokenStorage->getToken();
-        $user = $token?->getUser();
-
-        if ($this->isRequestAllowed($user, $ip)) {
+        if ($this->isRequestAllowed($ip)) {
             return;
         }
 
@@ -68,5 +64,5 @@ abstract class AbstractIpRestrictionListener
      * should deny with 403. Whitelist subclass returns the checker's "matches"
      * result; blacklist subclass returns its inverse.
      */
-    abstract protected function isRequestAllowed(?UserInterface $user, string $ip): bool;
+    abstract protected function isRequestAllowed(string $ip): bool;
 }

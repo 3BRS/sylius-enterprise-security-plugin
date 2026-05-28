@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener;
 
-use Sylius\Component\Core\Model\AdminUserInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\IpRestriction\AbstractIpRestrictionListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpBlacklist\IpBlacklistCheckerInterface;
 
 /**
  * Blacklist-flavoured request listener. The bundle's
  * AbstractIpRestrictionListener owns the framework plumbing (path match,
- * token resolve, 403 response); this subclass plugs in the blacklist
- * feature toggle and inverts the "matches" check into a "deny" decision —
- * a CIDR hit means the IP is denied.
+ * client IP, 403 response); this subclass plugs in the blacklist feature
+ * toggle and inverts the "matches" check into a "deny" decision — a global
+ * CIDR hit means the IP is denied.
  *
  * Listener priority 5 in services.yaml runs this BEFORE the whitelist
  * listener (priority 4), so a blacklist hit short-circuits via setResponse()
@@ -25,10 +22,9 @@ class AdminIpBlacklistListener extends AbstractIpRestrictionListener implements 
 {
     public function __construct(
         protected IpBlacklistCheckerInterface $checker,
-        TokenStorageInterface $tokenStorage,
         string $adminPathPrefix = '/admin',
     ) {
-        parent::__construct($tokenStorage, $adminPathPrefix);
+        parent::__construct($adminPathPrefix);
     }
 
     protected function isFeatureEnabled(): bool
@@ -36,12 +32,8 @@ class AdminIpBlacklistListener extends AbstractIpRestrictionListener implements 
         return $this->checker->isFeatureEnabled();
     }
 
-    protected function isRequestAllowed(?UserInterface $user, string $ip): bool
+    protected function isRequestAllowed(string $ip): bool
     {
-        if ($user instanceof AdminUserInterface) {
-            return !$this->checker->isBlockedForAdmin($user, $ip);
-        }
-
-        return !$this->checker->isBlockedAnonymously($ip);
+        return !$this->checker->isBlockedByGlobal($ip);
     }
 }

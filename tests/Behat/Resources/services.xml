@@ -339,12 +339,7 @@
 
 		<service id="three_brs.behat.context.ui.admin.ip_blacklist"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\IpBlacklistContext">
-			<argument type="service" id="behat.mink.default_session"/>
-			<argument type="service" id="router"/>
-			<argument type="service" id="sylius.repository.admin_user"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpBlacklistRepository"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
-			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.customer_management"
