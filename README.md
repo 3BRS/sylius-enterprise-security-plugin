@@ -1,4 +1,4 @@
-a <p align="center">
+<p align="center">
     <a href="https://www.3brs.com" target="_blank">
         <img src="https://3brs1.fra1.cdn.digitaloceanspaces.com/3brs/logo/3BRS-logo-sylius-200.png"/>
     </a>
