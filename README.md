@@ -178,7 +178,7 @@ security:
     firewalls:
         shop:
             form_login:
-                success_handler: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler.shop
+                success_handler: ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler.shop
             two_factor:
                 auth_form_path: /2fa
                 check_path: /2fa_check
@@ -743,23 +743,102 @@ When the feature is disabled for a group, per-user switches have no effect — e
 
 ## Installation
 
-1. Run `composer require 3brs/sylius-enterprise-security-plugin`.
+> Every feature ships **disabled by default** (see each feature's *Defaults* section). You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
 
-1. Add plugin and bundle to your `config/bundles.php`:
+1. Require the package:
+
+   ```bash
+   composer require 3brs/sylius-enterprise-security-plugin
+   ```
+
+2. Register the bundles in `config/bundles.php` (the plugin, its standalone bundle, and the Scheb 2FA bundle it builds on):
 
    ```php
    return [
        // ...
+       Scheb\TwoFactorBundle\SchebTwoFactorBundle::class => ['all' => true],
        ThreeBRS\EnterpriseSecurityBundle\ThreeBRSEnterpriseSecurityBundle::class => ['all' => true],
        ThreeBRS\SyliusEnterpriseSecurityPlugin\ThreeBRSSyliusEnterpriseSecurityPlugin::class => ['all' => true],
    ];
    ```
 
-1. Import plugin configuration by creating `config/packages/threebrs_sylius_enterprise_security_plugin.yaml`:
+3. Import the plugin configuration and enable the features you want by creating `config/packages/threebrs_sylius_enterprise_security_plugin.yaml`:
 
    ```yaml
    imports:
        - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/config.yaml" }
+
+   three_brs_sylius_enterprise_security:
+       # Turn on and tune the features you need — each feature section above
+       # documents its options and defaults (everything is off by default).
+   ```
+
+4. Import the plugin routes by creating `config/routes/three_brs_enterprise_security.yaml` (without this none of the plugin endpoints — passkey, magic link, 2FA setup, OAuth, account deletion, settings UI — are registered):
+
+   ```yaml
+   three_brs_enterprise_security:
+       resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/routes.yaml"
+   ```
+
+5. Add the relevant traits to your `ShopUser` and `AdminUser` entities. Include **only** the traits for the features you enabled — `PasswordExpiration*` (Password Expiration), `TwoFactorAuth*` (Two-Factor Authentication), `Lockable*` (Account Lockout), `PasswordLoginControl*` (Per-User Password Login Control, admin only). The full set:
+
+   ```php
+   // src/Entity/User/ShopUser.php
+   use Sylius\Component\Core\Model\ShopUser as BaseShopUser;
+   use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
+   use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
+   use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthShopUserInterface;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthShopUserTrait;
+
+   class ShopUser extends BaseShopUser implements PasswordExpirationShopUserInterface, TwoFactorAuthShopUserInterface, LockableShopUserInterface
+   {
+       use PasswordExpirationShopUserTrait;
+       use TwoFactorAuthShopUserTrait;
+       use LockableShopUserTrait;
+   }
+   ```
+
+   ```php
+   // src/Entity/User/AdminUser.php
+   use Sylius\Component\Core\Model\AdminUser as BaseAdminUser;
+   use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
+   use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
+   use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordLoginControlAdminUserInterface;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordLoginControlAdminUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserTrait;
+
+   class AdminUser extends BaseAdminUser implements PasswordExpirationAdminUserInterface, TwoFactorAuthAdminUserInterface, LockableAdminUserInterface, PasswordLoginControlAdminUserInterface
+   {
+       use PasswordExpirationAdminUserTrait;
+       use TwoFactorAuthAdminUserTrait;
+       use LockableAdminUserTrait;
+       use PasswordLoginControlAdminUserTrait;
+   }
+   ```
+
+   > Magic link, passkey, OAuth, session management, login notifications and account deletion keep their data in their own tables (foreign-keyed to `ShopUser` / `AdminUser`) and need **no** traits.
+
+6. Configure the firewall for the features you enabled, in `config/packages/security.yaml` (and `config/packages/scheb_2fa.yaml` for 2FA). Each feature section above contains the exact block to copy:
+   - **Two-Factor Authentication** — the `scheb_2fa.yaml` config, the shop `success_handler`, and the `two_factor` blocks on the `shop` / `admin` firewalls.
+   - **3rd-party OAuth**, **Magic Link Login**, **Passkey Login** — the `PUBLIC_ACCESS` `access_control` entries that expose their login endpoints.
+
+7. Update the database schema to create the plugin tables (`three_brs_*`) and the trait columns added in step 5:
+
+   ```bash
+   bin/console doctrine:schema:update --complete --force
+   ```
+
+   In production generate and run a migration with your usual workflow instead.
+
+8. Install the bundled assets (e.g. the passkey browser script):
+
+   ```bash
+   bin/console assets:install
    ```
 
 ## Development
