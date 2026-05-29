@@ -132,7 +132,7 @@ three_brs_sylius_enterprise_security:
 - QR code + manual secret setup from account page (shop) or admin dashboard (admin)
 - Recovery codes — single-use backup codes generated at setup, regenerable from the manage view (invalidates all previous codes)
 - Trusted device — opt-in cookie (scheb JWT) to skip 2FA on a known device; revocable per user by bumping the user's `trustedTokenVersion`
-- Enforcement modes per user type: `disabled`, `optional`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
+- Enforcement modes per user type: `disabled`, `allowed`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
 - Firewall integration via `scheb/2fa-bundle` with separate `/2fa` (shop) and `/admin/2fa` (admin) challenge endpoints
 - Fixture (`three_brs_two_factor`) to preload 2FA-enabled users and recovery codes for demo/testing
 - Plugin exposes container parameters (`three_brs.two_factor.issuer`, `three_brs.two_factor.trusted_device_enabled`, `three_brs.two_factor.trusted_device_lifetime`) that can be referenced directly from your `scheb_2fa.yaml`
@@ -142,7 +142,7 @@ three_brs_sylius_enterprise_security:
     two_factor_authentication:
         issuer: 'Sylius'
         customer:
-            mode: 'optional'  # disabled | optional | enforced
+            mode: 'allowed'  # disabled | allowed | enforced
         admin:
             mode: 'enforced'
         recovery_codes:
@@ -178,7 +178,7 @@ security:
     firewalls:
         shop:
             form_login:
-                success_handler: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\TwoFactorAwareAuthenticationSuccessHandler.shop
+                success_handler: ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler.shop
             two_factor:
                 auth_form_path: /2fa
                 check_path: /2fa_check
@@ -326,7 +326,7 @@ Microsoft uses the Identity Platform v2.0 endpoint. The plugin defaults to the m
 - Separate link (like "Forgotten password?") is rendered on the shop and admin login pages via Sylius twig hooks; no markup changes required in your theme
 - Tokens live in dedicated tables (`three_brs_customer_magic_link_token`, `three_brs_admin_user_magic_link_token`) — only hashes are stored, plain tokens exist only in the email
 - Anti-enumeration: the request endpoint always responds with the same neutral confirmation whether the email is known, unknown, disabled, or rate-limited — no information about account existence leaks
-- Timing-attack mitigation: every code path is padded to a fixed wall-clock deadline (`DeadlineTimingPadding`, default 2 s) so response time does not leak account existence either — known/unknown/rate-limited requests all return at the same time. The 2-second default is chosen to comfortably cover the slowest happy path (DB write + SMTP send) on typical infrastructure; tune it by decorating the `ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding` service with a different `$targetSeconds` if your SMTP transport is faster or slower than that
+- Timing-attack mitigation: every code path is padded to a fixed wall-clock deadline (`DeadlineTimingPadding`, default 2 s) so response time does not leak account existence either — known/unknown/rate-limited requests all return at the same time. The 2-second default is chosen to comfortably cover the slowest happy path (DB write + SMTP send) on typical infrastructure; tune it by decorating the `ThreeBRS\EnterpriseSecurityBundle\Timing\DeadlineTimingPadding` service with a different `$targetSeconds` if your SMTP transport is faster or slower than that
 - Rate limiting per user: configurable count within a sliding window (defaults to 3 requests / 15 minutes)
 - 2FA-aware: if the authenticated user has `scheb/2fa` enabled, the verify controller dispatches `AuthenticationTokenCreatedEvent` on the firewall event dispatcher so scheb wraps the token and redirects to the 2FA challenge — the magic link does **not** bypass the second factor
 - Fixture (`three_brs_magic_link`) to preload tokens for demo/testing
@@ -470,7 +470,7 @@ three_brs_sylius_enterprise_security:
 Add the lockout fields to your `ShopUser` and `AdminUser` entities (same pattern as 2FA / password expiration):
 
 ```php
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserTrait;
 
 class ShopUser extends BaseShopUser implements LockableShopUserInterface
@@ -539,7 +539,7 @@ The plugin ships **`MaxMindGeoIpLookup`** ready to be wired against a local MaxM
    ```yaml
    # config/services.yaml
    services:
-       ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\MaxMindGeoIpLookup:
+       ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\MaxMindGeoIpLookup:
            arguments:
                $databasePath: '%kernel.project_dir%/var/geoip/GeoLite2-City.mmdb'
    ```
@@ -547,7 +547,7 @@ The plugin ships **`MaxMindGeoIpLookup`** ready to be wired against a local MaxM
    # config/packages/threebrs_sylius_enterprise_security_plugin.yaml
    three_brs_sylius_enterprise_security:
        session_management:
-           geoip_service: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\MaxMindGeoIpLookup
+           geoip_service: ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\MaxMindGeoIpLookup
    ```
 
 The plugin's Extension reads `session_management.geoip_service` and replaces the default `NullGeoIpLookup` alias with your service ID — both the customer and admin trackers then call it transparently.
@@ -741,32 +741,173 @@ When the feature is disabled for a group, per-user switches have no effect — e
 > **Operator note.** The lock-out guard runs only at the moment you disable password login for a user — it is **not** re-checked afterwards. So if a user has password login disabled and relies on a globally-toggled method (magic link, passkey, or a specific OAuth provider), and you later turn that method off for their group, they can be left with no way to sign in. To recover, re-enable that method, or re-enable password login for the affected user.
 
 
-## Installation
+## Installation (into an existing Sylius application)
 
-1. Run `composer require 3brs/sylius-enterprise-security-plugin`.
+This section is for **consuming** the plugin in your own Sylius project — you register the bundle/plugin and wire the config yourself. If you instead want to **work on the plugin itself**, skip to **Development** below: its bundled test application already has the bundle, plugin and routes registered, so you don't repeat these steps.
 
-1. Add plugin and bundle to your `config/bundles.php`:
+> Every feature ships **disabled by default** (see each feature's *Defaults* section). You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
+
+1. Require the package:
+
+   ```bash
+   composer require 3brs/sylius-enterprise-security-plugin
+   ```
+
+2. Register the bundles in `config/bundles.php` (the plugin, its standalone bundle, and the Scheb 2FA bundle it builds on):
 
    ```php
    return [
        // ...
+       Scheb\TwoFactorBundle\SchebTwoFactorBundle::class => ['all' => true],
        ThreeBRS\EnterpriseSecurityBundle\ThreeBRSEnterpriseSecurityBundle::class => ['all' => true],
        ThreeBRS\SyliusEnterpriseSecurityPlugin\ThreeBRSSyliusEnterpriseSecurityPlugin::class => ['all' => true],
    ];
    ```
 
-1. Import plugin configuration by creating `config/packages/threebrs_sylius_enterprise_security_plugin.yaml`:
+3. Import the plugin configuration and enable the features you want by creating `config/packages/threebrs_sylius_enterprise_security_plugin.yaml`:
 
    ```yaml
    imports:
        - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/config.yaml" }
+
+   three_brs_sylius_enterprise_security:
+       # Turn on and tune the features you need — each feature section above
+       # documents its options and defaults (everything is off by default).
    ```
 
-## Development
+4. Import the plugin routes by creating `config/routes/three_brs_enterprise_security.yaml` (without this none of the plugin endpoints — passkey, magic link, 2FA setup, OAuth, account deletion, settings UI — are registered):
+
+   ```yaml
+   three_brs_enterprise_security:
+       resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/routes.yaml"
+   ```
+
+5. Add the relevant traits to your `ShopUser` and `AdminUser` entities. Include **only** the traits for the features you enabled — `PasswordExpiration*` (Password Expiration), `TwoFactorAuth*` (Two-Factor Authentication), `Lockable*` (Account Lockout), `PasswordLoginControl*` (Per-User Password Login Control, admin only). The full set:
+
+   ```php
+   // src/Entity/User/ShopUser.php
+   use Sylius\Component\Core\Model\ShopUser as BaseShopUser;
+   use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
+   use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
+   use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthShopUserInterface;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthShopUserTrait;
+
+   class ShopUser extends BaseShopUser implements PasswordExpirationShopUserInterface, TwoFactorAuthShopUserInterface, LockableShopUserInterface
+   {
+       use PasswordExpirationShopUserTrait;
+       use TwoFactorAuthShopUserTrait;
+       use LockableShopUserTrait;
+   }
+   ```
+
+   ```php
+   // src/Entity/User/AdminUser.php
+   use Sylius\Component\Core\Model\AdminUser as BaseAdminUser;
+   use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
+   use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
+   use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordLoginControlAdminUserInterface;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordLoginControlAdminUserTrait;
+   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserTrait;
+
+   class AdminUser extends BaseAdminUser implements PasswordExpirationAdminUserInterface, TwoFactorAuthAdminUserInterface, LockableAdminUserInterface, PasswordLoginControlAdminUserInterface
+   {
+       use PasswordExpirationAdminUserTrait;
+       use TwoFactorAuthAdminUserTrait;
+       use LockableAdminUserTrait;
+       use PasswordLoginControlAdminUserTrait;
+   }
+   ```
+
+   > Magic link, passkey, OAuth, session management, login notifications and account deletion keep their data in their own tables (foreign-keyed to `ShopUser` / `AdminUser`) and need **no** traits.
+
+6. Configure the firewall for the features you enabled, in `config/packages/security.yaml` (and `config/packages/scheb_2fa.yaml` for 2FA). Each feature section above contains the exact block to copy:
+   - **Two-Factor Authentication** — the `scheb_2fa.yaml` config, the shop `success_handler`, and the `two_factor` blocks on the `shop` / `admin` firewalls.
+   - **3rd-party OAuth**, **Magic Link Login**, **Passkey Login** — the `PUBLIC_ACCESS` `access_control` entries that expose their login endpoints.
+
+7. Update the database schema to create the plugin tables (`three_brs_*`) and the trait columns added in step 5:
+
+   ```bash
+   bin/console doctrine:schema:update --complete --force
+   ```
+
+   In production generate and run a migration with your usual workflow instead.
+
+8. Install the bundled assets (e.g. the passkey browser script):
+
+   ```bash
+   bin/console assets:install
+   ```
+
+## Troubleshooting
+
+### `Cannot create union with both "object" and class type` during cache clear / warmup
+
+If `bin/console cache:clear` (or any route / API metadata warmup) fails with:
+
+```
+Cannot create union with both "object" and class type.
+```
+
+this is an **upstream api-platform regression, not a plugin bug**. API Platform's property-metadata scanner (Symfony's `PhpStanExtractor` → `TypeInfo`) chokes on generic `@template T of object` PHPDoc present in some of the plugin's transitive dependencies (e.g. `web-auth/webauthn-lib`), trying to build an `object|SomeClass` union that `TypeInfo` rejects. Because API Platform is enabled by default in Sylius 2, you hit it right after installing the plugin.
+
+It affects api-platform `4.3.x` (reproduced on 4.3.5–4.3.7; no fixed release exists at the time of writing). Until an upstream fix ships, work around it by decorating the property-info extractors with a wrapper that swallows the `TypeInfo` exception.
+
+Add the decorator class to your application — use the plugin's [`SafePhpStanExtractor`](tests/Application/src/PropertyInfo/SafePhpStanExtractor.php) as a reference implementation. It implements every property-info extractor interface (on Symfony 7.3+ also `ConstructorArgumentTypeExtractorInterface`) and returns `null` whenever the inner extractor throws `Symfony\Component\TypeInfo\Exception\InvalidArgumentException`. Then register it over both Symfony's and API Platform's extractor services:
+
+```yaml
+# config/services.yaml
+services:
+    App\PropertyInfo\SafePhpStanExtractor:
+        arguments: { $inner: '@.inner' }
+        decorates: property_info.phpstan_extractor
+        decoration_on_invalid: ignore
+
+    app.property_info.safe_php_doc_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: property_info.php_doc_extractor
+        decoration_on_invalid: ignore
+
+    app.property_info.safe_reflection_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: property_info.reflection_extractor
+        decoration_on_invalid: ignore
+
+    # API Platform registers its own parallel extractor services — decorate those too:
+    app.property_info.api_platform_safe_phpstan_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: api_platform.property_info.phpstan_extractor
+        decoration_on_invalid: ignore
+
+    app.property_info.api_platform_safe_php_doc_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: api_platform.property_info.php_doc_extractor
+        decoration_on_invalid: ignore
+
+    app.property_info.api_platform_safe_reflection_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: api_platform.property_info.reflection_extractor
+        decoration_on_invalid: ignore
+```
+
+> The decorator is harmless once the upstream bug is fixed (it only catches an exception that no longer fires), but remove it after you upgrade to a fixed api-platform release to keep your container clean.
+
+## Development (working on the plugin itself)
+
+This section is **only** for contributing to / developing the plugin — not for installing it into your own app (that's the *Installation* section above). The bundled **test application** under [`tests/Application/`](./tests/Application/) already has the bundle, plugin, routes and feature config registered (it's part of this repo), so you do **not** repeat the Installation steps — `make init` brings the whole stack up ready to go.
 
 ### Usage
 
-- Develop your plugin in `/src`
+- Develop the plugin in `/src` (and the framework-agnostic core in [`packages/enterprise-security-bundle/`](./packages/enterprise-security-bundle/))
 - See [`bin/`](./bin) and [`Makefile`](./Makefile) for useful commands
 
 ### Bootstrapping the dev environment
