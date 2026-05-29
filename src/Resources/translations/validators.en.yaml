@@ -6,6 +6,8 @@ three_brs:
         code_required: 'Please enter your authentication code.'
         invalid_code: 'The authentication code is invalid. Please try again.'
         invalid_code_length: 'The authentication code must be 6 digits.'
+    password_login_control:
+        cannot_disable_last_method: 'Password login cannot be disabled for this administrator — they have no other sign-in method (a connected social account, a passkey, or magic link).'
     password_expiration:
         changed_successfully: 'Your password has been changed successfully.'
     password_history:

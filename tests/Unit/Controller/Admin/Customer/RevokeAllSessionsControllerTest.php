@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\RevokeAllSessionsController;
@@ -44,8 +43,9 @@ class RevokeAllSessionsControllerTest extends TestCase
 
         $controller = $this->createController(null, $tracker, validToken: false);
 
-        $this->expectException(BadRequestHttpException::class);
-        $controller(self::request('bad'), 42);
+        $response = $controller(self::request('bad'), 42);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
     }
 
     private function createController(

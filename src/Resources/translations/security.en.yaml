@@ -1,0 +1,3 @@
+three_brs:
+    password_login_control:
+        disabled_for_user: 'Password login is disabled for this account. Please use one of the other available ways to sign in.'

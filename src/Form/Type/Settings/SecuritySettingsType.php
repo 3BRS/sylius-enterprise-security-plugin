@@ -46,6 +46,9 @@ class SecuritySettingsType extends AbstractType implements SecuritySettingsTypeI
             ->add('login_notifications', SimpleToggleSettingsType::class, [
                 'label' => 'three_brs.ui.security_settings.login_notifications.enabled',
             ])
+            ->add('password_login_control', SimpleToggleSettingsType::class, [
+                'label' => 'three_brs.ui.security_settings.password_login_control.enabled',
+            ])
             ->add('oauth', OAuthSettingsType::class)
         ;
 

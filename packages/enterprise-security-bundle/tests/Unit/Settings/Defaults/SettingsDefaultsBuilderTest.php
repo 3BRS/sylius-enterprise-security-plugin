@@ -188,6 +188,10 @@ class SettingsDefaultsBuilderTest extends TestCase
                 'customer' => $perScopeFeature(),
                 'admin' => $perScopeFeature(),
             ],
+            'password_login_control' => [
+                'customer' => $perScopeFeature(),
+                'admin' => $perScopeFeature(),
+            ],
             'account_deletion' => [
                 'customer' => $perScopeFeature([
                     'grace_period_days' => 30,

@@ -10,7 +10,6 @@ use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
@@ -38,12 +37,29 @@ abstract class AbstractCustomerSecurityActionController
     ) {
     }
 
-    protected function verifyCsrfTokenOrThrow(Request $request, string $tokenId): void
+    protected function isCsrfTokenValid(Request $request, string $tokenId): bool
     {
         $token = (string) $request->request->get('_csrf_token', '');
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenId, $token))) {
-            throw new BadRequestHttpException('Invalid CSRF token.');
+
+        return $this->csrfTokenManager->isTokenValid(new CsrfToken($tokenId, $token));
+    }
+
+    /**
+     * A stale CSRF token here almost always means the session was renewed (a
+     * timeout, or a sign-in/out elsewhere in the same browser), not an attack.
+     * Returns a redirect-back response with a friendly notice when the token is
+     * invalid, or null when it is valid and the action may proceed — so the
+     * admin sees a retry-able message instead of a raw 400.
+     */
+    protected function csrfFailureRedirect(Request $request, string $tokenId, int $customerId): ?Response
+    {
+        if ($this->isCsrfTokenValid($request, $tokenId)) {
+            return null;
         }
+
+        $this->addFlashMessage($request, 'error', 'three_brs.customer_security.session_expired');
+
+        return new RedirectResponse($this->router->generate('sylius_admin_customer_show', ['id' => $customerId]));
     }
 
     protected function loadShopUserOr404(int $customerId): ShopUserInterface

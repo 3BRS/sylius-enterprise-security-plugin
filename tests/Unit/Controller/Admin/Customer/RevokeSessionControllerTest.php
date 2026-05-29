@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
@@ -57,8 +56,9 @@ class RevokeSessionControllerTest extends TestCase
             validToken: false,
         );
 
-        $this->expectException(BadRequestHttpException::class);
-        $controller(self::request('bad'), 42, 7);
+        $response = $controller(self::request('bad'), 42, 7);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
     }
 
     public function testThrows404WhenCustomerNotFound(): void

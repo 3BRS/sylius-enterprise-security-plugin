@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
+
+use ThreeBRS\EnterpriseSecurityBundle\PasswordLoginControl\PasswordLoginPreferenceRepositoryInterface;
+
+interface AdminUserPasswordLoginPreferenceProviderInterface extends PasswordLoginPreferenceRepositoryInterface
+{
+}
