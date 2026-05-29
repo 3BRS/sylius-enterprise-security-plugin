@@ -132,7 +132,7 @@ three_brs_sylius_enterprise_security:
 - QR code + manual secret setup from account page (shop) or admin dashboard (admin)
 - Recovery codes — single-use backup codes generated at setup, regenerable from the manage view (invalidates all previous codes)
 - Trusted device — opt-in cookie (scheb JWT) to skip 2FA on a known device; revocable per user by bumping the user's `trustedTokenVersion`
-- Enforcement modes per user type: `disabled`, `optional`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
+- Enforcement modes per user type: `disabled`, `allowed`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
 - Firewall integration via `scheb/2fa-bundle` with separate `/2fa` (shop) and `/admin/2fa` (admin) challenge endpoints
 - Fixture (`three_brs_two_factor`) to preload 2FA-enabled users and recovery codes for demo/testing
 - Plugin exposes container parameters (`three_brs.two_factor.issuer`, `three_brs.two_factor.trusted_device_enabled`, `three_brs.two_factor.trusted_device_lifetime`) that can be referenced directly from your `scheb_2fa.yaml`
@@ -142,7 +142,7 @@ three_brs_sylius_enterprise_security:
     two_factor_authentication:
         issuer: 'Sylius'
         customer:
-            mode: 'optional'  # disabled | optional | enforced
+            mode: 'allowed'  # disabled | allowed | enforced
         admin:
             mode: 'enforced'
         recovery_codes:
@@ -326,7 +326,7 @@ Microsoft uses the Identity Platform v2.0 endpoint. The plugin defaults to the m
 - Separate link (like "Forgotten password?") is rendered on the shop and admin login pages via Sylius twig hooks; no markup changes required in your theme
 - Tokens live in dedicated tables (`three_brs_customer_magic_link_token`, `three_brs_admin_user_magic_link_token`) — only hashes are stored, plain tokens exist only in the email
 - Anti-enumeration: the request endpoint always responds with the same neutral confirmation whether the email is known, unknown, disabled, or rate-limited — no information about account existence leaks
-- Timing-attack mitigation: every code path is padded to a fixed wall-clock deadline (`DeadlineTimingPadding`, default 2 s) so response time does not leak account existence either — known/unknown/rate-limited requests all return at the same time. The 2-second default is chosen to comfortably cover the slowest happy path (DB write + SMTP send) on typical infrastructure; tune it by decorating the `ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\DeadlineTimingPadding` service with a different `$targetSeconds` if your SMTP transport is faster or slower than that
+- Timing-attack mitigation: every code path is padded to a fixed wall-clock deadline (`DeadlineTimingPadding`, default 2 s) so response time does not leak account existence either — known/unknown/rate-limited requests all return at the same time. The 2-second default is chosen to comfortably cover the slowest happy path (DB write + SMTP send) on typical infrastructure; tune it by decorating the `ThreeBRS\EnterpriseSecurityBundle\Timing\DeadlineTimingPadding` service with a different `$targetSeconds` if your SMTP transport is faster or slower than that
 - Rate limiting per user: configurable count within a sliding window (defaults to 3 requests / 15 minutes)
 - 2FA-aware: if the authenticated user has `scheb/2fa` enabled, the verify controller dispatches `AuthenticationTokenCreatedEvent` on the firewall event dispatcher so scheb wraps the token and redirects to the 2FA challenge — the magic link does **not** bypass the second factor
 - Fixture (`three_brs_magic_link`) to preload tokens for demo/testing
@@ -470,7 +470,7 @@ three_brs_sylius_enterprise_security:
 Add the lockout fields to your `ShopUser` and `AdminUser` entities (same pattern as 2FA / password expiration):
 
 ```php
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserTrait;
 
 class ShopUser extends BaseShopUser implements LockableShopUserInterface
@@ -539,7 +539,7 @@ The plugin ships **`MaxMindGeoIpLookup`** ready to be wired against a local MaxM
    ```yaml
    # config/services.yaml
    services:
-       ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\MaxMindGeoIpLookup:
+       ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\MaxMindGeoIpLookup:
            arguments:
                $databasePath: '%kernel.project_dir%/var/geoip/GeoLite2-City.mmdb'
    ```
@@ -547,7 +547,7 @@ The plugin ships **`MaxMindGeoIpLookup`** ready to be wired against a local MaxM
    # config/packages/threebrs_sylius_enterprise_security_plugin.yaml
    three_brs_sylius_enterprise_security:
        session_management:
-           geoip_service: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\MaxMindGeoIpLookup
+           geoip_service: ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\MaxMindGeoIpLookup
    ```
 
 The plugin's Extension reads `session_management.geoip_service` and replaces the default `NullGeoIpLookup` alias with your service ID — both the customer and admin trackers then call it transparently.
@@ -741,7 +741,9 @@ When the feature is disabled for a group, per-user switches have no effect — e
 > **Operator note.** The lock-out guard runs only at the moment you disable password login for a user — it is **not** re-checked afterwards. So if a user has password login disabled and relies on a globally-toggled method (magic link, passkey, or a specific OAuth provider), and you later turn that method off for their group, they can be left with no way to sign in. To recover, re-enable that method, or re-enable password login for the affected user.
 
 
-## Installation
+## Installation (into an existing Sylius application)
+
+This section is for **consuming** the plugin in your own Sylius project — you register the bundle/plugin and wire the config yourself. If you instead want to **work on the plugin itself**, skip to **Development** below: its bundled test application already has the bundle, plugin and routes registered, so you don't repeat these steps.
 
 > Every feature ships **disabled by default** (see each feature's *Defaults* section). You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
 
@@ -899,11 +901,13 @@ services:
 
 > The decorator is harmless once the upstream bug is fixed (it only catches an exception that no longer fires), but remove it after you upgrade to a fixed api-platform release to keep your container clean.
 
-## Development
+## Development (working on the plugin itself)
+
+This section is **only** for contributing to / developing the plugin — not for installing it into your own app (that's the *Installation* section above). The bundled **test application** under [`tests/Application/`](./tests/Application/) already has the bundle, plugin, routes and feature config registered (it's part of this repo), so you do **not** repeat the Installation steps — `make init` brings the whole stack up ready to go.
 
 ### Usage
 
-- Develop your plugin in `/src`
+- Develop the plugin in `/src` (and the framework-agnostic core in [`packages/enterprise-security-bundle/`](./packages/enterprise-security-bundle/))
 - See [`bin/`](./bin) and [`Makefile`](./Makefile) for useful commands
 
 ### Bootstrapping the dev environment
