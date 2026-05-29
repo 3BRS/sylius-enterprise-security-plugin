@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\Persistence\ManagerRegistry;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasskeyCredential;
@@ -24,7 +25,7 @@ class AdminUserPasskeyCredentialRepository extends ServiceEntityRepository imple
     {
         return $this->createQueryBuilder('c')
             ->where('c.credentialId = :credentialId')
-            ->setParameter('credentialId', $credentialId)
+            ->setParameter('credentialId', $credentialId, ParameterType::BINARY)
             ->getQuery()
             ->getOneOrNullResult()
         ;
