@@ -16,6 +16,7 @@
         "league/oauth2-client": "^2.7",
         "league/oauth2-google": "^4.0",
         "patrickbussmann/oauth2-apple": "^0.4",
+        "thenetworg/oauth2-azure": "^2.2",
         "web-auth/webauthn-lib": "^5.0",
         "symfony/rate-limiter": "^6.4|^7.4",
         "matomo/device-detector": "^6.5"

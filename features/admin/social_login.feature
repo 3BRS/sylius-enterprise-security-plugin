@@ -58,3 +58,11 @@ Feature: Admin social login (OAuth)
         And I am logged in as "admin@example.com" administrator
         When I unlink my admin "google" social account
         Then the administrator "admin@example.com" should still be linked to "google"
+
+    @ui
+    Scenario: First-time admin Microsoft social login auto-registers an admin account
+        Given the "microsoft" OAuth provider will return admin user "ms-admin-1" with email "newadmin-ms@example.com"
+        When I click the admin "microsoft" social login button
+        Then I should be logged in as admin "newadmin-ms@example.com"
+        And the admin "newadmin-ms@example.com" should exist
+        And an admin social link should exist for "newadmin-ms@example.com" with "microsoft" and provider id "ms-admin-1"

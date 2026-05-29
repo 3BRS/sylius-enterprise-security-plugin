@@ -1,6 +1,6 @@
 # ThreeBRS Enterprise Security Bundle
 
-A standalone Symfony bundle providing reusable security primitives — two-factor authentication, passkeys (WebAuthn/FIDO2), magic-link login, OAuth (Google + Apple), account lockout with rate limiting, session tracking, IP whitelist, password policy / history / expiration, GDPR self-service account deletion, and a runtime-configurable settings store.
+A standalone Symfony bundle providing reusable security primitives — two-factor authentication, passkeys (WebAuthn/FIDO2), magic-link login, OAuth (Google, Apple, Microsoft), account lockout with rate limiting, session tracking, IP whitelist, password policy / history / expiration, GDPR self-service account deletion, and a runtime-configurable settings store.
 
 The bundle is framework-agnostic (any Symfony 6.4 / 7.4 app) and is the engine powering the Sylius-flavored [ThreeBRS Enterprise Security Plugin](../../README.md). This document describes how to wire it into a **non-Sylius** Symfony project.
 
@@ -11,7 +11,7 @@ The bundle is framework-agnostic (any Symfony 6.4 / 7.4 app) and is the engine p
 **Authentication flows** (abstract base controllers — you extend and bind to your app):
 - Passkey login + registration (WebAuthn ceremony, browser-side `navigator.credentials.*`)
 - Magic-link login request + verify
-- OAuth login + callback + confirm-link (Google, Apple)
+- OAuth login + callback + confirm-link (Google, Apple, Microsoft)
 - Two-factor authentication setup wizard + recovery challenge
 
 **Self-service actions** (abstract base controllers):
@@ -30,7 +30,7 @@ The bundle is framework-agnostic (any Symfony 6.4 / 7.4 app) and is the engine p
 - `TotpSecretGeneratorInterface`, `QrCodeGeneratorInterface`, `RecoveryCodeGeneratorInterface`
 - `MagicLinkTokenGeneratorInterface`, `MagicLinkTokenValidatorInterface`
 - `PasskeyValidatorFactoryInterface`, `PasskeyCeremonyStepManagerFactoryInterface`, `PasskeyRelyingPartyEntityFactoryInterface`, `PasskeyWebauthnSerializerInterface`, `SessionPasskeyOptionsStorageInterface`
-- `OAuthProviderRegistryInterface`, `OAuthProviderInterface` + Google + Apple impls
+- `OAuthProviderRegistryInterface`, `OAuthProviderInterface` + Google + Apple + Microsoft impls
 - `AutoRegistrationPolicyInterface`
 - `CidrMatcherInterface`, `CidrListValidator` (Symfony constraint)
 - `GracePeriodCalculatorInterface`
@@ -167,6 +167,9 @@ parameters:
     # OAuth — deployment-time secrets
     three_brs.oauth.customer.google.client_id: '%env(GOOGLE_CLIENT_ID)%'
     three_brs.oauth.customer.google.client_secret: '%env(GOOGLE_CLIENT_SECRET)%'
+    three_brs.oauth.customer.microsoft.client_id: '%env(MICROSOFT_CLIENT_ID)%'
+    three_brs.oauth.customer.microsoft.client_secret: '%env(MICROSOFT_CLIENT_SECRET)%'
+    three_brs.oauth.customer.microsoft.tenant: 'common'
     # … plus Apple if used; admin variants if you have a separate admin firewall
 ```
 
@@ -261,7 +264,7 @@ The bundle ships **contracts**, not implementations. For each enabled feature, y
 | `SettingsWriterInterface` | Only if you have an admin UI to mutate settings at runtime | Doctrine `EntityManager` with optimistic locking |
 | `MagicLinkTokenVerifierInterface` | If magic-link login enabled | Repository lookup by `tokenHash` + expiry/used check |
 | `PasskeyAssertionVerifierInterface` | If passkey login enabled | Repository lookup by `credentialId` + WebAuthn verify via bundle's `PasskeyValidatorFactory` |
-| `OAuthProviderInterface` *(× N)* | Only if you add providers beyond Google/Apple (bundle ships those two) | Provider-specific OAuth2 client wrapper, tag with `three_brs.oauth_provider` |
+| `OAuthProviderInterface` *(× N)* | Only if you add providers beyond Google/Apple/Microsoft (bundle ships those three) | Provider-specific OAuth2 client wrapper, tag with `three_brs.oauth_provider` |
 
 ### Reference impl: Settings provider (Doctrine-backed)
 
@@ -683,7 +686,7 @@ Make sure your `User` entity also implements scheb's `TwoFactorInterface` from `
 
 ### OAuth
 
-OAuth itself doesn't need security.yaml changes — the bundle's `AbstractOAuthCallbackController` handles the entire flow and manually sets the security token. Just register your `App\OAuth\Google\GoogleProvider` and `App\OAuth\Apple\AppleProvider` services with the `three_brs.oauth_provider` tag (the bundle's registry picks them up).
+OAuth itself doesn't need security.yaml changes — the bundle's `AbstractOAuthCallbackController` handles the entire flow and manually sets the security token. Just register the bundle's `GoogleOAuthProvider`, `AppleOAuthProvider` and `MicrosoftOAuthProvider` services (or your own implementations) with the `three_brs.oauth_provider` tag and the bundle's registry picks them up.
 
 ---
 

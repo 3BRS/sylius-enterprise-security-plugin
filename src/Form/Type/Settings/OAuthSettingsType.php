@@ -26,6 +26,11 @@ class OAuthSettingsType extends AbstractType implements OAuthSettingsTypeInterfa
                 'required' => false,
                 'label_attr' => ['class' => 'checkbox-switch'],
             ])
+            ->add('microsoft_enabled', CheckboxType::class, [
+                'label' => 'three_brs.ui.security_settings.oauth.microsoft_enabled',
+                'required' => false,
+                'label_attr' => ['class' => 'checkbox-switch'],
+            ])
         ;
     }
 

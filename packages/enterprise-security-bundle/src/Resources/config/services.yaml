@@ -82,6 +82,18 @@ services:
         tags:
             - { name: 'three_brs.oauth_provider' }
 
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\MicrosoftOAuthProvider:
+        arguments:
+            $settings: '@ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface'
+            $customerClientId: '%three_brs.oauth.customer.microsoft.client_id%'
+            $customerClientSecret: '%three_brs.oauth.customer.microsoft.client_secret%'
+            $customerTenant: '%three_brs.oauth.customer.microsoft.tenant%'
+            $adminClientId: '%three_brs.oauth.admin.microsoft.client_id%'
+            $adminClientSecret: '%three_brs.oauth.admin.microsoft.client_secret%'
+            $adminTenant: '%three_brs.oauth.admin.microsoft.tenant%'
+        tags:
+            - { name: 'three_brs.oauth_provider' }
+
     ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry:
         arguments:
             $providers: !tagged_iterator 'three_brs.oauth_provider'

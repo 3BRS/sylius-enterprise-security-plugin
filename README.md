@@ -203,8 +203,9 @@ The admin firewall does not need a custom `success_handler` — Sylius does not 
   - email is unknown → a new account is auto-registered and the social identity linked (admin auto-registration is gated by an email-domain whitelist; see below)
 - **Multiple providers per user** — links live in dedicated entities (`three_brs_customer_social_account_link`, `three_brs_admin_user_social_account_link`)
 - **Link / unlink from the account page** — `LastAuthMethodGuard` refuses to unlink the last remaining sign-in method (password or another social link), so a user can never lock themselves out
-- **Extensible provider registry** — add Facebook, Microsoft, GitHub, … without forking the plugin. Implement `OAuthProviderInterface` (`getName`, `isEnabledForCustomer`, `isEnabledForAdmin`, `getAuthorizationUrl`, `fetchUserInfo`) and tag the service with `three_brs.oauth_provider`. `OAuthProviderRegistry` collects every tagged provider and the login controllers / Twig templates pick them up automatically — no routing, controller or template changes needed. `fetchUserInfo()` returns an `OAuthUserInfoInterface` (email, first/last name, provider user ID, email-verified flag) used uniformly across the link / register / login flow
+- **Extensible provider registry** — add Facebook, GitHub, LinkedIn, … without forking the plugin. Implement `OAuthProviderInterface` (`getName`, `isEnabledForCustomer`, `isEnabledForAdmin`, `getAuthorizationUrl`, `fetchUserInfo`) and tag the service with `three_brs.oauth_provider`. `OAuthProviderRegistry` collects every tagged provider and the login controllers / Twig templates pick them up automatically — no routing, controller or template changes needed. `fetchUserInfo()` returns an `OAuthUserInfoInterface` (email, first/last name, provider user ID, email-verified flag) used uniformly across the link / register / login flow
 - **Apple specifics handled** — JWT ES256 `client_secret` generated at runtime from `team_id` / `key_id` / private key, `form_post` callback, first-auth-only name persisted, private relay emails accepted as-is
+- **Microsoft specifics handled** — Microsoft Identity Platform v2.0 endpoint, multi-tenant via `common` (personal + work/school) by default, single-tenant restriction available per group via `tenant: '<guid>'`, `mail` claim preferred with `userPrincipalName` fallback
 - **Fixture** (`three_brs_social_account_link`) to preload social links for demo/testing
 
 ```yaml
@@ -222,6 +223,11 @@ three_brs_sylius_enterprise_security:
                 team_id: '%env(APPLE_TEAM_ID)%'
                 key_id: '%env(APPLE_KEY_ID)%'
                 private_key_path: '%kernel.project_dir%/config/secrets/apple_private_key.p8'
+            microsoft:
+                enabled: false
+                client_id: '%env(MICROSOFT_CLIENT_ID)%'
+                client_secret: '%env(MICROSOFT_CLIENT_SECRET)%'
+                tenant: 'common'                       # 'common' = personal + work/school; use a tenant GUID for single-tenant restriction
         admin:
             default_locale: 'en_US'                    # locale assigned to auto-registered admins
             auto_register_allowed_email_domains: []    # empty = auto-registration disabled; add e.g. ['yourcompany.com']
@@ -235,6 +241,11 @@ three_brs_sylius_enterprise_security:
                 team_id: '%env(APPLE_TEAM_ID)%'
                 key_id: '%env(APPLE_ADMIN_KEY_ID)%'
                 private_key_path: '%kernel.project_dir%/config/secrets/apple_admin_private_key.p8'
+            microsoft:
+                enabled: false
+                client_id: '%env(MICROSOFT_ADMIN_CLIENT_ID)%'
+                client_secret: '%env(MICROSOFT_ADMIN_CLIENT_SECRET)%'
+                tenant: 'common'                       # for admin/B2B consider 'organizations' (work/school only) or a tenant GUID (single org)
 ```
 
 Callback URLs to register with the providers:
@@ -285,6 +296,26 @@ Apple Sign In requires a paid Apple Developer account and a **public HTTPS** red
    # path is configured in yaml: %kernel.project_dir%/config/secrets/apple_private_key.p8
    ```
 4. Flip `enabled: true` for the relevant group. The plugin generates Apple's ES256 `client_secret` JWT at runtime — you don't store a long-lived secret.
+
+#### Microsoft Entra ID setup
+
+Microsoft uses the Identity Platform v2.0 endpoint. The plugin defaults to the multi-tenant `common` authority — any Microsoft account (personal `outlook.com`/`hotmail.com`/`live.com` or work/school Azure AD) can sign in. For admin or B2B use cases set `tenant:` to your organization's tenant GUID (or `organizations` for any work/school account) to lock sign-ins to that audience.
+
+1. In the [Microsoft Entra admin center](https://entra.microsoft.com/) → **Identity → Applications → App registrations → New registration**:
+   - **Name**: e.g. *Sylius Sign In*
+   - **Supported account types**: pick *Accounts in any organizational directory and personal Microsoft accounts* for `tenant: common`, *Accounts in any organizational directory* for `tenant: organizations`, or *Accounts in this organizational directory only* for a single-tenant restriction.
+   - **Redirect URI**: choose *Web* and enter `https://<your-domain>/oauth/microsoft/callback` (shop) and/or `https://<your-domain>/admin/oauth/microsoft/callback` (admin). You can register both URIs on a single app or use two separate app registrations to rotate them independently.
+2. **Certificates & secrets → Client secrets → New client secret** — give it a description and an expiry, then copy the *Value* immediately (it is shown only once).
+3. **API permissions → Add a permission → Microsoft Graph → Delegated permissions** — make sure `openid`, `profile`, `email` and `User.Read` are granted (they are the default delegated set, so usually nothing extra to do).
+4. Copy the values into your `.env.local`:
+   ```dotenv
+   MICROSOFT_CLIENT_ID=...                 # Application (client) ID from the Overview blade
+   MICROSOFT_CLIENT_SECRET=...             # Client secret Value (not the Secret ID)
+   MICROSOFT_ADMIN_CLIENT_ID=...
+   MICROSOFT_ADMIN_CLIENT_SECRET=...
+   ```
+   Shop and admin can share a single app registration, but separate registrations are recommended so secrets and audience restrictions can be rotated independently.
+5. Set `tenant:` in `threebrs_sylius_enterprise_security_plugin.yaml` to match the *Supported account types* you picked in step 1, then flip `enabled: true` for the relevant group.
 
 ### Magic Link Login
 
@@ -553,7 +584,7 @@ OAuth credentials (`client_id`, `client_secret`, Apple `team_id` / `key_id` / `p
 
 Passkey `rp_id` and `rp_name` similarly stay in YAML — the browser WebAuthn API binds registered credentials to the relying-party ID, so changing it at runtime would invalidate every passkey already registered. The GeoIP service ID is a Symfony service alias resolved at compile time; the implementation behind the alias is a deployment choice, not a runtime knob. Both surface only through YAML.
 
-The `Linked 3rd-party OAuth accounts` shop menu item and the admin Configuration *Linked 3rd-party OAuth accounts* item are now gated through `FeatureToggle` against the same `oauth.google.enabled` / `oauth.apple.enabled` paths used by the providers themselves — toggling a provider off in the Settings UI hides the menu entry on the next request.
+The `Linked 3rd-party OAuth accounts` shop menu item and the admin Configuration *Linked 3rd-party OAuth accounts* item are now gated through `FeatureToggle` against the same `oauth.google.enabled` / `oauth.apple.enabled` / `oauth.microsoft.enabled` paths used by the providers themselves — toggling a provider off in the Settings UI hides the menu entry on the next request.
 
 ### Self-Service Account Deletion (GDPR)
 

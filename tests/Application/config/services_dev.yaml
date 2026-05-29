@@ -8,6 +8,7 @@ services:
         calls:
             - [seedUserInfo, ['google', 'dev-google-123', 'dev.google@example.com', 'Dev', 'Google']]
             - [seedUserInfo, ['apple', 'dev-apple-123', 'dev.apple@example.com', 'Dev', 'Apple']]
+            - [seedUserInfo, ['microsoft', 'dev-microsoft-123', 'dev.microsoft@example.com', 'Dev', 'Microsoft']]
 
     # Override the real Google OAuth provider with a fake one in dev so the
     # buttons appear and the flow works without external credentials. The fake
@@ -27,6 +28,16 @@ services:
         class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
         arguments:
             $name: 'apple'
+            $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+        tags:
+            - { name: 'three_brs.oauth_provider' }
+
+    # Override the real Microsoft OAuth provider with a fake one in dev.
+    ThreeBRS\EnterpriseSecurityBundle\OAuth\MicrosoftOAuthProvider:
+        class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthProvider
+        arguments:
+            $name: 'microsoft'
             $state: '@Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState'
             $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
         tags:

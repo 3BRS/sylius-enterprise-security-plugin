@@ -3717,6 +3717,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *                 key_id?: scalar|Param|null, // Default: null
  *                 private_key_path?: scalar|Param|null, // Default: null
  *             },
+ *             microsoft?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 client_id?: scalar|Param|null, // Default: null
+ *                 client_secret?: scalar|Param|null, // Default: null
+ *                 tenant?: scalar|Param|null, // Default: "common"
+ *             },
  *         },
  *         admin?: array{
  *             default_locale?: scalar|Param|null, // Default: "en_US"
@@ -3732,6 +3738,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *                 team_id?: scalar|Param|null, // Default: null
  *                 key_id?: scalar|Param|null, // Default: null
  *                 private_key_path?: scalar|Param|null, // Default: null
+ *             },
+ *             microsoft?: array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 client_id?: scalar|Param|null, // Default: null
+ *                 client_secret?: scalar|Param|null, // Default: null
+ *                 tenant?: scalar|Param|null, // Default: "common"
  *             },
  *         },
  *     },
