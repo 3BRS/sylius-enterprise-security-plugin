@@ -841,6 +841,64 @@ When the feature is disabled for a group, per-user switches have no effect — e
    bin/console assets:install
    ```
 
+## Troubleshooting
+
+### `Cannot create union with both "object" and class type` during cache clear / warmup
+
+If `bin/console cache:clear` (or any route / API metadata warmup) fails with:
+
+```
+Cannot create union with both "object" and class type.
+```
+
+this is an **upstream api-platform regression, not a plugin bug**. API Platform's property-metadata scanner (Symfony's `PhpStanExtractor` → `TypeInfo`) chokes on generic `@template T of object` PHPDoc present in some of the plugin's transitive dependencies (e.g. `web-auth/webauthn-lib`), trying to build an `object|SomeClass` union that `TypeInfo` rejects. Because API Platform is enabled by default in Sylius 2, you hit it right after installing the plugin.
+
+It affects api-platform `4.3.x` (reproduced on 4.3.5–4.3.7; no fixed release exists at the time of writing). Until an upstream fix ships, work around it by decorating the property-info extractors with a wrapper that swallows the `TypeInfo` exception.
+
+Add the decorator class to your application — use the plugin's [`SafePhpStanExtractor`](tests/Application/src/PropertyInfo/SafePhpStanExtractor.php) as a reference implementation. It implements every property-info extractor interface (on Symfony 7.3+ also `ConstructorArgumentTypeExtractorInterface`) and returns `null` whenever the inner extractor throws `Symfony\Component\TypeInfo\Exception\InvalidArgumentException`. Then register it over both Symfony's and API Platform's extractor services:
+
+```yaml
+# config/services.yaml
+services:
+    App\PropertyInfo\SafePhpStanExtractor:
+        arguments: { $inner: '@.inner' }
+        decorates: property_info.phpstan_extractor
+        decoration_on_invalid: ignore
+
+    app.property_info.safe_php_doc_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: property_info.php_doc_extractor
+        decoration_on_invalid: ignore
+
+    app.property_info.safe_reflection_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: property_info.reflection_extractor
+        decoration_on_invalid: ignore
+
+    # API Platform registers its own parallel extractor services — decorate those too:
+    app.property_info.api_platform_safe_phpstan_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: api_platform.property_info.phpstan_extractor
+        decoration_on_invalid: ignore
+
+    app.property_info.api_platform_safe_php_doc_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: api_platform.property_info.php_doc_extractor
+        decoration_on_invalid: ignore
+
+    app.property_info.api_platform_safe_reflection_extractor:
+        class: App\PropertyInfo\SafePhpStanExtractor
+        arguments: { $inner: '@.inner' }
+        decorates: api_platform.property_info.reflection_extractor
+        decoration_on_invalid: ignore
+```
+
+> The decorator is harmless once the upstream bug is fixed (it only catches an exception that no longer fires), but remove it after you upgrade to a fixed api-platform release to keep your container clean.
+
 ## Development
 
 ### Usage
