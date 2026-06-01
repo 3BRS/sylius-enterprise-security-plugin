@@ -9,6 +9,7 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Range;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 /**
  * @extends AbstractType<array<string, mixed>>
@@ -26,8 +27,8 @@ class PasswordHistorySettingsType extends AbstractType implements PasswordHistor
             ->add('count', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.password_history.count',
                 'required' => true,
-                'attr' => ['min' => 1, 'max' => 24],
-                'constraints' => [new Range(min: 1, max: 24)],
+                'attr' => ['min' => 1, 'max' => SecuritySettingsBounds::PASSWORD_HISTORY_COUNT_MAX],
+                'constraints' => [new Range(min: 1, max: SecuritySettingsBounds::PASSWORD_HISTORY_COUNT_MAX)],
             ])
         ;
     }

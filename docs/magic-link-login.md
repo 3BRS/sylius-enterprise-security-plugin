@@ -22,6 +22,8 @@ three_brs_sylius_enterprise_security:
             expiration_seconds: 300
 ```
 
+> **Limits (enforced in the Security Settings UI):** `expiration_seconds` 60–3600 (1 minute – 1 hour).
+
 > Magic-link rate limiting (default 3 requests / 15 minutes) is configured separately via the centralized `rate_limit.{customer,admin}.magic_link.{enabled,limit,interval}` block — see [Account Lockout & Rate Limiting](account-lockout-rate-limiting.md).
 
 Expose the request and verify endpoints as public in your firewall access control (the verify controller authenticates internally):

@@ -12,6 +12,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 /**
  * @extends AbstractType<array<string, mixed>>
@@ -33,8 +34,8 @@ class RateLimitSettingsType extends AbstractType implements RateLimitSettingsTyp
                 ->add($action . '_limit', IntegerType::class, [
                     'label' => 'three_brs.ui.security_settings.rate_limit.' . $action . '.limit',
                     'required' => true,
-                    'attr' => ['min' => 1, 'max' => 1000],
-                    'constraints' => [new Range(min: 1, max: 1000)],
+                    'attr' => ['min' => 1, 'max' => SecuritySettingsBounds::RATE_LIMIT_LIMIT_MAX],
+                    'constraints' => [new Range(min: 1, max: SecuritySettingsBounds::RATE_LIMIT_LIMIT_MAX)],
                 ])
                 ->add($action . '_interval', ChoiceType::class, [
                     'label' => 'three_brs.ui.security_settings.rate_limit.' . $action . '.interval',

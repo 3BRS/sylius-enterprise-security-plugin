@@ -12,6 +12,7 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Validator\Constraints\Range;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 /**
  * @extends AbstractType<array<string, mixed>>
@@ -44,14 +45,14 @@ class PasswordPolicySettingsType extends AbstractType implements PasswordPolicyS
             ->add('min_length', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.password_policy.min_length',
                 'required' => true,
-                'attr' => ['min' => 1, 'max' => 64],
-                'constraints' => [new Range(min: 1, max: 64)],
+                'attr' => ['min' => 1, 'max' => SecuritySettingsBounds::PASSWORD_POLICY_MIN_LENGTH_MAX],
+                'constraints' => [new Range(min: 1, max: SecuritySettingsBounds::PASSWORD_POLICY_MIN_LENGTH_MAX)],
             ])
             ->add('max_length', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.password_policy.max_length',
                 'required' => false,
-                'attr' => ['min' => 1, 'max' => 128],
-                'constraints' => [new Range(min: 1, max: 128)],
+                'attr' => ['min' => 1, 'max' => SecuritySettingsBounds::PASSWORD_POLICY_MAX_LENGTH_MAX],
+                'constraints' => [new Range(min: 1, max: SecuritySettingsBounds::PASSWORD_POLICY_MAX_LENGTH_MAX)],
             ])
         ;
 

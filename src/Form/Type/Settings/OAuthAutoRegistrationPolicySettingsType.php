@@ -14,18 +14,13 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 /**
  * @extends AbstractType<array<string, mixed>>
  */
 class OAuthAutoRegistrationPolicySettingsType extends AbstractType implements OAuthAutoRegistrationPolicySettingsTypeInterface
 {
-    /** Upper bound on allow-listed domains — keeps the stored list, its validation and the textarea render bounded. */
-    protected const MAX_DOMAINS = 100;
-
-    /** Maximum length of a single domain name (RFC 1035). */
-    protected const MAX_DOMAIN_LENGTH = 253;
-
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var string $prefix */
@@ -88,11 +83,11 @@ class OAuthAutoRegistrationPolicySettingsType extends AbstractType implements OA
                     return;
                 }
 
-                if (count($data) > self::MAX_DOMAINS) {
+                if (count($data) > SecuritySettingsBounds::OAUTH_ALLOWED_EMAIL_DOMAINS_MAX) {
                     $event->getForm()->addError(new FormError(
                         'three_brs.oauth_policy.too_many_domains',
                         'three_brs.oauth_policy.too_many_domains',
-                        ['{{ limit }}' => self::MAX_DOMAINS],
+                        ['{{ limit }}' => SecuritySettingsBounds::OAUTH_ALLOWED_EMAIL_DOMAINS_MAX],
                     ));
 
                     return;
@@ -100,7 +95,7 @@ class OAuthAutoRegistrationPolicySettingsType extends AbstractType implements OA
 
                 $pattern = '/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i';
                 foreach ($data as $domain) {
-                    if (!is_string($domain) || strlen($domain) > self::MAX_DOMAIN_LENGTH || preg_match($pattern, $domain) !== 1) {
+                    if (!is_string($domain) || strlen($domain) > SecuritySettingsBounds::OAUTH_EMAIL_DOMAIN_LENGTH_MAX || preg_match($pattern, $domain) !== 1) {
                         $event->getForm()->addError(new FormError('three_brs.oauth_policy.invalid_domain'));
 
                         return;

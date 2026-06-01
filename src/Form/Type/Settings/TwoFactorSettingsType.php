@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Range;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorMode;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 /**
  * @extends AbstractType<array<string, mixed>>
@@ -39,8 +40,8 @@ class TwoFactorSettingsType extends AbstractType implements TwoFactorSettingsTyp
             ->add('recovery_codes_count', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.two_factor.recovery_codes_count',
                 'required' => true,
-                'attr' => ['min' => 1, 'max' => 10],
-                'constraints' => [new Range(min: 1, max: 10)],
+                'attr' => ['min' => 1, 'max' => SecuritySettingsBounds::TWO_FACTOR_RECOVERY_CODES_COUNT_MAX],
+                'constraints' => [new Range(min: 1, max: SecuritySettingsBounds::TWO_FACTOR_RECOVERY_CODES_COUNT_MAX)],
             ])
         ;
     }

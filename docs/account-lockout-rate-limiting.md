@@ -49,6 +49,8 @@ three_brs_sylius_enterprise_security:
             magic_link:      { enabled: false, limit: 3, interval: '15 minutes' }
 ```
 
+> **Limits (enforced in the Security Settings UI):** `max_attempts` 1–20; `auto_unlock_after` 1–86400 seconds; rate-limit `limit` 1–1000.
+
 Add the lockout fields to your `ShopUser` and `AdminUser` entities (same pattern as 2FA / password expiration):
 
 ```php
