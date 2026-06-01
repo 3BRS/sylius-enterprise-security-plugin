@@ -9,6 +9,7 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Range;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 /**
  * @extends AbstractType<array<string, mixed>>
@@ -27,8 +28,8 @@ class AccountDeletionSettingsType extends AbstractType implements AccountDeletio
                 'label' => 'three_brs.ui.security_settings.account_deletion.grace_period_days',
                 'help' => 'three_brs.ui.security_settings.account_deletion.grace_period_days_help',
                 'required' => true,
-                'attr' => ['min' => 1, 'max' => 90],
-                'constraints' => [new Range(min: 1, max: 90)],
+                'attr' => ['min' => 1, 'max' => SecuritySettingsBounds::ACCOUNT_DELETION_GRACE_PERIOD_DAYS_MAX],
+                'constraints' => [new Range(min: 1, max: SecuritySettingsBounds::ACCOUNT_DELETION_GRACE_PERIOD_DAYS_MAX)],
             ])
         ;
     }

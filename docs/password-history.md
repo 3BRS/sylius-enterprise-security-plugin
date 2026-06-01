@@ -16,3 +16,5 @@ three_brs_sylius_enterprise_security:
             enabled: false
             count: 10
 ```
+
+> **Limits (enforced in the Security Settings UI):** `count` 1–24.

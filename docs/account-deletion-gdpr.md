@@ -34,6 +34,8 @@ three_brs_sylius_enterprise_security:
             grace_period_days: 30
 ```
 
+> **Limits (enforced in the Security Settings UI):** `grace_period_days` 1–90.
+
 The feature is intentionally customer-scope only — admin self-deletion is not exposed (admin lifecycle is operations-team responsibility, not GDPR self-service).
 
 > **Cron is required.** Without `three-brs:account-deletion:process-due` running periodically, deletion requests reach `scheduled_for` but never anonymize — the customer stays disabled but their personal data lingers in the DB indefinitely.

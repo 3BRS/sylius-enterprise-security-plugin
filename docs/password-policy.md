@@ -26,3 +26,5 @@ three_brs_sylius_enterprise_security:
             require_numbers: true
             require_special_characters: true
 ```
+
+> **Limits (enforced in the Security Settings UI):** `min_length` 1–64, `max_length` 1–128 — and `max_length` must be ≥ `min_length`.

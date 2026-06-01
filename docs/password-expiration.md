@@ -17,3 +17,5 @@ three_brs_sylius_enterprise_security:
             enabled: false
             days: 60
 ```
+
+> **Limits (enforced in the Security Settings UI):** `days` 1–365.

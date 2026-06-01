@@ -29,6 +29,8 @@ three_brs_sylius_enterprise_security:
             days: 60
 ```
 
+> **Limits:** recovery codes `count` 1–10 (Security Settings UI); trusted-device `days` 1–365 (set via YAML config).
+
 `trusted_device` is global (scheb-wide) and shared between shop and admin firewalls — scheb's JWT-cookie trusted-device implementation supports only a single lifetime.
 
 ```yaml

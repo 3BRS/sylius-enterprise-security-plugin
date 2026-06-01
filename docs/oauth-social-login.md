@@ -53,6 +53,8 @@ three_brs_sylius_enterprise_security:
                 tenant: 'common'                       # for admin/B2B consider 'organizations' (work/school only) or a tenant GUID (single org)
 ```
 
+> **Limits (enforced in the Security Settings UI):** `auto_register_allowed_email_domains` — at most 100 entries, each at most 253 characters.
+
 Callback URLs to register with the providers:
 
 - Shop: `https://<your-domain>/oauth/{provider}/callback`
