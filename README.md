@@ -36,716 +36,118 @@
 - Admin Customer Management
 - Per-User Password Login Control
 
+<p align="center"><img src="docs/images/two-factor-setup.png" alt="Two-factor authentication setup with QR code and recovery secret" width="1000" /></p>
+
+<p align="center"><img src="docs/images/active-sessions.png" alt="Active sessions list with per-device sign-out and revocation" width="1000" /></p>
+
+<p align="center"><img src="docs/images/customer-security-section.png" alt="Admin customer Security section — force password reset, block, password-login toggle, sessions and login history" width="1000" /></p>
+
+<p align="center"><img src="docs/images/security-settings.png" alt="Centralized Security Settings admin UI — password policy, history and rate limiting" width="1000" /></p>
+
 ## Features
 
 ### Password Policy
 
-- Configurable minimum and maximum password length (overrides Sylius's default 3-character minimum)
-- Complexity requirements: uppercase, lowercase, numbers, and special characters — each independently toggleable
-- Core validation logic implemented as a reusable Symfony validator in `enterprise-security-bundle` (no Sylius dependency)
-- Sylius plugin layer applies the policy to `ShopUser` (customer) and `AdminUser` entities with separate configuration for each
+Enforces configurable password complexity (minimum/maximum length and uppercase / lowercase / number / special-character requirements) for shop customers and admin users, configured separately per group. Overrides Sylius's weak 3-character default.
 
-### Defaults for password policy
-
-```yaml
-three_brs_sylius_enterprise_security:
-    password_policy:
-        customer:
-            min_length: 8
-            max_length: ~
-            require_uppercase: false
-            require_lowercase: false
-            require_numbers: false
-            require_special_characters: false
-
-        admin:
-            min_length: 12
-            max_length: ~
-            require_uppercase: true
-            require_lowercase: true
-            require_numbers: true
-            require_special_characters: true
-```
+To learn more read [password-policy.md](docs/password-policy.md).
 
 ### Password History
 
-- Prevents users from reusing recent passwords
-- Configurable number of previous passwords to remember per user type
-- Separate history tables for customers (`three_brs_customer_password_history`) and admins (`three_brs_admin_user_password_history`)
+Prevents users from reusing their recent passwords, with a configurable number of previous passwords remembered per group. Customer and admin history are stored separately.
 
-### Defaults for password history
-
-```yaml
-three_brs_sylius_enterprise_security:
-    password_history:
-        customer:
-            enabled: false
-            count: 5
-        admin:
-            enabled: false
-            count: 10
-```
+To learn more read [password-history.md](docs/password-history.md).
 
 ### Password Expiration
 
-- Forces password change after a configurable number of days
-- Supports `force_change` flag to immediately require a password change on next login
-- Admin users are redirected to a dedicated change-password page; shop users to the standard change-password flow
-- Configurable independently for customers and admins
+Forces a password change after a configurable number of days, with an optional `force_change` flag to require it on next login. Configurable independently for customers and admins.
 
-### Defaults for password expiration
-
-```yaml
-three_brs_sylius_enterprise_security:
-    password_expiration:
-        customer:
-            enabled: false
-            days: 90
-        admin:
-            enabled: false
-            days: 60
-```
+To learn more read [password-expiration.md](docs/password-expiration.md).
 
 ### Password Change Notifications
 
-- Sends an email notification whenever a user's password is changed
-- Covers all flows: account settings change, forgot-password reset, admin-forced change, and admin editing another user's password
-- Detection is Doctrine-based — the listener catches password updates at flush time regardless of which flow triggered them
-- Email contains timestamp, IP address (when available), and a secure-account link when the change was not initiated by the user
-- `initiatedByUser` is derived from the current security token: when the authenticated user matches the user whose password changed, the secure-account link is omitted
-- Configurable independently for customers and admins (enable/disable)
+Sends an email whenever a user's password changes — covering account settings, forgot-password reset, and admin-initiated changes — with the timestamp, IP address, and (for changes not made by the user themselves) a secure-account link. Configurable independently for customers and admins.
 
-```yaml
-three_brs_sylius_enterprise_security:
-    password_change_notification:
-        customer:
-            enabled: false
-        admin:
-            enabled: false
-```
-
-> **Note (reverse proxy / load balancer):** the IP address included in the email is read from `Request::getClientIp()`, which respects `X-Forwarded-For` only for trusted proxies. If your Sylius runs behind a load balancer or reverse proxy, make sure `framework.trusted_proxies` and `framework.trusted_headers` are configured (e.g. via the `TRUSTED_PROXIES` / `TRUSTED_HEADERS` environment variables) — otherwise the email will log the proxy's address instead of the real client IP. See the [Symfony docs on trusted proxies](https://symfony.com/doc/current/deployment/proxies.html).
+To learn more read [password-change-notifications.md](docs/password-change-notifications.md).
 
 ### Two-Factor Authentication
 
-- TOTP-based 2FA for shop and admin users (compatible with Google Authenticator, Authy, 1Password, etc.)
-- QR code + manual secret setup from account page (shop) or admin dashboard (admin)
-- Recovery codes — single-use backup codes generated at setup, regenerable from the manage view (invalidates all previous codes)
-- Trusted device — opt-in cookie (scheb JWT) to skip 2FA on a known device; revocable per user by bumping the user's `trustedTokenVersion`
-- Enforcement modes per user type: `disabled`, `allowed`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
-- Firewall integration via `scheb/2fa-bundle` with separate `/2fa` (shop) and `/admin/2fa` (admin) challenge endpoints
-- Fixture (`three_brs_two_factor`) to preload 2FA-enabled users and recovery codes for demo/testing
-- Plugin exposes container parameters (`three_brs.two_factor.issuer`, `three_brs.two_factor.trusted_device_enabled`, `three_brs.two_factor.trusted_device_lifetime`) that can be referenced directly from your `scheb_2fa.yaml`
+TOTP-based two-factor authentication for shop and admin users (Google Authenticator, Authy, 1Password, …), with QR-code setup, single-use recovery codes, opt-in trusted devices, and per-group enforcement modes (`disabled` / `allowed` / `enforced`). Built on `scheb/2fa-bundle`.
 
-```yaml
-three_brs_sylius_enterprise_security:
-    two_factor_authentication:
-        issuer: 'Sylius'
-        customer:
-            mode: 'allowed'  # disabled | allowed | enforced
-        admin:
-            mode: 'enforced'
-        recovery_codes:
-            customer:
-                enabled: true
-                count: 8
-            admin:
-                enabled: true
-                count: 8
-        trusted_device:
-            enabled: true
-            days: 60
-```
-
-`trusted_device` is global (scheb-wide) and shared between shop and admin firewalls — scheb's JWT-cookie trusted-device implementation supports only a single lifetime.
-
-```yaml
-# config/packages/scheb_2fa.yaml
-scheb_two_factor:
-    trusted_device:
-        enabled: '%three_brs.two_factor.trusted_device_enabled%'
-        lifetime: '%three_brs.two_factor.trusted_device_lifetime%'
-        key: '%env(THREE_BRS_TWO_FACTOR_TRUSTED_DEVICE_KEY)%' # required, >=256-bit secret for JWT HMAC-SHA256
-    totp:
-        issuer: '%three_brs.two_factor.issuer%'
-```
-
-On the **shop firewall**, replace Sylius' default `form_login.success_handler` (`sylius.authentication.success_handler`) with the plugin's 2FA-aware wrapper. The default Sylius handler returns a `JsonResponse` on XHR and redirects straight to the target path without checking for a `TwoFactorTokenInterface`, which produces a broken UX during 2FA challenges:
-
-```yaml
-# config/packages/security.yaml
-security:
-    firewalls:
-        shop:
-            form_login:
-                success_handler: ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler.shop
-            two_factor:
-                auth_form_path: /2fa
-                check_path: /2fa_check
-                prepare_on_login: true
-                prepare_on_access_denied: true
-        admin:
-            two_factor:
-                auth_form_path: /admin/2fa
-                check_path: /admin/2fa_check
-                prepare_on_login: true
-                prepare_on_access_denied: true
-```
-
-The admin firewall does not need a custom `success_handler` — Sylius does not override it there, so the default Symfony handler is used and scheb's `TwoFactorAccessListener` transparently redirects authenticated-but-not-yet-verified admins to `/admin/2fa` on the next request.
+To learn more read [two-factor-authentication.md](docs/two-factor-authentication.md).
 
 ### 3rd-party OAuth (Social Login)
 
-- **Google and Apple sign-in** for shop customers and admin users — sign-in buttons are rendered on the shop login + register pages and on the admin login page
-- **Independent shop/admin configuration** — each provider is enabled and configured separately for the shop and admin groups, so you can register two distinct OAuth clients (different client IDs, consent screens, redirect URIs). Useful when the shop-facing app and the internal admin app live as separate applications on the provider side
-- **Three callback flows** depending on what the plugin finds for the OAuth identity's email:
-  - existing linked account → straight log-in
-  - email matches a local account → password confirmation prompt before the link is created (prevents account takeover)
-  - email is unknown → a new account is auto-registered and the social identity linked (admin auto-registration is gated by an email-domain whitelist; see below)
-- **Multiple providers per user** — links live in dedicated entities (`three_brs_customer_social_account_link`, `three_brs_admin_user_social_account_link`)
-- **Link / unlink from the account page** — `LastAuthMethodGuard` refuses to unlink the last remaining sign-in method (password or another social link), so a user can never lock themselves out
-- **Extensible provider registry** — add Facebook, GitHub, LinkedIn, … without forking the plugin. Implement `OAuthProviderInterface` (`getName`, `isEnabledForCustomer`, `isEnabledForAdmin`, `getAuthorizationUrl`, `fetchUserInfo`) and tag the service with `three_brs.oauth_provider`. `OAuthProviderRegistry` collects every tagged provider and the login controllers / Twig templates pick them up automatically — no routing, controller or template changes needed. `fetchUserInfo()` returns an `OAuthUserInfoInterface` (email, first/last name, provider user ID, email-verified flag) used uniformly across the link / register / login flow
-- **Apple specifics handled** — JWT ES256 `client_secret` generated at runtime from `team_id` / `key_id` / private key, `form_post` callback, first-auth-only name persisted, private relay emails accepted as-is
-- **Microsoft specifics handled** — Microsoft Identity Platform v2.0 endpoint, multi-tenant via `common` (personal + work/school) by default, single-tenant restriction available per group via `tenant: '<guid>'`, `mail` claim preferred with `userPrincipalName` fallback
-- **Fixture** (`three_brs_social_account_link`) to preload social links for demo/testing
+Google, Apple and Microsoft sign-in for shop customers and admin users, configured independently per group. Handles account linking with takeover protection, optional domain-gated auto-registration, and an extensible provider registry for adding more providers.
 
-```yaml
-three_brs_sylius_enterprise_security:
-    oauth:
-        customer:
-            auto_register_allowed_email_domains: []    # empty = no restriction (any verified email); add e.g. ['yourcompany.com'] to restrict
-            google:
-                enabled: false
-                client_id: '%env(GOOGLE_CLIENT_ID)%'
-                client_secret: '%env(GOOGLE_CLIENT_SECRET)%'
-            apple:
-                enabled: false
-                client_id: '%env(APPLE_CLIENT_ID)%'
-                team_id: '%env(APPLE_TEAM_ID)%'
-                key_id: '%env(APPLE_KEY_ID)%'
-                private_key_path: '%kernel.project_dir%/config/secrets/apple_private_key.p8'
-            microsoft:
-                enabled: false
-                client_id: '%env(MICROSOFT_CLIENT_ID)%'
-                client_secret: '%env(MICROSOFT_CLIENT_SECRET)%'
-                tenant: 'common'                       # 'common' = personal + work/school; use a tenant GUID for single-tenant restriction
-        admin:
-            default_locale: 'en_US'                    # locale assigned to auto-registered admins
-            auto_register_allowed_email_domains: []    # empty = auto-registration disabled; add e.g. ['yourcompany.com']
-            google:
-                enabled: false
-                client_id: '%env(GOOGLE_ADMIN_CLIENT_ID)%'
-                client_secret: '%env(GOOGLE_ADMIN_CLIENT_SECRET)%'
-            apple:
-                enabled: false
-                client_id: '%env(APPLE_ADMIN_CLIENT_ID)%'
-                team_id: '%env(APPLE_TEAM_ID)%'
-                key_id: '%env(APPLE_ADMIN_KEY_ID)%'
-                private_key_path: '%kernel.project_dir%/config/secrets/apple_admin_private_key.p8'
-            microsoft:
-                enabled: false
-                client_id: '%env(MICROSOFT_ADMIN_CLIENT_ID)%'
-                client_secret: '%env(MICROSOFT_ADMIN_CLIENT_SECRET)%'
-                tenant: 'common'                       # for admin/B2B consider 'organizations' (work/school only) or a tenant GUID (single org)
-```
-
-Callback URLs to register with the providers:
-
-- Shop: `https://<your-domain>/oauth/{provider}/callback`
-- Admin: `https://<your-domain>/admin/oauth/{provider}/callback`
-
-> **Admin auto-registration:** by default `auto_register_allowed_email_domains` is empty and admin auto-registration is **disabled** — an unknown OAuth identity hitting the admin login is rejected. Add your corporate domain(s) to opt in. Auto-created admins receive `ROLE_ADMINISTRATION_ACCESS` and the configured `default_locale`.
->
-> **Warning:** the `allowed_email_domains` whitelist should include **only domains you fully control**.
-> Anyone with a working email in these domains can auto-create an admin account with full `ROLE_ADMINISTRATION_ACCESS`.
-> For external/shared domains or when fine-grained control is needed, leave the whitelist empty — admins will need to be created manually before their first OAuth login.
-
-> **Customer auto-registration:** by default `auto_register_allowed_email_domains` is empty and any verified OAuth identity can auto-register as a customer (preserves the commercial signup-friendly default). Populate the list to restrict customer auto-registration to specific domains (useful e.g. for B2B stores or as a bot-mitigation measure).
-
-#### Google Cloud setup
-
-1. Open the [Google Cloud Console](https://console.cloud.google.com/) and create (or select) a project.
-2. **APIs & Services → OAuth consent screen** — choose *External*, fill in the app name, support email and developer contact. Add the scopes `openid`, `email`, `profile`. Add test users while the app is in *Testing* mode.
-3. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
-   - Application type: *Web application*
-   - Authorized JavaScript origins: `https://<your-domain>`
-   - Authorized redirect URIs: `https://<your-domain>/oauth/google/callback` (shop) and/or `https://<your-domain>/admin/oauth/google/callback` (admin)
-4. Copy the generated **Client ID** and **Client secret** into your `.env.local`:
-   ```dotenv
-   GOOGLE_CLIENT_ID=...
-   GOOGLE_CLIENT_SECRET=...
-   GOOGLE_ADMIN_CLIENT_ID=...
-   GOOGLE_ADMIN_CLIENT_SECRET=...
-   ```
-   Shop and admin can share a single OAuth client, but separate clients are recommended so you can revoke/rotate them independently.
-5. Flip `enabled: true` for the relevant group in `threebrs_sylius_enterprise_security_plugin.yaml`.
-
-#### Apple Developer setup
-
-Apple Sign In requires a paid Apple Developer account and a **public HTTPS** redirect URL — `http://localhost` is not accepted. For local testing expose your dev host over HTTPS (ngrok, Cloudflare Tunnel, …).
-
-1. In the [Apple Developer portal](https://developer.apple.com/account/resources/) → **Certificates, Identifiers & Profiles**:
-   - **Identifiers → App IDs → +** — create an App ID, enable the *Sign In with Apple* capability.
-   - **Identifiers → Services IDs → +** — create a Services ID (this becomes the `client_id`), enable *Sign In with Apple*, configure the primary App ID and add your return URL: `https://<your-domain>/oauth/apple/callback` (and/or the admin variant).
-   - **Keys → +** — create a key with *Sign In with Apple* enabled, associate it with the primary App ID, download the `.p8` private key. **The file is only downloadable once.** Note the **Key ID**.
-2. Find your **Team ID** in the top-right of the Apple Developer portal (or under *Membership*).
-3. Store the private key inside the project (outside of version control) and set env vars:
-   ```dotenv
-   APPLE_CLIENT_ID=com.yourcompany.sylius.signin       # the Services ID
-   APPLE_TEAM_ID=ABCDE12345
-   APPLE_KEY_ID=FGHIJ67890
-   # path is configured in yaml: %kernel.project_dir%/config/secrets/apple_private_key.p8
-   ```
-4. Flip `enabled: true` for the relevant group. The plugin generates Apple's ES256 `client_secret` JWT at runtime — you don't store a long-lived secret.
-
-#### Microsoft Entra ID setup
-
-Microsoft uses the Identity Platform v2.0 endpoint. The plugin defaults to the multi-tenant `common` authority — any Microsoft account (personal `outlook.com`/`hotmail.com`/`live.com` or work/school Azure AD) can sign in. For admin or B2B use cases set `tenant:` to your organization's tenant GUID (or `organizations` for any work/school account) to lock sign-ins to that audience.
-
-1. In the [Microsoft Entra admin center](https://entra.microsoft.com/) → **Identity → Applications → App registrations → New registration**:
-   - **Name**: e.g. *Sylius Sign In*
-   - **Supported account types**: pick *Accounts in any organizational directory and personal Microsoft accounts* for `tenant: common`, *Accounts in any organizational directory* for `tenant: organizations`, or *Accounts in this organizational directory only* for a single-tenant restriction.
-   - **Redirect URI**: choose *Web* and enter `https://<your-domain>/oauth/microsoft/callback` (shop) and/or `https://<your-domain>/admin/oauth/microsoft/callback` (admin). You can register both URIs on a single app or use two separate app registrations to rotate them independently.
-2. **Certificates & secrets → Client secrets → New client secret** — give it a description and an expiry, then copy the *Value* immediately (it is shown only once).
-3. **API permissions → Add a permission → Microsoft Graph → Delegated permissions** — make sure `openid`, `profile`, `email` and `User.Read` are granted (they are the default delegated set, so usually nothing extra to do).
-4. Copy the values into your `.env.local`:
-   ```dotenv
-   MICROSOFT_CLIENT_ID=...                 # Application (client) ID from the Overview blade
-   MICROSOFT_CLIENT_SECRET=...             # Client secret Value (not the Secret ID)
-   MICROSOFT_ADMIN_CLIENT_ID=...
-   MICROSOFT_ADMIN_CLIENT_SECRET=...
-   ```
-   Shop and admin can share a single app registration, but separate registrations are recommended so secrets and audience restrictions can be rotated independently.
-5. Set `tenant:` in `threebrs_sylius_enterprise_security_plugin.yaml` to match the *Supported account types* you picked in step 1, then flip `enabled: true` for the relevant group.
+To learn more read [oauth-social-login.md](docs/oauth-social-login.md).
 
 ### Magic Link Login
 
-- Passwordless sign-in for shop customers and admin users, independently configurable per group
-- User submits their email, the plugin generates a single-use token, stores only its SHA-256 hash, and emails a link (`/magic-link/verify/{token}` for shop, `/admin/magic-link/verify/{token}` for admin)
-- Following the link signs the user in and marks the token as used — one-time use only
-- Separate link (like "Forgotten password?") is rendered on the shop and admin login pages via Sylius twig hooks; no markup changes required in your theme
-- Tokens live in dedicated tables (`three_brs_customer_magic_link_token`, `three_brs_admin_user_magic_link_token`) — only hashes are stored, plain tokens exist only in the email
-- Anti-enumeration: the request endpoint always responds with the same neutral confirmation whether the email is known, unknown, disabled, or rate-limited — no information about account existence leaks
-- Timing-attack mitigation: every code path is padded to a fixed wall-clock deadline (`DeadlineTimingPadding`, default 2 s) so response time does not leak account existence either — known/unknown/rate-limited requests all return at the same time. The 2-second default is chosen to comfortably cover the slowest happy path (DB write + SMTP send) on typical infrastructure; tune it by decorating the `ThreeBRS\EnterpriseSecurityBundle\Timing\DeadlineTimingPadding` service with a different `$targetSeconds` if your SMTP transport is faster or slower than that
-- Rate limiting per user: configurable count within a sliding window (defaults to 3 requests / 15 minutes)
-- 2FA-aware: if the authenticated user has `scheb/2fa` enabled, the verify controller dispatches `AuthenticationTokenCreatedEvent` on the firewall event dispatcher so scheb wraps the token and redirects to the 2FA challenge — the magic link does **not** bypass the second factor
-- Fixture (`three_brs_magic_link`) to preload tokens for demo/testing
+Passwordless email sign-in for shop customers and admin users, independently configurable per group. Single-use, hashed, time-limited tokens with anti-enumeration, timing-attack padding, rate limiting, and 2FA awareness.
 
-```yaml
-three_brs_sylius_enterprise_security:
-    magic_link:
-        customer:
-            enabled: false
-            expiration_seconds: 300      # 5 minutes
-        admin:
-            enabled: false
-            expiration_seconds: 300
-```
-
-> Magic-link rate limiting (default 3 requests / 15 minutes) is configured separately via the centralized `rate_limit.{customer,admin}.magic_link.{enabled,limit,interval}` block — see [Account Lockout & Rate Limiting](#account-lockout--rate-limiting) below.
-
-Expose the request and verify endpoints as public in your firewall access control (the verify controller authenticates internally):
-
-```yaml
-# config/packages/security.yaml
-security:
-    access_control:
-        - { path: ^/magic-link$, role: PUBLIC_ACCESS }
-        - { path: ^/magic-link/verify/, role: PUBLIC_ACCESS }
-        - { path: "%sylius.security.admin_regex%/magic-link$", role: PUBLIC_ACCESS }
-        - { path: "%sylius.security.admin_regex%/magic-link/verify/", role: PUBLIC_ACCESS }
-```
+To learn more read [magic-link-login.md](docs/magic-link-login.md).
 
 ### Passkey Login (WebAuthn / FIDO2)
 
-- Passwordless sign-in for shop customers and admin users using passkeys (platform authenticators like Touch ID / Windows Hello / Android lock, or hardware security keys such as YubiKey). Independently configurable per group.
-- Multiple passkeys per user — labelled (e.g. "MacBook Touch ID", "YubiKey") so the user can identify them. Managed at `/account/passkey` (shop) and `/admin/account/passkey` (admin).
-- Per-user credential storage in dedicated tables (`three_brs_customer_passkey_credential`, `three_brs_admin_user_passkey_credential`) — credential ID, public key, sign counter and other metadata serialized as JSON.
-- Built on `web-auth/webauthn-lib` — server-side challenge generation and assertion verification follow the standard WebAuthn ceremony.
-- 2FA-aware (default safe): the verify controller dispatches `AuthenticationTokenCreatedEvent` on the firewall event dispatcher so scheb wraps the token and redirects to the 2FA challenge — passkeys do **not** bypass the second factor by default.
-- Optional UV bypass: if `passkey.skip_2fa_when_user_verified: true`, passkeys with the `userVerified` flag set (i.e. authenticator required biometrics or PIN) are accepted as multi-factor on their own and skip the scheb 2FA challenge.
-- Last-auth-method protection: the existing `LastAuthMethodGuard` is extended to count passkeys, social links and password together; the user cannot remove the last sign-in method on their account.
-- Frontend JavaScript (`bundles/threebrssyliusenterprisesecurityplugin/js/passkey.js`) handles `navigator.credentials.create()` / `get()` and the JSON dance with the server. Browsers without the WebAuthn API see a hidden / disabled UI instead of a broken button.
-- Sylius twig hooks render a "Sign in with a passkey" button on the shop and admin login pages — no theme changes required.
-- Plugin adds a **Passkeys** entry to the shop account menu (`sylius.menu.shop.account`) and to the admin **Configuration** sub-menu (`sylius.menu.admin.main`) automatically — both shown only when the feature is enabled for that group.
-- Fixture (`three_brs_passkey`) to preload placeholder credentials for demo/testing of list/remove flows.
-- **End-to-end Behat coverage without a real browser** — the `passkey_ceremony` suite runs a PHP-side authenticator emulator (`tests/Behat/Service/Passkey/FakeAuthenticator`) that generates real ES256 keypairs in PHP, signs assertions and serializes WebAuthn structures (CBOR + COSE) exactly as a real authenticator would. Server-side `web-auth/webauthn-lib` validates the signed payloads end-to-end, so the full register / login ceremony is covered without Selenium, Panther or a browser. Run with `APP_ENV=test ./bin-docker/php vendor/bin/behat --suite=shop_passkey_ceremony` (and the admin variant). Note: this layer does **not** exercise the JavaScript glue in `passkey.js`; that is left for a separate JS unit-test suite if/when added.
+Passwordless passkey sign-in (Touch ID / Windows Hello / Android lock / hardware keys) for shop customers and admin users, independently configurable per group. Multiple labelled passkeys per user, built on `web-auth/webauthn-lib`, 2FA-aware by default.
 
-### Defaults for passkey
-
-```yaml
-three_brs_sylius_enterprise_security:
-    passkey:
-        rp_id: ~
-        rp_name: ~
-        skip_2fa_when_user_verified: false
-        customer:
-            enabled: false
-        admin:
-            enabled: false
-```
-
-### Required configuration to enable passkeys
-
-`rp_id` and `rp_name` are `null` by default and must be set before passkeys can be used — registration and login will silently fail otherwise. Minimum config to turn the feature on for shop customers:
-
-```yaml
-three_brs_sylius_enterprise_security:
-    passkey:
-        rp_id: example.com               # your domain (or `localhost` in dev)
-        rp_name: 'My Sylius Shop'        # display name shown by the browser
-        customer:
-            enabled: true
-```
-
-Expose the passkey login endpoints as public in your firewall access control (the verify controller authenticates internally):
-
-```yaml
-# config/packages/security.yaml
-security:
-    access_control:
-        - { path: ^/passkey/login/options$, role: PUBLIC_ACCESS }
-        - { path: ^/passkey/login/verify$, role: PUBLIC_ACCESS }
-        - { path: "%sylius.security.admin_regex%/passkey/login/options$", role: PUBLIC_ACCESS }
-        - { path: "%sylius.security.admin_regex%/passkey/login/verify$", role: PUBLIC_ACCESS }
-```
-
-After installing the plugin, run `bin/console assets:install` so the bundled `passkey.js` is symlinked into your `public/bundles/` directory.
-
-> **Deployment / HTTPS:** the WebAuthn browser API only works over HTTPS or `http://localhost`. Ensure your production deployment is reachable over TLS — registration and login will silently fail otherwise.
->
-> **`rp_id` must match the host the user is on.** For e.g. `https://shop.example.com`, `rp_id` should be `shop.example.com` (or `example.com` if you want passkeys to work on subdomains too). A mismatch causes silent registration / login failures in the browser.
+To learn more read [passkey-login.md](docs/passkey-login.md).
 
 ### Account Lockout & Rate Limiting
 
-Brute-force protection covering both account-level lockout (persistent, per user) and request-level rate limiting (ephemeral, keyed per username for login and per IP for other actions). Independently configurable per group (customer / admin).
+Brute-force protection combining persistent per-user account lockout (after N failed sign-ins, with auto- or admin-unlock) and ephemeral request rate limiting (login, password reset, registration, magic link). Independently configurable per group.
 
-**Account Lockout** — locks the user account after a configurable number of consecutive failed sign-in attempts.
-
-- Failed-attempts counter and lockout timestamps tracked on the user entity via `LockableShopUserTrait` / `LockableAdminUserTrait` (concurrent failed logins are serialised through a pessimistic row lock so the threshold cannot be bypassed)
-- Counter resets on successful login
-- **Auto-unlock** after `auto_unlock_after` seconds (set to `null` for manual-only)
-- **Manual unlock** by admin from `/admin/locked-customers` and `/admin/locked-admins` (sub-menu under Configuration). The list shows both the absolute auto-unlock timestamp (*Auto-unlock at*) and the relative countdown (*Time remaining*) for each locked account.
-- Both unlock methods can coexist — auto-unlock fires first when `lockoutUntil` is reached, admin can override manually any time
-- Locked sign-in attempts get the same generic *"Invalid credentials"* response as a wrong-password attempt — by design, so account state does not leak through error text
-
-**Rate Limiting** — built on Symfony Rate Limiter (`fixed_window` policy). Plugin auto-registers `framework.rate_limiter.three_brs_<group>_<action>` services for every enabled combination, no manual `framework.yaml` wiring needed.
-
-Throttled endpoints:
-
-| Action | Customer | Admin |
-|---|---|---|
-| Login | ✓ | ✓ |
-| Password reset | ✓ | ✓ |
-| Register | ✓ | — *(admin has no self-registration)* |
-| Magic link | ✓ | ✓ |
-
-When the limit is exceeded the user is redirected back to the form with a `three_brs.rate_limit.too_many_requests` error flash.
-
-> **Admin manual unlock:** clicking *Unlock* on a locked account clears the DB lockout state and the login rate-limit counter for that user, so they can sign in immediately.
-
-```yaml
-three_brs_sylius_enterprise_security:
-    account_lockout:
-        customer:
-            enabled: false
-            max_attempts: 5
-            auto_unlock_after: ~        # seconds; ~ (default) means manual-unlock-only
-        admin:
-            enabled: false
-            max_attempts: 3
-            auto_unlock_after: ~
-    rate_limit:
-        customer:
-            login:           { enabled: false, limit: 5, interval: '15 minutes' }
-            password_reset:  { enabled: false, limit: 3, interval: '1 hour' }
-            register:        { enabled: false, limit: 5, interval: '1 hour' }
-            magic_link:      { enabled: false, limit: 3, interval: '15 minutes' }
-        admin:
-            login:           { enabled: false, limit: 5, interval: '15 minutes' }
-            password_reset:  { enabled: false, limit: 3, interval: '1 hour' }
-            magic_link:      { enabled: false, limit: 3, interval: '15 minutes' }
-```
-
-Add the lockout fields to your `ShopUser` and `AdminUser` entities (same pattern as 2FA / password expiration):
-
-```php
-use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableShopUserTrait;
-
-class ShopUser extends BaseShopUser implements LockableShopUserInterface
-{
-    use LockableShopUserTrait;
-}
-```
-
-The trait adds four columns (`failed_login_attempts`, `last_failed_login_at`, `locked_at`, `lockout_until`); run a schema update after adding the trait, e.g. `bin/console doctrine:schema:update --complete --force` or your usual migration workflow.
-
-Plugin adds **Locked customers** and **Locked administrators** entries to the admin Configuration sub-menu automatically — both shown only when lockout is enabled for that group.
-
-> **Trusted proxies:** for password reset, registration, and magic-link rate limits the key is `Request::getClientIp()` (login rate limits use the submitted username so admin unlock can clear them deterministically). If your Sylius runs behind a load balancer or reverse proxy, configure `framework.trusted_proxies` and `framework.trusted_headers` so the real client IP is used — otherwise all non-login requests look like they come from the proxy and the limit triggers immediately.
+To learn more read [account-lockout-rate-limiting.md](docs/account-lockout-rate-limiting.md).
 
 ### Session Management & Login Notifications
 
-Active session listing with manual revocation, plus optional email notifications when a user signs in from a previously unseen device. Independently configurable per group (customer / admin).
+Active-session listing with manual revocation (single or all-other), plus optional email alerts when a user signs in from a previously unseen device. Independently configurable per group, with pluggable GeoIP location lookup.
 
-**Session Management** — every successful sign-in (after a user passes any 2FA or recovery-code challenge) is recorded as a row in `three_brs_customer_session` / `three_brs_admin_user_session` with the User-Agent, IP address, optional country / city, the PHP session ID, plus `created_at`, `last_activity_at`, and `revoked_at` timestamps.
-
-- **Listing UI** — customers see their active sessions at `/{_locale}/account/sessions` (Active sessions item in the account menu); admins see them at `/admin/account/sessions` (Sessions item under Configuration). Each row shows the parsed browser + OS, IP, location, last-activity time, and a "current" marker on the row matching the request's session ID.
-- **Revoke individual session** — a POST form per row marks `revoked_at` on a single record. The *current* session is intentionally non-revocable; sign out instead.
-- **Revoke all other sessions** — a top-level POST flips `revoked_at` on every active record except the current one.
-- **Activity tracking** — a `kernel.request` listener updates `last_activity_at` on every authenticated request, throttled to **once per 60 seconds** per session to avoid write-amplification on hot pages.
-- **Revocation enforcement** — a higher-priority `kernel.request` listener checks the current request's session ID against the store on every authenticated request; if the row is `revoked_at IS NOT NULL`, the listener invalidates the PHP session, clears the security token, and redirects to the corresponding login page (or returns a 401 JSON `{"error":"session_revoked"}` for AJAX / `Accept: application/json` requests). So a revoked session signs the user out on their *next* request, no separate logout call needed. The login routes default to `sylius_shop_login` / `sylius_admin_login`; override `$customerLoginRoute` / `$adminLoginRoute` on the `SessionRevocationListener` service if you renamed them.
-- **Bundled MaxMind GeoIP lookup** — plugin ships `MaxMindGeoIpLookup` ready to wire against a local GeoLite2 / GeoIP2 `.mmdb`. Other providers (IP2Location, online APIs, internal services) are pluggable via `GeoIpLookupInterface`. See [Enabling GeoIP location lookups](#enabling-geoip-location-lookups) below.
-- **No entity changes required** — sessions and known devices live in their own tables and reference `ShopUser` / `AdminUser` via foreign key; no traits to add.
-- **User-Agent parsing** — uses `matomo/device-detector` to extract a human-readable browser name and operating system for both the session list UI and the login-notification email body.
-
-**Login Notifications** — on a successful sign-in, the plugin computes a fingerprint from `sha256(User-Agent + '|' + client IP)`. If that fingerprint isn't already stored in `three_brs_customer_known_device` / `three_brs_admin_user_known_device` for the user, the plugin persists it and sends a `three_brs_login_notification` email containing the time, parsed browser/OS, IP, and (if a GeoIP provider is wired up) country and city. Subsequent logins from the same UA + IP combination are treated as a known device and produce no email.
-
-> **First-time enable on an existing installation:** the known-device table is empty when you first turn `login_notifications` on, so every active user will receive a notification email at their next sign-in (every device is "new" until it lands in the table). Expect a burst of emails right after deploy. If you want to suppress that initial wave, pre-populate `three_brs_*_known_device` rows for each `(user_id, fingerprint)` you consider trusted before flipping the switch.
-
-### Defaults for session management & login notifications
-
-```yaml
-three_brs_sylius_enterprise_security:
-    session_management:
-        geoip_service: ~          # service ID of a GeoIpLookupInterface implementation, or null for no GeoIP
-        customer:
-            enabled: false
-        admin:
-            enabled: false
-    login_notifications:
-        customer:
-            enabled: false
-        admin:
-            enabled: false
-```
-
-The plugin adds an **Active sessions** entry to the shop account menu and a **Sessions** entry to the admin Configuration sub-menu — both shown only when session management is enabled for the relevant group.
-
-### Enabling GeoIP location lookups
-
-The default `GeoIpLookupInterface` binding is `NullGeoIpLookup`, which returns `null` for every lookup so the feature works out-of-the-box without any GeoIP dependency. To populate country / city in the session list and login-notification email, swap in a real provider.
-
-The plugin ships **`MaxMindGeoIpLookup`** ready to be wired against a local MaxMind GeoLite2 / GeoIP2 `.mmdb`. To enable it:
-
-1. **Pull in the MaxMind library** (kept under composer `suggest` so users who don't need GeoIP don't pay the dependency cost):
-   ```bash
-   composer require geoip2/geoip2
-   ```
-   Download the free `GeoLite2-City.mmdb` from [MaxMind](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) (registration required) and store it somewhere readable, e.g. `var/geoip/GeoLite2-City.mmdb`. MaxMind refreshes the database approximately twice a week, so plan a cron / CI job to re-download it.
-
-2. **Wire the bundled service and point the config at it:**
-   ```yaml
-   # config/services.yaml
-   services:
-       ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\MaxMindGeoIpLookup:
-           arguments:
-               $databasePath: '%kernel.project_dir%/var/geoip/GeoLite2-City.mmdb'
-   ```
-   ```yaml
-   # config/packages/threebrs_sylius_enterprise_security_plugin.yaml
-   three_brs_sylius_enterprise_security:
-       session_management:
-           geoip_service: ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\MaxMindGeoIpLookup
-   ```
-
-The plugin's Extension reads `session_management.geoip_service` and replaces the default `NullGeoIpLookup` alias with your service ID — both the customer and admin trackers then call it transparently.
-
-If you'd rather use a different provider (IP2Location, an online API, an internal service…), implement `GeoIpLookupInterface` yourself, register it as a service, and point `geoip_service` at your service ID — same swap mechanism.
-
-> **Localhost / private IPs:** MaxMind GeoLite2 only covers public internet IPs. Lookups for `127.0.0.1`, `::1`, RFC1918 ranges (`10.x`, `172.16–31.x`, `192.168.x`) or Docker bridge networks return `null`, so the session UI will show an IP without country / city when developing locally — that's expected, not a misconfiguration.
->
-> **Trusted proxies:** the device fingerprint and the stored IP both use `Request::getClientIp()`. The same trusted-proxy caveat as for rate limiting applies — without `framework.trusted_proxies` configured, all sessions appear to come from the same proxy IP and the new-device check effectively de-duplicates by User-Agent only.
+To learn more read [session-management-login-notifications.md](docs/session-management-login-notifications.md).
 
 ### Centralized Security Settings UI
 
-A single admin page consolidates configuration for every security feature shipped with the plugin. Administrators can change password policy, lockout thresholds, expiration days, two-factor mode and notification toggles without editing YAML or restarting the container — values are persisted in `three_brs_security_setting` and applied on the next request.
+A single admin page (`/admin/security-settings`) to configure every security feature at runtime — values persist in the database and apply on the next request, no YAML edits or redeploys. Separate Customers / Administrators scopes.
 
-- **Admin route**: `/admin/security-settings` (item *Security settings* in the admin Configuration menu).
-- **Scopes**: separate `Customers` and `Administrators` views, plus an internal `global` scope for values that have no scope dimension (2FA issuer, trusted-device window, passkey relying-party data, GeoIP service ID).
-- **Storage**: one row per `(path, scope)` pair, value stored as JSON. The `SettingsProvider` reads the table once per request, in-memory cached, and falls back to YAML defaults when a row is missing — so plugins keep working out of the box and the install command is opt-in.
-- **Runtime applied**: `PasswordPolicyValidator`, `PasswordHistoryValidator`, `PasswordExpirationChecker`, `PasswordChangeNotificationListener`, `TwoFactorEnforcementChecker`, lockout policies, `DynamicRateLimiterFactory`, OAuth providers (`isEnabledForCustomer/Admin` reads), `AdminSocialLoginHandler` (whitelist + locale), menu listeners and Twig extensions all read live values via `SettingsProviderInterface` / `PolicyFactoryInterface` / `FeatureToggleInterface`. Compile-time-only values (passkey `rp_id` / `rp_name`, GeoIP service ID, OAuth client secrets / Apple key paths) keep coming from YAML — they are deployment-integration plumbing, not user-facing knobs.
-- **Tabs in the UI**: Password policy, Password history, Password expiration, Password change notification, Two-factor authentication, Magic link, Passkey, Account lockout, Rate limiting, Session management, Login notifications, 3rd-party OAuth, OAuth admin auto-registration (admin scope only).
-- **Allowed / Enforced / Disabled**: the `Two-factor authentication` tab exposes the tri-state mode (`disabled` / `allowed` / `enforced`); other auth methods (Magic link, Passkey, OAuth) are login channels — they use a 2-state `enabled` toggle (`Enforced` would mean "this is the only login channel", which is a different concern handled outside this UI).
-- **Fixture**: `three_brs_security_settings` (Sylius fixture) writes the YAML defaults into the table on a fresh install. By default it resets the table; set `options.reset: false` to merge instead. Per-scope `overrides` allow seeding non-default values from fixtures.
-
-```yaml
-sylius_fixtures:
-    suites:
-        default:
-            fixtures:
-                three_brs_security_settings:
-                    options:
-                        reset: true
-                        overrides: {}
-```
-
-OAuth credentials (`client_id`, `client_secret`, Apple `team_id` / `key_id` / `private_key_path`) stay in YAML / `.env.local` — they are deployment-time secrets; putting them in the database would leak them through admin UI display, DB dumps and audit logs. The `3rd-party OAuth` UI tab exposes only the per-provider `enabled` toggle (changing it at runtime takes effect on the next OAuth attempt — providers read the flag through `SettingsProvider`). The `OAuth admin auto-registration` tab (admin scope only) holds the email-domain whitelist and the default locale assigned to admins auto-registered via OAuth — both are policy values, not secrets.
-
-Passkey `rp_id` and `rp_name` similarly stay in YAML — the browser WebAuthn API binds registered credentials to the relying-party ID, so changing it at runtime would invalidate every passkey already registered. The GeoIP service ID is a Symfony service alias resolved at compile time; the implementation behind the alias is a deployment choice, not a runtime knob. Both surface only through YAML.
-
-The `Linked 3rd-party OAuth accounts` shop menu item and the admin Configuration *Linked 3rd-party OAuth accounts* item are now gated through `FeatureToggle` against the same `oauth.google.enabled` / `oauth.apple.enabled` / `oauth.microsoft.enabled` paths used by the providers themselves — toggling a provider off in the Settings UI hides the menu entry on the next request.
+To learn more read [centralized-security-settings-ui.md](docs/centralized-security-settings-ui.md).
 
 ### Self-Service Account Deletion (GDPR)
 
-Customer-driven account deletion implementing the GDPR right to erasure, with a configurable grace period and admin-side cancellation.
+Customer-driven account deletion implementing the GDPR right to erasure, with a configurable grace period, admin-side cancellation, and a cron command that anonymizes name / email / phone / address once the grace period expires.
 
-- **Customer-facing flow** — when enabled, the *Delete account* item appears in the shop account menu (`/{_locale}/account/delete`). The customer enters their current password (re-authentication, no email round-trip) and explicitly acknowledges the consequences. On submit:
-  1. A `three_brs_customer_deletion_request` row is created with `requested_at = now`, `scheduled_for = now + grace_period_days`.
-  2. The linked `ShopUser` is set to `enabled = false` immediately — login stops working at once.
-  3. The customer's session is invalidated.
-  4. A `three_brs_account_deletion_requested` email is sent confirming the schedule and instructing the customer to contact a store administrator if they change their mind.
-- **Cancellation** — customer-initiated cancellation is intentionally NOT exposed: once submitted, the request can only be cancelled by an administrator from `/admin/account-deletions` (sub-menu under Configuration). Cancelling re-enables the `ShopUser` and stamps the request with `cancelled_at` + `cancelled_by_admin_id` for audit.
-- **Grace expiry** — a console command processes due requests:
-  ```
-  bin/console three-brs:account-deletion:process-due
-  ```
-  Hook this into a cron job (every hour is fine):
-  ```
-  0 * * * * php /path/to/app/bin/console three-brs:account-deletion:process-due
-  ```
-  For each due request the command sends a `three_brs_account_deletion_completed` email **before** anonymizing (Customer.email is still live at that point), then anonymizes, then stamps `completed_at`.
-
-**What gets anonymized** (literal interpretation of GDPR personal data: name, email, phone, address):
-- `Customer.firstName` → `Deleted`, `Customer.lastName` → `User`
-- `Customer.email` / `emailCanonical` → `deleted-{id}@anonymized.invalid`
-- `Customer.phoneNumber` → `null`
-- Every entry in the customer's address book (`sylius_address.customer_id = ...`): `firstName`, `lastName`, `street`, `city`, `postcode`, `phoneNumber` are scrubbed
-
-**What is intentionally retained** — order rows, payment rows, order address snapshots (`sylius_order.billing_address_id` / `shipping_address_id`), 2FA secrets, recovery codes, passkey credentials, magic-link tokens, social-account links, sessions, password history. Two reasons: the spec scope is *name / email / phone / address*, and order/payment data has legitimate accounting / tax-retention requirements that take precedence over erasure. After anonymization the order browser still resolves orders to a customer row, but the row reads "Deleted User". Plugin users who need stricter erasure can layer on a project-level cleanup pass.
-
-```yaml
-three_brs_sylius_enterprise_security:
-    account_deletion:
-        customer:
-            enabled: false
-            grace_period_days: 30
-```
-
-The feature is intentionally customer-scope only — admin self-deletion is not exposed (admin lifecycle is operations-team responsibility, not GDPR self-service).
-
-> **Cron is required.** Without `three-brs:account-deletion:process-due` running periodically, deletion requests reach `scheduled_for` but never anonymize — the customer stays disabled but their personal data lingers in the DB indefinitely.
+To learn more read [account-deletion-gdpr.md](docs/account-deletion-gdpr.md).
 
 ### Admin IP Whitelist
 
-Restrict admin panel access to a configured set of IP addresses or CIDR ranges. The feature has two layers that solve different problems:
+Restrict admin-panel access to allowed IPs / CIDR ranges, with a team-wide global list plus optional per-admin lists. Network-bound defense-in-depth for fixed-network setups (corporate LAN, VPN, bastion).
 
-- **Global list** — team-wide allow. Use this when everyone shares the same network: corporate LAN, VPN exit gateway, office static IP, cloud bastion CIDR. Configured under Security settings → Administrators → "Admin IP whitelist".
-- **Per-admin list** — personal extras that don't belong in the team-wide list. Managed on `/admin/ip-whitelist/admins`. Pick an administrator and toggle their personal allow-list on/off with its own CIDR set. An admin's CIDRs stay private to that admin — they are not exposed in the global view, and they grant access only when **that specific admin** signs in. Useful when admin A occasionally signs in from a home IP that has no business being in the team-wide list (where it would also unlock admin B and the rest).
-
-Access is granted when **either** the request IP matches the global list **or** the authenticated admin's own (enabled) list matches. A failed check returns HTTP 403 with a plain-text body — there is no redirect or login form fallback.
-
-**Global list is mandatory when the feature is enabled.** The Security settings form rejects saving `enabled = true` with an empty global list — at least one global CIDR must be configured. This guard prevents the most common self-lockout scenario (someone flips the master switch on without filling anything in). At runtime, the post-auth check then fans out into per-admin entries on top of the global list. On `/admin/login` (anonymous, identity not yet known) the listener also lets the request through if the IP matches **any** enabled per-admin entry so an admin can reach the login form; after authentication, the post-auth check enforces that the IP matches **that specific admin's** entry (otherwise the session is rejected on the next request). This means an attacker who lands on admin A's home IP still can't sign in as admin B — the per-admin check binds the IP to the identity.
-
-If you really want pure per-admin enforcement with no team-wide allow, add `0.0.0.0/0` and `::/0` to the global list as an explicit acknowledgement that the team-wide layer is intentionally wide open and only per-admin entries restrict access.
-
-```yaml
-three_brs_sylius_enterprise_security:
-    ip_whitelist:
-        enabled: false
-```
-
-#### Defaults for IP whitelist
-
-- `ip_whitelist.global_cidrs` defaults to `[]` (no IPs configured). This is admin-scope only and is edited through the Security settings UI.
-
-The Configuration node only exposes the master switch. The actual allow-lists live in the database (DB-backed settings + a per-admin entity, `three_brs_admin_user_ip_whitelist`) so that operators can change them at runtime without redeploying.
-
-> **Operator note.** If you enable the feature with an empty global list **and no enabled per-admin entries** that cover your IP, all administrators will be locked out of the panel. Either configure at least one matching CIDR (global or per-admin) before enabling, or disable the feature again via SQL (`UPDATE three_brs_security_setting SET value = 'false' WHERE scope = 'admin' AND path = 'ip_whitelist.enabled'`) to recover. CIDR validation accepts both IPv4 (e.g. `10.0.0.0/8`, `192.168.1.1`) and IPv6 (e.g. `2001:db8::/32`, `::1`).
-
-#### When IP whitelist is the right tool
-
-This feature is network-bound — it only helps when the admins reach the panel from a predictable IP range. Use it when administrators sit on a corporate LAN with a known public IP, connect through a VPN that exits to a fixed CIDR, or when the admin host is itself a cloud VM with a static address.
-
-It's **not** the right control when admins log in from rotating home IPs (PPPoE / DHCP), mobile data behind CG-NAT, or arbitrary travel networks — they will lock themselves out the moment their ISP rotates the lease. In those cases, leave the master switch off and rely on the device-/possession-bound controls already shipped in this plugin: 2FA + passkeys + account lockout + rate limiting. Those follow the user instead of the network, so a changing IP doesn't break them. IP whitelist is defense-in-depth on top of fixed-network setups, not a replacement for those factors.
+To learn more read [admin-ip-whitelist.md](docs/admin-ip-whitelist.md).
 
 ### Admin IP Blacklist
 
-Inverse of the whitelist — instead of saying "only these IPs can reach the panel", say "these specific IPs cannot reach the panel". A single **global** deny-list applies to every request under `/admin`. Useful when you don't want to lock everyone to a fixed network but need to block a specific bad actor: a former colleague's home IP, an exit node from an abuse report, or a host hammering the login form.
+Block specific IPs / CIDR ranges from the admin panel with a global deny-list. Always wins over the whitelist, is identity-agnostic (a blocked IP can't even reach the login form), and fails open when empty.
 
-The global list is configured under Security settings → Administrators → "Admin IP blacklist".
-
-**Blacklist always wins over the whitelist.** A blacklisted IP cannot sign in, even if the whitelist would otherwise allow it. The blacklist request listener runs at priority 5, before the whitelist listener at priority 4, so a blacklist hit short-circuits the whitelist check entirely. This ordering means you can keep a permissive whitelist (or none) for the team while still being able to block individual abusive IPs.
-
-The check is identity-agnostic: any request whose client IP matches the global list is denied with HTTP 403 (plain-text body), whether or not anyone is signed in — so a known-bad IP cannot even reach the login form.
-
-```yaml
-three_brs_sylius_enterprise_security:
-    ip_blacklist:
-        enabled: false
-```
-
-#### Defaults for IP blacklist
-
-- `ip_blacklist.enabled` defaults to `false`.
-- `ip_blacklist.global_cidrs` defaults to `[]` (no IPs configured). This is admin-scope only and is edited through the Security settings UI.
-
-The Configuration node only exposes the master switch. The actual deny-list lives in the database (DB-backed settings) so that operators can change it at runtime without redeploying.
-
-> **Fail-open by default.** Unlike the whitelist, enabling the blacklist with an empty global list does **not** lock anyone out — an empty deny list blocks nothing. This makes the blacklist safe to toggle on as a precaution and populate later.
-
-> **Operator note.** If you accidentally blacklist your own IP and lock yourself out, recover via SQL: `DELETE FROM three_brs_security_setting WHERE scope = 'admin' AND path IN ('ip_blacklist.enabled', 'ip_blacklist.global_cidrs')` (resets the global list and feature flag). CIDR validation accepts both IPv4 and IPv6.
-
-If you're behind a reverse proxy or load balancer, configure Symfony's `framework.trusted_proxies` so that `Request::getClientIp()` returns the real client IP rather than the proxy address — otherwise the listener compares the proxy IP against your CIDR list and you'll either let everyone in or lock everyone out.
+To learn more read [admin-ip-blacklist.md](docs/admin-ip-blacklist.md).
 
 ### Admin Customer Management
 
-A dedicated **Security** section is added to the standard Sylius customer detail page (`/admin/customers/{id}`). It bundles the day-to-day support actions an operator needs when handling an incident or a customer request without leaving the customer's profile.
+A Security section on the Sylius customer detail page bundling support actions — force password reset, block / unblock, sign out of all or individual sessions — plus read-only active-sessions and login-history tables.
 
-The section is rendered via the Sylius twig hook `sylius_admin.customer.show.content.sections`, so it appears automatically once the plugin is installed — no template overrides required. Guest customers (no `ShopUser` row attached) get nothing rendered.
-
-Available actions, each behind a CSRF-protected confirmation prompt:
-
-- **Force password reset** — sets `forcePasswordChange = true` on the shop user. On the customer's next request — whether they are already signed in or sign in afterward — the existing password-expiration listener (shipped with this plugin) redirects them to the change-password page before they can continue browsing.
-- **Block account** — sets the customer's `enabled` flag to `false` and revokes every active session in one step. Sylius's user checker then rejects further sign-in attempts until you unblock. This is **manual** and **permanent** (until reversed), distinct from the **automatic, time-bounded** account-lockout feature triggered by failed-login attempts: block is for "this customer is misbehaving, lock them out," lockout is for "too many wrong passwords, cool off."
-- **Unblock account** — sets `enabled = true`. The customer can sign in again immediately.
-- **Sign out from all devices** — revokes every active `CustomerSession` row. Useful after a stolen-device report or a password reset. Distinct from per-session sign-out below.
-- **Sign out a single session** — revokes one specific session. The row stays in the login history but is marked ended.
-
-Two read-only tables also live in the section:
-
-- **Active sessions** — every non-revoked `CustomerSession`, with IP, location (country / city if GeoIP is configured), device (user agent), signed-in / last-activity timestamps, and a per-row Sign-out button.
-- **Login history** — the last 20 sessions (active and revoked), newest first. Each row shows whether the session is currently active or when it was ended. The list is populated by the session-tracking listener, so it only contains data captured **after** session management was enabled — historical sign-ins from before then are not retroactively visible.
-
-#### Prerequisites and interactions
-
-- **Force password reset** depends on the password-expiration listener being registered (it is, by default).
-- **Login history** and **session management** depend on `session_management.customer.enabled = true`. If sessions aren't being tracked, the section still renders but the tables stay empty.
-- **Block ≠ Lockout.** The plugin keeps both because they answer different questions: block is an admin decision applied indefinitely; lockout is a per-account rate limit that auto-clears.
-
-There is no master switch for this admin tooling — it is always available to administrators.
+To learn more read [admin-customer-management.md](docs/admin-customer-management.md).
 
 ### Per-User Password Login Control
 
-Lets you disable classic email + password sign-in for individual customers or administrators, forcing them onto a stronger method (magic link, passkey, or a connected social account). Useful for high-privilege admins who should only sign in with a passkey, or accounts you want to migrate off passwords.
+Disable classic email + password sign-in for individual customers or admins, forcing them onto a stronger method (magic link, passkey, or social login). Per-group global toggle plus a per-user switch, with a lock-out guard.
 
-- **Global feature toggle** per group (customer / admin) in **Security settings** — off by default.
-- **Per-user switch** on the customer detail page and the admin user edit page. When password login is disabled for a user, a form sign-in attempt is rejected with an explicit message pointing them to the alternatives.
-- **Lock-out guard** — the switch refuses to disable password login for a user who has no other way in (no connected social account, no passkey, and magic link not enabled for their group), so an account can never be stripped of every sign-in method.
-- OAuth, passkey and magic-link sign-ins are never affected — only the password form is gated.
-
-#### Defaults for password login control
-
-```yaml
-three_brs_sylius_enterprise_security:
-    password_login_control:
-        customer:
-            enabled: false
-        admin:
-            enabled: false
-```
-
-When the feature is disabled for a group, per-user switches have no effect — every user in that group can sign in with their password as usual.
-
-> **Operator note.** The lock-out guard runs only at the moment you disable password login for a user — it is **not** re-checked afterwards. So if a user has password login disabled and relies on a globally-toggled method (magic link, passkey, or a specific OAuth provider), and you later turn that method off for their group, they can be left with no way to sign in. To recover, re-enable that method, or re-enable password login for the affected user.
+To learn more read [per-user-password-login-control.md](docs/per-user-password-login-control.md).
 
 
 ## Installation (into an existing Sylius application)
 
 This section is for **consuming** the plugin in your own Sylius project — you register the bundle/plugin and wire the config yourself. If you instead want to **work on the plugin itself**, skip to **Development** below: its bundled test application already has the bundle, plugin and routes registered, so you don't repeat these steps.
 
-> Every feature ships **disabled by default** (see each feature's *Defaults* section). You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
+> Every feature ships **disabled by default** (see each feature's doc under [`docs/`](docs/)). You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
 
 1. Require the package:
 
@@ -771,8 +173,8 @@ This section is for **consuming** the plugin in your own Sylius project — you 
        - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/config.yaml" }
 
    three_brs_sylius_enterprise_security:
-       # Turn on and tune the features you need — each feature section above
-       # documents its options and defaults (everything is off by default).
+       # Turn on and tune the features you need — each feature's doc under
+       # docs/ documents its options and defaults (everything is off by default).
    ```
 
 4. Import the plugin routes by creating `config/routes/three_brs_enterprise_security.yaml` (without this none of the plugin endpoints — passkey, magic link, 2FA setup, OAuth, account deletion, settings UI — are registered):
@@ -825,7 +227,7 @@ This section is for **consuming** the plugin in your own Sylius project — you 
 
    > Magic link, passkey, OAuth, session management, login notifications and account deletion keep their data in their own tables (foreign-keyed to `ShopUser` / `AdminUser`) and need **no** traits.
 
-6. Configure the firewall for the features you enabled, in `config/packages/security.yaml` (and `config/packages/scheb_2fa.yaml` for 2FA). Each feature section above contains the exact block to copy:
+6. Configure the firewall for the features you enabled, in `config/packages/security.yaml` (and `config/packages/scheb_2fa.yaml` for 2FA). Each feature's doc under `docs/` contains the exact block to copy:
    - **Two-Factor Authentication** — the `scheb_2fa.yaml` config, the shop `success_handler`, and the `two_factor` blocks on the `shop` / `admin` firewalls.
    - **3rd-party OAuth**, **Magic Link Login**, **Passkey Login** — the `PUBLIC_ACCESS` `access_control` entries that expose their login endpoints.
 
@@ -901,7 +303,7 @@ services:
 
 > The decorator is harmless once the upstream bug is fixed (it only catches an exception that no longer fires), but remove it after you upgrade to a fixed api-platform release to keep your container clean.
 
-## Development (working on the plugin itself)
+## Development
 
 This section is **only** for contributing to / developing the plugin — not for installing it into your own app (that's the *Installation* section above). The bundled **test application** under [`tests/Application/`](./tests/Application/) already has the bundle, plugin, routes and feature config registered (it's part of this repo), so you do **not** repeat the Installation steps — `make init` brings the whole stack up ready to go.
 

@@ -8,7 +8,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
+use Symfony\Component\Validator\Constraints\Range;
 
 /**
  * @extends AbstractType<array<string, mixed>>
@@ -26,7 +26,8 @@ class MagicLinkSettingsType extends AbstractType implements MagicLinkSettingsTyp
             ->add('expiration_seconds', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.magic_link.expiration_seconds',
                 'required' => true,
-                'constraints' => [new GreaterThanOrEqual(60)],
+                'attr' => ['min' => 60, 'max' => 3600],
+                'constraints' => [new Range(min: 60, max: 3600)],
             ])
         ;
     }

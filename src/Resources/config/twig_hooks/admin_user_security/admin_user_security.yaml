@@ -1,9 +1,10 @@
 sylius_twig_hooks:
     hooks:
-        # Renders the Security card in the right column of the admin user
-        # update (edit) page, below Personal information — visually next to
-        # the Roles card sitting at the bottom of the left column.
-        'sylius_admin.admin_user.update.content.form.sections#right':
+        # Renders a "Security" dropdown button in the admin user update (edit)
+        # page header actions, to the right of the Update button (priority
+        # below Update's 0 makes it render last). Replaces the former
+        # Security card that lived in the right column.
+        'sylius_admin.admin_user.update.content.header.title_block.actions':
             three_brs_admin_security:
-                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/Security/section.html.twig'
-                priority: -100
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/Security/dropdown.html.twig'
+                priority: -50

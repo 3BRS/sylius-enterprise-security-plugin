@@ -1,0 +1,43 @@
+{# "Security" dropdown button in the admin user update (edit) page header
+   actions, to the right of the Update button. Replaces the former Security
+   card. Self-only: an admin can only manage their own 2FA, OAuth links,
+   passkeys and sessions, so render it only when the admin being edited is
+   the currently signed-in admin. #}
+{% set editedAdmin = hookable_metadata.context.resource|default(null) %}
+{% if editedAdmin is not null and app.user is not null and editedAdmin.id == app.user.id %}
+    <div class="dropdown" data-test-three-brs-admin-security>
+        <button type="button"
+                class="btn btn-primary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                data-test-three-brs-admin-security-toggle>
+            {{ 'three_brs.ui.admin_security.title'|trans }}
+        </button>
+        <div class="dropdown-menu dropdown-menu-end">
+            <a class="dropdown-item d-flex align-items-center"
+               href="{{ path('three_brs_admin_two_factor_setup') }}"
+               data-test-three-brs-admin-security-two-factor>
+                <i class="icon ti ti-shield-lock me-2"></i>
+                {{ 'three_brs.ui.two_factor.menu_item'|trans }}
+            </a>
+            <a class="dropdown-item d-flex align-items-center"
+               href="{{ path('three_brs_admin_social_accounts') }}"
+               data-test-three-brs-admin-security-social-accounts>
+                <i class="icon ti ti-user-circle me-2"></i>
+                {{ 'three_brs.ui.social_login.menu_item'|trans }}
+            </a>
+            <a class="dropdown-item d-flex align-items-center"
+               href="{{ path('three_brs_admin_passkey_index') }}"
+               data-test-three-brs-admin-security-passkey>
+                <i class="icon ti ti-fingerprint me-2"></i>
+                {{ 'three_brs.ui.passkey.menu_item'|trans }}
+            </a>
+            <a class="dropdown-item d-flex align-items-center"
+               href="{{ path('three_brs_admin_sessions') }}"
+               data-test-three-brs-admin-security-sessions>
+                <i class="icon ti ti-devices me-2"></i>
+                {{ 'three_brs.ui.session.menu_item'|trans }}
+            </a>
+        </div>
+    </div>
+{% endif %}
