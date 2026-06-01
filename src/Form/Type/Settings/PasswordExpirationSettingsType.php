@@ -8,7 +8,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Validator\Constraints\Positive;
+use Symfony\Component\Validator\Constraints\Range;
 
 /**
  * @extends AbstractType<array<string, mixed>>
@@ -26,7 +26,8 @@ class PasswordExpirationSettingsType extends AbstractType implements PasswordExp
             ->add('days', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.password_expiration.days',
                 'required' => true,
-                'constraints' => [new Positive()],
+                'attr' => ['min' => 1, 'max' => 365],
+                'constraints' => [new Range(min: 1, max: 365)],
             ])
         ;
     }

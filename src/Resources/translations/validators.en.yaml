@@ -16,6 +16,7 @@ three_brs:
     password_policy:
         min_length: 'Password must be at least {{ limit }} characters long.'
         max_length: 'Password must not exceed {{ limit }} characters.'
+        max_length_below_min: 'Maximum length must be greater than or equal to the minimum length.'
         require_uppercase: 'Password must contain at least one uppercase letter.'
         require_lowercase: 'Password must contain at least one lowercase letter.'
         require_numbers: 'Password must contain at least one number.'
@@ -24,7 +25,6 @@ three_brs:
         invalid_cidr: '"{{ value }}" is not a valid IP address or CIDR range.'
         duplicate_cidr: '"{{ value }}" is listed more than once.'
         enabled_requires_cidrs: 'You enabled the IP whitelist but left the global CIDR list empty. Without at least one global CIDR — or a per-admin override that covers your current IP — every admin (including you) will be locked out on the next request. Add at least one CIDR before saving.'
-    oauth_admin_policy:
+    oauth_policy:
         invalid_domain: 'This value is not a valid email domain.'
-    oauth_customer_policy:
-        invalid_domain: 'This value is not a valid email domain.'
+        too_many_domains: 'You can list at most {{ limit }} email domains.'

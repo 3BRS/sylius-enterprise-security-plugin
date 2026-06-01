@@ -11,7 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Positive;
+use Symfony\Component\Validator\Constraints\Range;
 
 /**
  * @extends AbstractType<array<string, mixed>>
@@ -33,7 +33,8 @@ class RateLimitSettingsType extends AbstractType implements RateLimitSettingsTyp
                 ->add($action . '_limit', IntegerType::class, [
                     'label' => 'three_brs.ui.security_settings.rate_limit.' . $action . '.limit',
                     'required' => true,
-                    'constraints' => [new Positive()],
+                    'attr' => ['min' => 1, 'max' => 1000],
+                    'constraints' => [new Range(min: 1, max: 1000)],
                 ])
                 ->add($action . '_interval', ChoiceType::class, [
                     'label' => 'three_brs.ui.security_settings.rate_limit.' . $action . '.interval',

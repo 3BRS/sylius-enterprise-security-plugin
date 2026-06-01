@@ -20,12 +20,16 @@ use Symfony\Component\Validator\Constraints\NotBlank;
  */
 class OAuthAutoRegistrationPolicySettingsType extends AbstractType implements OAuthAutoRegistrationPolicySettingsTypeInterface
 {
+    /** Upper bound on allow-listed domains — keeps the stored list, its validation and the textarea render bounded. */
+    protected const MAX_DOMAINS = 100;
+
+    /** Maximum length of a single domain name (RFC 1035). */
+    protected const MAX_DOMAIN_LENGTH = 253;
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var string $prefix */
         $prefix = $options['translation_prefix'];
-        /** @var string $invalidDomainKey */
-        $invalidDomainKey = $options['invalid_domain_translation_key'];
         /** @var bool $includeDefaultLocale */
         $includeDefaultLocale = $options['include_default_locale'];
 
@@ -69,22 +73,35 @@ class OAuthAutoRegistrationPolicySettingsType extends AbstractType implements OA
             },
         ));
 
-        // Per-row domain shape check. The model transformer reduces the textarea
-        // to a list of strings; we then enforce the shape on each entry. We run
-        // this on POST_SUBMIT (after the transformer) because a regular `Regex`
-        // constraint on the parent field would only match the whole multi-line
-        // blob, not each domain individually.
+        // Cap the list size and enforce a valid, RFC-bounded shape on each entry.
+        // Errors are added to the field (not the compound form) so they surface
+        // as a field error instead of bubbling to the form root. Runs on
+        // POST_SUBMIT, after the transformer has reduced the textarea to a list.
         $builder->get('auto_register_allowed_email_domains')->addEventListener(
             FormEvents::POST_SUBMIT,
-            static function (FormEvent $event) use ($invalidDomainKey): void {
-                $data = $event->getData();
+            static function (FormEvent $event): void {
+                // On POST_SUBMIT, $event->getData() is the field's *view* data
+                // (the raw textarea string). Read the field's model data instead
+                // — the model transformer has reduced it to a list of domains.
+                $data = $event->getForm()->getData();
                 if (!is_array($data)) {
                     return;
                 }
+
+                if (count($data) > self::MAX_DOMAINS) {
+                    $event->getForm()->addError(new FormError(
+                        'three_brs.oauth_policy.too_many_domains',
+                        'three_brs.oauth_policy.too_many_domains',
+                        ['{{ limit }}' => self::MAX_DOMAINS],
+                    ));
+
+                    return;
+                }
+
                 $pattern = '/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i';
                 foreach ($data as $domain) {
-                    if (!is_string($domain) || preg_match($pattern, $domain) !== 1) {
-                        $event->getForm()->addError(new FormError($invalidDomainKey));
+                    if (!is_string($domain) || strlen($domain) > self::MAX_DOMAIN_LENGTH || preg_match($pattern, $domain) !== 1) {
+                        $event->getForm()->addError(new FormError('three_brs.oauth_policy.invalid_domain'));
 
                         return;
                     }
@@ -97,8 +114,6 @@ class OAuthAutoRegistrationPolicySettingsType extends AbstractType implements OA
     {
         $resolver->setRequired('translation_prefix');
         $resolver->setAllowedTypes('translation_prefix', 'string');
-        $resolver->setRequired('invalid_domain_translation_key');
-        $resolver->setAllowedTypes('invalid_domain_translation_key', 'string');
         $resolver->setDefault('include_default_locale', true);
         $resolver->setAllowedTypes('include_default_locale', 'bool');
     }

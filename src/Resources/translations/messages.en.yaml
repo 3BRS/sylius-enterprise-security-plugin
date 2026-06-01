@@ -70,6 +70,7 @@ three_brs:
             recovery_codes_title: 'Your recovery codes'
             recovery_codes_warning: 'Store these codes in a safe place. Each code can be used once if you lose access to your authenticator. After you leave this page, they cannot be shown again.'
             recovery_codes_acknowledged: 'I have saved my recovery codes'
+            copy_all_recovery_codes: 'Copy recovery codes'
             challenge_title: 'Two-factor authentication'
             trust_device: 'Trust this device'
             verify: 'Verify'
@@ -174,7 +175,7 @@ three_brs:
             login_failed: 'Passkey sign-in failed. Please try again.'
         customer_security:
             title: 'Security'
-            intro: 'Manage this customer''s security state — password reset, account block, and active sessions.'
+            intro: 'Manage this customer''s security state — password reset, account block, active sessions, and whether they can sign in with a password (standard login).'
             account_state: 'Account state'
             state_enabled: 'Enabled'
             state_blocked: 'Blocked'
