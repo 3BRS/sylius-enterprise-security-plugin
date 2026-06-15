@@ -5,8 +5,6 @@
 /node_modules
 /node_modules/
 /composer.lock
-/packages/enterprise-security-bundle/composer.lock
-/packages/enterprise-security-bundle/vendor/
 /symfony.lock
 /.env
 /.envrc
@@ -35,4 +33,3 @@ yarn-error.log
 /phpunit.xml
 /.phpunit.cache/
 /.phpunit.result.cache
-/packages/enterprise-security-bundle/.phpunit.cache/

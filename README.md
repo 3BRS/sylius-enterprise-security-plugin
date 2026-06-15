@@ -236,7 +236,7 @@ This section is **only** for contributing to / developing the plugin — not for
 
 ### Usage
 
-- Develop the plugin in `/src` (and the framework-agnostic core in [`packages/enterprise-security-bundle/`](./packages/enterprise-security-bundle/))
+- Develop the plugin in `/src`; the framework-agnostic core lives in the separate [`3brs/enterprise-security-bundle`](https://packagist.org/packages/3brs/enterprise-security-bundle) package (its own repository)
 - See [`bin/`](./bin) and [`Makefile`](./Makefile) for useful commands
 
 ### Bootstrapping the dev environment

@@ -98,17 +98,6 @@
         "willdurand/negotiation": "<3.0"
     },
     "prefer-stable": true,
-    "repositories": [
-        {
-            "type": "path",
-            "url": "./packages/enterprise-security-bundle",
-            "options": {
-                "versions": {
-                    "3brs/enterprise-security-bundle": "1.0.0"
-                }
-            }
-        }
-    ],
     "autoload": {
         "psr-4": {
             "ThreeBRS\\SyliusEnterpriseSecurityPlugin\\": "src/"
@@ -117,8 +106,7 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\": "tests/Application/src/",
-            "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\Behat\\": "tests/Behat/",
-            "Tests\\ThreeBRS\\EnterpriseSecurityBundle\\": "packages/enterprise-security-bundle/tests/"
+            "Tests\\ThreeBRS\\SyliusEnterpriseSecurityPlugin\\Behat\\": "tests/Behat/"
         }
     },
     "config": {
