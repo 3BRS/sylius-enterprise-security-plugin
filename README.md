@@ -46,106 +46,33 @@
 
 ## Features
 
-### Password Policy
+Every feature ships **disabled by default** — enable and tune the ones you need (each linked doc covers its options and defaults).
 
-Enforces configurable password complexity (minimum/maximum length and uppercase / lowercase / number / special-character requirements) for shop customers and admin users, configured separately per group. Overrides Sylius's weak 3-character default.
-
-To learn more read [password-policy.md](docs/password-policy.md).
-
-### Password History
-
-Prevents users from reusing their recent passwords, with a configurable number of previous passwords remembered per group. Customer and admin history are stored separately.
-
-To learn more read [password-history.md](docs/password-history.md).
-
-### Password Expiration
-
-Forces a password change after a configurable number of days, with an optional `force_change` flag to require it on next login. Configurable independently for customers and admins.
-
-To learn more read [password-expiration.md](docs/password-expiration.md).
-
-### Password Change Notifications
-
-Sends an email whenever a user's password changes — covering account settings, forgot-password reset, and admin-initiated changes — with the timestamp, IP address, and (for changes not made by the user themselves) a secure-account link. Configurable independently for customers and admins.
-
-To learn more read [password-change-notifications.md](docs/password-change-notifications.md).
-
-### Two-Factor Authentication
-
-TOTP-based two-factor authentication for shop and admin users (Google Authenticator, Authy, 1Password, …), with QR-code setup, single-use recovery codes, opt-in trusted devices, and per-group enforcement modes (`disabled` / `allowed` / `enforced`). Built on `scheb/2fa-bundle`.
-
-To learn more read [two-factor-authentication.md](docs/two-factor-authentication.md).
-
-### 3rd-party OAuth (Social Login)
-
-Google, Apple and Microsoft sign-in for shop customers and admin users, configured independently per group. Handles account linking with takeover protection, optional domain-gated auto-registration, and an extensible provider registry for adding more providers.
-
-To learn more read [oauth-social-login.md](docs/oauth-social-login.md).
-
-### Magic Link Login
-
-Passwordless email sign-in for shop customers and admin users, independently configurable per group. Single-use, hashed, time-limited tokens with anti-enumeration, timing-attack padding, rate limiting, and 2FA awareness.
-
-To learn more read [magic-link-login.md](docs/magic-link-login.md).
-
-### Passkey Login (WebAuthn / FIDO2)
-
-Passwordless passkey sign-in (Touch ID / Windows Hello / Android lock / hardware keys) for shop customers and admin users, independently configurable per group. Multiple labelled passkeys per user, built on `web-auth/webauthn-lib`, 2FA-aware by default.
-
-To learn more read [passkey-login.md](docs/passkey-login.md).
-
-### Account Lockout & Rate Limiting
-
-Brute-force protection combining persistent per-user account lockout (after N failed sign-ins, with auto- or admin-unlock) and ephemeral request rate limiting (login, password reset, registration, magic link). Independently configurable per group.
-
-To learn more read [account-lockout-rate-limiting.md](docs/account-lockout-rate-limiting.md).
-
-### Session Management & Login Notifications
-
-Active-session listing with manual revocation (single or all-other), plus optional email alerts when a user signs in from a previously unseen device. Independently configurable per group, with pluggable GeoIP location lookup.
-
-To learn more read [session-management-login-notifications.md](docs/session-management-login-notifications.md).
-
-### Centralized Security Settings UI
-
-A single admin page (`/admin/security-settings`) to configure every security feature at runtime — values persist in the database and apply on the next request, no YAML edits or redeploys. Separate Customers / Administrators scopes.
-
-To learn more read [centralized-security-settings-ui.md](docs/centralized-security-settings-ui.md).
-
-### Self-Service Account Deletion (GDPR)
-
-Customer-driven account deletion implementing the GDPR right to erasure, with a configurable grace period, admin-side cancellation, and a cron command that anonymizes name / email / phone / address once the grace period expires.
-
-To learn more read [account-deletion-gdpr.md](docs/account-deletion-gdpr.md).
-
-### Admin IP Whitelist
-
-Restrict admin-panel access to allowed IPs / CIDR ranges, with a team-wide global list plus optional per-admin lists. Network-bound defense-in-depth for fixed-network setups (corporate LAN, VPN, bastion).
-
-To learn more read [admin-ip-whitelist.md](docs/admin-ip-whitelist.md).
-
-### Admin IP Blacklist
-
-Block specific IPs / CIDR ranges from the admin panel with a global deny-list. Always wins over the whitelist, is identity-agnostic (a blocked IP can't even reach the login form), and fails open when empty.
-
-To learn more read [admin-ip-blacklist.md](docs/admin-ip-blacklist.md).
-
-### Admin Customer Management
-
-A Security section on the Sylius customer detail page bundling support actions — force password reset, block / unblock, sign out of all or individual sessions — plus read-only active-sessions and login-history tables.
-
-To learn more read [admin-customer-management.md](docs/admin-customer-management.md).
-
-### Per-User Password Login Control
-
-Disable classic email + password sign-in for individual customers or admins, forcing them onto a stronger method (magic link, passkey, or social login). Per-group global toggle plus a per-user switch, with a lock-out guard.
-
-To learn more read [per-user-password-login-control.md](docs/per-user-password-login-control.md).
+| Feature | What it does | Doc |
+| --- | --- | --- |
+| Password Policy | Configurable password complexity (min/max length + uppercase / lowercase / number / special-character rules), separately per customer and admin group; overrides Sylius's weak 3-character default. | [password-policy](docs/password-policy.md) |
+| Password History | Prevents reuse of recent passwords, with a configurable remembered count per group; customer and admin history stored separately. | [password-history](docs/password-history.md) |
+| Password Expiration | Forces a password change after a configurable number of days, with an optional `force_change` on next login; independent for customers and admins. | [password-expiration](docs/password-expiration.md) |
+| Password Change Notifications | Emails the user on every password change (account settings, forgot-password reset, admin-initiated) with the timestamp, IP address and a secure-account link. | [password-change-notifications](docs/password-change-notifications.md) |
+| Two-Factor Authentication | TOTP 2FA (Google Authenticator, Authy, 1Password, …) with QR-code setup, single-use recovery codes, trusted devices and per-group `disabled` / `allowed` / `enforced` modes. Built on `scheb/2fa-bundle`. | [two-factor-authentication](docs/two-factor-authentication.md) |
+| 3rd-party OAuth (Social Login) | Google, Apple and Microsoft sign-in per group, with account-link takeover protection, optional domain-gated auto-registration and an extensible provider registry. | [oauth-social-login](docs/oauth-social-login.md) |
+| Magic Link Login | Passwordless email sign-in with single-use, hashed, time-limited tokens, anti-enumeration, timing-attack padding, rate limiting and 2FA awareness. | [magic-link-login](docs/magic-link-login.md) |
+| Passkey Login (WebAuthn / FIDO2) | Passwordless passkeys (Touch ID / Windows Hello / Android lock / hardware keys), multiple labelled keys per user, built on `web-auth/webauthn-lib`, 2FA-aware by default. | [passkey-login](docs/passkey-login.md) |
+| Account Lockout & Rate Limiting | Persistent per-user account lockout after N failed sign-ins (auto- or admin-unlock) plus ephemeral request rate limiting (login, password reset, registration, magic link). | [account-lockout-rate-limiting](docs/account-lockout-rate-limiting.md) |
+| Session Management & Login Notifications | Active-session listing with manual revocation (single or all-other), plus optional email alerts on sign-in from a previously unseen device; pluggable GeoIP lookup. | [session-management-login-notifications](docs/session-management-login-notifications.md) |
+| Centralized Security Settings UI | A single admin page (`/admin/security-settings`) to configure every feature at runtime — values persist in the database and apply on the next request, no YAML edits or redeploys. | [centralized-security-settings-ui](docs/centralized-security-settings-ui.md) |
+| Self-Service Account Deletion (GDPR) | Customer-driven erasure (GDPR right to be forgotten) with a configurable grace period, admin-side cancellation and a cron that anonymizes name / email / phone / address. | [account-deletion-gdpr](docs/account-deletion-gdpr.md) |
+| Admin IP Whitelist | Restrict admin-panel access to allowed IPs / CIDR ranges, with a team-wide global list plus optional per-admin lists. | [admin-ip-whitelist](docs/admin-ip-whitelist.md) |
+| Admin IP Blacklist | Block specific IPs / CIDR ranges from the admin panel with a global deny-list — always wins over the whitelist, is identity-agnostic, and fails open when empty. | [admin-ip-blacklist](docs/admin-ip-blacklist.md) |
+| Admin Customer Management | A Security section on the Sylius customer detail page — force password reset, block / unblock, sign out of all or individual sessions, plus active-sessions and login-history tables. | [admin-customer-management](docs/admin-customer-management.md) |
+| Per-User Password Login Control | Disable email + password sign-in for individual customers or admins, forcing a stronger method (magic link, passkey or social login); per-group toggle plus a per-user switch with a lock-out guard. | [per-user-password-login-control](docs/per-user-password-login-control.md) |
 
 
 ## Installation (into an existing Sylius application)
 
 This section is for **consuming** the plugin in your own Sylius project — you register the bundle/plugin and wire the config yourself. If you instead want to **work on the plugin itself**, skip to **Development** below: its bundled test application already has the bundle, plugin and routes registered, so you don't repeat these steps.
+
+> **This plugin requires the standalone `3brs/enterprise-security-bundle` package and does not work without it.** The bundle is the framework-agnostic core (security validators, services, entity contracts); the plugin is the thin Sylius integration layer on top (admin / shop UI, controllers, routes, fixtures). That's why steps 1–2 install and register **both** packages, and the entity traits in step 5 implement interfaces that live in the bundle.
 
 > Every feature ships **disabled by default** (see each feature's doc under [`docs/`](docs/)). You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
 
