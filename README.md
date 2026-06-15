@@ -149,10 +149,10 @@ This section is for **consuming** the plugin in your own Sylius project — you 
 
 > Every feature ships **disabled by default** (see each feature's doc under [`docs/`](docs/)). You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
 
-1. Require the package:
+1. Require the plugin and its standalone bundle:
 
    ```bash
-   composer require 3brs/sylius-enterprise-security-plugin
+   composer require 3brs/sylius-enterprise-security-plugin 3brs/enterprise-security-bundle
    ```
 
 2. Register the bundles in `config/bundles.php` (the plugin, its standalone bundle, and the Scheb 2FA bundle it builds on):
