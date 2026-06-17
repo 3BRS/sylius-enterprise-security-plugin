@@ -3543,11 +3543,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     password_expiration?: array{
  *         customer?: array{
  *             enabled?: bool|Param, // Default: false
- *             days?: int|Param, // Default: 90
+ *             days?: int|Param, // Default: 365
  *         },
  *         admin?: array{
  *             enabled?: bool|Param, // Default: false
- *             days?: int|Param, // Default: 60
+ *             days?: int|Param, // Default: 365
  *         },
  *     },
  *     password_change_notification?: array{
@@ -3612,7 +3612,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     passkey?: array{
  *         rp_id?: scalar|Param|null, // Default: null
  *         rp_name?: scalar|Param|null, // Default: null
- *         skip_2fa_when_user_verified?: bool|Param, // Default: false
  *         customer?: array{
  *             enabled?: bool|Param, // Default: false
  *         },

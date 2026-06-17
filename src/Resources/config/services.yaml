@@ -596,13 +596,10 @@ services:
         arguments:
             $verifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifier'
             $tokenStorage: '@security.token_storage'
-            $eventDispatcher: '@security.event_dispatcher.shop'
-            $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
             $router: '@router'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
             $enabled: '%three_brs.passkey.customer.enabled%'
-            $skipTwoFactorWhenUserVerified: '%three_brs.passkey.skip_2fa_when_user_verified%'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -659,13 +656,10 @@ services:
         arguments:
             $verifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\AdminPasskeyAssertionVerifier'
             $tokenStorage: '@security.token_storage'
-            $eventDispatcher: '@security.event_dispatcher.admin'
-            $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.admin'
             $router: '@router'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
             $enabled: '%three_brs.passkey.admin.enabled%'
-            $skipTwoFactorWhenUserVerified: '%three_brs.passkey.skip_2fa_when_user_verified%'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -728,8 +722,6 @@ services:
             $verifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerMagicLinkTokenVerifier'
             $entityManager: '@doctrine.orm.entity_manager'
             $tokenStorage: '@security.token_storage'
-            $eventDispatcher: '@security.event_dispatcher.shop'
-            $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
             $router: '@router'
             $clock: '@clock'
             $logger: '@logger'
@@ -753,8 +745,6 @@ services:
             $verifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserMagicLinkTokenVerifier'
             $entityManager: '@doctrine.orm.entity_manager'
             $tokenStorage: '@security.token_storage'
-            $eventDispatcher: '@security.event_dispatcher.admin'
-            $twoFactorHandler: '@security.authentication.authentication_required_handler.two_factor.admin'
             $router: '@router'
             $clock: '@clock'
             $logger: '@logger'

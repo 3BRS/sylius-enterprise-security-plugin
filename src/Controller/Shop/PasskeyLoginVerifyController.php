@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
 
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Scheb\TwoFactorBundle\Security\Http\Authentication\AuthenticationRequiredHandlerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -21,23 +19,17 @@ class PasskeyLoginVerifyController extends AbstractPasskeyLoginVerifyController 
     public function __construct(
         CustomerPasskeyAssertionVerifierInterface $verifier,
         TokenStorageInterface $tokenStorage,
-        EventDispatcherInterface $eventDispatcher,
-        AuthenticationRequiredHandlerInterface $twoFactorHandler,
         RouterInterface $router,
         LoggerInterface $logger,
         protected CustomerSessionLoginHandlerInterface $sessionLoginHandler,
         bool $enabled,
-        bool $skipTwoFactorWhenUserVerified,
     ) {
         parent::__construct(
             $verifier,
             $tokenStorage,
-            $eventDispatcher,
-            $twoFactorHandler,
             $router,
             $logger,
             $enabled,
-            $skipTwoFactorWhenUserVerified,
         );
     }
 
