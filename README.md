@@ -72,14 +72,14 @@ Every feature ships **disabled by default** — enable and tune the ones you nee
 
 This section is for **consuming** the plugin in your own Sylius project — you register the bundle/plugin and wire the config yourself. If you instead want to **work on the plugin itself**, skip to **Development** below: its bundled test application already has the bundle, plugin and routes registered, so you don't repeat these steps.
 
-> **This plugin requires the standalone `3brs/enterprise-security-bundle` package and does not work without it.** The bundle is the framework-agnostic core (security validators, services, entity contracts); the plugin is the thin Sylius integration layer on top (admin / shop UI, controllers, routes, fixtures). That's why steps 1–2 install and register **both** packages, and the entity traits in step 5 implement interfaces that live in the bundle.
+> **This plugin requires the standalone `3brs/enterprise-security-bundle` package and does not work without it.** The bundle is the framework-agnostic core (security validators, services, entity contracts); the plugin is the thin Sylius integration layer on top (admin / shop UI, controllers, routes, fixtures). That's why step 1 installs **both** packages (the bundle comes in as a dependency of the plugin) and step 2 registers them, and the entity traits in step 5 implement interfaces that live in the bundle.
 
 > Every feature ships **disabled by default** (see each feature's doc under [`docs/`](docs/)). You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
 
-1. Require the plugin and its standalone bundle:
+1. Require the plugin (its standalone bundle and the Scheb 2FA bundle are pulled in automatically as dependencies):
 
    ```bash
-   composer require 3brs/sylius-enterprise-security-plugin 3brs/enterprise-security-bundle
+   composer require 3brs/sylius-enterprise-security-plugin
    ```
 
 2. Register the bundles in `config/bundles.php` (the plugin, its standalone bundle, and the Scheb 2FA bundle it builds on):
