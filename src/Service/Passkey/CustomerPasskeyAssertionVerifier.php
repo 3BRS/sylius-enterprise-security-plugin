@@ -66,9 +66,8 @@ class CustomerPasskeyAssertionVerifier implements CustomerPasskeyAssertionVerifi
         $this->entityManager->flush();
 
         $user = $this->resolveUser($stored);
-        $userVerified = $response->authenticatorData->isUserVerified();
 
-        return new CustomerPasskeyAssertionResult($user, $userVerified);
+        return new CustomerPasskeyAssertionResult($user);
     }
 
     protected function resolveUser(CustomerPasskeyCredentialInterface $credential): ShopUserInterface

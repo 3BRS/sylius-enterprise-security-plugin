@@ -113,7 +113,6 @@ class CustomerPasskeyAssertionVerifierTest extends TestCase
         $storage->method('consume')->willReturn('serialized-options');
 
         $authenticatorData = $this->createStub(AuthenticatorData::class);
-        $authenticatorData->method('isUserVerified')->willReturn(true);
 
         $clientData = $this->createStub(CollectedClientData::class);
         $assertion = new AuthenticatorAssertionResponse($clientData, $authenticatorData, 'signature-bytes', 'user-handle');
@@ -171,6 +170,5 @@ class CustomerPasskeyAssertionVerifierTest extends TestCase
         $result = $verifier->verify('{}', 'shop.example.com');
 
         self::assertSame($shopUser, $result->getUser());
-        self::assertTrue($result->isUserVerified());
     }
 }

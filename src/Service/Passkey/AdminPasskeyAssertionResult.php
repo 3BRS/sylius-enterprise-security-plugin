@@ -10,17 +10,11 @@ class AdminPasskeyAssertionResult implements AdminPasskeyAssertionResultInterfac
 {
     public function __construct(
         protected readonly AdminUserInterface $user,
-        protected readonly bool $userVerified,
     ) {
     }
 
     public function getUser(): AdminUserInterface
     {
         return $this->user;
-    }
-
-    public function isUserVerified(): bool
-    {
-        return $this->userVerified;
     }
 }
