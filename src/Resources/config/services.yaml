@@ -835,6 +835,17 @@ services:
             # is populated, but before Security firewall listeners (priority 8).
             - { name: 'kernel.event_listener', event: 'kernel.request', priority: 16 }
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ApiBlockListener:
+        arguments:
+            # Sylius's own API path prefix (default '/api/v2'); the block follows
+            # it if the API is relocated via this parameter.
+            $apiRoute: '%sylius.security.api_route%'
+        tags:
+            # Priority 512: block the API as early as possible — before the router
+            # (priority 32) and the security firewall (priority 8) — so API paths
+            # are 404'd before any authentication or session handling runs.
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 512 }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepository:
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
