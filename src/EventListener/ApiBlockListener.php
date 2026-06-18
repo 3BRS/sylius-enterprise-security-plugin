@@ -6,24 +6,39 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener;
 
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 /**
- * Blocks every request to the Sylius API.
+ * Makes the Sylius API disappear (404) for an audience whose two-factor
+ * authentication is active.
  *
- * The API authenticates with stateless JWT tokens, so it bypasses ALL of this
- * plugin's security controls — two-factor authentication, account lockout, IP
- * whitelist/blacklist, session tracking. None of those can be enforced on the
- * API, so the whole API surface is shut off here at the kernel level (404),
- * before the firewall ever runs.
+ * Two-factor authentication is a human, browser-based control — the user
+ * proves a second factor during an interactive login. The API authenticates
+ * with stateless JWT tokens minted from email + password alone;
+ * Leaving it open would let anyone holding the password reach a 2FA-protected account
+ * through the API, bypassing the second factor entirely.
  *
- * The blocked path prefix is injected from Sylius's own `sylius.security.api_route`
- * parameter (default `/api/v2`) — the very value the API firewall is built from —
- * so if the API address is changed, this block automatically follows it.
+ * Therefore, when 2FA is active for an audience, its API simply does not exist:
+ * every request is 404'd here at the kernel level (before the router and the
+ * firewall), as if the API had never been installed for that audience.
+ *
+ *   - admin API (`%sylius.security.api_admin_route%`, default `/api/v2/admin`)
+ *     is gated by the admin 2FA mode
+ *   - shop API (`%sylius.security.api_shop_route%`, default `/api/v2/shop`)
+ *     is gated by the customer 2FA mode
+ *
+ * "Active" means the 2FA mode is `allowed` or `enforced` (anything but
+ * `disabled`), via the bundle's {@see FeatureToggleInterface::isTwoFactorActive()}.
+ * The prefixes come from Sylius's own parameters, so the block follows the API
+ * if it is relocated.
  */
 class ApiBlockListener implements ApiBlockListenerInterface
 {
     public function __construct(
-        protected string $apiRoute,
+        protected string $adminApiRoute,
+        protected string $shopApiRoute,
+        protected FeatureToggleInterface $features,
     ) {
     }
 
@@ -33,19 +48,34 @@ class ApiBlockListener implements ApiBlockListenerInterface
             return;
         }
 
-        // Defensive: never block everything if the API route parameter is empty.
-        if ($this->apiRoute === '') {
-            return;
-        }
-
         $path = $event->getRequest()->getPathInfo();
 
-        // Match `/api/v2` exactly and `/api/v2/...` — but not `/api/v2-anything`,
-        // which would otherwise slip past a naive `str_starts_with($path, '/api/v2')`.
-        if ($path !== $this->apiRoute && !str_starts_with($path, $this->apiRoute . '/')) {
-            return;
+        if (
+            $this->matchesRoute($path, $this->adminApiRoute) &&
+            $this->features->isTwoFactorActive(SettingsScope::ADMIN)
+        ) {
+            throw new NotFoundHttpException('API access is disabled.');
         }
 
-        throw new NotFoundHttpException('API access is disabled.');
+        if (
+            $this->matchesRoute($path, $this->shopApiRoute) &&
+            $this->features->isTwoFactorActive(SettingsScope::CUSTOMER)
+        ) {
+            throw new NotFoundHttpException('API access is disabled.');
+        }
+    }
+
+    /**
+     * Matches `/api/v2/admin` exactly and `/api/v2/admin/...`, but not
+     * `/api/v2/admin-anything`, which a naive `str_starts_with` would catch.
+     * An empty prefix never matches, so it can never block everything.
+     */
+    protected function matchesRoute(string $path, string $route): bool
+    {
+        if ($route === '') {
+            return false;
+        }
+
+        return $path === $route || str_starts_with($path, $route . '/');
     }
 }

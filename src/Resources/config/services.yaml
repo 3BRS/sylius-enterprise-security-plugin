@@ -837,9 +837,12 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ApiBlockListener:
         arguments:
-            # Sylius's own API path prefix (default '/api/v2'); the block follows
-            # it if the API is relocated via this parameter.
-            $apiRoute: '%sylius.security.api_route%'
+            # Sylius's own per-audience API prefixes (defaults '/api/v2/admin' and
+            # '/api/v2/shop'); the block follows them if the API is relocated.
+            $adminApiRoute: '%sylius.security.api_admin_route%'
+            $shopApiRoute: '%sylius.security.api_shop_route%'
+            # Gates the block on the 2FA mode being non-disabled, per audience.
+            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
         tags:
             # Priority 512: block the API as early as possible — before the router
             # (priority 32) and the security firewall (priority 8) — so API paths
