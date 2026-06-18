@@ -113,7 +113,6 @@ class AdminPasskeyAssertionVerifierTest extends TestCase
         $storage->method('consume')->willReturn('serialized-options');
 
         $authenticatorData = $this->createStub(AuthenticatorData::class);
-        $authenticatorData->method('isUserVerified')->willReturn(false);
 
         $clientData = $this->createStub(CollectedClientData::class);
         $assertion = new AuthenticatorAssertionResponse($clientData, $authenticatorData, 'signature-bytes', 'admin-handle');
@@ -171,6 +170,5 @@ class AdminPasskeyAssertionVerifierTest extends TestCase
         $result = $verifier->verify('{}', 'admin.example.com');
 
         self::assertSame($adminUser, $result->getUser());
-        self::assertFalse($result->isUserVerified());
     }
 }

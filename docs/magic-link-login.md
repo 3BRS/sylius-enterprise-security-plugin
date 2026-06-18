@@ -8,7 +8,7 @@
 - Anti-enumeration: the request endpoint always responds with the same neutral confirmation whether the email is known, unknown, disabled, or rate-limited — no information about account existence leaks
 - Timing-attack mitigation: every code path is padded to a fixed wall-clock deadline (`DeadlineTimingPadding`, default 2 s) so response time does not leak account existence either — known/unknown/rate-limited requests all return at the same time. The 2-second default is chosen to comfortably cover the slowest happy path (DB write + SMTP send) on typical infrastructure; tune it by decorating the `ThreeBRS\EnterpriseSecurityBundle\Timing\DeadlineTimingPadding` service with a different `$targetSeconds` if your SMTP transport is faster or slower than that
 - Rate limiting per user: configurable count within a sliding window (defaults to 3 requests / 15 minutes)
-- 2FA-aware: if the authenticated user has `scheb/2fa` enabled, the verify controller dispatches `AuthenticationTokenCreatedEvent` on the firewall event dispatcher so scheb wraps the token and redirects to the 2FA challenge — the magic link does **not** bypass the second factor
+- Bypasses 2FA: like OAuth and passkey, the verify controller writes the authenticated token directly, so a user with `scheb/2fa` enabled is **not** challenged for the second factor after following the link — two-factor only guards plain email + password sign-in
 - Fixture (`three_brs_magic_link`) to preload tokens for demo/testing
 
 ```yaml

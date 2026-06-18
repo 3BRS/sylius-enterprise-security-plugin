@@ -10,17 +10,11 @@ class CustomerPasskeyAssertionResult implements CustomerPasskeyAssertionResultIn
 {
     public function __construct(
         protected readonly ShopUserInterface $user,
-        protected readonly bool $userVerified,
     ) {
     }
 
     public function getUser(): ShopUserInterface
     {
         return $this->user;
-    }
-
-    public function isUserVerified(): bool
-    {
-        return $this->userVerified;
     }
 }

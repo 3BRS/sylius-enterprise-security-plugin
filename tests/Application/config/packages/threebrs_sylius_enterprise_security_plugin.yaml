@@ -12,10 +12,10 @@ three_brs_sylius_enterprise_security:
     password_expiration:
         customer:
             enabled: true
-            days: 90
+            days: 365
         admin:
             enabled: true
-            days: 60
+            days: 365
     password_change_notification:
         customer:
             enabled: true
@@ -83,7 +83,6 @@ three_brs_sylius_enterprise_security:
     passkey:
         rp_id: localhost
         rp_name: 'Sylius Test Shop'
-        skip_2fa_when_user_verified: false
         customer:
             enabled: true
         admin:

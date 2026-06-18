@@ -263,11 +263,11 @@ three_brs:
             save: 'Save'
             password_login_control:
                 title: 'Password login'
-                description: 'Control whether users may sign in with their email and password. When enabled, you can disable password login per user — they must then use a magic link, a passkey, or a connected social account.'
+                description: 'Controls whether classic email-and-password sign-in can be switched off for individual accounts. With the master switch on, a per-user toggle blocks the password form for a chosen account and forces them onto a magic link, passkey, or social login — a guard stops you doing this to someone who has no other way in. Turn the master switch off and every per-user toggle goes inert, so everyone in this group can use their password again.'
                 enabled: 'Enable password login control'
             password_policy:
                 title: 'Password policy'
-                description: 'Minimum length, maximum length and complexity requirements applied during password validation.'
+                description: 'Defines the rules every new or changed password must meet: minimum and maximum length, plus optional uppercase, lowercase, number, and special-character requirements. The rules run whenever a password is set or changed and reject anything that breaks an active rule. Tightening them makes future passwords harder to guess but harder to choose; existing passwords are never re-checked, so changes only affect passwords set from then on.'
                 min_length: 'Minimum length'
                 max_length: 'Maximum length'
                 require_uppercase: 'Require uppercase letter'
@@ -276,17 +276,17 @@ three_brs:
                 require_special_characters: 'Require special character'
             password_history:
                 title: 'Password history'
-                description: 'Prevent reuse of recent passwords.'
+                description: 'Stops users from reusing a password they have used recently. When enabled, a changed password is checked against the last several remembered ones (set by the count field) and rejected on a match — a higher count forces more unique passwords before an old one can return. When disabled, no history is kept and any previous password may be reused immediately.'
                 enabled: 'Enable password history check'
                 count: 'Number of previous passwords to remember'
             password_expiration:
                 title: 'Password expiration'
-                description: 'Force users to change their password after a number of days.'
+                description: 'Makes passwords expire after a set number of days, forcing users to pick a new one. When enabled, anyone whose password is older than that age must change it before continuing. When disabled, passwords never expire on their own, though the per-user ''force password change'' action still works regardless.'
                 enabled: 'Enable password expiration'
                 days: 'Expire after (days)'
             password_change_notification:
                 title: 'Password change notification'
-                description: 'Send an email when a user changes their password.'
+                description: 'Emails the account owner whenever their password changes, so an unexpected change is noticed fast. It covers every path — the user changing it, a forgotten-password reset, or an admin changing it — and includes the time, the IP when available, and a secure-account link if the owner did not make the change. When disabled, passwords still change but no email is sent.'
                 enabled: 'Enable password change notification email'
             two_factor:
                 mode: 'Mode'
@@ -297,34 +297,34 @@ three_brs:
                 recovery_codes_count: 'Number of recovery codes'
             two_factor_authentication:
                 title: 'Two-factor authentication'
-                description: 'Two-factor authentication mode and recovery codes.'
+                description: 'Adds a second step at sign-in — a one-time code from an authenticator app like Google Authenticator or Authy — on top of the password. The mode field has three positions: ''Disabled'' turns it off, ''Allowed'' lets users enable it themselves, and ''Enforced'' requires it for everyone (anyone without it is sent to a setup page). Recovery codes are single-use backups you can switch on and size.'
             magic_link:
                 title: 'Magic link'
-                description: 'Allow users to sign in via a one-time link emailed to them.'
+                description: 'Lets users sign in without a password via a one-time link emailed to them — usable once, then it expires. When enabled, a ''Sign in with a magic link'' option appears on this group''s login page and the expiration field sets how long each link lasts (shorter is safer, longer more forgiving). When disabled the option disappears.'
                 enabled: 'Enable magic link'
                 expiration_seconds: 'Link expiration (seconds)'
             passkey:
                 title: 'Passkey (WebAuthn)'
-                description: 'Allow users to register and sign in with a passkey.'
+                description: 'Lets users sign in with a passkey instead of a password — fingerprint, face, screen lock, or a hardware key like a YubiKey. When enabled, a ''Sign in with a passkey'' option appears and users can register passkeys from their account; when disabled it is hidden and existing passkeys stop working. Passkeys need a one-time YAML setup (site domain and display name) before they work, so the toggle alone is not enough on a fresh install.'
                 enabled: 'Enable passkey'
             account_lockout:
                 title: 'Account lockout'
-                description: 'Lock accounts after repeated failed login attempts.'
+                description: 'Locks an account after too many failed sign-ins in a row to block password guessing. When the ''maximum failed attempts'' value is hit the account is locked, the ''auto-unlock after'' field either lifts the lock after a set time, or — left empty — needs an admin to unlock by hand. A locked user sees the same generic ''invalid credentials'' as a wrong password, and admins can unlock early from the locked-accounts list.'
                 enabled: 'Enable account lockout'
                 max_attempts: 'Maximum failed attempts before lockout'
                 auto_unlock_after: 'Auto-unlock after (seconds)'
                 auto_unlock_after_help: 'Leave empty to require manual unlock by administrator.'
             session_management:
                 title: 'Session management'
-                description: 'Track active user sessions and allow remote sign-out.'
+                description: 'Keeps a list of every device signed in to an account and lets the user or an admin sign devices out remotely. When enabled, each user gets an ''Active sessions'' page (browser, OS, IP, location, last activity), and signing one out drops that device back to the login page on its next request. When disabled, sessions are not tracked; showing city and country next to the IP needs a separate GeoIP database, otherwise location stays blank.'
                 enabled: 'Enable session management'
             login_notifications:
                 title: 'Login notifications'
-                description: 'Send an email when a user signs in from a new device.'
+                description: 'Emails the account owner when their account is signed in to from a device or location not seen before. A device is recognized by browser plus IP, so the first sign-in from a new combination triggers a mail and later ones from the same stay silent. When disabled no alerts go out — and note that enabling it on an existing store makes every active user look new, so expect a one-off wave of emails.'
                 enabled: 'Enable login notifications'
             rate_limit:
                 title: 'Rate limiting'
-                description: 'Throttle authentication-related routes to slow down brute-force and enumeration attacks. Limits apply per username (for login) or per client IP (for anonymous routes).'
+                description: 'Caps how often the auth forms can be submitted in a time window to slow brute-force and guessing. Each action — login, password reset, magic-link, and (for customers) registration — has its own limit and interval; going over sends the visitor back with a ''too many requests'' message until the window passes. Login is counted per account (so an unlock clears its counter) and the rest per visitor IP; a lower limit or longer interval tightens the throttle.'
                 interval_options:
                     1_minute: '1 minute'
                     5_minutes: '5 minutes'
@@ -352,37 +352,37 @@ three_brs:
                     interval: 'Magic link interval'
             oauth:
                 title: '3rd-party OAuth'
-                description: 'Provider credentials (client_id, secret, etc.) remain in YAML configuration — only the enabled flag is runtime-mutable here.'
+                description: 'Controls which third-party providers — Google, Apple, Microsoft — are offered to this group on the login and registration pages. Switching one on shows its button (and account-linking item) on the next request; off hides it and stops new sign-ins through it.'
                 google_enabled: 'Google'
                 apple_enabled: 'Apple'
                 microsoft_enabled: 'Microsoft'
             oauth_admin_policy:
                 title: 'OAuth admin auto-registration'
-                description: 'Policy applied when an administrator signs in via OAuth and no matching account exists yet. Only emails from the whitelisted domains can be auto-registered.'
+                description: 'Decides what happens when someone signs in via a provider (Google, Apple, Microsoft) with an email that matches no admin account yet. Only an email ending in a whitelisted domain may auto-create a new admin (granted admin access and the default locale set here); leave the list empty and auto-registration is off, so unknown identities are rejected. Add only domains you fully control — anyone with a working email there could create a full-access admin.'
                 default_locale: 'Default locale for new admins'
                 default_locale_help: 'Locale code (e.g. en_US, cs_CZ) applied to admins auto-registered via OAuth.'
                 auto_register_allowed_email_domains: 'Whitelisted email domains'
                 auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to disable auto-registration entirely.'
             oauth_customer_policy:
                 title: 'OAuth customer auto-registration'
-                description: 'Policy applied when a customer signs in via OAuth and no matching account exists yet. Limit auto-registration to specific email domains (e.g. to reduce bot signups).'
+                description: 'Decides what happens when someone signs in via a provider (Google, Apple, Microsoft) with an email that matches no customer account yet. Leave the domain list empty and any verified email can auto-create a customer account (low signup friction); add domains to restrict it — handy for B2B or to curb bot signups. This only affects brand-new accounts; an email matching an existing account is linked to it after a password confirmation instead.'
                 auto_register_allowed_email_domains: 'Whitelisted email domains'
                 auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to allow auto-registration from any verified email address.'
             account_deletion:
                 title: 'Account deletion'
-                description: 'Self-service account deletion (GDPR right to erasure) with admin-cancellable grace period.'
+                description: 'Gives customers a self-service way to delete their own account (GDPR right to erasure). When enabled, a ''Delete account'' option appears in their account menu; after a password confirmation their login is disabled at once and a countdown starts before name, email, phone, and addresses are permanently anonymized — the grace-period field sets how many days that lasts. Only an admin can cancel during the grace period, and a scheduled job must run for the anonymization to actually happen.'
                 enabled: 'Enable self-service account deletion'
                 grace_period_days: 'Grace period (days)'
                 grace_period_days_help: 'Number of days between the customer''s request and the actual anonymization. During this window, only an administrator can cancel the deletion.'
             ip_whitelist:
                 title: 'Admin IP whitelist'
-                description: 'Restrict admin panel access by IP address. Enable here and configure the global CIDR list; per-admin overrides live on the IP whitelist page.'
+                description: 'Restricts admin-panel access by network address, so admins can only sign in from approved IPs or ranges. The global list here covers the whole team (office, VPN, bastion) while per-admin lists on the dedicated page add personal ranges; access is allowed if either matches. Saving this on with an empty global list is refused to prevent self-lockout — and it only suits predictable networks, so for rotating home or mobile IPs rely on 2FA and passkeys instead.'
                 enabled: 'Enable admin IP whitelist'
                 global_cidrs: 'Global allowed IPs / CIDRs'
                 global_cidrs_help: 'One IP or CIDR per line. IPv4 and IPv6 are supported (e.g. 10.0.0.0/8, 192.168.1.1, 2001:db8::/32). Leave empty to restrict all admins to their per-admin lists only.'
             ip_blacklist:
                 title: 'Admin IP blacklist'
-                description: 'Block admin panel access for specific IPs. Blacklist always wins over whitelist — a blacklisted IP cannot sign in even when the whitelist would allow it.'
+                description: 'Blocks specific IPs or ranges from reaching the admin panel at all — good for shutting out a known bad actor without tying everyone to a fixed network. A listed address is turned away before it even reaches the login form, and the blacklist always wins over the whitelist. Unlike the whitelist, enabling it with an empty list locks nobody out — it blocks nothing until you add an address — so it is safe to switch on now and fill later.'
                 enabled: 'Enable admin IP blacklist'
                 global_cidrs: 'Global denied IPs / CIDRs'
                 global_cidrs_help: 'One IP or CIDR per line. IPv4 and IPv6 are supported (e.g. 10.0.0.0/8, 192.168.1.1, 2001:db8::/32). Empty list with feature enabled = no IPs blocked.'

@@ -164,7 +164,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $container->setParameter('three_brs.passkey.admin.enabled', $adminEnabled);
         $container->setParameter('three_brs.passkey.rp_id', $rpId);
         $container->setParameter('three_brs.passkey.rp_name', $rpName);
-        $container->setParameter('three_brs.passkey.skip_2fa_when_user_verified', (bool) $config['skip_2fa_when_user_verified']);
     }
 
     /** @param array<string, array<string, mixed>> $config */

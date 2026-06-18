@@ -66,9 +66,8 @@ class AdminPasskeyAssertionVerifier implements AdminPasskeyAssertionVerifierInte
         $this->entityManager->flush();
 
         $user = $this->resolveUser($stored);
-        $userVerified = $response->authenticatorData->isUserVerified();
 
-        return new AdminPasskeyAssertionResult($user, $userVerified);
+        return new AdminPasskeyAssertionResult($user);
     }
 
     protected function resolveUser(AdminUserPasskeyCredentialInterface $credential): AdminUserInterface

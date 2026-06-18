@@ -18,7 +18,7 @@ interface SecuritySettingsBounds
 
     public const PASSWORD_HISTORY_COUNT_MAX = 24;
 
-    public const PASSWORD_EXPIRATION_DAYS_MAX = 365;
+    public const PASSWORD_EXPIRATION_DAYS_MAX = 730;
 
     public const TWO_FACTOR_RECOVERY_CODES_COUNT_MAX = 10;
 

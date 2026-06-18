@@ -6,10 +6,8 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorTokenInterface;
-use Scheb\TwoFactorBundle\Security\Http\Authentication\AuthenticationRequiredHandlerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -28,8 +26,6 @@ class MagicLinkVerifyController extends AbstractMagicLinkVerifyController implem
         AdminUserMagicLinkTokenVerifierInterface $verifier,
         protected EntityManagerInterface $entityManager,
         TokenStorageInterface $tokenStorage,
-        EventDispatcherInterface $eventDispatcher,
-        AuthenticationRequiredHandlerInterface $twoFactorHandler,
         RouterInterface $router,
         ClockInterface $clock,
         LoggerInterface $logger,
@@ -39,8 +35,6 @@ class MagicLinkVerifyController extends AbstractMagicLinkVerifyController implem
         parent::__construct(
             $verifier,
             $tokenStorage,
-            $eventDispatcher,
-            $twoFactorHandler,
             $router,
             $clock,
             $logger,

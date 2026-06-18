@@ -6,6 +6,7 @@
 - Trusted device — opt-in cookie (scheb JWT) to skip 2FA on a known device; revocable per user by bumping the user's `trustedTokenVersion`
 - Enforcement modes per user type: `disabled`, `allowed`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
 - Firewall integration via `scheb/2fa-bundle` with separate `/2fa` (shop) and `/admin/2fa` (admin) challenge endpoints
+- 2FA guards plain email + password sign-in only — passwordless methods (OAuth, passkey, magic link) authenticate directly and bypass the second factor by design
 - Fixture (`three_brs_two_factor`) to preload 2FA-enabled users and recovery codes for demo/testing
 - Plugin exposes container parameters (`three_brs.two_factor.issuer`, `three_brs.two_factor.trusted_device_enabled`, `three_brs.two_factor.trusted_device_lifetime`) that can be referenced directly from your `scheb_2fa.yaml`
 
