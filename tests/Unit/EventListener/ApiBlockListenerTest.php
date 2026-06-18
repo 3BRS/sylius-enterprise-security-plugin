@@ -10,47 +10,91 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ApiBlockListener;
 
 #[CoversClass(ApiBlockListener::class)]
 class ApiBlockListenerTest extends TestCase
 {
-    private function createEvent(string $path, int $requestType = HttpKernelInterface::MAIN_REQUEST): RequestEvent
-    {
-        return new RequestEvent(
-            $this->createStub(HttpKernelInterface::class),
-            Request::create($path),
-            $requestType,
-        );
-    }
+    private const ADMIN_ROUTE = '/api/v2/admin';
 
-    public function testBlocksApiRootPath(): void
-    {
-        $listener = new ApiBlockListener('/api/v2');
+    private const SHOP_ROUTE = '/api/v2/shop';
 
-        $this->expectException(NotFoundHttpException::class);
-        $listener->onKernelRequest($this->createEvent('/api/v2'));
-    }
-
-    public function testBlocksAdminApiPath(): void
+    public function testBlocksAdminApiWhenAdminTwoFactorIsActive(): void
     {
-        $listener = new ApiBlockListener('/api/v2');
+        $listener = $this->createListener(adminTwoFactorActive: true, customerTwoFactorActive: false);
 
         $this->expectException(NotFoundHttpException::class);
         $listener->onKernelRequest($this->createEvent('/api/v2/admin/orders'));
     }
 
-    public function testBlocksShopApiPath(): void
+    public function testAllowsAdminApiWhenAdminTwoFactorIsInactive(): void
     {
-        $listener = new ApiBlockListener('/api/v2');
+        $listener = $this->createListener(adminTwoFactorActive: false, customerTwoFactorActive: false);
 
-        $this->expectException(NotFoundHttpException::class);
-        $listener->onKernelRequest($this->createEvent('/api/v2/shop/products'));
+        $event = $this->createEvent('/api/v2/admin/orders');
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
     }
 
-    public function testAllowsNonApiPath(): void
+    public function testBlocksShopApiWhenCustomerTwoFactorIsActive(): void
     {
-        $listener = new ApiBlockListener('/api/v2');
+        $listener = $this->createListener(adminTwoFactorActive: false, customerTwoFactorActive: true);
+
+        $this->expectException(NotFoundHttpException::class);
+        $listener->onKernelRequest($this->createEvent('/api/v2/shop/account/orders'));
+    }
+
+    public function testAllowsShopApiWhenCustomerTwoFactorIsInactive(): void
+    {
+        $listener = $this->createListener(adminTwoFactorActive: false, customerTwoFactorActive: false);
+
+        $event = $this->createEvent('/api/v2/shop/products');
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testAdminApiIsGatedByAdminScopeOnly(): void
+    {
+        // Customer 2FA on, admin 2FA off: the admin API must stay reachable.
+        $listener = $this->createListener(adminTwoFactorActive: false, customerTwoFactorActive: true);
+
+        $event = $this->createEvent('/api/v2/admin/orders');
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testAllowsApiPathOutsideAdminAndShop(): void
+    {
+        // Infrastructure paths (JSON-LD contexts, docs) are neither audience.
+        $listener = $this->createListener(adminTwoFactorActive: true, customerTwoFactorActive: true);
+
+        $event = $this->createEvent('/api/v2/contexts/Order');
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testAllowsPathThatMerelyStartsLikeRoute(): void
+    {
+        $listener = $this->createListener(adminTwoFactorActive: true, customerTwoFactorActive: true);
+
+        $event = $this->createEvent('/api/v2/admin-docs');
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testDoesNotConsultSettingsForNonApiPaths(): void
+    {
+        $features = $this->createMock(FeatureToggleInterface::class);
+        $features->expects(self::never())->method('isTwoFactorActive');
+
+        $listener = new ApiBlockListener(self::ADMIN_ROUTE, self::SHOP_ROUTE, $features);
 
         $event = $this->createEvent('/admin/dashboard');
         $listener->onKernelRequest($event);
@@ -58,21 +102,12 @@ class ApiBlockListenerTest extends TestCase
         self::assertNull($event->getResponse());
     }
 
-    public function testAllowsPathThatMerelyStartsLikeApiRoute(): void
+    public function testFollowsRelocatedApiRoutes(): void
     {
-        $listener = new ApiBlockListener('/api/v2');
+        $features = $this->createStub(FeatureToggleInterface::class);
+        $features->method('isTwoFactorActive')->willReturn(true);
 
-        $event = $this->createEvent('/api/v2-docs');
-        $listener->onKernelRequest($event);
-
-        self::assertNull($event->getResponse());
-    }
-
-    public function testFollowsRelocatedApiRoute(): void
-    {
-        // The prefix is injected from Sylius's api_route parameter, so moving the
-        // API also moves the block — here the API now lives under /internal-api.
-        $listener = new ApiBlockListener('/internal-api');
+        $listener = new ApiBlockListener('/internal-api/admin', '/internal-api/shop', $features);
 
         $this->expectException(NotFoundHttpException::class);
         $listener->onKernelRequest($this->createEvent('/internal-api/admin/orders'));
@@ -80,7 +115,7 @@ class ApiBlockListenerTest extends TestCase
 
     public function testIgnoresSubRequests(): void
     {
-        $listener = new ApiBlockListener('/api/v2');
+        $listener = $this->createListener(adminTwoFactorActive: true, customerTwoFactorActive: true);
 
         $event = $this->createEvent('/api/v2/admin/orders', HttpKernelInterface::SUB_REQUEST);
         $listener->onKernelRequest($event);
@@ -88,13 +123,36 @@ class ApiBlockListenerTest extends TestCase
         self::assertNull($event->getResponse());
     }
 
-    public function testDoesNothingWhenApiRouteIsEmpty(): void
+    public function testDoesNothingWhenRoutesAreEmpty(): void
     {
-        $listener = new ApiBlockListener('');
+        $features = $this->createStub(FeatureToggleInterface::class);
+        $features->method('isTwoFactorActive')->willReturn(true);
+
+        $listener = new ApiBlockListener('', '', $features);
 
         $event = $this->createEvent('/api/v2/admin/orders');
         $listener->onKernelRequest($event);
 
         self::assertNull($event->getResponse());
+    }
+
+    private function createListener(bool $adminTwoFactorActive, bool $customerTwoFactorActive): ApiBlockListener
+    {
+        $features = $this->createStub(FeatureToggleInterface::class);
+        $features->method('isTwoFactorActive')->willReturnMap([
+            [SettingsScope::ADMIN, $adminTwoFactorActive],
+            [SettingsScope::CUSTOMER, $customerTwoFactorActive],
+        ]);
+
+        return new ApiBlockListener(self::ADMIN_ROUTE, self::SHOP_ROUTE, $features);
+    }
+
+    private function createEvent(string $path, int $requestType = HttpKernelInterface::MAIN_REQUEST): RequestEvent
+    {
+        return new RequestEvent(
+            $this->createStub(HttpKernelInterface::class),
+            Request::create($path),
+            $requestType,
+        );
     }
 }
