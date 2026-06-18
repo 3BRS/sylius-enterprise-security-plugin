@@ -230,6 +230,25 @@ services:
 
 > The decorator is harmless once the upstream bug is fixed (it only catches an exception that no longer fires), but remove it after you upgrade to a fixed api-platform release to keep your container clean.
 
+### `Unable to generate an IRI for the item of type ...` on API responses
+
+If, after adding the decorator above, an API endpoint that embeds related resources fails with a 400 such as:
+
+```
+Unable to generate an IRI for the item of type "App\Entity\Product\ProductImage"
+```
+
+— for example `GET /api/v2/shop/products` (embedded product images) or `GET /api/v2/admin/product-variants/{code}` (embedded channel pricings) — disable API Platform's constructor property-info extractor:
+
+```yaml
+# config/packages/property_info.yaml
+framework:
+    property_info:
+        with_constructor_extractor: false
+```
+
+On api-platform `4.3.x` this extractor runs before Doctrine's and resolves relation properties such as `Image::$owner` to a bare `object` (from their `@var object|null` PHPDoc), hiding the concrete related class that API Platform needs to build nested IRIs like `/shop/products/{code}/images/{id}`. Turning it off lets the Doctrine extractor resolve the concrete class again. `false` is also Symfony's current default for this setting, so this only makes it explicit (and silences the related Symfony 7.3 deprecation); the Symfony recipe ships it pre-enabled, which is why you may need to flip it.
+
 ## Development
 
 This section is **only** for contributing to / developing the plugin — not for installing it into your own app (that's the *Installation* section above). The bundled **test application** under [`tests/Application/`](./tests/Application/) already has the bundle, plugin, routes and feature config registered (it's part of this repo), so you do **not** repeat the Installation steps — `make init` brings the whole stack up ready to go.

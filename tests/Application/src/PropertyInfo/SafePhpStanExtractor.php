@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo;
 
 use phpDocumentor\Reflection\DocBlock;
+use Symfony\Component\PropertyInfo\Extractor\ConstructorArgumentTypeExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyDescriptionExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyDocBlockExtractorInterface;
@@ -42,6 +43,7 @@ use Symfony\Component\TypeInfo\Type;
  */
 class SafePhpStanExtractor implements
     PropertyTypeExtractorInterface,
+    ConstructorArgumentTypeExtractorInterface,
     PropertyDescriptionExtractorInterface,
     PropertyAccessExtractorInterface,
     PropertyInitializableExtractorInterface,
@@ -68,6 +70,34 @@ class SafePhpStanExtractor implements
     {
         try {
             $types = $this->inner->getTypes($class, $property, $context);
+        } catch (InvalidArgumentException) {
+            return null;
+        }
+
+        return $types === null ? null : $this->stripGenericObjectWhenMixedWithClass($types);
+    }
+
+    public function getTypeFromConstructor(string $class, string $property): ?Type
+    {
+        if (!$this->inner instanceof ConstructorArgumentTypeExtractorInterface) {
+            return null;
+        }
+
+        try {
+            return $this->inner->getTypeFromConstructor($class, $property);
+        } catch (InvalidArgumentException) {
+            return null;
+        }
+    }
+
+    public function getTypesFromConstructor(string $class, string $property): ?array
+    {
+        if (!$this->inner instanceof ConstructorArgumentTypeExtractorInterface) {
+            return null;
+        }
+
+        try {
+            $types = $this->inner->getTypesFromConstructor($class, $property);
         } catch (InvalidArgumentException) {
             return null;
         }
