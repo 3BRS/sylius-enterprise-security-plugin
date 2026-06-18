@@ -8,7 +8,7 @@ on:
 
 jobs:
     build:
-        name: "PHP ${{ matrix.php }} | Sylius ${{ matrix.sylius }} | Symfony ${{ matrix.symfony }} | ${{ matrix.prefer }}"
+        name: "PHP ${{ matrix.php }} | Sylius ${{ matrix.sylius }} | Symfony ${{ matrix.symfony }} | ${{ matrix.prefer }} | API Platform ${{ matrix.api_platform }}"
         runs-on: ubuntu-latest
 
         strategy:
@@ -18,6 +18,17 @@ jobs:
                 sylius: [ "2.1", "2.2" ]
                 symfony: [ "7.4" ]
                 prefer: [ "lowest", "dist" ]
+                # "default" lets Composer resolve api-platform freely (dist -> latest,
+                # lowest -> the lowest allowed). "4.3.5" pins the whole api-platform
+                # suite to the version that triggers the nested-IRI / property-info
+                # regression, so CI proves the workaround holds on the lowest 4.3.x too.
+                api_platform: [ "default", "4.3.5" ]
+                exclude:
+                    # Pinning api-platform to an exact version is at odds with
+                    # --prefer-lowest (which would otherwise pull the lowest allowed),
+                    # so only exercise the pinned version with the dist resolution.
+                    -   prefer: "lowest"
+                        api_platform: "4.3.5"
 
         services:
             mysql:
@@ -58,6 +69,24 @@ jobs:
                       | grep -v -E '(symfony/flex|symfony/webpack-encore-bundle|symfony/maker-bundle)' \
                       | xargs printf '%s:${{ matrix.symfony }}.* ' \
                       | xargs composer require --no-interaction --no-update
+
+            -   name: Pin API Platform version
+                if: matrix.api_platform != 'default'
+                run: |
+                    composer require --no-interaction --no-update --no-scripts \
+                      "api-platform/symfony:${{ matrix.api_platform }}" \
+                      "api-platform/metadata:${{ matrix.api_platform }}" \
+                      "api-platform/serializer:${{ matrix.api_platform }}" \
+                      "api-platform/state:${{ matrix.api_platform }}" \
+                      "api-platform/doctrine-orm:${{ matrix.api_platform }}" \
+                      "api-platform/doctrine-common:${{ matrix.api_platform }}" \
+                      "api-platform/json-schema:${{ matrix.api_platform }}" \
+                      "api-platform/jsonld:${{ matrix.api_platform }}" \
+                      "api-platform/hydra:${{ matrix.api_platform }}" \
+                      "api-platform/openapi:${{ matrix.api_platform }}" \
+                      "api-platform/http-cache:${{ matrix.api_platform }}" \
+                      "api-platform/documentation:${{ matrix.api_platform }}" \
+                      "api-platform/validator:${{ matrix.api_platform }}"
 
             -   name: Install dependencies (prefer ${{ matrix.prefer }})
                 run: composer update --prefer-${{ matrix.prefer }} --no-interaction --no-scripts
