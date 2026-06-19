@@ -10,6 +10,7 @@ Brute-force protection covering both account-level lockout (persistent, per user
 - **Manual unlock** by admin from `/admin/locked-customers` and `/admin/locked-admins` (sub-menu under Configuration). The list shows both the absolute auto-unlock timestamp (*Auto-unlock at*) and the relative countdown (*Time remaining*) for each locked account.
 - Both unlock methods can coexist — auto-unlock fires first when `lockoutUntil` is reached, admin can override manually any time
 - Locked sign-in attempts get the same generic *"Invalid credentials"* response as a wrong-password attempt — by design, so account state does not leak through error text
+- Only storefront and admin-panel sign-ins count toward lockout — failed authentications against the Sylius API (`/api/v2`) are ignored, so an API client can't lock a user out of the web panel
 
 **Rate Limiting** — built on Symfony Rate Limiter (`fixed_window` policy). Plugin auto-registers `framework.rate_limiter.three_brs_<group>_<action>` services for every enabled combination, no manual `framework.yaml` wiring needed.
 

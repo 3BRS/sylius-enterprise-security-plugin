@@ -24,7 +24,7 @@ class AdminUserSessionLoginListenerTest extends TestCase
         $handler = $this->createMock(AdminUserSessionLoginHandlerInterface::class);
         $handler->expects(self::once())->method('handle')->with($user, $request);
 
-        $listener = new AdminUserSessionLoginListener($handler);
+        $listener = new AdminUserSessionLoginListener($handler, '/api/v2');
         $listener->onLoginSuccess($this->makeEvent($user, $request));
     }
 
@@ -33,8 +33,20 @@ class AdminUserSessionLoginListenerTest extends TestCase
         $handler = $this->createMock(AdminUserSessionLoginHandlerInterface::class);
         $handler->expects(self::never())->method('handle');
 
-        $listener = new AdminUserSessionLoginListener($handler);
+        $listener = new AdminUserSessionLoginListener($handler, '/api/v2');
         $listener->onLoginSuccess($this->makeEvent($this->createStub(UserInterface::class), $this->createStub(Request::class)));
+    }
+
+    public function testSkipsForApiRequest(): void
+    {
+        $request = $this->createStub(Request::class);
+        $request->method('getPathInfo')->willReturn('/api/v2/admin/orders');
+
+        $handler = $this->createMock(AdminUserSessionLoginHandlerInterface::class);
+        $handler->expects(self::never())->method('handle');
+
+        $listener = new AdminUserSessionLoginListener($handler, '/api/v2');
+        $listener->onLoginSuccess($this->makeEvent($this->createStub(AdminUserInterface::class), $request));
     }
 
     protected function makeEvent(object $user, Request $request): LoginSuccessEvent

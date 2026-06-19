@@ -69,6 +69,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $checker: '@ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationChecker'
             $router: '@router'
+            $apiRoute: '%sylius.security.api_route%'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
 
@@ -142,6 +143,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $checker: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorEnforcementChecker'
             $router: '@router'
+            $apiRoute: '%sylius.security.api_route%'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 3 }
 
@@ -814,6 +816,7 @@ services:
         arguments:
             $customerRepository: '@sylius.repository.customer'
             $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager'
+            $apiRoute: '%sylius.security.api_route%'
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginFailureEvent', method: 'onLoginFailure' }
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
@@ -822,6 +825,7 @@ services:
         arguments:
             $adminUserRepository: '@sylius.repository.admin_user'
             $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager'
+            $apiRoute: '%sylius.security.api_route%'
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginFailureEvent', method: 'onLoginFailure' }
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
@@ -834,20 +838,6 @@ services:
             # Priority 16: after Symfony RouterListener (priority 32) so `_route`
             # is populated, but before Security firewall listeners (priority 8).
             - { name: 'kernel.event_listener', event: 'kernel.request', priority: 16 }
-
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\ApiBlockListener:
-        arguments:
-            # Sylius's own per-audience API prefixes (defaults '/api/v2/admin' and
-            # '/api/v2/shop'); the block follows them if the API is relocated.
-            $adminApiRoute: '%sylius.security.api_admin_route%'
-            $shopApiRoute: '%sylius.security.api_shop_route%'
-            # Gates the block on the 2FA mode being non-disabled, per audience.
-            $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
-        tags:
-            # Priority 512: block the API as early as possible — before the router
-            # (priority 32) and the security firewall (priority 8) — so API paths
-            # are 404'd before any authentication or session handling runs.
-            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 512 }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepository:
         arguments:
@@ -1024,12 +1014,18 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerSessionLoginListener:
         arguments:
             $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            # API auth must stay untouched by the plugin; this prefix (default
+            # '/api/v2') exempts API logins from session tracking.
+            $apiRoute: '%sylius.security.api_route%'
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserSessionLoginListener:
         arguments:
             $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
+            # API auth must stay untouched by the plugin; this prefix (default
+            # '/api/v2') exempts API logins from session tracking.
+            $apiRoute: '%sylius.security.api_route%'
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LoginSuccessEvent', method: 'onLoginSuccess' }
 

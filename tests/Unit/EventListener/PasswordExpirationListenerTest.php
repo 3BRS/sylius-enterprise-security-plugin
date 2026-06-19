@@ -41,16 +41,17 @@ class PasswordExpirationListenerTest extends TestCase
         TokenStorageInterface $tokenStorage,
         PasswordExpirationCheckerInterface $checker,
         RouterInterface $router,
+        string $apiRoute = '/api/v2',
     ): PasswordExpirationListener {
-        return new PasswordExpirationListener($tokenStorage, $checker, $router);
+        return new PasswordExpirationListener($tokenStorage, $checker, $router, $apiRoute);
     }
 
     /**
      * @param array<string, string> $headers
      */
-    private function createEvent(string $route = 'some_route', array $headers = []): RequestEvent
+    private function createEvent(string $route = 'some_route', array $headers = [], string $path = '/'): RequestEvent
     {
-        $request = new Request();
+        $request = Request::create($path);
         $request->attributes->set('_route', $route);
         foreach ($headers as $name => $value) {
             $request->headers->set($name, $value);
@@ -252,6 +253,30 @@ class PasswordExpirationListenerTest extends TestCase
         );
 
         $event = $this->createEvent(headers: ['X-Requested-With' => 'XMLHttpRequest']);
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testDoesNothingOnApiRequestEvenWhenPasswordExpired(): void
+    {
+        // 'api_entrypoint' does not start with '_', so only the path-based API
+        // guard keeps the API untouched — the plugin must never redirect an API
+        // request to the web change-password page.
+        $checker = $this->createMock(PasswordExpirationCheckerInterface::class);
+        $checker->expects(self::never())->method('isShopUserPasswordExpired');
+        $checker->expects(self::never())->method('isAdminUserPasswordExpired');
+
+        $router = $this->createMock(RouterInterface::class);
+        $router->expects(self::never())->method('generate');
+
+        $listener = $this->createListener(
+            $this->tokenStorageWithUser($this->createStub(TestShopUser::class)),
+            $checker,
+            $router,
+        );
+
+        $event = $this->createEvent('api_entrypoint', [], '/api/v2/admin/orders');
         $listener->onKernelRequest($event);
 
         self::assertNull($event->getResponse());

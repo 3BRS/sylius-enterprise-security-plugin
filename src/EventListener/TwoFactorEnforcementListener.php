@@ -50,12 +50,22 @@ class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterf
         protected TokenStorageInterface $tokenStorage,
         protected TwoFactorEnforcementCheckerInterface $checker,
         protected RouterInterface $router,
+        protected string $apiRoute,
     ) {
     }
 
     public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {
+            return;
+        }
+
+        // The API is a machine-to-machine, stateless surface — a client cannot
+        // complete an interactive second factor,
+        // so 2FA enforcement must never touch it. On API paths the plugin behaves
+        // as if it were not installed and lets the request pass through untouched.
+        $path = $event->getRequest()->getPathInfo();
+        if ($this->apiRoute !== '' && str_starts_with($path, $this->apiRoute)) {
             return;
         }
 
