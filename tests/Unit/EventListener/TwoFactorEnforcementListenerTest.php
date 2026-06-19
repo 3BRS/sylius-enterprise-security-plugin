@@ -37,13 +37,14 @@ class TwoFactorEnforcementListenerTest extends TestCase
         TokenStorageInterface $tokenStorage,
         TwoFactorEnforcementCheckerInterface $checker,
         RouterInterface $router,
+        string $apiRoute = '/api/v2',
     ): TwoFactorEnforcementListener {
-        return new TwoFactorEnforcementListener($tokenStorage, $checker, $router);
+        return new TwoFactorEnforcementListener($tokenStorage, $checker, $router, $apiRoute);
     }
 
-    private function createEvent(string $route = 'some_route'): RequestEvent
+    private function createEvent(string $route = 'some_route', string $path = '/'): RequestEvent
     {
-        $request = new Request();
+        $request = Request::create($path);
         $request->attributes->set('_route', $route);
 
         return new RequestEvent(
@@ -204,6 +205,30 @@ class TwoFactorEnforcementListenerTest extends TestCase
         );
 
         $event = $this->createEvent();
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testDoesNothingOnApiRequestEvenWhenEnforcementApplies(): void
+    {
+        // 'api_entrypoint' does not start with '_', so the route-name exclusion
+        // would let it through — only the path-based API guard keeps the API
+        // untouched, as if the plugin were not installed.
+        $checker = $this->createMock(TwoFactorEnforcementCheckerInterface::class);
+        $checker->expects(self::never())->method('shouldEnforceForShopUser');
+        $checker->expects(self::never())->method('shouldEnforceForAdminUser');
+
+        $router = $this->createMock(RouterInterface::class);
+        $router->expects(self::never())->method('generate');
+
+        $listener = $this->createListener(
+            $this->tokenStorageWithUser($this->createStub(TestShopUserForEnforcement::class)),
+            $checker,
+            $router,
+        );
+
+        $event = $this->createEvent('api_entrypoint', '/api/v2/admin/orders');
         $listener->onKernelRequest($event);
 
         self::assertNull($event->getResponse());

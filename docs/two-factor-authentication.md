@@ -7,6 +7,7 @@
 - Enforcement modes per user type: `disabled`, `allowed`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
 - Firewall integration via `scheb/2fa-bundle` with separate `/2fa` (shop) and `/admin/2fa` (admin) challenge endpoints
 - 2FA guards plain email + password sign-in only — passwordless methods (OAuth, passkey, magic link) authenticate directly and bypass the second factor by design
+- The Sylius API (`/api/v2`) is never gated by 2FA — API clients are machines that can't present a second factor, so the API authenticates exactly as in standard Sylius even when the mode is `enforced`
 - Fixture (`three_brs_two_factor`) to preload 2FA-enabled users and recovery codes for demo/testing
 - Plugin exposes container parameters (`three_brs.two_factor.issuer`, `three_brs.two_factor.trusted_device_enabled`, `three_brs.two_factor.trusted_device_lifetime`) that can be referenced directly from your `scheb_2fa.yaml`
 

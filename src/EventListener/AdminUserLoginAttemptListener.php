@@ -18,11 +18,19 @@ class AdminUserLoginAttemptListener implements AdminUserLoginAttemptListenerInte
     public function __construct(
         protected UserRepositoryInterface $adminUserRepository,
         protected AdminUserLockoutManagerInterface $lockoutManager,
+        protected string $apiRoute,
     ) {
     }
 
     public function onLoginFailure(LoginFailureEvent $event): void
     {
+        // The API authenticates statelessly (JWT) per request and must behave as
+        // if this plugin were not installed — never let API logins affect lockout
+        // state, or an API client could lock an account out of the web panel.
+        if ($this->apiRoute !== '' && str_starts_with($event->getRequest()->getPathInfo(), $this->apiRoute)) {
+            return;
+        }
+
         $passport = $event->getPassport();
         if ($passport === null) {
             return;
@@ -44,6 +52,11 @@ class AdminUserLoginAttemptListener implements AdminUserLoginAttemptListenerInte
 
     public function onLoginSuccess(LoginSuccessEvent $event): void
     {
+        // Same API exemption as onLoginFailure — see above.
+        if ($this->apiRoute !== '' && str_starts_with($event->getRequest()->getPathInfo(), $this->apiRoute)) {
+            return;
+        }
+
         $user = $event->getUser();
         if (!$user instanceof LockableAdminUserInterface) {
             return;

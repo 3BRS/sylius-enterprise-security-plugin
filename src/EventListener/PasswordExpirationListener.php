@@ -43,12 +43,21 @@ class PasswordExpirationListener implements PasswordExpirationListenerInterface
         protected TokenStorageInterface $tokenStorage,
         protected PasswordExpirationCheckerInterface $checker,
         protected RouterInterface $router,
+        protected string $apiRoute,
     ) {
     }
 
     public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {
+            return;
+        }
+
+        // The API is a machine-to-machine, stateless surface the plugin must leave
+        // untouched — never redirect an API request to a web change-password page.
+        // On API paths behave as if the plugin were not installed.
+        $path = $event->getRequest()->getPathInfo();
+        if ($this->apiRoute !== '' && str_starts_with($path, $this->apiRoute)) {
             return;
         }
 
