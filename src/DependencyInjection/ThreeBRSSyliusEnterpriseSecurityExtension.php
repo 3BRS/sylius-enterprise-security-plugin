@@ -44,6 +44,10 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
                     'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/accountDeletionCompleted.html.twig',
                     'enabled' => true,
                 ],
+                'three_brs_oauth_link_code' => [
+                    'template' => '@ThreeBRSSyliusEnterpriseSecurityPlugin/Email/oauthLinkCode.html.twig',
+                    'enabled' => true,
+                ],
             ],
         ]);
 

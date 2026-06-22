@@ -4,35 +4,41 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
+use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractOAuthConfirmLinkController;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthLinkCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\SocialAccountLinkRecordInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\AbstractOAuthLinkCodeConfirmLinkController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserSocialAccountLinkInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\OAuthLinkCodeEmailManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandlerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface;
 use Twig\Environment;
 
-class OAuthConfirmLinkController extends AbstractOAuthConfirmLinkController implements OAuthConfirmLinkControllerInterface
+class OAuthConfirmLinkController extends AbstractOAuthLinkCodeConfirmLinkController implements OAuthConfirmLinkControllerInterface
 {
     public function __construct(
         protected AdminSocialLoginHandlerInterface $handler,
         protected AdminUserSocialAccountLinkRepositoryInterface $linkRepository,
         protected AdminUserSessionLoginHandlerInterface $sessionLoginHandler,
-        UserPasswordHasherInterface $passwordHasher,
+        OAuthLinkCodeGeneratorInterface $codeGenerator,
+        OAuthLinkCodeEmailManagerInterface $codeEmailManager,
+        ClockInterface $clock,
+        CsrfTokenManagerInterface $csrfTokenManager,
         TokenStorageInterface $tokenStorage,
         RouterInterface $router,
         Environment $twig,
         LoggerInterface $logger,
     ) {
-        parent::__construct($passwordHasher, $tokenStorage, $router, $twig, $logger);
+        parent::__construct($codeGenerator, $codeEmailManager, $clock, $csrfTokenManager, $tokenStorage, $router, $twig, $logger);
     }
 
     protected function getConfirmPendingSessionKey(): string

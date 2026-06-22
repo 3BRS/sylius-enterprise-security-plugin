@@ -15,4 +15,6 @@ interface Emails
     public const ACCOUNT_DELETION_REQUESTED = 'three_brs_account_deletion_requested';
 
     public const ACCOUNT_DELETION_COMPLETED = 'three_brs_account_deletion_completed';
+
+    public const OAUTH_LINK_CODE = 'three_brs_oauth_link_code';
 }
