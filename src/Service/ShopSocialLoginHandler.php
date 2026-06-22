@@ -100,6 +100,12 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
         $shopUser = $this->shopUserFactory->createNew();
         $shopUser->setCustomer($customer);
         $shopUser->setEnabled(true);
+        // The account is created off the back of a successful OAuth authentication,
+        // and the auto-registration policy has already rejected any email the provider
+        // flagged as unverified, so the account is marked verified immediately. No
+        // Sylius email-verification token is generated and no verification email is
+        // sent for OAuth signups.
+        $shopUser->setVerifiedAt(new \DateTimeImmutable());
 
         $this->entityManager->persist($customer);
         $this->entityManager->persist($shopUser);
