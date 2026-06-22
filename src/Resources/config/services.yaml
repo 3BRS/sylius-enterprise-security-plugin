@@ -379,7 +379,10 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthConfirmLinkController:
         arguments:
             $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandler'
-            $passwordHasher: '@security.user_password_hasher'
+            $codeGenerator: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthLinkCodeGenerator'
+            $codeEmailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\OAuthLinkCodeEmailManager'
+            $clock: '@clock'
+            $csrfTokenManager: '@security.csrf.token_manager'
             $tokenStorage: '@security.token_storage'
             $router: '@router'
             $twig: '@twig'
@@ -423,7 +426,10 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthConfirmLinkController:
         arguments:
             $handler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandler'
-            $passwordHasher: '@security.user_password_hasher'
+            $codeGenerator: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthLinkCodeGenerator'
+            $codeEmailManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\OAuthLinkCodeEmailManager'
+            $clock: '@clock'
+            $csrfTokenManager: '@security.csrf.token_manager'
             $tokenStorage: '@security.token_storage'
             $router: '@router'
             $twig: '@twig'
@@ -690,6 +696,10 @@ services:
         arguments:
             $emailSender: '@sylius.email_sender'
             $router: '@router'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\OAuthLinkCodeEmailManager:
+        arguments:
+            $emailSender: '@sylius.email_sender'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler:
         arguments:
