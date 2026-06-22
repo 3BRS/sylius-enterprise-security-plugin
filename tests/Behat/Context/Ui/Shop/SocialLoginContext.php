@@ -7,11 +7,12 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
-use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthStateInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSocialAccountLink;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepositoryInterface;
 use Webmozart\Assert\Assert;
 
@@ -23,7 +24,7 @@ class SocialLoginContext implements Context
         private CustomerSocialAccountLinkRepositoryInterface $linkRepository,
         private EntityManagerInterface $entityManager,
         private FakeOAuthStateInterface $fakeOAuthState,
-        private SharedStorageInterface $sharedStorage,
+        private SpySender $spySender,
     ) {
     }
 
@@ -64,18 +65,20 @@ class SocialLoginContext implements Context
     }
 
     /**
-     * @When I confirm the social link with password :password
+     * @When I confirm the social link with the emailed code
      */
-    public function iConfirmTheSocialLinkWithPassword(string $password): void
+    public function iConfirmTheSocialLinkWithTheEmailedCode(): void
     {
-        $page = $this->session->getPage();
-        $input = $page->find('css', '[data-test-three-brs-social-confirm-password]');
-        Assert::notNull($input, 'Password confirm input not found on confirm-link page.');
-        $input->setValue($this->retrieveSecurePassword($password));
+        $this->submitConfirmCode($this->emailedLinkCode());
+    }
 
-        $button = $page->find('css', '[data-test-three-brs-social-confirm-submit]');
-        Assert::notNull($button, 'Confirm submit button not found.');
-        $button->click();
+    /**
+     * @When I confirm the social link with an incorrect code
+     */
+    public function iConfirmTheSocialLinkWithAnIncorrectCode(): void
+    {
+        $real = $this->emailedLinkCode();
+        $this->submitConfirmCode(str_pad((string) (((int) $real + 1) % 1000000), 6, '0', STR_PAD_LEFT));
     }
 
     /**
@@ -134,7 +137,7 @@ class SocialLoginContext implements Context
     }
 
     /**
-     * @Then I should be on the social link password-confirm page
+     * @Then I should be on the social link confirm page
      */
     public function iShouldBeOnTheSocialLinkConfirmPage(): void
     {
@@ -212,16 +215,23 @@ class SocialLoginContext implements Context
         return $user;
     }
 
-    private function retrieveSecurePassword(string $password): string
+    private function emailedLinkCode(): string
     {
-        $scenarioSetupPassword = $this->sharedStorage->has('scenario_setup_password')
-            ? $this->sharedStorage->get('scenario_setup_password')
-            : null;
+        $data = $this->spySender->getLastSentData(Emails::OAUTH_LINK_CODE);
+        Assert::keyExists($data, 'code', 'No account-linking code was emailed.');
 
-        if ($scenarioSetupPassword === $password && $this->sharedStorage->has('password')) {
-            return (string) $this->sharedStorage->get('password');
-        }
+        return (string) $data['code'];
+    }
 
-        return $password;
+    private function submitConfirmCode(string $code): void
+    {
+        $page = $this->session->getPage();
+        $input = $page->find('css', '[data-test-three-brs-social-confirm-code]');
+        Assert::notNull($input, 'Code confirm input not found on confirm-link page.');
+        $input->setValue($code);
+
+        $button = $page->find('css', '[data-test-three-brs-social-confirm-submit]');
+        Assert::notNull($button, 'Confirm submit button not found.');
+        $button->click();
     }
 }
