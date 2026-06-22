@@ -328,6 +328,16 @@
 			<argument type="service" id="sylius.behat.shared_storage"/>
 		</service>
 
+		<service id="three_brs.behat.context.ui.shop.set_password"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\SetPasswordContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="sylius.fixture.example_factory.shop_user"/>
+			<argument type="service" id="sylius.repository.shop_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="security.user_password_hasher"/>
+		</service>
+
 		<service id="three_brs.behat.context.ui.admin.account_deletion"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\AccountDeletionContext">
 			<argument type="service" id="behat.mink.default_session"/>

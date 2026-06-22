@@ -380,3 +380,10 @@ three_brs_admin_customer_password_login:
     methods: [POST]
     requirements:
         id: '\d+'
+
+three_brs_shop_set_password:
+    path: /{_locale}/account/set-password
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SetPasswordController
+    methods: [GET, POST]
+    requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
