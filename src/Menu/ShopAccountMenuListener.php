@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu;
 
 use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
+use Sylius\Component\Core\Model\ShopUserInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
@@ -12,6 +15,8 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 {
     public function __construct(
         protected FeatureToggleInterface $features,
+        protected TokenStorageInterface $tokenStorage,
+        protected RouterInterface $router,
     ) {
     }
 
@@ -90,6 +95,35 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
             ->addChild('account_deletion', ['route' => 'three_brs_shop_account_deletion_request'])
             ->setLabel('three_brs.ui.account_deletion.menu_item')
             ->setLabelAttribute('icon', 'tabler:user-x')
+        ;
+    }
+
+    public function swapChangePasswordItem(MenuBuilderEvent $event): void
+    {
+        $user = $this->tokenStorage->getToken()?->getUser();
+
+        if (!$user instanceof ShopUserInterface) {
+            return;
+        }
+
+        // Only customers without a password yet (OAuth / magic link / passkey)
+        // get the "Set a new password" entry; everyone else keeps the standard
+        // Sylius change-password item, which requires the current password.
+        $password = $user->getPassword();
+        if ($password !== null && $password !== '') {
+            return;
+        }
+
+        $item = $event->getMenu()->getChild('change_password');
+        if ($item === null) {
+            return;
+        }
+
+        // The core item already carries the 'tabler:lock' icon, so only the
+        // destination and label need to change here.
+        $item
+            ->setUri($this->router->generate('three_brs_shop_set_password'))
+            ->setLabel('three_brs.ui.set_password.menu_item')
         ;
     }
 }

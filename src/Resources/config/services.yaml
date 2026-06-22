@@ -273,12 +273,15 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu\ShopAccountMenuListener:
         arguments:
             $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $tokenStorage: '@security.token_storage'
+            $router: '@router'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addPasskeyItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSessionsItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addAccountDeletionItem' }
+            - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'swapChangePasswordItem' }
 
     three_brs.controller.shop.social_accounts:
         class: ThreeBRS\EnterpriseSecurityBundle\Controller\SocialAccountsOverviewController
@@ -1298,6 +1301,21 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\AccountDeletionRequestType:
         tags:
             - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\SetPasswordType:
+        tags:
+            - { name: 'form.type' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SetPasswordController:
+        arguments:
+            $tokenStorage: '@security.token_storage'
+            $passwordHasher: '@security.user_password_hasher'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $router: '@router'
+            $twig: '@twig'
+            $formFactory: '@form.factory'
+        tags:
+            - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\AccountDeletionRequestController:
         arguments:
