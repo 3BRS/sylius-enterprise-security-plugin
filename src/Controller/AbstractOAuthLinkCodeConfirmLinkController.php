@@ -30,6 +30,8 @@ abstract class AbstractOAuthLinkCodeConfirmLinkController extends AbstractOAuthC
 
     protected const MAX_ATTEMPTS = 5;
 
+    protected const MAX_CODES = 3;
+
     public function __construct(
         protected OAuthLinkCodeGeneratorInterface $codeGenerator,
         protected OAuthLinkCodeEmailManagerInterface $codeEmailManager,
@@ -48,8 +50,8 @@ abstract class AbstractOAuthLinkCodeConfirmLinkController extends AbstractOAuthC
         $session = $request->getSession();
         $now = $this->clock->now()->getTimestamp();
 
-        $hasValidCode = isset($pending['code_hash'], $pending['code_expires_at'])
-            && $now < (int) $pending['code_expires_at'];
+        $hasValidCode = isset($pending['code_hash'], $pending['code_expires_at']) &&
+            $now < (int) $pending['code_expires_at'];
 
         // Don't re-send on every refresh — issue a code only when none is valid yet,
         // or when the user explicitly asks for a new one.
@@ -57,10 +59,18 @@ abstract class AbstractOAuthLinkCodeConfirmLinkController extends AbstractOAuthC
             return;
         }
 
+        // Cap how many codes one linking attempt may request: unlimited resends would
+        // otherwise flood the address and keep handing an attacker fresh guesses (the
+        // per-code attempt limit alone resets on every newly issued code).
+        if ((int) ($pending['code_issued'] ?? 0) >= static::MAX_CODES) {
+            return;
+        }
+
         $code = $this->codeGenerator->generateCode();
         $pending['code_hash'] = $this->codeGenerator->hash($code);
         $pending['code_expires_at'] = $now + static::CODE_EXPIRATION_SECONDS;
         $pending['code_attempts'] = 0;
+        $pending['code_issued'] = (int) ($pending['code_issued'] ?? 0) + 1;
         $session->set($this->getConfirmPendingSessionKey(), $pending);
 
         $this->codeEmailManager->sendLinkCode((string) $pending['email'], $code, static::CODE_EXPIRATION_SECONDS);

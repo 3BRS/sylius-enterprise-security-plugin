@@ -24,18 +24,26 @@ Feature: Admin social login (OAuth)
         Then I should be logged in as admin "admin@example.com"
 
     @ui
-    Scenario: Admin with matching email must confirm their password before linking
+    Scenario: Admin with matching email must confirm a code before linking
         Given the "google" OAuth provider will return admin user "g-admin-new-2" with email "admin@example.com"
         When I click the admin "google" social login button
-        Then I should be on the admin social link password-confirm page
+        Then I should be on the admin social link confirm page
 
     @ui
-    Scenario: Admin confirms with the correct password to create the link
+    Scenario: Admin confirms with the correct code to create the link
         Given the "google" OAuth provider will return admin user "g-admin-new-3" with email "admin@example.com"
         When I click the admin "google" social login button
-        And I confirm the admin social link with password "AdminPass1!"
+        And I confirm the admin social link with the emailed code
         Then I should be logged in as admin "admin@example.com"
         And an admin social link should exist for "admin@example.com" with "google" and provider id "g-admin-new-3"
+
+    @ui
+    Scenario: Admin confirming with the wrong code sees an error
+        Given the "google" OAuth provider will return admin user "g-admin-new-4" with email "admin@example.com"
+        When I click the admin "google" social login button
+        And I confirm the admin social link with an incorrect code
+        Then I should be on the admin social link confirm page
+        And I should see an admin social-login error
 
     @ui
     Scenario: Administrator links a social account from the social accounts page

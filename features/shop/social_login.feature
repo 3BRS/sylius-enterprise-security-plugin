@@ -24,25 +24,25 @@ Feature: Customer social login (OAuth)
         Then I should be logged in as "existing@example.com"
 
     @ui
-    Scenario: Social login for an email that matches a local account triggers password confirmation
+    Scenario: Social login for an email that matches a local account triggers code confirmation
         Given the "google" OAuth provider will return user "g-new-2" with email "existing@example.com"
         When I click the "google" social login button
-        Then I should be on the social link password-confirm page
+        Then I should be on the social link confirm page
 
     @ui
-    Scenario: Confirming with the correct password links the social account
+    Scenario: Confirming with the correct code links the social account
         Given the "google" OAuth provider will return user "g-new-3" with email "existing@example.com"
         When I click the "google" social login button
-        And I confirm the social link with password "Password1!"
+        And I confirm the social link with the emailed code
         Then I should be logged in as "existing@example.com"
         And a social link should exist for "existing@example.com" with "google" and provider id "g-new-3"
 
     @ui
-    Scenario: Confirming with the wrong password shows an error
+    Scenario: Confirming with the wrong code shows an error
         Given the "google" OAuth provider will return user "g-new-4" with email "existing@example.com"
         When I click the "google" social login button
-        And I confirm the social link with password "WrongPass1!"
-        Then I should be on the social link password-confirm page
+        And I confirm the social link with an incorrect code
+        Then I should be on the social link confirm page
         And I should see a social-login error
 
     @ui

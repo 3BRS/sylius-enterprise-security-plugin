@@ -163,7 +163,7 @@
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState"/>
-			<argument type="service" id="sylius.behat.shared_storage"/>
+			<argument type="service" id="sylius.email_sender"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.social_login"
@@ -173,7 +173,7 @@
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState"/>
-			<argument type="service" id="sylius.behat.shared_storage"/>
+			<argument type="service" id="sylius.email_sender"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.magic_link"

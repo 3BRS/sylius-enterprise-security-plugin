@@ -4,7 +4,7 @@
 - **Independent shop/admin configuration** — each provider is enabled and configured separately for the shop and admin groups, so you can register two distinct OAuth clients (different client IDs, consent screens, redirect URIs). Useful when the shop-facing app and the internal admin app live as separate applications on the provider side
 - **Three callback flows** depending on what the plugin finds for the OAuth identity's email:
   - existing linked account → straight log-in
-  - email matches a local account → password confirmation prompt before the link is created (prevents account takeover)
+  - email matches a local account → a 6-digit code is emailed to that address; entering it creates the link (prevents account takeover, and works even for accounts that have no password — e.g. ones created through another social provider)
   - email is unknown → a new account is auto-registered and the social identity linked (admin auto-registration is gated by an email-domain whitelist; see below)
 - **Multiple providers per user** — links live in dedicated entities (`three_brs_customer_social_account_link`, `three_brs_admin_user_social_account_link`)
 - **Link / unlink from the account page** — `LastAuthMethodGuard` refuses to unlink the last remaining sign-in method (password or another social link), so a user can never lock themselves out
