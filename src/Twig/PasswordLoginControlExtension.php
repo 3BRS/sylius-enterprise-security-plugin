@@ -8,6 +8,7 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuardInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -18,6 +19,7 @@ class PasswordLoginControlExtension extends AbstractExtension implements Passwor
         protected FeatureToggleInterface $featureToggle,
         protected CustomerLoginPreferenceRepositoryInterface $customerPreferenceRepository,
         protected LastAuthMethodGuardInterface $guard,
+        protected CustomerPasswordLoginCheckerInterface $passwordLoginChecker,
     ) {
     }
 
@@ -25,7 +27,13 @@ class PasswordLoginControlExtension extends AbstractExtension implements Passwor
     {
         return [
             new TwigFunction('three_brs_customer_password_login_status', $this->customerStatus(...)),
+            new TwigFunction('three_brs_customer_password_login_blocked', $this->customerPasswordLoginBlocked(...)),
         ];
+    }
+
+    public function customerPasswordLoginBlocked(ShopUserInterface $shopUser): bool
+    {
+        return $this->passwordLoginChecker->isPasswordLoginBlocked($shopUser);
     }
 
     public function customerStatus(ShopUserInterface $shopUser): array
