@@ -12,4 +12,6 @@ interface PasswordLoginControlExtensionInterface
      * @return array{enabled: bool, allowed: bool, can_disable: bool}
      */
     public function customerStatus(ShopUserInterface $shopUser): array;
+
+    public function customerPasswordLoginBlocked(ShopUserInterface $shopUser): bool;
 }

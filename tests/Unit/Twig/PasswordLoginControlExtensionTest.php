@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuardInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\PasswordLoginControlExtension;
 
@@ -26,7 +27,9 @@ class PasswordLoginControlExtensionTest extends TestCase
         $guard = $this->createStub(LastAuthMethodGuardInterface::class);
         $guard->method('canDisablePasswordLoginForShopUser')->willReturn(true);
 
-        $extension = new PasswordLoginControlExtension($featureToggle, $repository, $guard);
+        $checker = $this->createStub(CustomerPasswordLoginCheckerInterface::class);
+
+        $extension = new PasswordLoginControlExtension($featureToggle, $repository, $guard, $checker);
 
         self::assertSame(
             ['enabled' => true, 'allowed' => false, 'can_disable' => true],
@@ -34,12 +37,13 @@ class PasswordLoginControlExtensionTest extends TestCase
         );
     }
 
-    public function testExposesTheCustomerStatusFunction(): void
+    public function testExposesTheTwigFunctions(): void
     {
         $extension = new PasswordLoginControlExtension(
             $this->createStub(FeatureToggleInterface::class),
             $this->createStub(CustomerLoginPreferenceRepositoryInterface::class),
             $this->createStub(LastAuthMethodGuardInterface::class),
+            $this->createStub(CustomerPasswordLoginCheckerInterface::class),
         );
 
         $names = array_map(
@@ -48,5 +52,27 @@ class PasswordLoginControlExtensionTest extends TestCase
         );
 
         self::assertContains('three_brs_customer_password_login_status', $names);
+        self::assertContains('three_brs_customer_password_login_blocked', $names);
+    }
+
+    public function testCustomerPasswordLoginBlockedDelegatesToChecker(): void
+    {
+        $shopUser = $this->createStub(ShopUserInterface::class);
+
+        $checker = $this->createMock(CustomerPasswordLoginCheckerInterface::class);
+        $checker->expects(self::once())
+            ->method('isPasswordLoginBlocked')
+            ->with($shopUser)
+            ->willReturn(true)
+        ;
+
+        $extension = new PasswordLoginControlExtension(
+            $this->createStub(FeatureToggleInterface::class),
+            $this->createStub(CustomerLoginPreferenceRepositoryInterface::class),
+            $this->createStub(LastAuthMethodGuardInterface::class),
+            $checker,
+        );
+
+        self::assertTrue($extension->customerPasswordLoginBlocked($shopUser));
     }
 }

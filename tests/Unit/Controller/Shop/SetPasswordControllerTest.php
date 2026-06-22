@@ -19,6 +19,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SetPasswordController;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface;
 use Twig\Environment;
 
 #[CoversClass(SetPasswordController::class)]
@@ -32,6 +33,19 @@ class SetPasswordControllerTest extends TestCase
 
         self::assertInstanceOf(RedirectResponse::class, $response);
         self::assertSame('/login', $response->getTargetUrl());
+    }
+
+    public function testRedirectsToDashboardWhenPasswordLoginIsBlocked(): void
+    {
+        $user = $this->createStub(ShopUserInterface::class);
+        $user->method('getPassword')->willReturn(null);
+
+        $controller = $this->createController(user: $user, form: null, expectFlush: false, passwordLoginBlocked: true);
+
+        $response = $controller(self::request());
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('/account/dashboard', $response->getTargetUrl());
     }
 
     public function testRedirectsToChangePasswordWhenUserAlreadyHasPassword(): void
@@ -109,6 +123,7 @@ class SetPasswordControllerTest extends TestCase
         ?FormInterface $form,
         bool $expectFlush,
         string $hashedPassword = 'hashed',
+        bool $passwordLoginBlocked = false,
     ): SetPasswordController {
         $token = null;
         if ($user !== null) {
@@ -118,6 +133,9 @@ class SetPasswordControllerTest extends TestCase
 
         $tokenStorage = $this->createStub(TokenStorageInterface::class);
         $tokenStorage->method('getToken')->willReturn($token);
+
+        $passwordLoginChecker = $this->createStub(CustomerPasswordLoginCheckerInterface::class);
+        $passwordLoginChecker->method('isPasswordLoginBlocked')->willReturn($passwordLoginBlocked);
 
         $passwordHasher = $this->createStub(UserPasswordHasherInterface::class);
         $passwordHasher->method('hashPassword')->willReturn($hashedPassword);
@@ -139,7 +157,7 @@ class SetPasswordControllerTest extends TestCase
         $formFactory = $this->createStub(FormFactoryInterface::class);
         $formFactory->method('create')->willReturn($form ?? $this->createStub(FormInterface::class));
 
-        return new SetPasswordController($tokenStorage, $passwordHasher, $entityManager, $router, $twig, $formFactory);
+        return new SetPasswordController($tokenStorage, $passwordLoginChecker, $passwordHasher, $entityManager, $router, $twig, $formFactory);
     }
 
     private static function request(): Request

@@ -10,6 +10,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface;
 
 class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 {
@@ -17,6 +18,7 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
         protected FeatureToggleInterface $features,
         protected TokenStorageInterface $tokenStorage,
         protected RouterInterface $router,
+        protected CustomerPasswordLoginCheckerInterface $passwordLoginChecker,
     ) {
     }
 
@@ -98,7 +100,7 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
         ;
     }
 
-    public function swapChangePasswordItem(MenuBuilderEvent $event): void
+    public function adjustChangePasswordItem(MenuBuilderEvent $event): void
     {
         $user = $this->tokenStorage->getToken()?->getUser();
 
@@ -106,15 +108,24 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
             return;
         }
 
-        // Only customers without a password yet (OAuth / magic link / passkey)
-        // get the "Set a new password" entry; everyone else keeps the standard
-        // Sylius change-password item, which requires the current password.
-        $password = $user->getPassword();
-        if ($password !== null && $password !== '') {
+        $menu = $event->getMenu();
+
+        // Password is no longer a sign-in method for this customer (an administrator
+        // disabled password login) — drop both "Change password" and "Set a new password".
+        if ($this->passwordLoginChecker->isPasswordLoginBlocked($user)) {
+            $menu->removeChild('change_password');
+
             return;
         }
 
-        $item = $event->getMenu()->getChild('change_password');
+        // Only customers without a password yet (OAuth / magic link / passkey)
+        // get the "Set a new password" entry; everyone else keeps the standard
+        // Sylius change-password item, which requires the current password.
+        if (!$this->isPasswordless($user)) {
+            return;
+        }
+
+        $item = $menu->getChild('change_password');
         if ($item === null) {
             return;
         }
@@ -125,5 +136,12 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
             ->setUri($this->router->generate('three_brs_shop_set_password'))
             ->setLabel('three_brs.ui.set_password.menu_item')
         ;
+    }
+
+    protected function isPasswordless(ShopUserInterface $user): bool
+    {
+        $password = $user->getPassword();
+
+        return $password === null || $password === '';
     }
 }

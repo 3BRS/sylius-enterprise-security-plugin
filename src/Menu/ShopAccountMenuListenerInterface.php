@@ -18,5 +18,5 @@ interface ShopAccountMenuListenerInterface
 
     public function addAccountDeletionItem(MenuBuilderEvent $event): void;
 
-    public function swapChangePasswordItem(MenuBuilderEvent $event): void;
+    public function adjustChangePasswordItem(MenuBuilderEvent $event): void;
 }
