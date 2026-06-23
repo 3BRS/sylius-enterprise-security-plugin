@@ -1,0 +1,17 @@
+{% if three_brs_password_login_enabled('customer') %}
+    {% form_theme form '@SyliusShop/form/theme.html.twig' %}
+
+    <div {{ attributes }}>
+        {{ form_start(form, {'action': path('sylius_shop_register'), 'attr': {'class': 'ui loadable form', 'novalidate': 'novalidate', 'id': form.vars.id}}) }}
+
+        {% hook 'form' with { form } %}
+
+        {{ form_end(form, {'render_rest': false}) }}
+    </div>
+{% else %}
+    <div {{ attributes }}>
+        <p class="text-muted" data-test-three-brs-password-login-disabled>
+            {{ 'three_brs.ui.password_login.register_disabled_notice'|trans }}
+        </p>
+    </div>
+{% endif %}

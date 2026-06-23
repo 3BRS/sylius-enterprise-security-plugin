@@ -1,0 +1,15 @@
+{% set form = hookable_metadata.context.form %}
+
+{% if three_brs_password_login_enabled('customer') %}
+    {{ form_start(form, {'action': path('sylius_shop_login_check'), 'attr': {'novalidate': 'novalidate'}}) }}
+
+    {% hook 'form' %}
+
+    {% include '@SyliusShop/account/login/content/login_container/form/csrf_token.html.twig' %}
+
+    {{ form_end(form, {'render_rest': false}) }}
+{% else %}
+    <p class="text-muted" data-test-three-brs-password-login-disabled>
+        {{ 'three_brs.ui.password_login.login_disabled_notice'|trans }}
+    </p>
+{% endif %}

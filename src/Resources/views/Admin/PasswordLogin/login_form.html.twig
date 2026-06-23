@@ -1,0 +1,16 @@
+{% set form = hookable_metadata.context.form %}
+
+{% if three_brs_password_login_enabled('admin') %}
+    {% form_theme form '@SyliusAdmin/shared/form_theme.html.twig' %}
+
+    {{ form_start(form, {'action': path('sylius_admin_login_check'), 'attr': {'class': 'ui large loadable form', 'novalidate': 'novalidate'}}) }}
+        {% hook 'form' with { form } %}
+        {% if sylius_csrf_protection_enabled() %}
+            <input type="hidden" name="_csrf_admin_security_token" value="{{ csrf_token('admin_authenticate') }}">
+        {% endif %}
+    {{ form_end(form, {'render_rest': false}) }}
+{% else %}
+    <p class="text-muted" data-test-three-brs-password-login-disabled>
+        {{ 'three_brs.ui.password_login.login_disabled_notice'|trans }}
+    </p>
+{% endif %}
