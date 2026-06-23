@@ -70,6 +70,7 @@ services:
             $checker: '@ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationChecker'
             $router: '@router'
             $apiRoute: '%sylius.security.api_route%'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
 
@@ -81,10 +82,13 @@ services:
             $router: '@router'
             $twig: '@twig'
             $formFactory: '@form.factory'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
         tags:
             - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension\AdminUserTypeExtension:
+        arguments:
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
         tags:
             - { name: 'form.type_extension' }
 
@@ -1216,6 +1220,8 @@ services:
             - { name: 'form.type' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SecuritySettingsType:
+        arguments:
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
         tags:
             - { name: 'form.type' }
 
@@ -1484,6 +1490,7 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
         tags:
             - { name: 'controller.service_arguments' }
 

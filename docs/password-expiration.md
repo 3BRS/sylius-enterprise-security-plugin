@@ -5,6 +5,7 @@
 - Admin users are redirected to a dedicated change-password page; shop users to the standard change-password flow
 - Configurable independently for customers and admins
 - Accounts that already existed when the feature was turned on are measured from their **account creation date** until their first password change — so enabling expiration does not force everyone to reset immediately, only accounts already older than the configured window
+- Suspended for any group whose **password login** is disabled — with no password to sign in with, expiration and `force_change` are not enforced and the Security Settings controls render disabled until password login is turned back on (see [Password Login](password-login.md))
 
 ## Defaults for password expiration
 
