@@ -365,6 +365,7 @@ services:
         arguments:
             $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
             $router: '@router'
+            $security: '@security.helper'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -377,6 +378,7 @@ services:
             $security: '@security.helper'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $userProvider: '@security.user.provider.concrete.sylius_shop_user_provider'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -413,6 +415,7 @@ services:
         arguments:
             $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
             $router: '@router'
+            $security: '@security.helper'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -425,6 +428,7 @@ services:
             $security: '@security.helper'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
+            $userProvider: '@security.user.provider.concrete.sylius_admin_user_provider'
         tags:
             - { name: 'controller.service_arguments' }
 
