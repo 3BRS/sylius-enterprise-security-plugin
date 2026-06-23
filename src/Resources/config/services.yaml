@@ -1387,6 +1387,14 @@ services:
         tags:
             - { name: 'kernel.event_subscriber' }
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\RegistrationBlockListener:
+        arguments:
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
+            $router: '@router'
+        tags:
+            # After RouterListener (32) so _route is set, after the firewall (8) for a clean token.
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 6 }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository:
         arguments:
             $registry: '@doctrine'

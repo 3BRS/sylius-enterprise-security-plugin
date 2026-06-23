@@ -66,6 +66,9 @@ three_brs:
             title: 'Set a new password'
             subtitle: 'You signed in without a password (for example via Google or Apple). Set a password to also sign in with your email and password.'
             submit: 'Set a new password'
+        password_login:
+            login_disabled_notice: 'Signing in with an email and password is currently disabled. Please use one of the options below to sign in.'
+            register_disabled_notice: 'Registering with an email and password is currently disabled. Please sign up using one of the options below.'
         two_factor:
             setup_title: 'Set up two-factor authentication'
             setup_description: 'Scan the QR code below with your authenticator app (Google Authenticator, Authy, 1Password, …) or enter the secret manually. Then confirm the 6-digit code to enable 2FA.'
