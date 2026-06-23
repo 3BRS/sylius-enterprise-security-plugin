@@ -10,7 +10,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 {
@@ -18,7 +18,7 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
         protected FeatureToggleInterface $features,
         protected TokenStorageInterface $tokenStorage,
         protected RouterInterface $router,
-        protected CustomerPasswordLoginCheckerInterface $passwordLoginChecker,
+        protected PasswordLoginCheckerInterface $passwordLoginChecker,
     ) {
     }
 
@@ -110,9 +110,9 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 
         $menu = $event->getMenu();
 
-        // Password is no longer a sign-in method for this customer (an administrator
-        // disabled password login) — drop both "Change password" and "Set a new password".
-        if ($this->passwordLoginChecker->isPasswordLoginBlocked($user)) {
+        // Password is no longer a sign-in method for customers (password login is
+        // disabled) — drop both "Change password" and "Set a new password".
+        if (!$this->passwordLoginChecker->isEnabled(SettingsScope::CUSTOMER)) {
             $menu->removeChild('change_password');
 
             return;

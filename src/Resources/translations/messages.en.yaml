@@ -2,8 +2,8 @@ three_brs:
     # Admin login renders the auth error via `messageKey|trans` (default `messages`
     # domain), while the shop login uses the `security` domain — so this key lives in
     # both messages.en.yaml and security.en.yaml.
-    password_login_control:
-        disabled_for_user: 'Password login is disabled for this account. Please use one of the other available ways to sign in.'
+    password_login:
+        disabled: 'Password login is currently disabled. Please use one of the other available ways to sign in.'
     emails:
         password_changed:
             subject: 'Your password has been changed'
@@ -47,8 +47,6 @@ three_brs:
     form:
         admin_user:
             force_password_change: 'Force password change on next request'
-            password_login_allowed: 'Allow password login'
-            password_login_allowed_help: 'When unchecked, this administrator cannot sign in with a password — they must use a magic link, a passkey, or a connected social account.'
     ip_whitelist:
         admin:
             enabled: 'Enable per-admin IP whitelist for this administrator'
@@ -261,13 +259,6 @@ three_brs:
             revoke_confirm: 'Sign out from this session?'
             revoke_others_confirm: 'Sign out from every other session?'
             none: 'No active sessions.'
-        password_login_control:
-            label: 'Password login'
-            allowed: 'Allowed'
-            state_disabled: 'Disabled'
-            enable: 'Enable password login'
-            disable: 'Disable password login'
-            cannot_disable_hint: 'Cannot be disabled — this account has no other sign-in method (a connected social account, a passkey, or magic link).'
         security_settings:
             menu_item: 'Security settings'
             title: 'Security settings'
@@ -276,10 +267,10 @@ three_brs:
             scope_admin: 'Administrators'
             scope_global: 'Global'
             save: 'Save'
-            password_login_control:
+            password_login:
                 title: 'Password login'
-                description: 'Controls whether classic email-and-password sign-in can be switched off for individual accounts. With the master switch on, a per-user toggle blocks the password form for a chosen account and forces them onto a magic link, passkey, or social login — a guard stops you doing this to someone who has no other way in. Turn the master switch off and every per-user toggle goes inert, so everyone in this group can use their password again.'
-                enabled: 'Enable password login control'
+                description: 'Allow signing in with email and password for this group. When turned off, the email-and-password login form and the registration form are hidden and everyone in this group must use a magic link, a passkey, or a social login instead. Password expiration and the force-password-change action are suspended for the group while this is off.'
+                enabled: 'Allow password login'
             password_policy:
                 title: 'Password policy'
                 description: 'Defines the rules every new or changed password must meet: minimum and maximum length, plus optional uppercase, lowercase, number, and special-character requirements. The rules run whenever a password is set or changed and reject anything that breaks an active rule. Tightening them makes future passwords harder to guess but harder to choose; existing passwords are never re-checked, so changes only affect passwords set from then on.'

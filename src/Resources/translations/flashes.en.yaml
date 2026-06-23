@@ -34,11 +34,6 @@ three_brs:
         unblocked: 'Customer account has been unblocked.'
         sessions_revoked: 'All active sessions for this customer have been signed out.'
         session_revoked: 'The selected session has been signed out.'
-    password_login_control:
-        customer:
-            enabled: 'Password login has been enabled for this customer.'
-            disabled: 'Password login has been disabled for this customer.'
-            cannot_disable_last_method: 'Password login cannot be disabled — this customer has no other sign-in method (a connected social account, a passkey, or magic link).'
     ui:
         social_login:
             already_linked: 'This 3rd-party account is already linked to your account.'

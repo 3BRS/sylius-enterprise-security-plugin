@@ -245,15 +245,6 @@
 			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
 		</service>
 
-		<service id="three_brs.behat.context.ui.shop.password_login_control"
-				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasswordLoginControlContext">
-			<argument type="service" id="behat.mink.default_session"/>
-			<argument type="service" id="sylius.repository.customer"/>
-			<argument type="service" id="doctrine.orm.entity_manager"/>
-			<argument type="service" id="router"/>
-			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository"/>
-			<argument type="service" id="sylius.behat.shared_storage"/>
-		</service>
 
 		<service id="three_brs.behat.context.ui.admin.lockout"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\LockoutContext">

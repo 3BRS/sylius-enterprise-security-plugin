@@ -3696,12 +3696,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             enabled?: bool|Param, // Default: false
  *         },
  *     },
- *     password_login_control?: array{
+ *     password_login?: array{
  *         customer?: array{
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Default: true
  *         },
  *         admin?: array{
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Default: true
  *         },
  *     },
  *     ip_whitelist?: array{

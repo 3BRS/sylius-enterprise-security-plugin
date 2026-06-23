@@ -85,10 +85,6 @@ services:
             - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension\AdminUserTypeExtension:
-        arguments:
-            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
-            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
-            $translator: '@translator'
         tags:
             - { name: 'form.type_extension' }
 
@@ -275,7 +271,7 @@ services:
             $features: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
             $tokenStorage: '@security.token_storage'
             $router: '@router'
-            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
@@ -466,14 +462,6 @@ services:
         tags:
             - { name: 'sylius_fixtures.fixture' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\PasswordLoginControlFixture:
-        arguments:
-            $customerRepository: '@sylius.repository.customer'
-            $adminUserRepository: '@sylius.repository.admin_user'
-            $customerPreferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository'
-            $entityManager: '@doctrine.orm.entity_manager'
-        tags:
-            - { name: 'sylius_fixtures.fixture' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerMagicLinkTokenRepository:
         arguments:
@@ -1320,7 +1308,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SetPasswordController:
         arguments:
             $tokenStorage: '@security.token_storage'
-            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
             $passwordHasher: '@security.user_password_hasher'
             $entityManager: '@doctrine.orm.entity_manager'
             $router: '@router'
@@ -1376,32 +1364,17 @@ services:
         tags:
             - { name: 'sylius_fixtures.fixture' }
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository:
-        arguments:
-            $registry: '@doctrine'
-        tags:
-            - { name: 'doctrine.repository_service' }
-
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepositoryInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository
-
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginChecker:
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginChecker:
         arguments:
             $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
-            $preferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository'
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginChecker
-
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserPasswordLoginPreferenceProvider: ~
-
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserPasswordLoginPreferenceProviderInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserPasswordLoginPreferenceProvider
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginChecker
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerPasswordLoginCheckListener:
         arguments:
-            $preferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository'
-            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
+            $requestStack: '@request_stack'
         tags:
             # Subscribes to CheckPassportEvent at priority 256 via getSubscribedEvents()
             # (single source of truth in AbstractPasswordLoginCheckListener).
@@ -1409,21 +1382,10 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordLoginCheckListener:
         arguments:
-            $preferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminUserPasswordLoginPreferenceProviderInterface'
-            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
+            $requestStack: '@request_stack'
         tags:
             - { name: 'kernel.event_subscriber' }
-
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\CustomerPasswordLoginController:
-        arguments:
-            $customerRepository: '@sylius.repository.customer'
-            $preferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository'
-            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
-            $entityManager: '@doctrine.orm.entity_manager'
-            $csrfTokenManager: '@security.csrf.token_manager'
-            $router: '@router'
-        tags:
-            - { name: 'controller.service_arguments' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository:
         arguments:
@@ -1563,10 +1525,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\PasswordLoginControlExtension:
         arguments:
-            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
-            $customerPreferenceRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerLoginPreferenceRepository'
-            $guard: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard'
-            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
         tags:
             - { name: 'twig.extension' }
 

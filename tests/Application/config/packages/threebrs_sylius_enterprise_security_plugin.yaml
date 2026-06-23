@@ -137,7 +137,7 @@ three_brs_sylius_enterprise_security:
             enabled: true
         admin:
             enabled: true
-    password_login_control:
+    password_login:
         customer:
             enabled: true
         admin:

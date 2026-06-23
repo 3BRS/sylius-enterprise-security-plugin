@@ -14,15 +14,16 @@ use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\SetPasswordType;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 use Twig\Environment;
 
 class SetPasswordController implements SetPasswordControllerInterface
 {
     public function __construct(
         protected TokenStorageInterface $tokenStorage,
-        protected CustomerPasswordLoginCheckerInterface $passwordLoginChecker,
+        protected PasswordLoginCheckerInterface $passwordLoginChecker,
         protected UserPasswordHasherInterface $passwordHasher,
         protected EntityManagerInterface $entityManager,
         protected RouterInterface $router,
@@ -39,9 +40,9 @@ class SetPasswordController implements SetPasswordControllerInterface
             return new RedirectResponse($this->router->generate('sylius_shop_login'));
         }
 
-        // Password login is disabled for this customer — setting a password would be
+        // Password login is disabled for customers — setting a password would be
         // pointless because they could not sign in with it.
-        if ($this->passwordLoginChecker->isPasswordLoginBlocked($user)) {
+        if (!$this->passwordLoginChecker->isEnabled(SettingsScope::CUSTOMER)) {
             return new RedirectResponse($this->router->generate('sylius_shop_account_dashboard'));
         }
 

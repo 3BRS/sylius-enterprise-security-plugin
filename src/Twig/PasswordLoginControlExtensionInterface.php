@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig;
 
-use Sylius\Component\Core\Model\ShopUserInterface;
-
 interface PasswordLoginControlExtensionInterface
 {
     /**
-     * @return array{enabled: bool, allowed: bool, can_disable: bool}
+     * Whether email + password login is enabled for the given scope ('customer' / 'admin').
      */
-    public function customerStatus(ShopUserInterface $shopUser): array;
-
-    public function customerPasswordLoginBlocked(ShopUserInterface $shopUser): bool;
+    public function isEnabled(string $scope): bool;
 }

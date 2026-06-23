@@ -93,8 +93,8 @@ class IndexController implements IndexControllerInterface
             'login_notifications' => [
                 'enabled' => $this->settings->getBool('login_notifications.enabled', $scope),
             ],
-            'password_login_control' => [
-                'enabled' => $this->settings->getBool('password_login_control.enabled', $scope),
+            'password_login' => [
+                'enabled' => $this->settings->getBool('password_login.enabled', $scope),
             ],
             'oauth' => [
                 'google_enabled' => $this->settings->getBool('oauth.google.enabled', $scope),

@@ -19,7 +19,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SetPasswordController;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\CustomerPasswordLoginCheckerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 use Twig\Environment;
 
 #[CoversClass(SetPasswordController::class)]
@@ -134,8 +134,8 @@ class SetPasswordControllerTest extends TestCase
         $tokenStorage = $this->createStub(TokenStorageInterface::class);
         $tokenStorage->method('getToken')->willReturn($token);
 
-        $passwordLoginChecker = $this->createStub(CustomerPasswordLoginCheckerInterface::class);
-        $passwordLoginChecker->method('isPasswordLoginBlocked')->willReturn($passwordLoginBlocked);
+        $passwordLoginChecker = $this->createStub(PasswordLoginCheckerInterface::class);
+        $passwordLoginChecker->method('isEnabled')->willReturn(!$passwordLoginBlocked);
 
         $passwordHasher = $this->createStub(UserPasswordHasherInterface::class);
         $passwordHasher->method('hashPassword')->willReturn($hashedPassword);
