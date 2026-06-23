@@ -7,12 +7,15 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 class ForcePasswordResetController extends AbstractCustomerSecurityActionController implements ForcePasswordResetControllerInterface
 {
@@ -24,6 +27,7 @@ class ForcePasswordResetController extends AbstractCustomerSecurityActionControl
         protected EntityManagerInterface $entityManager,
         CsrfTokenManagerInterface $csrfTokenManager,
         RouterInterface $router,
+        protected PasswordLoginCheckerInterface $passwordLoginChecker,
     ) {
         parent::__construct($customerRepository, $csrfTokenManager, $router);
     }
@@ -33,6 +37,13 @@ class ForcePasswordResetController extends AbstractCustomerSecurityActionControl
         $csrfFailure = $this->csrfFailureRedirect($request, self::CSRF_TOKEN_ID, $id);
         if ($csrfFailure !== null) {
             return $csrfFailure;
+        }
+
+        // Forcing a password reset is pointless when password login is disabled for customers.
+        if (!$this->passwordLoginChecker->isEnabled(SettingsScope::CUSTOMER)) {
+            $this->addFlashMessage($request, 'error', 'three_brs.customer_security.password_login_disabled');
+
+            return new RedirectResponse($this->router->generate('sylius_admin_customer_show', ['id' => $id]));
         }
 
         $shopUser = $this->loadShopUserOr404($id);

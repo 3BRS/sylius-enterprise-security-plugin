@@ -31,6 +31,7 @@ three_brs:
             saved: 'IP whitelist saved for this administrator.'
     customer_security:
         session_expired: 'Your session was renewed (for example after signing in or out in another tab). Please try again.'
+        password_login_disabled: 'Password login is disabled for customers, so a password reset cannot be forced.'
         password_reset_forced: 'The customer will be required to change their password on next sign-in.'
         blocked: 'Customer account has been blocked. Active sessions were signed out.'
         unblocked: 'Customer account has been unblocked.'

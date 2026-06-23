@@ -45,7 +45,7 @@
             </div>
 
             <div class="d-flex flex-wrap gap-2 mb-4">
-                {% if not forceChangeRequested %}
+                {% if not forceChangeRequested and three_brs_password_login_enabled('customer') %}
                     <button type="button" class="btn btn-outline-warning"
                             data-bs-toggle="modal"
                             data-bs-target="#three-brs-customer-modal-force-reset"
@@ -180,7 +180,7 @@
     </div>
 
     {# --- Confirmation modals (Bootstrap, Sylius admin style) --- #}
-    {% if not forceChangeRequested %}
+    {% if not forceChangeRequested and three_brs_password_login_enabled('customer') %}
         {{ security.action_modal(
             'three-brs-customer-modal-force-reset',
             'three_brs.ui.customer_security.force_password_reset'|trans,

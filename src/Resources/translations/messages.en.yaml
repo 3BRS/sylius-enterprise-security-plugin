@@ -191,7 +191,7 @@ three_brs:
             login_failed: 'Passkey sign-in failed. Please try again.'
         customer_security:
             title: 'Security'
-            intro: 'Manage this customer''s security state — password reset, account block, active sessions, and whether they can sign in with a password (standard login).'
+            intro: 'Manage this customer''s security state — password reset, account block and active sessions'
             account_state: 'Account state'
             state_enabled: 'Enabled'
             state_blocked: 'Blocked'

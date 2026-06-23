@@ -34,19 +34,19 @@
 - Admin IP Whitelist
 - Admin IP Blacklist
 - Admin Customer Management
-- Per-User Password Login Control
+- Password Login
 
 <p align="center"><img src="docs/images/two-factor-setup.png" alt="Two-factor authentication setup with QR code and recovery secret" width="1000" /></p>
 
 <p align="center"><img src="docs/images/active-sessions.png" alt="Active sessions list with per-device sign-out and revocation" width="1000" /></p>
 
-<p align="center"><img src="docs/images/customer-security-section.png" alt="Admin customer Security section — force password reset, block, password-login toggle, sessions and login history" width="1000" /></p>
+<p align="center"><img src="docs/images/customer-security-section.png" alt="Admin customer Security section — force password reset, block, sessions and login history" width="1000" /></p>
 
 <p align="center"><img src="docs/images/security-settings.png" alt="Centralized Security Settings admin UI — password policy, history and rate limiting" width="1000" /></p>
 
 ## Features
 
-Every feature ships **disabled by default** — enable and tune the ones you need (each linked doc covers its options and defaults).
+Most features ship **disabled by default** (the exception is **Password Login**, which is on so existing stores keep working) — enable and tune the ones you need (each linked doc covers its options and defaults).
 
 | Feature | What it does | Doc |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ Every feature ships **disabled by default** — enable and tune the ones you nee
 | Admin IP Whitelist | Restrict admin-panel access to allowed IPs / CIDR ranges, with a team-wide global list plus optional per-admin lists. | [admin-ip-whitelist](docs/admin-ip-whitelist.md) |
 | Admin IP Blacklist | Block specific IPs / CIDR ranges from the admin panel with a global deny-list — always wins over the whitelist, is identity-agnostic, and fails open when empty. | [admin-ip-blacklist](docs/admin-ip-blacklist.md) |
 | Admin Customer Management | A Security section on the Sylius customer detail page — force password reset, block / unblock, sign out of all or individual sessions, plus active-sessions and login-history tables. | [admin-customer-management](docs/admin-customer-management.md) |
-| Per-User Password Login Control | Disable email + password sign-in for individual customers or admins, forcing a stronger method (magic link, passkey or social login); per-group toggle plus a per-user switch with a lock-out guard. | [per-user-password-login-control](docs/per-user-password-login-control.md) |
+| Password Login | Global per-group (customer / admin) switch — **on by default** — for classic email + password sign-in and registration. Turn it off for a group and its login / registration forms (and "forgot password" link) are hidden, everyone must use a magic link, passkey or social login, and that group's password expiration / force-change pause too. | [password-login](docs/password-login.md) |
 
 
 ## Installation (into an existing Sylius application)
@@ -111,7 +111,7 @@ This section is for **consuming** the plugin in your own Sylius project — you 
        resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/routes.yaml"
    ```
 
-5. Add the relevant traits to your `ShopUser` and `AdminUser` entities. Include **only** the traits for the features you enabled — `PasswordExpiration*` (Password Expiration), `TwoFactorAuth*` (Two-Factor Authentication), `Lockable*` (Account Lockout), `PasswordLoginControl*` (Per-User Password Login Control, admin only). (Password Expiration also reads the account creation date via `getCreatedAt()` as its fallback for users who have never changed their password — Sylius's base `ShopUser` / `AdminUser` already expose it, so no extra wiring is needed here.) The full set:
+5. Add the relevant traits to your `ShopUser` and `AdminUser` entities. Include **only** the traits for the features you enabled — `PasswordExpiration*` (Password Expiration), `TwoFactorAuth*` (Two-Factor Authentication), `Lockable*` (Account Lockout). (Password Expiration also reads the account creation date via `getCreatedAt()` as its fallback for users who have never changed their password — Sylius's base `ShopUser` / `AdminUser` already expose it, so no extra wiring is needed here.) The full set:
 
    ```php
    // src/Entity/User/ShopUser.php
@@ -139,16 +139,13 @@ This section is for **consuming** the plugin in your own Sylius project — you 
    use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
    use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\LockableAdminUserTrait;
    use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserTrait;
-   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordLoginControlAdminUserInterface;
-   use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordLoginControlAdminUserTrait;
    use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserTrait;
 
-   class AdminUser extends BaseAdminUser implements PasswordExpirationAdminUserInterface, TwoFactorAuthAdminUserInterface, LockableAdminUserInterface, PasswordLoginControlAdminUserInterface
+   class AdminUser extends BaseAdminUser implements PasswordExpirationAdminUserInterface, TwoFactorAuthAdminUserInterface, LockableAdminUserInterface
    {
        use PasswordExpirationAdminUserTrait;
        use TwoFactorAuthAdminUserTrait;
        use LockableAdminUserTrait;
-       use PasswordLoginControlAdminUserTrait;
    }
    ```
 

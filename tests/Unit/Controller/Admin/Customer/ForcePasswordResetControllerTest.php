@@ -18,6 +18,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\ForcePasswordResetController;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 /** @internal */
 interface TestShopUserForcePassword extends \Sylius\Component\Core\Model\ShopUserInterface, PasswordExpirationShopUserInterface
@@ -71,10 +72,24 @@ class ForcePasswordResetControllerTest extends TestCase
         $controller(self::request('valid-token'), 42);
     }
 
+    public function testDoesNotForceWhenPasswordLoginDisabled(): void
+    {
+        // The backstop runs before the customer is even loaded — a valid CSRF token with
+        // disabled customer password login yields a redirect, not the 404 a null customer
+        // would otherwise cause.
+        $controller = $this->createController(null, validToken: true, expectFlush: false, passwordLoginEnabled: false);
+
+        $response = $controller(self::request('valid-token'), 42);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('/admin/customers/42', $response->getTargetUrl());
+    }
+
     private function createController(
         ?CustomerInterface $customer,
         bool $validToken,
         bool $expectFlush,
+        bool $passwordLoginEnabled = true,
     ): ForcePasswordResetController {
         $customerRepository = $this->createStub(CustomerRepositoryInterface::class);
         $customerRepository->method('find')->willReturn($customer);
@@ -88,7 +103,10 @@ class ForcePasswordResetControllerTest extends TestCase
         $router = $this->createStub(RouterInterface::class);
         $router->method('generate')->willReturnCallback(static fn (string $route, array $params = []): string => '/admin/customers/' . ($params['id'] ?? ''));
 
-        return new ForcePasswordResetController($customerRepository, $em, $csrf, $router);
+        $passwordLoginChecker = $this->createStub(PasswordLoginCheckerInterface::class);
+        $passwordLoginChecker->method('isEnabled')->willReturn($passwordLoginEnabled);
+
+        return new ForcePasswordResetController($customerRepository, $em, $csrf, $router, $passwordLoginChecker);
     }
 
     private static function request(string $token): Request
