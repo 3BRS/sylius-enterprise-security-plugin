@@ -354,8 +354,6 @@ services:
             $adminLinkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
             $customerPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository'
             $adminPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository'
-            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
-            $oauthRegistry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthInitiateController:
         arguments:
