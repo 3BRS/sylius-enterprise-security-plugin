@@ -6,6 +6,7 @@ Lets you disable classic email + password sign-in for individual customers or ad
 - **Per-user switch** on the customer detail page and the admin user edit page. When password login is disabled for a user, a form sign-in attempt is rejected with an explicit message pointing them to the alternatives.
 - **Lock-out guard** — the switch refuses to disable password login for a user who has no other way in (no connected social account, no passkey, and magic link not enabled for their group), so an account can never be stripped of every sign-in method.
 - OAuth, passkey and magic-link sign-ins are never affected — only the password form is gated.
+- **Account UI adapts** — while password login is disabled for a customer, the *Change password* / *Set a new password* entry is hidden from the shop account menu and dashboard (there is no password for them to manage).
 
 ## Defaults for password login control
 
