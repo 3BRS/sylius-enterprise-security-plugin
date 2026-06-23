@@ -13,7 +13,6 @@ use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerLoginPreference;
 use Webmozart\Assert\Assert;
 
 class SetPasswordContext implements Context
@@ -45,19 +44,6 @@ class SetPasswordContext implements Context
         // Simulate an account created via OAuth / magic link / passkey: no password.
         $user->setPlainPassword(null);
         $user->setPassword(null);
-        $this->entityManager->flush();
-    }
-
-    /**
-     * @Given password login is disabled for the customer :email
-     */
-    public function passwordLoginIsDisabledForTheCustomer(string $email): void
-    {
-        $preference = new CustomerLoginPreference();
-        $preference->setShopUser($this->findShopUser($email));
-        $preference->setPasswordLoginAllowed(false);
-
-        $this->entityManager->persist($preference);
         $this->entityManager->flush();
     }
 
@@ -125,23 +111,6 @@ class SetPasswordContext implements Context
         Assert::true(
             $this->session->getPage()->hasContent('Set a new password'),
             'Expected the account to offer setting a new password.',
-        );
-    }
-
-    /**
-     * @Then I should not see any password management option
-     */
-    public function iShouldNotSeeAnyPasswordManagementOption(): void
-    {
-        $page = $this->session->getPage();
-
-        Assert::null(
-            $page->find('css', 'a[href$="/account/change-password"]'),
-            'Expected no "Change password" link for a customer with password login disabled.',
-        );
-        Assert::null(
-            $page->find('css', 'a[href$="/account/set-password"]'),
-            'Expected no "Set a new password" link for a customer with password login disabled.',
         );
     }
 

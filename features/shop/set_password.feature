@@ -20,9 +20,3 @@ Feature: Setting a password for a passwordless account
     Scenario: The account offers to set a password instead of changing it
         When I visit my account dashboard
         Then I should be offered to set a new password
-
-    @ui
-    Scenario: A customer with password login disabled sees no password option
-        Given password login is disabled for the customer "oauth@example.com"
-        When I visit my account dashboard
-        Then I should not see any password management option

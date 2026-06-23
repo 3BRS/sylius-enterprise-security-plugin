@@ -79,15 +79,15 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerAccountDeletion($container, $config['account_deletion']);
         $this->registerIpWhitelist($container, $config['ip_whitelist']);
         $this->registerIpBlacklist($container, $config['ip_blacklist']);
-        $this->registerPasswordLoginControl($container, $config['password_login_control']);
+        $this->registerPasswordLogin($container, $config['password_login']);
         $this->registerSecuritySettingsDefaults($container, $config);
     }
 
     /** @param array<string, array<string, mixed>> $config */
-    protected function registerPasswordLoginControl(ContainerBuilder $container, array $config): void
+    protected function registerPasswordLogin(ContainerBuilder $container, array $config): void
     {
-        $container->setParameter('three_brs.password_login_control.customer.enabled', (bool) $config['customer']['enabled']);
-        $container->setParameter('three_brs.password_login_control.admin.enabled', (bool) $config['admin']['enabled']);
+        $container->setParameter('three_brs.password_login.customer.enabled', (bool) $config['customer']['enabled']);
+        $container->setParameter('three_brs.password_login.admin.enabled', (bool) $config['admin']['enabled']);
     }
 
     /** @param array<string, mixed> $config */

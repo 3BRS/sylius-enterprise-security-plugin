@@ -80,46 +80,6 @@
                 {% endif %}
             </div>
 
-            {% set passwordLogin = three_brs_customer_password_login_status(shopUser) %}
-            {% if passwordLogin.enabled %}
-                <div class="mb-4" data-test-three-brs-customer-password-login>
-                    <div class="mb-2">
-                        <strong>{{ 'three_brs.ui.password_login_control.label'|trans }}:</strong>
-                        {% if passwordLogin.allowed %}
-                            <span class="badge bg-success text-white" data-test-three-brs-customer-password-login-state="allowed">
-                                {{ 'three_brs.ui.password_login_control.allowed'|trans }}
-                            </span>
-                        {% else %}
-                            <span class="badge bg-secondary text-white" data-test-three-brs-customer-password-login-state="disabled">
-                                {{ 'three_brs.ui.password_login_control.state_disabled'|trans }}
-                            </span>
-                        {% endif %}
-                    </div>
-
-                    <form method="POST" action="{{ path('three_brs_admin_customer_password_login', {'id': customer.id}) }}">
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_customer_password_login') }}">
-                        {% if passwordLogin.allowed %}
-                            <input type="hidden" name="allowed" value="0">
-                            <button type="submit" class="btn btn-outline-danger"
-                                    data-test-three-brs-customer-password-login-disable
-                                    {{ passwordLogin.can_disable ? '' : 'disabled' }}>
-                                {{ 'three_brs.ui.password_login_control.disable'|trans }}
-                            </button>
-                        {% else %}
-                            <input type="hidden" name="allowed" value="1">
-                            <button type="submit" class="btn btn-outline-success"
-                                    data-test-three-brs-customer-password-login-enable>
-                                {{ 'three_brs.ui.password_login_control.enable'|trans }}
-                            </button>
-                        {% endif %}
-                    </form>
-
-                    {% if passwordLogin.allowed and not passwordLogin.can_disable %}
-                        <small class="text-muted d-block mt-1">{{ 'three_brs.ui.password_login_control.cannot_disable_hint'|trans }}</small>
-                    {% endif %}
-                </div>
-            {% endif %}
-
             <h4 class="mt-4">{{ 'three_brs.ui.customer_security.active_sessions'|trans }}</h4>
             {% if activeSessions|length > 0 %}
                 <div class="table-responsive">

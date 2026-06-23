@@ -37,4 +37,3 @@ imports:
     - suites/admin_ip_whitelist.yml
     - suites/admin_ip_blacklist.yml
     - suites/admin_customer_management.yml
-    - suites/shop_password_login_control.yml
