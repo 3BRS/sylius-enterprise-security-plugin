@@ -1,0 +1,10 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_admin.customer.update.content.form.sections.account_credentials':
+            password:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Customer/form/sections/account_credentials/password.html.twig'
+                priority: 200
+        'sylius_admin.customer.create.content.form.sections.account_credentials':
+            password:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Customer/form/sections/account_credentials/password.html.twig'
+                priority: 200

@@ -26,10 +26,11 @@ class AdminUserTypeExtensionTest extends TestCase
             ->buildForm($builder, ['data_class' => PasswordExpirationAdminUserInterface::class]);
     }
 
-    public function testDoesNotAddForcePasswordChangeWhenAdminPasswordLoginDisabled(): void
+    public function testRemovesPasswordAndSkipsForcePasswordChangeWhenAdminPasswordLoginDisabled(): void
     {
         $builder = $this->createMock(FormBuilderInterface::class);
         $builder->expects(self::never())->method('add');
+        $builder->expects(self::once())->method('remove')->with('plainPassword')->willReturnSelf();
 
         $this->extension(adminPasswordLoginEnabled: false)
             ->buildForm($builder, ['data_class' => PasswordExpirationAdminUserInterface::class]);
@@ -39,6 +40,7 @@ class AdminUserTypeExtensionTest extends TestCase
     {
         $builder = $this->createMock(FormBuilderInterface::class);
         $builder->expects(self::never())->method('add');
+        $builder->expects(self::never())->method('remove');
 
         $this->extension(adminPasswordLoginEnabled: true)
             ->buildForm($builder, ['data_class' => \stdClass::class]);

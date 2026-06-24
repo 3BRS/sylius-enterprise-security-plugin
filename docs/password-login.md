@@ -15,6 +15,12 @@ stronger method instead (a magic link, a passkey, or a connected social account)
   auto-registration (a magic link or passkey cannot create a brand-new account).
 - **Account UI adapts** — with password login off for customers, the *Change password* /
   *Set a new password* entry disappears from the shop account menu and dashboard.
+- **Admin panel adapts too** — when a group's password login is off, the password field is
+  removed from that group's edit screens in the admin panel, so an administrator can neither
+  set nor change a password for anyone in it: for the admin group (gated on the admin toggle)
+  the password field is gone from the *Administrator* section of the admin-user edit form, and
+  for the customer group (gated on the customer toggle) it is gone from the customer edit form.
+  The *force password change* control is hidden in the same place.
 - **Password management pauses** — while a group's password login is off, the rest of that
   group's password tooling is inert: the password policy / history / expiration /
   change-notification settings render disabled (their stored values are kept), password
