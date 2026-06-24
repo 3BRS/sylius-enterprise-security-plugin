@@ -16,6 +16,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractOAuthCallbackController;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSignerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandlerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface;
 
@@ -33,10 +34,11 @@ class OAuthCallbackController extends AbstractOAuthCallbackController implements
         TokenStorageInterface $tokenStorage,
         Security $security,
         LoggerInterface $logger,
+        StateCookieSignerInterface $stateCookieSigner,
         protected AdminUserSessionLoginHandlerInterface $sessionLoginHandler,
         protected UserProviderInterface $userProvider,
     ) {
-        parent::__construct($registry, $router, $tokenStorage, $security, $logger);
+        parent::__construct($registry, $router, $tokenStorage, $security, $logger, $stateCookieSigner);
     }
 
     protected function getOAuthGroup(): string

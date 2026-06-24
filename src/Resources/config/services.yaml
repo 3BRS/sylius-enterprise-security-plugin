@@ -365,6 +365,7 @@ services:
         arguments:
             $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
             $router: '@router'
+            $stateCookieSigner: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSigner'
             $security: '@security.helper'
         tags:
             - { name: 'controller.service_arguments' }
@@ -377,6 +378,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $security: '@security.helper'
             $logger: '@logger'
+            $stateCookieSigner: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSigner'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
             $userProvider: '@security.user.provider.concrete.sylius_shop_user_provider'
         tags:
@@ -415,6 +417,7 @@ services:
         arguments:
             $registry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
             $router: '@router'
+            $stateCookieSigner: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSigner'
             $security: '@security.helper'
         tags:
             - { name: 'controller.service_arguments' }
@@ -427,6 +430,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $security: '@security.helper'
             $logger: '@logger'
+            $stateCookieSigner: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSigner'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
             $userProvider: '@security.user.provider.concrete.sylius_admin_user_provider'
         tags:
