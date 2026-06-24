@@ -26,9 +26,12 @@ class AdminUserTypeExtension extends AbstractTypeExtension implements AdminUserT
             return;
         }
 
-        // Forcing a password change only makes sense while admins can sign in with a
-        // password — when password login is disabled for the admin scope, hide it.
+        // When password login is disabled for the admin scope nobody signs in with a
+        // password: drop the password field (it must not be set or edited for anyone) and
+        // skip the force-password-change checkbox, which then makes no sense.
         if (!$this->passwordLoginChecker->isEnabled(SettingsScope::ADMIN)) {
+            $builder->remove('plainPassword');
+
             return;
         }
 

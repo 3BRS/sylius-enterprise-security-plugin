@@ -92,6 +92,12 @@ services:
         tags:
             - { name: 'form.type_extension' }
 
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension\ShopUserTypeExtension:
+        arguments:
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
+        tags:
+            - { name: 'form.type_extension' }
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Fixture\PasswordHistoryFixture:
         arguments:
             $customerRepository: '@sylius.repository.customer'

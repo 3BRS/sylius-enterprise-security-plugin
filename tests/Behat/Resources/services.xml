@@ -234,6 +234,25 @@
 			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\Passkey\FakeAuthenticator"/>
 		</service>
 
+		<service id="three_brs.behat.context.ui.admin.password_login"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PasswordLoginContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="sylius.repository.admin_user"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.password_login"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasswordLoginContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
+		</service>
+
 		<service id="three_brs.behat.context.ui.shop.lockout"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\LockoutContext">
 			<argument type="service" id="behat.mink.default_session"/>
