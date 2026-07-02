@@ -73,6 +73,15 @@
                                     </div>
                                     <div class="card-body">
                                         <p class="text-secondary mb-4">{{ ('three_brs.ui.security_settings.' ~ tab.vars.name ~ '.description')|trans }}</p>
+                                        {# A tab is only ever rendered disabled when password login is off for the
+                                           scope (see SecuritySettingsType — the whole password-management family is
+                                           locked in that case), so spell out why it cannot be edited. #}
+                                        {% if tab.vars.disabled %}
+                                            <div class="alert alert-info mb-4"
+                                                 data-test-three-brs-password-settings-disabled-note>
+                                                {{ 'three_brs.ui.security_settings.password_settings_disabled_note'|trans }}
+                                            </div>
+                                        {% endif %}
                                         {{ form_widget(tab) }}
                                         {{ form_errors(tab) }}
                                     </div>
