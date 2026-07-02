@@ -12,6 +12,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Challenge\CodeChallengeValidatorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthLinkCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\SocialAccountLinkRecordInterface;
@@ -33,12 +34,13 @@ class OAuthConfirmLinkController extends AbstractOAuthLinkCodeConfirmLinkControl
         OAuthLinkCodeEmailManagerInterface $codeEmailManager,
         ClockInterface $clock,
         CsrfTokenManagerInterface $csrfTokenManager,
+        CodeChallengeValidatorInterface $challengeValidator,
         TokenStorageInterface $tokenStorage,
         RouterInterface $router,
         Environment $twig,
         LoggerInterface $logger,
     ) {
-        parent::__construct($codeGenerator, $codeEmailManager, $clock, $csrfTokenManager, $tokenStorage, $router, $twig, $logger);
+        parent::__construct($codeGenerator, $codeEmailManager, $clock, $csrfTokenManager, $challengeValidator, $tokenStorage, $router, $twig, $logger);
     }
 
     protected function getConfirmPendingSessionKey(): string

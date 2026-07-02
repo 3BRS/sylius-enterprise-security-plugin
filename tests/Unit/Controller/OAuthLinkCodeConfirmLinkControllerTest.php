@@ -15,6 +15,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Challenge\CodeChallengeValidator;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthLinkCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\SocialAccountLinkRecordInterface;
@@ -234,6 +235,7 @@ class OAuthLinkCodeConfirmLinkControllerTest extends TestCase
             $emailManager ?? $this->createStub(OAuthLinkCodeEmailManagerInterface::class),
             $clock,
             $csrf,
+            new CodeChallengeValidator($clock),
             $this->createStub(TokenStorageInterface::class),
             $this->createStub(RouterInterface::class),
             $this->createStub(Environment::class),

@@ -12,6 +12,10 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Challenge\CodeChallengeResult;
+use ThreeBRS\EnterpriseSecurityBundle\Challenge\CodeChallengeState;
+use ThreeBRS\EnterpriseSecurityBundle\Challenge\CodeChallengeStateInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Challenge\CodeChallengeValidatorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractOAuthConfirmLinkController;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthLinkCodeGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\OAuthLinkCodeEmailManagerInterface;
@@ -37,6 +41,7 @@ abstract class AbstractOAuthLinkCodeConfirmLinkController extends AbstractOAuthC
         protected OAuthLinkCodeEmailManagerInterface $codeEmailManager,
         protected ClockInterface $clock,
         protected CsrfTokenManagerInterface $csrfTokenManager,
+        protected CodeChallengeValidatorInterface $challengeValidator,
         TokenStorageInterface $tokenStorage,
         RouterInterface $router,
         Environment $twig,
@@ -83,29 +88,46 @@ abstract class AbstractOAuthLinkCodeConfirmLinkController extends AbstractOAuthC
             return 'three_brs.ui.social_login.confirm_link_session_expired';
         }
 
-        $hasCode = isset($pending['code_hash'], $pending['code_expires_at']);
-        if (!$hasCode || $this->clock->now()->getTimestamp() >= (int) $pending['code_expires_at']) {
-            return 'three_brs.ui.social_login.code_expired';
-        }
-
-        $session = $request->getSession();
-        $attempts = (int) ($pending['code_attempts'] ?? 0) + 1;
-        $pending['code_attempts'] = $attempts;
-        $session->set($this->getConfirmPendingSessionKey(), $pending);
-
-        // A 6-digit code is only 1,000,000 combinations — cap the guesses, then burn it.
-        if ($attempts > static::MAX_ATTEMPTS) {
-            unset($pending['code_hash'], $pending['code_expires_at'], $pending['code_attempts']);
-            $session->set($this->getConfirmPendingSessionKey(), $pending);
-
-            return 'three_brs.ui.social_login.code_too_many_attempts';
-        }
+        // Generic expiry + attempt-limit + single-use + constant-time compare live in the
+        // bundle (shared with any integrator); here we only adapt the session state to it,
+        // hash the submission and map the verdict to a user-facing message.
+        $state = new CodeChallengeState(
+            isset($pending['code_hash']) ? (string) $pending['code_hash'] : null,
+            isset($pending['code_expires_at']) ? (int) $pending['code_expires_at'] : null,
+            (int) ($pending['code_attempts'] ?? 0),
+        );
 
         $submittedCode = trim((string) $request->request->get('_code'));
-        if ($submittedCode === '' || !hash_equals((string) $pending['code_hash'], $this->codeGenerator->hash($submittedCode))) {
-            return 'three_brs.ui.social_login.invalid_code';
+        $submittedHash = $submittedCode === '' ? null : $this->codeGenerator->hash($submittedCode);
+
+        $outcome = $this->challengeValidator->verify($state, $submittedHash, static::MAX_ATTEMPTS);
+        $this->persistChallengeState($pending, $outcome->getNextState(), $request);
+
+        return match ($outcome->getResult()) {
+            CodeChallengeResult::OK => null,
+            CodeChallengeResult::EXPIRED => 'three_brs.ui.social_login.code_expired',
+            CodeChallengeResult::TOO_MANY_ATTEMPTS => 'three_brs.ui.social_login.code_too_many_attempts',
+            CodeChallengeResult::INVALID => 'three_brs.ui.social_login.invalid_code',
+        };
+    }
+
+    /**
+     * Writes the post-verification challenge state back into the pending session payload,
+     * dropping the code entirely once it is burned so a fresh one can be issued and the
+     * spent one cannot be replayed.
+     *
+     * @param array<string, mixed> $pending
+     */
+    protected function persistChallengeState(array $pending, CodeChallengeStateInterface $state, Request $request): void
+    {
+        if ($state->getHash() === null) {
+            unset($pending['code_hash'], $pending['code_expires_at'], $pending['code_attempts']);
+        } else {
+            $pending['code_hash'] = $state->getHash();
+            $pending['code_expires_at'] = $state->getExpiresAt();
+            $pending['code_attempts'] = $state->getAttempts();
         }
 
-        return null;
+        $request->getSession()->set($this->getConfirmPendingSessionKey(), $pending);
     }
 }
