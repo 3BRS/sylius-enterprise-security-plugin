@@ -1,8 +1,8 @@
 @admin @password_login @ui
-Feature: Password field hidden in the admin panel when password login is off
+Feature: Global password login switch (admin)
     In order to keep admins and customers off passwords once the switch is flipped
     As a store owner
-    I want the password field gone from the admin-user and customer edit forms
+    I want password sign-in blocked and the password field gone from the admin-user and customer edit forms
 
     Background:
         Given the store operates on a single channel in "United States"
@@ -30,3 +30,10 @@ Feature: Password field hidden in the admin panel when password login is off
         When I am logged in as "admin@example.com" administrator
         And I open the customer edit page for "alice@example.com"
         Then the customer password field should be hidden
+
+    Scenario: An admin password sign-in is rejected at the authentication layer while the switch is off
+        Given there is an administrator "signin-check@example.com" identified by "Password1!"
+        When I visit the admin login page
+        And password login is disabled for admins
+        And I submit the admin login form with email "signin-check@example.com" and password "Password1!"
+        Then I should not be signed in to the admin panel

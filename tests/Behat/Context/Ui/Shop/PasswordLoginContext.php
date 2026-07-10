@@ -52,11 +52,21 @@ class PasswordLoginContext implements Context
     public function iAttemptToSignIn(string $email, string $password): void
     {
         $this->session->visit($this->router->generate('sylius_shop_login'));
+        $this->fillAndSubmitLoginForm($email, $password);
+    }
 
-        $page = $this->session->getPage();
-        $page->fillField('_username', $email);
-        $page->fillField('_password', $this->retrieveSecurePassword($password));
-        $page->pressButton('Login');
+    /**
+     * The login form — and its CSRF token — is only rendered while password login is on, so
+     * this submits the form already loaded on the current page. A scenario can therefore load
+     * it while the switch is on and then flip the switch before submitting, which exercises the
+     * authentication-layer backstop (CustomerPasswordLoginCheckListener) with a genuine,
+     * CSRF-valid POST instead of merely proving the template hid the form.
+     *
+     * @When I submit the shop login form with email :email and password :password
+     */
+    public function iSubmitTheShopLoginForm(string $email, string $password): void
+    {
+        $this->fillAndSubmitLoginForm($email, $password);
     }
 
     /**
@@ -99,6 +109,18 @@ class PasswordLoginContext implements Context
             $this->session->getCurrentUrl(),
             '/login',
             'Expected to be off the login page after a successful sign-in.',
+        );
+    }
+
+    /**
+     * @Then I should not be signed in to the shop
+     */
+    public function iShouldNotBeSignedIn(): void
+    {
+        Assert::contains(
+            $this->session->getCurrentUrl(),
+            '/login',
+            'Expected to remain on the login page after a rejected sign-in.',
         );
     }
 
@@ -181,6 +203,14 @@ class PasswordLoginContext implements Context
             $page->find('css', 'a[href*="set-password"]'),
             'Expected the set-password entry to be hidden.',
         );
+    }
+
+    protected function fillAndSubmitLoginForm(string $email, string $password): void
+    {
+        $page = $this->session->getPage();
+        $page->fillField('_username', $email);
+        $page->fillField('_password', $this->retrieveSecurePassword($password));
+        $page->pressButton('Login');
     }
 
     protected function setCustomerPasswordLogin(bool $enabled): void

@@ -21,24 +21,25 @@ class AdminUserTypeExtension extends AbstractTypeExtension implements AdminUserT
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $dataClass = $options['data_class'] ?? null;
-        if ($dataClass === null || !is_a($dataClass, PasswordExpirationAdminUserInterface::class, true)) {
-            return;
-        }
-
         // When password login is disabled for the admin scope nobody signs in with a
-        // password: drop the password field (it must not be set or edited for anyone) and
-        // skip the force-password-change checkbox, which then makes no sense.
+        // password, so the password field must not be set or edited for anyone. This holds
+        // regardless of the password-expiration trait, so it runs before the interface gate
+        // below — otherwise an AdminUser without that trait would keep a working password field.
         if (!$this->passwordLoginChecker->isEnabled(SettingsScope::ADMIN)) {
-            $builder->remove('plainPassword');
+            if ($builder->has('plainPassword')) {
+                $builder->remove('plainPassword');
+            }
 
             return;
         }
 
-        $builder->add('forcePasswordChange', CheckboxType::class, [
-            'label' => 'three_brs.form.admin_user.force_password_change',
-            'required' => false,
-        ]);
+        $dataClass = $options['data_class'] ?? null;
+        if ($dataClass !== null && is_a($dataClass, PasswordExpirationAdminUserInterface::class, true)) {
+            $builder->add('forcePasswordChange', CheckboxType::class, [
+                'label' => 'three_brs.form.admin_user.force_password_change',
+                'required' => false,
+            ]);
+        }
     }
 
     public static function getExtendedTypes(): iterable

@@ -6,6 +6,8 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Sylius\Behat\Context\Ui\Admin\Helper\SecurePasswordTrait;
+use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\User\Model\UserInterface;
@@ -18,6 +20,8 @@ use Webmozart\Assert\Assert;
 
 class PasswordLoginContext implements Context
 {
+    use SecurePasswordTrait;
+
     protected const ADMIN_PASSWORD_SELECTOR = 'input[name="sylius_admin_admin_user[plainPassword]"]';
 
     protected const CUSTOMER_PASSWORD_SELECTOR = 'input[name="sylius_admin_customer[user][plainPassword]"]';
@@ -32,6 +36,7 @@ class PasswordLoginContext implements Context
         protected UrlGeneratorInterface $router,
         protected CustomerRepositoryInterface $customerRepository,
         protected UserRepositoryInterface $adminUserRepository,
+        protected SharedStorageInterface $sharedStorage,
     ) {
     }
 
@@ -134,6 +139,43 @@ class PasswordLoginContext implements Context
         Assert::null(
             $this->session->getPage()->find('css', self::CUSTOMER_PASSWORD_SELECTOR),
             'Expected the customer password field to be absent.',
+        );
+    }
+
+    /**
+     * @When I visit the admin login page
+     */
+    public function iVisitTheAdminLoginPage(): void
+    {
+        $this->session->visit($this->router->generate('sylius_admin_login'));
+    }
+
+    /**
+     * The login form — and its CSRF token — is only rendered while admin password login is on,
+     * so this submits the form already loaded on the current page. A scenario can therefore
+     * load it while the switch is on and then flip the switch before submitting, which
+     * exercises the authentication-layer backstop (AdminUserPasswordLoginCheckListener) with a
+     * genuine, CSRF-valid POST instead of merely proving the template hid the form.
+     *
+     * @When I submit the admin login form with email :email and password :password
+     */
+    public function iSubmitTheAdminLoginForm(string $email, string $password): void
+    {
+        $page = $this->session->getPage();
+        $page->fillField('_username', $email);
+        $page->fillField('_password', $this->retrieveSecurePassword($password));
+        $page->pressButton('Login');
+    }
+
+    /**
+     * @Then I should not be signed in to the admin panel
+     */
+    public function iShouldNotBeSignedInToTheAdminPanel(): void
+    {
+        Assert::contains(
+            $this->session->getCurrentUrl(),
+            '/login',
+            'Expected to remain on the admin login page after a rejected sign-in.',
         );
     }
 

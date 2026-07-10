@@ -30,6 +30,12 @@ Feature: Global password login switch (shop)
         Then I should be redirected to the shop login page
         And I should see the registration-disabled error
 
+    Scenario: A password sign-in is rejected at the authentication layer while the switch is off
+        When I visit the shop login page
+        And password login is disabled for customers
+        And I submit the shop login form with email "customer@example.com" and password "Password1!"
+        Then I should not be signed in to the shop
+
     Scenario: The change-password entry disappears from the account while the switch is off
         Given I am logged in as "customer@example.com"
         And password login is disabled for customers

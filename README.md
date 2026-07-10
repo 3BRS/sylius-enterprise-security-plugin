@@ -169,6 +169,13 @@ This section is for **consuming** the plugin in your own Sylius project — you 
    bin/console assets:install
    ```
 
+## Upgrading from 1.x
+
+Per-user password-login control has been replaced by a global per-scope switch, managed on the **Security Settings** admin screen. The admin-side trait and interface it required are gone, so a consumer whose `AdminUser` still follows the earlier README hits a class-not-found error on `composer update` — before the schema is even reached. Migrate by hand:
+
+1. Remove `PasswordLoginControlAdminUserTrait` and `PasswordLoginControlAdminUserInterface` (both under `ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\`) from your `AdminUser` entity — the trait `use`, the `implements`, and their two imports.
+2. Run `bin/console doctrine:schema:update --complete --force` (or a migration in production) to drop the now-orphaned `sylius_admin_user.password_login_allowed` column and `three_brs_customer_login_preference` table. Their stored per-user preferences are discarded on purpose — the global switch supersedes them.
+
 ## Troubleshooting
 
 ### `Cannot create union with both "object" and class type` during cache clear / warmup

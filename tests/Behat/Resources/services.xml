@@ -242,6 +242,7 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="sylius.repository.admin_user"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.password_login"

@@ -30,7 +30,30 @@ class AdminUserTypeExtensionTest extends TestCase
     {
         $builder = $this->createMock(FormBuilderInterface::class);
         $builder->expects(self::never())->method('add');
+        $builder->method('has')->with('plainPassword')->willReturn(true);
         $builder->expects(self::once())->method('remove')->with('plainPassword')->willReturnSelf();
+
+        $this->extension(adminPasswordLoginEnabled: false)
+            ->buildForm($builder, ['data_class' => PasswordExpirationAdminUserInterface::class]);
+    }
+
+    public function testRemovesPasswordEvenWhenAdminUserLacksThePasswordExpirationInterface(): void
+    {
+        $builder = $this->createMock(FormBuilderInterface::class);
+        $builder->expects(self::never())->method('add');
+        $builder->method('has')->with('plainPassword')->willReturn(true);
+        $builder->expects(self::once())->method('remove')->with('plainPassword')->willReturnSelf();
+
+        $this->extension(adminPasswordLoginEnabled: false)
+            ->buildForm($builder, ['data_class' => \stdClass::class]);
+    }
+
+    public function testDoesNotRemovePasswordWhenTheFieldIsAbsentAndAdminPasswordLoginDisabled(): void
+    {
+        $builder = $this->createMock(FormBuilderInterface::class);
+        $builder->expects(self::never())->method('add');
+        $builder->method('has')->with('plainPassword')->willReturn(false);
+        $builder->expects(self::never())->method('remove');
 
         $this->extension(adminPasswordLoginEnabled: false)
             ->buildForm($builder, ['data_class' => PasswordExpirationAdminUserInterface::class]);
