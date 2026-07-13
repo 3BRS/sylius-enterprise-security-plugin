@@ -1,0 +1,35 @@
+{% extends '@SyliusShop/shared/layout/base.html.twig' %}
+
+{% block title %}{{ 'three_brs.ui.set_password.title'|trans }} | {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="container mb-auto">
+        <div class="row my-4">
+            {{ include('@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/_account_breadcrumbs.html.twig', { active_label: 'three_brs.ui.set_password.title' }) }}
+
+            <div class="col-12 col-md-3 mb-4 mb-md-0">
+                <div class="mb-3">
+                    {{ knp_menu_render('sylius_shop.account', {'template': '@SyliusShop/account/menu/content.html.twig'}) }}
+                </div>
+            </div>
+            <div class="col-12 col-md-9">
+                <h1>{{ 'three_brs.ui.set_password.title'|trans }}</h1>
+                <p class="text-body-secondary mb-4">{{ 'three_brs.ui.set_password.subtitle'|trans }}</p>
+
+                {% form_theme form '@SyliusShop/form/theme.html.twig' %}
+                {{ form_start(form, {'action': path('three_brs_shop_set_password'), 'attr': {'id': 'three_brs_set_password_form', 'novalidate': 'novalidate'}}) }}
+                    <div class="mb-3">
+                        {{ form_row(form.newPassword.first) }}
+                    </div>
+                    <div class="mb-4">
+                        {{ form_row(form.newPassword.second) }}
+                    </div>
+                    <button type="submit" class="btn btn-primary col-12 col-md-auto" id="three_brs_set_password_submit">
+                        {{ 'three_brs.ui.set_password.submit'|trans }}
+                    </button>
+                    {{ form_rest(form) }}
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

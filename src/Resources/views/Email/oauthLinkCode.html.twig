@@ -1,0 +1,31 @@
+{% block subject %}
+    {{ 'three_brs.emails.oauth_link_code.subject'|trans }}
+{% endblock %}
+
+{% block body %}
+    <div style="font-family: sans-serif; background: #eee; padding-top: 30px; padding-bottom: 30px; font-size: 16px; color: #333; line-height: 1.5">
+        <div style="max-width: 600px; margin: 20px auto;">
+            <div style="background: #fff; padding: 40px 30px;">
+                <div style="font-size: 24px; margin-bottom: 20px;">
+                    {{ 'three_brs.emails.oauth_link_code.title'|trans }}
+                </div>
+
+                <p>{{ 'three_brs.emails.oauth_link_code.intro'|trans }}</p>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <span style="display: inline-block; background: #f5f5f5; padding: 14px 28px; font-size: 32px; letter-spacing: 8px; font-weight: bold; border-radius: 4px;">
+                        {{ code }}
+                    </span>
+                </div>
+
+                <p style="color: #666; font-size: 14px;">
+                    {{ 'three_brs.emails.oauth_link_code.expires_in'|trans({'%minutes%': expirationMinutes}) }}
+                </p>
+
+                <p style="color: #666; font-size: 14px;">
+                    {{ 'three_brs.emails.oauth_link_code.ignore_if_not_requested'|trans }}
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

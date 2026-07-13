@@ -146,13 +146,6 @@ sylius_fixtures:
                                     provider_user_id: google-demo-admin-1
                                     email: sylius@example.com
 
-                three_brs_password_login_control:
-                    options:
-                        shop_users:
-                            - email: oauth-only@example.com
-                              password_login_allowed: false
-                        admin_users: []
-
                 three_brs_lockout:
                     options:
                         shop_users:
@@ -228,11 +221,6 @@ sylius_fixtures:
                     options:
                         reset: true
                         overrides:
-                            customer:
-                                # Enables per-user password-login control for the shop scope so the
-                                # oauth-only@example.com fixture (password login disabled, Google linked)
-                                # actually demonstrates the block.
-                                password_login_control.enabled: true
                             admin:
                                 # Dev safety net: even if an admin flips the IP whitelist master
                                 # switch on through the UI, localhost AND the standard private

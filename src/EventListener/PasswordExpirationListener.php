@@ -14,6 +14,8 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationCheckerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 class PasswordExpirationListener implements PasswordExpirationListenerInterface
 {
@@ -44,6 +46,7 @@ class PasswordExpirationListener implements PasswordExpirationListenerInterface
         protected PasswordExpirationCheckerInterface $checker,
         protected RouterInterface $router,
         protected string $apiRoute,
+        protected PasswordLoginCheckerInterface $passwordLoginChecker,
     ) {
     }
 
@@ -90,7 +93,14 @@ class PasswordExpirationListener implements PasswordExpirationListenerInterface
             return;
         }
 
-        if ($user instanceof PasswordExpirationShopUserInterface && $this->checker->isShopUserPasswordExpired($user)) {
+        // When password login is disabled for the scope, expiration / forced change is
+        // suspended — the user signs in with another method, so redirecting them to a
+        // (now hidden) change-password page would be a dead-end / redirect loop.
+        if (
+            $user instanceof PasswordExpirationShopUserInterface &&
+            $this->passwordLoginChecker->isEnabled(SettingsScope::CUSTOMER) &&
+            $this->checker->isShopUserPasswordExpired($user)
+        ) {
             $session = $request->hasSession() ? $request->getSession() : null;
             if ($session instanceof FlashBagAwareSessionInterface) {
                 $session->getFlashBag()->add('warning', 'three_brs.password_expired');
@@ -101,7 +111,11 @@ class PasswordExpirationListener implements PasswordExpirationListenerInterface
             return;
         }
 
-        if ($user instanceof PasswordExpirationAdminUserInterface && $this->checker->isAdminUserPasswordExpired($user)) {
+        if (
+            $user instanceof PasswordExpirationAdminUserInterface &&
+            $this->passwordLoginChecker->isEnabled(SettingsScope::ADMIN) &&
+            $this->checker->isAdminUserPasswordExpired($user)
+        ) {
             $url = $this->router->generate(self::ADMIN_CHANGE_PASSWORD_ROUTE);
             $event->setResponse(new RedirectResponse($url));
         }

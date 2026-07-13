@@ -1,0 +1,16 @@
+{% set three_brs_user = app.user %}
+{% if three_brs_user is not null %}
+    {% if three_brs_password_login_enabled('customer') %}
+        {% if three_brs_user.password is empty %}
+            <a href="{{ path('three_brs_shop_set_password') }}" class="btn btn-sm btn-icon btn-outline-gray">
+                {{ ux_icon('tabler:lock', { class: 'icon icon-xs' }) }}
+                {{ 'three_brs.ui.set_password.menu_item'|trans }}
+            </a>
+        {% else %}
+            <a href="{{ path('sylius_shop_account_change_password') }}" class="btn btn-sm btn-icon btn-outline-gray">
+                {{ ux_icon('tabler:lock', { class: 'icon icon-xs' }) }}
+                {{ 'sylius.ui.change_password'|trans }}
+            </a>
+        {% endif %}
+    {% endif %}
+{% endif %}

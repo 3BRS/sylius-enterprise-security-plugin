@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 use Twig\Environment;
 
 class ForcePasswordChangeController implements ForcePasswordChangeControllerInterface
@@ -26,6 +28,7 @@ class ForcePasswordChangeController implements ForcePasswordChangeControllerInte
         protected RouterInterface $router,
         protected Environment $twig,
         protected FormFactoryInterface $formFactory,
+        protected PasswordLoginCheckerInterface $passwordLoginChecker,
     ) {
     }
 
@@ -36,6 +39,11 @@ class ForcePasswordChangeController implements ForcePasswordChangeControllerInte
 
         if (!$user instanceof AdminUserInterface) {
             return new RedirectResponse($this->router->generate('sylius_admin_login'));
+        }
+
+        // Password login disabled for admins → a forced password change is moot.
+        if (!$this->passwordLoginChecker->isEnabled(SettingsScope::ADMIN)) {
+            return new RedirectResponse($this->router->generate('sylius_admin_dashboard'));
         }
 
         $model = new ChangePassword();

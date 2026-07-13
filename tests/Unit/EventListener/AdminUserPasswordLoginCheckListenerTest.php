@@ -7,7 +7,11 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\EventListener;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\AdminUserInterface;
-use Sylius\Component\Core\Model\ShopUserInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
@@ -15,69 +19,96 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Event\CheckPassportEvent;
-use ThreeBRS\EnterpriseSecurityBundle\PasswordLoginControl\PasswordLoginPreferenceRepositoryInterface;
-use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
-use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminUserPasswordLoginCheckListener;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 #[CoversClass(AdminUserPasswordLoginCheckListener::class)]
 class AdminUserPasswordLoginCheckListenerTest extends TestCase
 {
-    public function testThrowsForAdminUserWithPasswordLoginDisabledInAdminScope(): void
+    public function testIgnoresRequestsThatAreNotTheWebLoginCheck(): void
     {
-        $featureToggle = $this->createMock(FeatureToggleInterface::class);
-        $featureToggle->expects(self::once())
-            ->method('isEnabled')
-            ->with('password_login_control', SettingsScope::ADMIN)
-            ->willReturn(true);
+        self::expectNotToPerformAssertions();
 
-        $repository = $this->createStub(PasswordLoginPreferenceRepositoryInterface::class);
-        $repository->method('isPasswordLoginAllowedForUser')->willReturn(false);
+        $listener = $this->listener(passwordLoginEnabled: false, route: 'sylius_admin_json_login_check');
+        $listener->onCheckPassport($this->passwordEvent($this->createStub(AdminUserInterface::class)));
+    }
 
-        $listener = new AdminUserPasswordLoginCheckListener($repository, $featureToggle);
+    public function testAllowsWhenPasswordLoginEnabled(): void
+    {
+        self::expectNotToPerformAssertions();
+
+        $listener = $this->listener(passwordLoginEnabled: true, route: 'sylius_admin_login_check');
+        $listener->onCheckPassport($this->passwordEvent($this->createStub(AdminUserInterface::class)));
+    }
+
+    public function testIgnoresNonAdminUser(): void
+    {
+        self::expectNotToPerformAssertions();
+
+        $listener = $this->listener(passwordLoginEnabled: false, route: 'sylius_admin_login_check');
+        $listener->onCheckPassport($this->passwordEvent($this->createStub(UserInterface::class)));
+    }
+
+    public function testThrowsWhenPasswordLoginDisabledOnTheLoginCheck(): void
+    {
+        $listener = $this->listener(passwordLoginEnabled: false, route: 'sylius_admin_login_check');
 
         $this->expectException(CustomUserMessageAuthenticationException::class);
-        $this->expectExceptionMessage('three_brs.password_login_control.disabled_for_user');
+        $this->expectExceptionMessage('three_brs.password_login.disabled');
 
-        $listener->onCheckPassport($this->passwordLoginEvent($this->createStub(AdminUserInterface::class)));
+        $listener->onCheckPassport($this->passwordEvent($this->createStub(AdminUserInterface::class)));
     }
 
-    public function testIgnoresShopUserOnTheAdminFirewall(): void
+    protected function listener(bool $passwordLoginEnabled, string $route): AdminUserPasswordLoginCheckListener
     {
-        // Wrong user type for this listener — settings and the preference must not be consulted.
-        $featureToggle = $this->createMock(FeatureToggleInterface::class);
-        $featureToggle->expects(self::never())->method('isEnabled');
+        $checker = $this->createStub(PasswordLoginCheckerInterface::class);
+        $checker->method('isEnabled')->willReturn($passwordLoginEnabled);
 
-        $repository = $this->createMock(PasswordLoginPreferenceRepositoryInterface::class);
-        $repository->expects(self::never())->method('isPasswordLoginAllowedForUser');
+        $request = Request::create('/admin/login_check', 'POST');
+        $request->attributes->set('_route', $route);
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
 
-        $listener = new AdminUserPasswordLoginCheckListener($repository, $featureToggle);
-
-        $listener->onCheckPassport($this->passwordLoginEvent($this->createStub(ShopUserInterface::class)));
+        return new AdminUserPasswordLoginCheckListener($checker, $requestStack);
     }
 
-    public function testAllowsAdminUserWhenPreferenceAllows(): void
-    {
-        $featureToggle = $this->createStub(FeatureToggleInterface::class);
-        $featureToggle->method('isEnabled')->willReturn(true);
-
-        $repository = $this->createMock(PasswordLoginPreferenceRepositoryInterface::class);
-        $repository->expects(self::once())
-            ->method('isPasswordLoginAllowedForUser')
-            ->willReturn(true);
-
-        $listener = new AdminUserPasswordLoginCheckListener($repository, $featureToggle);
-
-        $listener->onCheckPassport($this->passwordLoginEvent($this->createStub(AdminUserInterface::class)));
-    }
-
-    protected function passwordLoginEvent(UserInterface $user): CheckPassportEvent
+    protected function passwordEvent(UserInterface $user): CheckPassportEvent
     {
         $passport = new Passport(
-            new UserBadge('u', static fn (): UserInterface => $user),
+            new UserBadge('u', static fn () => $user),
             new PasswordCredentials('plain'),
         );
 
-        return new CheckPassportEvent($this->createStub(AuthenticatorInterface::class), $passport);
+        return new CheckPassportEvent($this->stubAuthenticator(), $passport);
+    }
+
+    protected function stubAuthenticator(): AuthenticatorInterface
+    {
+        return new class() implements AuthenticatorInterface {
+            public function supports(Request $request): ?bool
+            {
+                return null;
+            }
+
+            public function authenticate(Request $request): Passport
+            {
+                throw new \LogicException('not used');
+            }
+
+            public function createToken(Passport $passport, string $firewallName): TokenInterface
+            {
+                throw new \LogicException('not used');
+            }
+
+            public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
+            {
+                return null;
+            }
+
+            public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
+            {
+                return null;
+            }
+        };
     }
 }

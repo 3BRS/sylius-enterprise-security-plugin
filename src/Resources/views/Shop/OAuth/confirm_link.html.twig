@@ -16,16 +16,23 @@
                         {% endif %}
 
                         <form method="POST" action="{{ path('three_brs_shop_oauth_confirm_link') }}">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('three_brs_oauth_confirm_link') }}">
                             <div class="mb-3">
-                                <label for="three_brs_oauth_confirm_password" class="form-label">
-                                    {{ 'three_brs.ui.social_login.password_label'|trans }}
+                                <label for="three_brs_oauth_confirm_code" class="form-label">
+                                    {{ 'three_brs.ui.social_login.code_label'|trans }}
                                 </label>
-                                <input id="three_brs_oauth_confirm_password" name="_password" type="password" class="form-control" required autofocus data-test-three-brs-social-confirm-password>
+                                <input id="three_brs_oauth_confirm_code" name="_code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="\d{6}" maxlength="6" class="form-control" required autofocus data-test-three-brs-social-confirm-code>
                             </div>
                             <button type="submit" class="btn btn-primary w-100" data-test-three-brs-social-confirm-submit>
                                 {{ 'three_brs.ui.social_login.confirm_and_link'|trans }}
                             </button>
                         </form>
+
+                        <p class="text-center text-body-secondary small mt-3 mb-0">
+                            <a href="{{ path('three_brs_shop_oauth_confirm_link', {'resend': 1}) }}" data-test-three-brs-social-confirm-resend>
+                                {{ 'three_brs.ui.social_login.resend_code'|trans }}
+                            </a>
+                        </p>
                     </div>
                 </div>
             </div>

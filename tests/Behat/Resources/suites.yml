@@ -2,6 +2,9 @@ imports:
     - suites/shop_password_policy.yml
     - suites/admin_password_policy.yml
     - suites/shop_change_password_policy.yml
+    - suites/shop_set_password.yml
+    - suites/shop_password_login.yml
+    - suites/admin_password_login.yml
     - suites/admin_customer_password_policy.yml
     - suites/shop_password_history.yml
     - suites/shop_password_expiration.yml
@@ -36,4 +39,3 @@ imports:
     - suites/admin_ip_whitelist.yml
     - suites/admin_ip_blacklist.yml
     - suites/admin_customer_management.yml
-    - suites/shop_password_login_control.yml

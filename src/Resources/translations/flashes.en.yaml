@@ -1,5 +1,9 @@
 three_brs:
     password_expired: 'Your password has expired. Please set a new password to continue.'
+    set_password:
+        success: 'Your password has been set. You can now also sign in with your email and password.'
+    password_login:
+        registration_disabled: 'Registration with an email and password is currently disabled. Please use one of the other available sign-in methods.'
     lockout:
         account_locked: 'Account is locked. Try again later or contact an administrator.'
         unlocked: 'Account has been unlocked.'
@@ -27,16 +31,12 @@ three_brs:
             saved: 'IP whitelist saved for this administrator.'
     customer_security:
         session_expired: 'Your session was renewed (for example after signing in or out in another tab). Please try again.'
+        password_login_disabled: 'Password login is disabled for customers, so a password reset cannot be forced.'
         password_reset_forced: 'The customer will be required to change their password on next sign-in.'
         blocked: 'Customer account has been blocked. Active sessions were signed out.'
         unblocked: 'Customer account has been unblocked.'
         sessions_revoked: 'All active sessions for this customer have been signed out.'
         session_revoked: 'The selected session has been signed out.'
-    password_login_control:
-        customer:
-            enabled: 'Password login has been enabled for this customer.'
-            disabled: 'Password login has been disabled for this customer.'
-            cannot_disable_last_method: 'Password login cannot be disabled — this customer has no other sign-in method (a connected social account, a passkey, or magic link).'
     ui:
         social_login:
             already_linked: 'This 3rd-party account is already linked to your account.'

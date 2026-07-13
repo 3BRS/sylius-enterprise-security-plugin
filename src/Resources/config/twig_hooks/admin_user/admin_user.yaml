@@ -1,19 +1,16 @@
 sylius_twig_hooks:
     hooks:
         'sylius_admin.admin_user.update.content.form.sections.account':
+            password:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/form/sections/account/password.html.twig'
+                priority: 100
             force_password_change:
                 template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/form/sections/account/force_password_change.html.twig'
                 priority: -100
-            password_login_allowed:
-                # Lower priority than force_password_change (-100) → renders right below it.
-                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/form/sections/account/password_login_allowed.html.twig'
-                priority: -200
-
         'sylius_admin.admin_user.create.content.form.sections.account':
+            password:
+                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/form/sections/account/password.html.twig'
+                priority: 100
             force_password_change:
                 template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/form/sections/account/force_password_change.html.twig'
                 priority: -100
-            password_login_allowed:
-                # Lower priority than force_password_change (-100) → renders right below it.
-                template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/AdminUser/form/sections/account/password_login_allowed.html.twig'
-                priority: -200

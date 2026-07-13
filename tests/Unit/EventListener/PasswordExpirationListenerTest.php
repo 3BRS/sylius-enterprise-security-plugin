@@ -15,6 +15,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordExpirationListener;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationCheckerInterface;
@@ -42,8 +43,12 @@ class PasswordExpirationListenerTest extends TestCase
         PasswordExpirationCheckerInterface $checker,
         RouterInterface $router,
         string $apiRoute = '/api/v2',
+        bool $passwordLoginEnabled = true,
     ): PasswordExpirationListener {
-        return new PasswordExpirationListener($tokenStorage, $checker, $router, $apiRoute);
+        $passwordLoginChecker = $this->createStub(PasswordLoginCheckerInterface::class);
+        $passwordLoginChecker->method('isEnabled')->willReturn($passwordLoginEnabled);
+
+        return new PasswordExpirationListener($tokenStorage, $checker, $router, $apiRoute, $passwordLoginChecker);
     }
 
     /**
@@ -277,6 +282,49 @@ class PasswordExpirationListenerTest extends TestCase
         );
 
         $event = $this->createEvent('api_entrypoint', [], '/api/v2/admin/orders');
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testDoesNotRedirectShopUserWhenPasswordLoginDisabled(): void
+    {
+        // Password login off for customers → expiration is suspended (no dead-end redirect).
+        $checker = $this->createStub(PasswordExpirationCheckerInterface::class);
+        $checker->method('isShopUserPasswordExpired')->willReturn(true);
+
+        $router = $this->createMock(RouterInterface::class);
+        $router->expects(self::never())->method('generate');
+
+        $listener = $this->createListener(
+            $this->tokenStorageWithUser($this->createStub(TestShopUser::class)),
+            $checker,
+            $router,
+            passwordLoginEnabled: false,
+        );
+
+        $event = $this->createEvent();
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testDoesNotRedirectAdminUserWhenPasswordLoginDisabled(): void
+    {
+        $checker = $this->createStub(PasswordExpirationCheckerInterface::class);
+        $checker->method('isAdminUserPasswordExpired')->willReturn(true);
+
+        $router = $this->createMock(RouterInterface::class);
+        $router->expects(self::never())->method('generate');
+
+        $listener = $this->createListener(
+            $this->tokenStorageWithUser($this->createStub(TestAdminUser::class)),
+            $checker,
+            $router,
+            passwordLoginEnabled: false,
+        );
+
+        $event = $this->createEvent();
         $listener->onKernelRequest($event);
 
         self::assertNull($event->getResponse());

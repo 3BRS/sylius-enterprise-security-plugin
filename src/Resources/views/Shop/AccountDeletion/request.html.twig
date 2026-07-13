@@ -5,6 +5,8 @@
 {% block content %}
     <div class="container mb-auto">
         <div class="row my-4">
+            {{ include('@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/_account_breadcrumbs.html.twig', { active_label: 'three_brs.ui.account_deletion.title' }) }}
+
             <div class="col-12 col-md-3 mb-4 mb-md-0">
                 <div class="mb-3">
                     {{ knp_menu_render('sylius_shop.account', {'template': '@SyliusShop/account/menu/content.html.twig'}) }}

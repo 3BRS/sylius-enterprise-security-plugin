@@ -6,105 +6,74 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Form\Extension;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Sylius\Component\Core\Model\AdminUserInterface;
-use Symfony\Component\Form\FormError;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\FormBuilderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension\AdminUserTypeExtension;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordLoginControlAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuardInterface;
-
-/** @internal test double: admin user carrying the password-login flag */
-interface TestPasswordControlAdminUser extends AdminUserInterface, PasswordLoginControlAdminUserInterface
-{
-}
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 #[CoversClass(AdminUserTypeExtension::class)]
 class AdminUserTypeExtensionTest extends TestCase
 {
-    public function testAddsErrorWhenDisablingWouldLockTheAdminOut(): void
+    public function testAddsForcePasswordChangeWhenAdminPasswordLoginEnabled(): void
     {
-        $admin = $this->createStub(TestPasswordControlAdminUser::class);
-        $admin->method('isPasswordLoginAllowed')->willReturn(false);
+        $builder = $this->createMock(FormBuilderInterface::class);
+        $builder->expects(self::once())
+            ->method('add')
+            ->with('forcePasswordChange', CheckboxType::class, self::anything());
 
-        $guard = $this->createStub(LastAuthMethodGuardInterface::class);
-        $guard->method('canDisablePasswordLoginForAdminUser')->willReturn(false);
-
-        $field = $this->createMock(FormInterface::class);
-        $field->expects(self::once())->method('addError')->with(self::isInstanceOf(FormError::class));
-
-        $this->extension($guard)->guardAgainstLockout(new FormEvent($this->formWithField($field, hasField: true), $admin));
+        $this->extension(adminPasswordLoginEnabled: true)
+            ->buildForm($builder, ['data_class' => PasswordExpirationAdminUserInterface::class]);
     }
 
-    public function testNoErrorWhenTheAdminKeepsAnAlternativeSignInMethod(): void
+    public function testRemovesPasswordAndSkipsForcePasswordChangeWhenAdminPasswordLoginDisabled(): void
     {
-        $admin = $this->createStub(TestPasswordControlAdminUser::class);
-        $admin->method('isPasswordLoginAllowed')->willReturn(false);
+        $builder = $this->createMock(FormBuilderInterface::class);
+        $builder->expects(self::never())->method('add');
+        $builder->method('has')->with('plainPassword')->willReturn(true);
+        $builder->expects(self::once())->method('remove')->with('plainPassword')->willReturnSelf();
 
-        $guard = $this->createStub(LastAuthMethodGuardInterface::class);
-        $guard->method('canDisablePasswordLoginForAdminUser')->willReturn(true);
-
-        $field = $this->createMock(FormInterface::class);
-        $field->expects(self::never())->method('addError');
-
-        $this->extension($guard)->guardAgainstLockout(new FormEvent($this->formWithField($field, hasField: true), $admin));
+        $this->extension(adminPasswordLoginEnabled: false)
+            ->buildForm($builder, ['data_class' => PasswordExpirationAdminUserInterface::class]);
     }
 
-    public function testNoErrorWhenPasswordLoginStaysAllowed(): void
+    public function testRemovesPasswordEvenWhenAdminUserLacksThePasswordExpirationInterface(): void
     {
-        $admin = $this->createStub(TestPasswordControlAdminUser::class);
-        $admin->method('isPasswordLoginAllowed')->willReturn(true);
+        $builder = $this->createMock(FormBuilderInterface::class);
+        $builder->expects(self::never())->method('add');
+        $builder->method('has')->with('plainPassword')->willReturn(true);
+        $builder->expects(self::once())->method('remove')->with('plainPassword')->willReturnSelf();
 
-        $guard = $this->createMock(LastAuthMethodGuardInterface::class);
-        $guard->expects(self::never())->method('canDisablePasswordLoginForAdminUser');
-
-        $field = $this->createMock(FormInterface::class);
-        $field->expects(self::never())->method('addError');
-
-        $this->extension($guard)->guardAgainstLockout(new FormEvent($this->formWithField($field, hasField: true), $admin));
+        $this->extension(adminPasswordLoginEnabled: false)
+            ->buildForm($builder, ['data_class' => \stdClass::class]);
     }
 
-    public function testDoesNothingWhenTheFormHasNoPasswordLoginField(): void
+    public function testDoesNotRemovePasswordWhenTheFieldIsAbsentAndAdminPasswordLoginDisabled(): void
     {
-        $field = $this->createMock(FormInterface::class);
-        $field->expects(self::never())->method('addError');
+        $builder = $this->createMock(FormBuilderInterface::class);
+        $builder->expects(self::never())->method('add');
+        $builder->method('has')->with('plainPassword')->willReturn(false);
+        $builder->expects(self::never())->method('remove');
 
-        $this->extension()->guardAgainstLockout(
-            new FormEvent($this->formWithField($field, hasField: false), $this->createStub(TestPasswordControlAdminUser::class)),
-        );
+        $this->extension(adminPasswordLoginEnabled: false)
+            ->buildForm($builder, ['data_class' => PasswordExpirationAdminUserInterface::class]);
     }
 
-    public function testDoesNothingForNonAdminData(): void
+    public function testDoesNothingForAnUnrelatedDataClass(): void
     {
-        $field = $this->createMock(FormInterface::class);
-        $field->expects(self::never())->method('addError');
+        $builder = $this->createMock(FormBuilderInterface::class);
+        $builder->expects(self::never())->method('add');
+        $builder->expects(self::never())->method('remove');
 
-        $this->extension()->guardAgainstLockout(
-            new FormEvent($this->formWithField($field, hasField: true), $this->createStub(UserInterface::class)),
-        );
+        $this->extension(adminPasswordLoginEnabled: true)
+            ->buildForm($builder, ['data_class' => \stdClass::class]);
     }
 
-    protected function formWithField(FormInterface $field, bool $hasField): FormInterface
+    protected function extension(bool $adminPasswordLoginEnabled): AdminUserTypeExtension
     {
-        $form = $this->createStub(FormInterface::class);
-        $form->method('has')->willReturn($hasField);
-        $form->method('get')->willReturn($field);
+        $checker = $this->createStub(PasswordLoginCheckerInterface::class);
+        $checker->method('isEnabled')->willReturn($adminPasswordLoginEnabled);
 
-        return $form;
-    }
-
-    protected function extension(?LastAuthMethodGuardInterface $guard = null): AdminUserTypeExtension
-    {
-        $translator = $this->createStub(TranslatorInterface::class);
-        $translator->method('trans')->willReturn('Password login cannot be disabled — no other sign-in method.');
-
-        return new AdminUserTypeExtension(
-            $guard ?? $this->createStub(LastAuthMethodGuardInterface::class),
-            $this->createStub(FeatureToggleInterface::class),
-            $translator,
-        );
+        return new AdminUserTypeExtension($checker);
     }
 }

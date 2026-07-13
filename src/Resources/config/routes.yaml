@@ -374,9 +374,9 @@ three_brs_admin_customer_revoke_session:
         id: '\d+'
         sessionId: '\d+'
 
-three_brs_admin_customer_password_login:
-    path: /admin/customers/{id}/password-login
-    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\CustomerPasswordLoginController
-    methods: [POST]
+three_brs_shop_set_password:
+    path: /{_locale}/account/set-password
+    controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SetPasswordController
+    methods: [GET, POST]
     requirements:
-        id: '\d+'
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'

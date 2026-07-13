@@ -8,23 +8,42 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 /**
  * @extends AbstractType<array<string, mixed>>
  */
 class SecuritySettingsType extends AbstractType implements SecuritySettingsTypeInterface
 {
+    public function __construct(
+        protected PasswordLoginCheckerInterface $passwordLoginChecker,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var SettingsScope $scope */
         $scope = $options['scope'];
 
+        // With password login disabled for the scope, the whole password-management family
+        // (policy, history, expiration, change notification) is irrelevant — render it
+        // disabled. Stored values are preserved; they just become editable again once
+        // password login is turned back on.
+        $passwordSettingsDisabled = !$this->passwordLoginChecker->isEnabled($scope);
+
         $builder
-            ->add('password_policy', PasswordPolicySettingsType::class)
-            ->add('password_history', PasswordHistorySettingsType::class)
-            ->add('password_expiration', PasswordExpirationSettingsType::class)
+            ->add('password_policy', PasswordPolicySettingsType::class, [
+                'disabled' => $passwordSettingsDisabled,
+            ])
+            ->add('password_history', PasswordHistorySettingsType::class, [
+                'disabled' => $passwordSettingsDisabled,
+            ])
+            ->add('password_expiration', PasswordExpirationSettingsType::class, [
+                'disabled' => $passwordSettingsDisabled,
+            ])
             ->add('password_change_notification', SimpleToggleSettingsType::class, [
                 'label' => 'three_brs.ui.security_settings.password_change_notification.enabled',
+                'disabled' => $passwordSettingsDisabled,
             ])
             ->add('two_factor_authentication', TwoFactorSettingsType::class)
             ->add('magic_link', MagicLinkSettingsType::class)
@@ -46,8 +65,8 @@ class SecuritySettingsType extends AbstractType implements SecuritySettingsTypeI
             ->add('login_notifications', SimpleToggleSettingsType::class, [
                 'label' => 'three_brs.ui.security_settings.login_notifications.enabled',
             ])
-            ->add('password_login_control', SimpleToggleSettingsType::class, [
-                'label' => 'three_brs.ui.security_settings.password_login_control.enabled',
+            ->add('password_login', SimpleToggleSettingsType::class, [
+                'label' => 'three_brs.ui.security_settings.password_login.enabled',
             ])
             ->add('oauth', OAuthSettingsType::class)
         ;

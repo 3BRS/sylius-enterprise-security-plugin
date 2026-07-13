@@ -2,8 +2,8 @@ three_brs:
     # Admin login renders the auth error via `messageKey|trans` (default `messages`
     # domain), while the shop login uses the `security` domain — so this key lives in
     # both messages.en.yaml and security.en.yaml.
-    password_login_control:
-        disabled_for_user: 'Password login is disabled for this account. Please use one of the other available ways to sign in.'
+    password_login:
+        disabled: 'Password login is currently disabled. Please use one of the other available ways to sign in.'
     emails:
         password_changed:
             subject: 'Your password has been changed'
@@ -28,6 +28,12 @@ three_brs:
             subject: 'Your account has been deleted'
             title: 'Account deleted'
             intro: 'Your account has been deleted as requested.'
+        oauth_link_code:
+            subject: 'Your account linking code'
+            title: 'Confirm account linking'
+            intro: 'Use the code below to confirm linking your social account to your existing account.'
+            expires_in: 'This code will expire in %minutes% minutes.'
+            ignore_if_not_requested: 'If you did not request this, you can safely ignore this email.'
         login_notification:
             subject: 'New sign-in to your account'
             title: 'New sign-in detected'
@@ -41,8 +47,6 @@ three_brs:
     form:
         admin_user:
             force_password_change: 'Force password change on next request'
-            password_login_allowed: 'Allow password login'
-            password_login_allowed_help: 'When unchecked, this administrator cannot sign in with a password — they must use a magic link, a passkey, or a connected social account.'
     ip_whitelist:
         admin:
             enabled: 'Enable per-admin IP whitelist for this administrator'
@@ -57,6 +61,14 @@ three_brs:
         force_password_change: 'Password Change Required'
         force_password_change_description: 'Your password has expired or an administrator has requested you to change it. Please set a new password to continue.'
         change_password: 'Change Password'
+        set_password:
+            menu_item: 'Set a new password'
+            title: 'Set a new password'
+            subtitle: 'You signed in without a password (for example via Google or Apple). Set a password to also sign in with your email and password.'
+            submit: 'Set a new password'
+        password_login:
+            login_disabled_notice: 'Signing in with an email and password is currently disabled. Please use one of the options below to sign in.'
+            register_disabled_notice: 'Registering with an email and password is currently disabled. Please sign up using one of the options below.'
         two_factor:
             setup_title: 'Set up two-factor authentication'
             setup_description: 'Scan the QR code below with your authenticator app (Google Authenticator, Authy, 1Password, …) or enter the secret manually. Then confirm the 6-digit code to enable 2FA.'
@@ -103,10 +115,14 @@ three_brs:
                 apple: 'Apple'
                 microsoft: 'Microsoft'
             confirm_link_title: 'Confirm account linking'
-            confirm_link_intro: 'An account with the email %email% already exists. Enter its password to link your %provider% account.'
-            password_label: 'Password'
+            confirm_link_intro: 'An account with the email %email% already exists. We sent a 6-digit confirmation code to that address — enter it to link your %provider% account.'
+            code_label: 'Confirmation code'
             confirm_and_link: 'Confirm and link account'
-            invalid_password: 'Invalid password.'
+            resend_code: 'Send a new code'
+            invalid_code: 'The code is incorrect. Please check it and try again.'
+            code_expired: 'The code has expired. Send a new one to continue.'
+            code_too_many_attempts: 'Too many incorrect attempts. Send a new code to try again.'
+            confirm_link_session_expired: 'Your session expired. Please reload the page and try again.'
             unlink_confirm: 'Are you sure you want to unlink this 3rd-party OAuth account?'
         magic_link:
             request_title: 'Sign in with a magic link'
@@ -175,7 +191,7 @@ three_brs:
             login_failed: 'Passkey sign-in failed. Please try again.'
         customer_security:
             title: 'Security'
-            intro: 'Manage this customer''s security state — password reset, account block, active sessions, and whether they can sign in with a password (standard login).'
+            intro: 'Manage this customer''s security state — password reset, account block and active sessions'
             account_state: 'Account state'
             state_enabled: 'Enabled'
             state_blocked: 'Blocked'
@@ -246,13 +262,6 @@ three_brs:
             revoke_confirm: 'Sign out from this session?'
             revoke_others_confirm: 'Sign out from every other session?'
             none: 'No active sessions.'
-        password_login_control:
-            label: 'Password login'
-            allowed: 'Allowed'
-            state_disabled: 'Disabled'
-            enable: 'Enable password login'
-            disable: 'Disable password login'
-            cannot_disable_hint: 'Cannot be disabled — this account has no other sign-in method (a connected social account, a passkey, or magic link).'
         security_settings:
             menu_item: 'Security settings'
             title: 'Security settings'
@@ -261,10 +270,11 @@ three_brs:
             scope_admin: 'Administrators'
             scope_global: 'Global'
             save: 'Save'
-            password_login_control:
+            password_settings_disabled_note: 'These settings have no effect while password login is turned off for this group. Turn "Password login" back on to edit them.'
+            password_login:
                 title: 'Password login'
-                description: 'Controls whether classic email-and-password sign-in can be switched off for individual accounts. With the master switch on, a per-user toggle blocks the password form for a chosen account and forces them onto a magic link, passkey, or social login — a guard stops you doing this to someone who has no other way in. Turn the master switch off and every per-user toggle goes inert, so everyone in this group can use their password again.'
-                enabled: 'Enable password login control'
+                description: 'Allow signing in with email and password for this group. When turned off, the email-and-password login form and the registration form are hidden and everyone in this group must use a magic link, a passkey, or a social login instead. While off, the password-related settings below (policy, history, expiration, and change notification) are locked and cannot be edited, and password expiration and the force-password-change action are suspended for the group.'
+                enabled: 'Allow password login'
             password_policy:
                 title: 'Password policy'
                 description: 'Defines the rules every new or changed password must meet: minimum and maximum length, plus optional uppercase, lowercase, number, and special-character requirements. The rules run whenever a password is set or changed and reject anything that breaks an active rule. Tightening them makes future passwords harder to guess but harder to choose; existing passwords are never re-checked, so changes only affect passwords set from then on.'

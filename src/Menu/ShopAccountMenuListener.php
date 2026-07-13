@@ -5,13 +5,20 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Menu;
 
 use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
+use Sylius\Component\Core\Model\ShopUserInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 {
     public function __construct(
         protected FeatureToggleInterface $features,
+        protected TokenStorageInterface $tokenStorage,
+        protected RouterInterface $router,
+        protected PasswordLoginCheckerInterface $passwordLoginChecker,
     ) {
     }
 
@@ -91,5 +98,50 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
             ->setLabel('three_brs.ui.account_deletion.menu_item')
             ->setLabelAttribute('icon', 'tabler:user-x')
         ;
+    }
+
+    public function adjustChangePasswordItem(MenuBuilderEvent $event): void
+    {
+        $user = $this->tokenStorage->getToken()?->getUser();
+
+        if (!$user instanceof ShopUserInterface) {
+            return;
+        }
+
+        $menu = $event->getMenu();
+
+        // Password is no longer a sign-in method for customers (password login is
+        // disabled) — drop both "Change password" and "Set a new password".
+        if (!$this->passwordLoginChecker->isEnabled(SettingsScope::CUSTOMER)) {
+            $menu->removeChild('change_password');
+
+            return;
+        }
+
+        // Only customers without a password yet (OAuth / magic link / passkey)
+        // get the "Set a new password" entry; everyone else keeps the standard
+        // Sylius change-password item, which requires the current password.
+        if (!$this->isPasswordless($user)) {
+            return;
+        }
+
+        $item = $menu->getChild('change_password');
+        if ($item === null) {
+            return;
+        }
+
+        // The core item already carries the 'tabler:lock' icon, so only the
+        // destination and label need to change here.
+        $item
+            ->setUri($this->router->generate('three_brs_shop_set_password'))
+            ->setLabel('three_brs.ui.set_password.menu_item')
+        ;
+    }
+
+    protected function isPasswordless(ShopUserInterface $user): bool
+    {
+        $password = $user->getPassword();
+
+        return $password === null || $password === '';
     }
 }

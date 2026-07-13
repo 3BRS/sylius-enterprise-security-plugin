@@ -10,10 +10,13 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractOAuthCallbackController;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSignerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandlerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface;
 
@@ -21,6 +24,9 @@ class OAuthCallbackController extends AbstractOAuthCallbackController implements
 {
     public const CONFIRM_PENDING_SESSION_KEY = 'three_brs_oauth_pending_admin';
 
+    /**
+     * @param UserProviderInterface<AdminUserInterface> $userProvider
+     */
     public function __construct(
         OAuthProviderRegistryInterface $registry,
         protected AdminSocialLoginHandlerInterface $handler,
@@ -28,9 +34,11 @@ class OAuthCallbackController extends AbstractOAuthCallbackController implements
         TokenStorageInterface $tokenStorage,
         Security $security,
         LoggerInterface $logger,
+        StateCookieSignerInterface $stateCookieSigner,
         protected AdminUserSessionLoginHandlerInterface $sessionLoginHandler,
+        protected UserProviderInterface $userProvider,
     ) {
-        parent::__construct($registry, $router, $tokenStorage, $security, $logger);
+        parent::__construct($registry, $router, $tokenStorage, $security, $logger, $stateCookieSigner);
     }
 
     protected function getOAuthGroup(): string
@@ -106,6 +114,15 @@ class OAuthCallbackController extends AbstractOAuthCallbackController implements
     protected function findUserByEmail(string $email): ?UserInterface
     {
         return $this->handler->findUserByEmail($email);
+    }
+
+    protected function findUserByIdentifier(string $identifier): ?UserInterface
+    {
+        try {
+            return $this->userProvider->loadUserByIdentifier($identifier);
+        } catch (UserNotFoundException) {
+            return null;
+        }
     }
 
     protected function canAutoRegister(OAuthUserInfoInterface $info): bool

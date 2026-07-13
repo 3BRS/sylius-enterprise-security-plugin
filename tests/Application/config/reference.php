@@ -121,7 +121,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  * }
  * @psalm-type ServicesConfig = array{
  *     _defaults?: DefaultsType,
- *     _instanceof?: InstanceofType,
+ *     _instanceof?: array<class-string, InstanceofType>,
  *     ...<string, DefinitionType|AliasType|PrototypeType|StackType|ArgumentsType|null>
  * }
  * @psalm-type ExtensionType = array<string, mixed>
@@ -3696,12 +3696,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             enabled?: bool|Param, // Default: false
  *         },
  *     },
- *     password_login_control?: array{
+ *     password_login?: array{
  *         customer?: array{
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Default: true
  *         },
  *         admin?: array{
- *             enabled?: bool|Param, // Default: false
+ *             enabled?: bool|Param, // Default: true
  *         },
  *     },
  *     ip_whitelist?: array{
