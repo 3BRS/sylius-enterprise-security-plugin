@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension;
 
 use Sylius\Bundle\AdminBundle\Form\Type\ShopUserType;
+use Sylius\Bundle\CoreBundle\Form\Type\User\ShopUserType as BaseShopUserType;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\FormBuilderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
@@ -29,6 +30,11 @@ class ShopUserTypeExtension extends AbstractTypeExtension implements ShopUserTyp
 
     public static function getExtendedTypes(): iterable
     {
+        // The base type has to be covered too: while handling the submit of the customer form Sylius
+        // swaps the admin type for the base one (AddUserFormSubscriber), so without this the password
+        // field would reappear as soon as that form is re-rendered.
+        yield BaseShopUserType::class;
+
         yield ShopUserType::class;
     }
 }

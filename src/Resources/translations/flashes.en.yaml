@@ -2,8 +2,11 @@ three_brs:
     password_expired: 'Your password has expired. Please set a new password to continue.'
     set_password:
         success: 'Your password has been set. You can now also sign in with your email and password.'
+    account_state:
+        sign_in_refused: 'This account is disabled and cannot be used to sign in.'
     password_login:
         registration_disabled: 'Registration with an email and password is currently disabled. Please use one of the other available sign-in methods.'
+        password_management_disabled: 'Password login is currently disabled, so passwords cannot be requested or changed.'
     lockout:
         account_locked: 'Account is locked. Try again later or contact an administrator.'
         unlocked: 'Account has been unlocked.'

@@ -10,6 +10,7 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Challenge\CodeChallengeValidatorInterface;
@@ -39,8 +40,9 @@ class OAuthConfirmLinkController extends AbstractOAuthLinkCodeConfirmLinkControl
         RouterInterface $router,
         Environment $twig,
         LoggerInterface $logger,
+        UserCheckerInterface $userChecker,
     ) {
-        parent::__construct($codeGenerator, $codeEmailManager, $clock, $csrfTokenManager, $challengeValidator, $tokenStorage, $router, $twig, $logger);
+        parent::__construct($codeGenerator, $codeEmailManager, $clock, $csrfTokenManager, $challengeValidator, $tokenStorage, $router, $twig, $logger, $userChecker);
     }
 
     protected function getConfirmPendingSessionKey(): string

@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Challenge\CodeChallengeValidator;
@@ -240,6 +241,7 @@ class OAuthLinkCodeConfirmLinkControllerTest extends TestCase
             $this->createStub(RouterInterface::class),
             $this->createStub(Environment::class),
             new NullLogger(),
+            $this->createStub(UserCheckerInterface::class),
         );
     }
 

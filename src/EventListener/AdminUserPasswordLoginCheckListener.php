@@ -14,7 +14,10 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterfac
 
 class AdminUserPasswordLoginCheckListener extends AbstractPasswordLoginCheckListener implements AdminUserPasswordLoginCheckListenerInterface
 {
-    protected const WEB_LOGIN_CHECK_ROUTE = 'sylius_admin_login_check';
+    /** Every entry point the admin panel authenticates a password through. */
+    protected const WEB_LOGIN_CHECK_ROUTES = [
+        'sylius_admin_login_check',
+    ];
 
     public function __construct(
         protected PasswordLoginCheckerInterface $passwordLoginChecker,
@@ -24,10 +27,11 @@ class AdminUserPasswordLoginCheckListener extends AbstractPasswordLoginCheckList
 
     public function onCheckPassport(CheckPassportEvent $event): void
     {
-        // Enforce only on the web form-login check; json_login / API password auth is left
-        // untouched (the plugin never gates the API).
+        // Enforce on the web login checks only. The API authenticates on its own routes
+        // (/api/v2/...), which are absent from this list on purpose: the plugin never gates the
+        // API, it behaves there as if it were not installed.
         $request = $this->requestStack->getCurrentRequest();
-        if ($request === null || $request->attributes->get('_route') !== static::WEB_LOGIN_CHECK_ROUTE) {
+        if ($request === null || !in_array($request->attributes->get('_route'), static::WEB_LOGIN_CHECK_ROUTES, true)) {
             return;
         }
 

@@ -3,6 +3,7 @@ default:
         admin_passkey_ceremony:
             contexts:
                 - sylius.behat.context.hook.doctrine_orm
+                - three_brs.behat.context.hook.security_settings
                 - sylius.behat.context.setup.channel
                 - sylius.behat.context.setup.currency
                 - sylius.behat.context.setup.geographical

@@ -65,7 +65,7 @@ Most features ship **disabled by default** (the exception is **Password Login**,
 | Admin IP Whitelist | Restrict admin-panel access to allowed IPs / CIDR ranges, with a team-wide global list plus optional per-admin lists. | [admin-ip-whitelist](docs/admin-ip-whitelist.md) |
 | Admin IP Blacklist | Block specific IPs / CIDR ranges from the admin panel with a global deny-list — always wins over the whitelist, is identity-agnostic, and fails open when empty. | [admin-ip-blacklist](docs/admin-ip-blacklist.md) |
 | Admin Customer Management | A Security section on the Sylius customer detail page — force password reset, block / unblock, sign out of all or individual sessions, plus active-sessions and login-history tables. | [admin-customer-management](docs/admin-customer-management.md) |
-| Password Login | Global per-group (customer / admin) switch — **on by default** — for classic email + password sign-in and registration. Turn it off for a group and its login / registration forms (and "forgot password" link) are hidden, everyone must use a magic link, passkey or social login, and that group's password expiration / force-change pause too. | [password-login](docs/password-login.md) |
+| Password Login | Global per-group (customer / admin) switch — **on by default** — for classic email + password sign-in and registration. Turn it off for a group and its login / registration forms are hidden (including the checkout inline sign-in), its forgotten-password pages are closed, the admin panel creates that group's accounts without a password, everyone must use a magic link, passkey or social login, and that group's password expiration / force-change pause too. | [password-login](docs/password-login.md) |
 
 
 ## Installation (into an existing Sylius application)

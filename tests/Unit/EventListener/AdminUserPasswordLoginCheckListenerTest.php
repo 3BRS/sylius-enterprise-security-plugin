@@ -27,9 +27,11 @@ class AdminUserPasswordLoginCheckListenerTest extends TestCase
 {
     public function testIgnoresRequestsThatAreNotTheWebLoginCheck(): void
     {
+        // The API authenticates on its own routes and is never gated — the plugin behaves there
+        // as if it were not installed.
         self::expectNotToPerformAssertions();
 
-        $listener = $this->listener(passwordLoginEnabled: false, route: 'sylius_admin_json_login_check');
+        $listener = $this->listener(passwordLoginEnabled: false, route: 'sylius_api_admin_authentication_token');
         $listener->onCheckPassport($this->passwordEvent($this->createStub(AdminUserInterface::class)));
     }
 

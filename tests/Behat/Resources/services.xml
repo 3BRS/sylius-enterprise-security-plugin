@@ -243,6 +243,7 @@
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="sylius.repository.admin_user"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.password_login"
@@ -297,6 +298,12 @@
 		<service id="three_brs.behat.context.hook.rate_limiter_cache"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Hook\RateLimiterCacheHookContext">
 			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
+		</service>
+
+		<service id="three_brs.behat.context.hook.security_settings"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Hook\SecuritySettingsHookContext">
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.session_management"

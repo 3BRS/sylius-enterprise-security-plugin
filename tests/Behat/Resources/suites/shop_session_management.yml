@@ -3,6 +3,7 @@ default:
         shop_session_management:
             contexts:
                 - sylius.behat.context.hook.doctrine_orm
+                - three_brs.behat.context.hook.security_settings
                 - three_brs.behat.context.hook.rate_limiter_cache
                 - sylius.behat.context.setup.channel
                 - sylius.behat.context.setup.currency

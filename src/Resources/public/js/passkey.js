@@ -105,9 +105,21 @@
         if (isUserCancellation(error)) {
             message = button.getAttribute(cancelledAttr) || 'Operation cancelled.';
         } else {
-            message = button.getAttribute(errorAttr) || 'Operation failed.';
+            var attribute = (error && error.messageAttribute) || errorAttr;
+            message = button.getAttribute(attribute) || button.getAttribute(errorAttr) || 'Operation failed.';
         }
         window.alert(message);
+    }
+
+    function serverRejection(response) {
+        var error = new Error('Server rejected the login');
+        if (response.status === 403) {
+            // The account itself is refused (disabled, or pending deletion) — retrying cannot help,
+            // so the button must say that instead of the generic "try again" message.
+            error.messageAttribute = 'data-refused-message';
+        }
+
+        return error;
     }
 
     async function registerPasskey(button) {
@@ -167,7 +179,7 @@
                 credential: encodeAssertionCredential(credential)
             }));
             if (!verifyResponse.ok) {
-                throw new Error('Server rejected the login');
+                throw serverRejection(verifyResponse);
             }
 
             var result = await verifyResponse.json();

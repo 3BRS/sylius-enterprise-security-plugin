@@ -3,6 +3,7 @@ default:
         shop_account_deletion:
             contexts:
                 - sylius.behat.context.hook.doctrine_orm
+                - three_brs.behat.context.hook.security_settings
                 - three_brs.behat.context.hook.rate_limiter_cache
                 - sylius.behat.context.setup.channel
                 - sylius.behat.context.setup.currency
@@ -12,6 +13,7 @@ default:
                 - sylius.behat.context.setup.shop_security
                 - sylius.behat.context.transform.shared_storage
                 - sylius.behat.context.ui.shop.login
+                - three_brs.behat.context.ui.shop.password_login
                 - three_brs.behat.context.ui.shop.account_deletion
             filters:
                 tags: "@shop&&@account_deletion&&@ui"

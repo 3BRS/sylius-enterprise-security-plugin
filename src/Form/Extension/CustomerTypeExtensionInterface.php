@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension;
 
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 
-interface AdminUserTypeExtensionInterface
+interface CustomerTypeExtensionInterface
 {
     /**
      * @param FormBuilderInterface<mixed> $builder
      * @param array<string, mixed> $options
      */
     public function buildForm(FormBuilderInterface $builder, array $options): void;
-
-    public function configureOptions(OptionsResolver $resolver): void;
 }

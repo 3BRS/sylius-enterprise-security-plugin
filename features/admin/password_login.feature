@@ -31,6 +31,27 @@ Feature: Global password login switch (admin)
         And I open the customer edit page for "alice@example.com"
         Then the customer password field should be hidden
 
+    Scenario: Enabling a guest customer's account creates it without a password
+        Given the store also has customer "guest@example.com"
+        And password login is disabled for customers
+        When I am logged in as "admin@example.com" administrator
+        And I enable the account of customer "guest@example.com"
+        Then customer "guest@example.com" should have an account without a password
+
+    Scenario: The password field does not come back when the customer form is re-rendered
+        Given the store also has customer "guest@example.com"
+        And password login is disabled for customers
+        When I am logged in as "admin@example.com" administrator
+        And I try to enable the account of customer "guest@example.com" using the email of "alice@example.com"
+        Then the customer form should come back with an error
+        And the customer password field should be hidden
+
+    Scenario: A new administrator can be created while admin password login is off
+        Given password login is disabled for admins
+        When I am logged in as "admin@example.com" administrator
+        And I create an administrator "new-admin@example.com"
+        Then administrator "new-admin@example.com" should exist without a password
+
     Scenario: An admin password sign-in is rejected at the authentication layer while the switch is off
         Given there is an administrator "signin-check@example.com" identified by "Password1!"
         When I visit the admin login page

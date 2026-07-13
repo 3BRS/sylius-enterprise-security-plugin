@@ -13,8 +13,10 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractAccountDeletionRequestController;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\AccountDeletionRequestType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 use Twig\Environment;
 
 class AccountDeletionRequestController extends AbstractAccountDeletionRequestController implements AccountDeletionRequestControllerInterface
@@ -22,6 +24,7 @@ class AccountDeletionRequestController extends AbstractAccountDeletionRequestCon
     public function __construct(
         protected FormFactoryInterface $formFactory,
         protected CustomerDeletionServiceInterface $deletionService,
+        protected PasswordLoginCheckerInterface $passwordLoginChecker,
         UserPasswordHasherInterface $passwordHasher,
         TokenStorageInterface $tokenStorage,
         RouterInterface $router,
@@ -29,6 +32,18 @@ class AccountDeletionRequestController extends AbstractAccountDeletionRequestCon
         bool $enabled,
     ) {
         parent::__construct($tokenStorage, $passwordHasher, $router, $twig, $enabled);
+    }
+
+    protected function isDeletionConfirmed(FormInterface $form, UserInterface $user): bool
+    {
+        // With password login off there is no password to confirm with — an account created by a
+        // social sign-up has none at all — so the form drops the field and the acknowledgement
+        // checkbox (already validated by then) is the whole confirmation.
+        if (!$this->passwordLoginChecker->isEnabled(SettingsScope::CUSTOMER)) {
+            return true;
+        }
+
+        return parent::isDeletionConfirmed($form, $user);
     }
 
     protected function isAcceptableUser(UserInterface $user): bool

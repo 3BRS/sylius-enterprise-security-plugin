@@ -28,17 +28,6 @@ class PasswordLoginContext implements Context
     }
 
     /**
-     * Password login defaults to ON; reset it before every scenario so a previous
-     * "disabled" scenario cannot bleed into the next one.
-     *
-     * @BeforeScenario
-     */
-    public function resetPasswordLogin(): void
-    {
-        $this->setCustomerPasswordLogin(true);
-    }
-
-    /**
      * @Given password login is disabled for customers
      */
     public function passwordLoginIsDisabledForCustomers(): void

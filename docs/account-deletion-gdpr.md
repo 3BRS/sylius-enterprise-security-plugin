@@ -2,7 +2,7 @@
 
 Customer-driven account deletion implementing the GDPR right to erasure, with a configurable grace period and admin-side cancellation.
 
-- **Customer-facing flow** — when enabled, the *Delete account* item appears in the shop account menu (`/{_locale}/account/delete`). The customer enters their current password (re-authentication, no email round-trip) and explicitly acknowledges the consequences. On submit:
+- **Customer-facing flow** — when enabled, the *Delete account* item appears in the shop account menu (`/{_locale}/account/delete`). The customer enters their current password (re-authentication, no email round-trip) and explicitly acknowledges the consequences. When [password login](password-login.md) is disabled for customers, the password field is gone and the acknowledgement alone confirms the request — there is no password to re-authenticate with, and demanding one would leave those customers unable to delete their own account. (With password login enabled, a customer who signed up through a social provider and therefore has no password yet sets one first, from *Set a new password* in their account.) On submit:
   1. A `three_brs_customer_deletion_request` row is created with `requested_at = now`, `scheduled_for = now + grace_period_days`.
   2. The linked `ShopUser` is set to `enabled = false` immediately — login stops working at once.
   3. The customer's session is invalidated.
