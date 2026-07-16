@@ -19,7 +19,8 @@ stronger method instead (a magic link, a passkey, or a connected social account)
   own (it demands the current password, and a password changed there could not be used to sign in).
 - **Registration** (customers) — when off, the email + password registration form is hidden
   and a direct submission is refused; new customers can then only arrive through OAuth
-  auto-registration (a magic link or passkey cannot create a brand-new account).
+  auto-registration or be created by an administrator from the admin panel (a magic link or
+  passkey cannot create a brand-new account).
 - **Account UI adapts** — with password login off for customers, the *Change password* /
   *Set a new password* entry disappears from the shop account menu and dashboard.
 - **Admin panel adapts too** — when a group's password login is off, the password field is

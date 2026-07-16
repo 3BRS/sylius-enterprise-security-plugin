@@ -6,7 +6,7 @@ three_brs:
         sign_in_refused: 'This account is disabled and cannot be used to sign in.'
     password_login:
         registration_disabled: 'Registration with an email and password is currently disabled. Please use one of the other available sign-in methods.'
-        password_management_disabled: 'Password login is currently disabled, so passwords cannot be requested or changed.'
+        password_management_disabled: 'Password login is currently disabled, so a forgotten-password reset cannot be requested.'
     lockout:
         account_locked: 'Account is locked. Try again later or contact an administrator.'
         unlocked: 'Account has been unlocked.'

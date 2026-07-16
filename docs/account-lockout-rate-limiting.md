@@ -2,17 +2,18 @@
 
 Brute-force protection covering both account-level lockout (persistent, per user) and request-level rate limiting (ephemeral, keyed per username for login and per IP for other actions). Independently configurable per group (customer / admin).
 
-**Account Lockout** — locks the user account after a configurable number of consecutive failed sign-in attempts.
+**Account Lockout** — locks the user account after a configurable number of consecutive failed **password** sign-in attempts.
 
 - Failed-attempts counter and lockout timestamps tracked on the user entity via `LockableShopUserTrait` / `LockableAdminUserTrait` (concurrent failed logins are serialised through a pessimistic row lock so the threshold cannot be bypassed)
-- Counter resets on successful login
+- Counter resets on a successful password sign-in
+- **Only password sign-in is affected** — a lockout blocks the email + password form only. Passwordless methods (magic link, passkey, OAuth) are never gated by it, so a locked-out user can still sign in that way, and an attacker cannot lock a victim out of their own passkey / magic link by guessing the password wrong. (A locked account is therefore *not* locked out of the site as a whole while any passwordless method is enabled.)
 - **Auto-unlock** after `auto_unlock_after` seconds (set to `null` for manual-only)
-- **Manual unlock** by admin from `/admin/locked-customers` and `/admin/locked-admins` (sub-menu under Configuration). The list shows both the absolute auto-unlock timestamp (*Auto-unlock at*) and the relative countdown (*Time remaining*) for each locked account.
+- **Manual unlock** by admin from `/admin/locked-customers` (under the **Customers** menu) and `/admin/locked-admins` (under **Configuration**). The list shows both the absolute auto-unlock timestamp (*Auto-unlock at*) and the relative countdown (*Time remaining*) for each locked account.
 - Both unlock methods can coexist — auto-unlock fires first when `lockoutUntil` is reached, admin can override manually any time
 - Locked sign-in attempts get the same generic *"Invalid credentials"* response as a wrong-password attempt — by design, so account state does not leak through error text
 - Only storefront and admin-panel sign-ins count toward lockout — failed authentications against the Sylius API (`/api/v2`) are ignored, so an API client can't lock a user out of the web panel
 
-**Rate Limiting** — built on Symfony Rate Limiter (`fixed_window` policy). Plugin auto-registers `framework.rate_limiter.three_brs_<group>_<action>` services for every enabled combination, no manual `framework.yaml` wiring needed.
+**Rate Limiting** — uses the `fixed_window` policy from Symfony Rate Limiter. The plugin builds each limiter at request time through its own `DynamicRateLimiterFactory` (reading the live limits from the Security Settings UI), so there are **no** `framework.rate_limiter.*` services and no manual `framework.yaml` wiring to add.
 
 Throttled endpoints:
 
@@ -66,6 +67,6 @@ class ShopUser extends BaseShopUser implements LockableShopUserInterface
 
 The trait adds four columns (`failed_login_attempts`, `last_failed_login_at`, `locked_at`, `lockout_until`); run a schema update after adding the trait, e.g. `bin/console doctrine:schema:update --complete --force` or your usual migration workflow.
 
-Plugin adds **Locked customers** and **Locked administrators** entries to the admin Configuration sub-menu automatically — both shown only when lockout is enabled for that group.
+Plugin adds a **Locked customers** entry under the admin **Customers** menu and a **Locked administrators** entry under **Configuration** automatically — each shown only when lockout is enabled for that group.
 
 > **Trusted proxies:** for password reset, registration, and magic-link rate limits the key is `Request::getClientIp()` (login rate limits use the submitted username so admin unlock can clear them deterministically). If your Sylius runs behind a load balancer or reverse proxy, configure `framework.trusted_proxies` and `framework.trusted_headers` so the real client IP is used — otherwise all non-login requests look like they come from the proxy and the limit triggers immediately.

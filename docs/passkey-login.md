@@ -5,6 +5,7 @@
 - Per-user credential storage in dedicated tables (`three_brs_customer_passkey_credential`, `three_brs_admin_user_passkey_credential`) — credential ID, public key, sign counter and other metadata serialized as JSON.
 - Built on `web-auth/webauthn-lib` — server-side challenge generation and assertion verification follow the standard WebAuthn ceremony.
 - Bypasses 2FA: like OAuth and magic link, the verify controller writes the authenticated token directly, so a user with `scheb/2fa` enabled is **not** challenged for the second factor after a passkey sign-in — two-factor only guards plain email + password sign-in
+- Enforces the account state: a disabled account — blocked by an administrator, or with a pending [self-service deletion](account-deletion-gdpr.md) — is refused just as on the password form; the sign-in is rejected in place and the button reports it. (An account *locked* by failed password attempts is **not** refused: passwordless sign-in stays available, so nobody can lock a user out of their own passkey by guessing their password wrong.)
 - Last-auth-method protection: the existing `LastAuthMethodGuard` is extended to count passkeys, social links and password together; the user cannot remove the last sign-in method on their account.
 - Frontend JavaScript (`bundles/threebrssyliusenterprisesecurityplugin/js/passkey.js`) handles `navigator.credentials.create()` / `get()` and the JSON dance with the server. Browsers without the WebAuthn API see a hidden / disabled UI instead of a broken button.
 - Sylius twig hooks render a "Sign in with a passkey" button on the shop and admin login pages — no theme changes required.
@@ -27,7 +28,7 @@ three_brs_sylius_enterprise_security:
 
 ## Required configuration to enable passkeys
 
-`rp_id` and `rp_name` are `null` by default and must be set before passkeys can be used — registration and login will silently fail otherwise. Minimum config to turn the feature on for shop customers:
+`rp_id` and `rp_name` are `null` by default and must be set before passkeys can be enabled — if the feature is turned on for either group while they are still null, the container fails to build with an explicit error (`rp_id and rp_name must be configured when passkey is enabled`). Minimum config to turn the feature on for shop customers:
 
 ```yaml
 three_brs_sylius_enterprise_security:

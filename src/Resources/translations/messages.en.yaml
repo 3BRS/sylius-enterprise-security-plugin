@@ -274,7 +274,7 @@ three_brs:
             scope_admin: 'Administrators'
             scope_global: 'Global'
             save: 'Save'
-            password_settings_disabled_note: 'These settings have no effect while password login is turned off for this group. Turn "Password login" back on to edit them.'
+            password_settings_disabled_note: 'These settings cannot be edited while password login is turned off for this group; their stored values are kept, and password expiration and the force-password-change action stay suspended. Turn "Password login" back on to edit them.'
             password_login:
                 title: 'Password login'
                 description: 'Allow signing in with email and password for this group. When turned off, the email-and-password login form and the registration form are hidden and everyone in this group must use a magic link, a passkey, or a social login instead. While off, the password-related settings below (policy, history, expiration, and change notification) are locked and cannot be edited, and password expiration and the force-password-change action are suspended for the group.'

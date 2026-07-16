@@ -7,7 +7,7 @@ Customer-driven account deletion implementing the GDPR right to erasure, with a 
   2. The linked `ShopUser` is set to `enabled = false` immediately — login stops working at once.
   3. The customer's session is invalidated.
   4. A `three_brs_account_deletion_requested` email is sent confirming the schedule and instructing the customer to contact a store administrator if they change their mind.
-- **Cancellation** — customer-initiated cancellation is intentionally NOT exposed: once submitted, the request can only be cancelled by an administrator from `/admin/account-deletions` (sub-menu under Configuration). Cancelling re-enables the `ShopUser` and stamps the request with `cancelled_at` + `cancelled_by_admin_id` for audit.
+- **Cancellation** — customer-initiated cancellation is intentionally NOT exposed: once submitted, the request can only be cancelled by an administrator from `/admin/account-deletions` (under the **Customers** menu). Cancelling re-enables the `ShopUser` and stamps the request with `cancelled_at` + `cancelled_by_admin_id` for audit.
 - **Grace expiry** — a console command processes due requests:
   ```
   bin/console three-brs:account-deletion:process-due
