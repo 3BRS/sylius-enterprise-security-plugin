@@ -16,7 +16,11 @@
             <h3 class="card-title mb-0">{{ 'three_brs.ui.customer_security.title'|trans }}</h3>
         </div>
         <div class="card-body">
-            <p class="text-secondary mb-3">{{ 'three_brs.ui.customer_security.intro'|trans }}</p>
+            <p class="text-secondary mb-3">
+                {{ (three_brs_password_login_enabled('customer')
+                    ? 'three_brs.ui.customer_security.intro'
+                    : 'three_brs.ui.customer_security.intro_passwordless')|trans }}
+            </p>
 
             <div class="mb-3">
                 <strong>{{ 'three_brs.ui.customer_security.account_state'|trans }}:</strong>
@@ -30,7 +34,9 @@
                     </span>
                 {% endif %}
 
-                {% if forceChangeRequested %}
+                {# Hidden while password login is off: the change is not enforced then, and the
+                   force-reset button that would clear the flag is hidden as well. #}
+                {% if forceChangeRequested and three_brs_password_login_enabled('customer') %}
                     <span class="badge bg-orange text-white"
                           data-test-three-brs-customer-security-force-change-pending>
                         {{ 'three_brs.ui.customer_security.force_change_pending'|trans }}

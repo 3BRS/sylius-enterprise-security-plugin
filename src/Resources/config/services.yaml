@@ -1,3 +1,9 @@
+parameters:
+    # Sylius words its own password-length rule, which says the same thing as the plugin's password
+    # policy — without this the customer would be told twice, in two different wordings.
+    three_brs.password_policy.redundant_message_templates:
+        - 'sylius.user.password.min'
+
 services:
     _defaults:
         autowire: false
@@ -93,6 +99,12 @@ services:
             - { name: 'form.type_extension' }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension\ShopUserTypeExtension:
+        arguments:
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
+        tags:
+            - { name: 'form.type_extension' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Extension\CustomerTypeExtension:
         arguments:
             $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
         tags:
@@ -264,6 +276,7 @@ services:
             $recoveryCodeVerifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeVerifier'
             $router: '@router'
             $twig: '@twig'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -273,6 +286,7 @@ services:
             $recoveryCodeVerifier: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeVerifier'
             $router: '@router'
             $twig: '@twig'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -381,6 +395,7 @@ services:
             $stateCookieSigner: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSigner'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
             $userProvider: '@security.user.provider.concrete.sylius_shop_user_provider'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -398,6 +413,7 @@ services:
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -433,6 +449,7 @@ services:
             $stateCookieSigner: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSigner'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
             $userProvider: '@security.user.provider.concrete.sylius_admin_user_provider'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -450,6 +467,7 @@ services:
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -618,6 +636,7 @@ services:
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
             $enabled: '%three_brs.passkey.customer.enabled%'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -678,6 +697,7 @@ services:
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
             $enabled: '%three_brs.passkey.admin.enabled%'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -749,6 +769,7 @@ services:
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
             $enabled: '%three_brs.magic_link.customer.enabled%'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -772,6 +793,7 @@ services:
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler'
             $enabled: '%three_brs.magic_link.admin.enabled%'
+            $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -1318,6 +1340,8 @@ services:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\AccountDeletionRequestType:
+        arguments:
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
         tags:
             - { name: 'form.type' }
 
@@ -1341,6 +1365,7 @@ services:
         arguments:
             $formFactory: '@form.factory'
             $deletionService: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
             $passwordHasher: '@security.user_password_hasher'
             $tokenStorage: '@security.token_storage'
             $router: '@router'
@@ -1413,6 +1438,15 @@ services:
             $router: '@router'
         tags:
             # After RouterListener (32) so _route is set, after the firewall (8) for a clean token.
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 6 }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\PasswordManagementBlockListener:
+        arguments:
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
+            $router: '@router'
+        tags:
+            # After RouterListener (32) so _route is set; after the firewall (8) so an anonymous hit on
+            # the change-password page is sent to the login page by the firewall, not to the dashboard by us.
             - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 6 }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepository:

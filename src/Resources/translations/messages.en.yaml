@@ -69,6 +69,8 @@ three_brs:
         password_login:
             login_disabled_notice: 'Signing in with an email and password is currently disabled. Please use one of the options below to sign in.'
             register_disabled_notice: 'Registering with an email and password is currently disabled. Please sign up using one of the options below.'
+            customer_account_without_password: 'Password login is disabled for customers, so a password cannot be set or changed here. An account enabled while it is off is stored without a password — the customer signs in with a magic link or a connected social account.'
+            admin_account_without_password: 'Password login is disabled for administrators, so a password cannot be set or changed here. An account created while it is off is stored without a password — the administrator signs in with a magic link or a connected social account.'
         two_factor:
             setup_title: 'Set up two-factor authentication'
             setup_description: 'Scan the QR code below with your authenticator app (Google Authenticator, Authy, 1Password, …) or enter the secret manually. Then confirm the 6-digit code to enable 2FA.'
@@ -189,9 +191,11 @@ three_brs:
             registration_failed: 'Passkey registration failed. Please try again.'
             login_cancelled: 'Passkey sign-in was cancelled or not allowed by the device.'
             login_failed: 'Passkey sign-in failed. Please try again.'
+            login_refused: 'This account is disabled and cannot be used to sign in.'
         customer_security:
             title: 'Security'
             intro: 'Manage this customer''s security state — password reset, account block and active sessions'
+            intro_passwordless: 'Manage this customer''s security state — account block and active sessions'
             account_state: 'Account state'
             state_enabled: 'Enabled'
             state_blocked: 'Blocked'
@@ -270,7 +274,7 @@ three_brs:
             scope_admin: 'Administrators'
             scope_global: 'Global'
             save: 'Save'
-            password_settings_disabled_note: 'These settings have no effect while password login is turned off for this group. Turn "Password login" back on to edit them.'
+            password_settings_disabled_note: 'These settings cannot be edited while password login is turned off for this group; their stored values are kept, and password expiration and the force-password-change action stay suspended. Turn "Password login" back on to edit them.'
             password_login:
                 title: 'Password login'
                 description: 'Allow signing in with email and password for this group. When turned off, the email-and-password login form and the registration form are hidden and everyone in this group must use a magic link, a passkey, or a social login instead. While off, the password-related settings below (policy, history, expiration, and change notification) are locked and cannot be edited, and password expiration and the force-password-change action are suspended for the group.'
@@ -375,12 +379,12 @@ three_brs:
                 auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to disable auto-registration entirely.'
             oauth_customer_policy:
                 title: 'OAuth customer auto-registration'
-                description: 'Decides what happens when someone signs in via a provider (Google, Apple, Microsoft) with an email that matches no customer account yet. Leave the domain list empty and any verified email can auto-create a customer account (low signup friction); add domains to restrict it — handy for B2B or to curb bot signups. This only affects brand-new accounts; an email matching an existing account is linked to it after a password confirmation instead.'
+                description: 'Decides what happens when someone signs in via a provider (Google, Apple, Microsoft) with an email that matches no customer account yet. Leave the domain list empty and any verified email can auto-create a customer account (low signup friction); add domains to restrict it — handy for B2B or to curb bot signups. This only affects brand-new accounts; an email matching an existing account is linked to it after a confirmation code sent by email instead.'
                 auto_register_allowed_email_domains: 'Whitelisted email domains'
                 auto_register_allowed_email_domains_help: 'One domain per row (e.g. example.com). Leave the list empty to allow auto-registration from any verified email address.'
             account_deletion:
                 title: 'Account deletion'
-                description: 'Gives customers a self-service way to delete their own account (GDPR right to erasure). When enabled, a ''Delete account'' option appears in their account menu; after a password confirmation their login is disabled at once and a countdown starts before name, email, phone, and addresses are permanently anonymized — the grace-period field sets how many days that lasts. Only an admin can cancel during the grace period, and a scheduled job must run for the anonymization to actually happen.'
+                description: 'Gives customers a self-service way to delete their own account (GDPR right to erasure). When enabled, a ''Delete account'' option appears in their account menu; once they confirm — with their current password, or with the acknowledgement alone when password login is off for customers — their login is disabled at once and a countdown starts before name, email, phone, and addresses are permanently anonymized. The grace-period field sets how many days that lasts. Only an admin can cancel during the grace period, and a scheduled job must run for the anonymization to actually happen.'
                 enabled: 'Enable self-service account deletion'
                 grace_period_days: 'Grace period (days)'
                 grace_period_days_help: 'Number of days between the customer''s request and the actual anonymization. During this window, only an administrator can cancel the deletion.'

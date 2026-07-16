@@ -13,10 +13,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Exception\DisabledException;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyLoginVerifyController;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifierInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionResult;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifierInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandlerInterface;
 
 #[CoversClass(PasskeyLoginVerifyController::class)]
@@ -83,6 +85,32 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         self::assertSame(400, $response->getStatusCode());
     }
 
+    public function testRefusesADisabledAccountWithoutWritingAToken(): void
+    {
+        $verifier = $this->createStub(CustomerPasskeyAssertionVerifierInterface::class);
+        $verifier->method('verify')->willReturn(new CustomerPasskeyAssertionResult($this->buildShopUser()));
+
+        $tokenStorage = $this->createMock(TokenStorageInterface::class);
+        $tokenStorage->expects(self::never())->method('setToken');
+
+        $userChecker = $this->createStub(UserCheckerInterface::class);
+        $userChecker->method('checkPreAuth')->willThrowException(new DisabledException());
+
+        $controller = $this->createController(
+            verifier: $verifier,
+            tokenStorage: $tokenStorage,
+            router: $this->createStub(RouterInterface::class),
+            enabled: true,
+            userChecker: $userChecker,
+        );
+
+        // The button's fetch() reads the status — a redirect to the login page would blow up in the JS.
+        $response = $controller($this->buildRequest());
+
+        self::assertInstanceOf(JsonResponse::class, $response);
+        self::assertSame(403, $response->getStatusCode());
+    }
+
     protected function buildShopUser(): ShopUserInterface
     {
         $user = $this->createStub(ShopUserInterface::class);
@@ -106,6 +134,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         TokenStorageInterface $tokenStorage,
         RouterInterface $router,
         bool $enabled,
+        ?UserCheckerInterface $userChecker = null,
     ): PasskeyLoginVerifyController {
         return new PasskeyLoginVerifyController(
             verifier: $verifier,
@@ -114,6 +143,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
             logger: $this->createStub(LoggerInterface::class),
             sessionLoginHandler: $this->createStub(CustomerSessionLoginHandlerInterface::class),
             enabled: $enabled,
+            userChecker: $userChecker ?? $this->createStub(UserCheckerInterface::class),
         );
     }
 }

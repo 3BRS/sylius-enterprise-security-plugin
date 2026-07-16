@@ -57,6 +57,24 @@ class AccountDeletionContext implements Context
     }
 
     /**
+     * @When I confirm account deletion without a password
+     */
+    public function iConfirmAccountDeletionWithoutAPassword(): void
+    {
+        $page = $this->session->getPage();
+        $form = $page->find('css', '#three_brs_account_deletion_form');
+        Assert::notNull($form, 'Account deletion form not found on the page.');
+
+        Assert::null(
+            $form->find('css', 'input[name="three_brs_account_deletion_request[currentPassword]"]'),
+            'Expected no password field while password login is disabled for customers.',
+        );
+
+        $form->find('css', 'input[name="three_brs_account_deletion_request[acknowledged]"]')?->check();
+        $form->find('css', 'button[type="submit"]')?->click();
+    }
+
+    /**
      * @Given the customer :email requested deletion :daysAgo days ago with grace :graceDays
      */
     public function theCustomerRequestedDeletionDaysAgoWithGrace(string $email, int $daysAgo, int $graceDays): void

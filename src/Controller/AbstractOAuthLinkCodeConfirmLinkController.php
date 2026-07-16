@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
@@ -46,8 +47,9 @@ abstract class AbstractOAuthLinkCodeConfirmLinkController extends AbstractOAuthC
         RouterInterface $router,
         Environment $twig,
         LoggerInterface $logger,
+        UserCheckerInterface $userChecker,
     ) {
-        parent::__construct($tokenStorage, $router, $twig, $logger);
+        parent::__construct($tokenStorage, $router, $twig, $logger, $userChecker);
     }
 
     protected function prepareChallenge(UserInterface $user, array $pending, Request $request): void

@@ -2,12 +2,12 @@
 
 Customer-driven account deletion implementing the GDPR right to erasure, with a configurable grace period and admin-side cancellation.
 
-- **Customer-facing flow** — when enabled, the *Delete account* item appears in the shop account menu (`/{_locale}/account/delete`). The customer enters their current password (re-authentication, no email round-trip) and explicitly acknowledges the consequences. On submit:
+- **Customer-facing flow** — when enabled, the *Delete account* item appears in the shop account menu (`/{_locale}/account/delete`). The customer enters their current password (re-authentication, no email round-trip) and explicitly acknowledges the consequences. When [password login](password-login.md) is disabled for customers, the password field is gone and the acknowledgement alone confirms the request — there is no password to re-authenticate with, and demanding one would leave those customers unable to delete their own account. (With password login enabled, a customer who signed up through a social provider and therefore has no password yet sets one first, from *Set a new password* in their account.) On submit:
   1. A `three_brs_customer_deletion_request` row is created with `requested_at = now`, `scheduled_for = now + grace_period_days`.
   2. The linked `ShopUser` is set to `enabled = false` immediately — login stops working at once.
   3. The customer's session is invalidated.
   4. A `three_brs_account_deletion_requested` email is sent confirming the schedule and instructing the customer to contact a store administrator if they change their mind.
-- **Cancellation** — customer-initiated cancellation is intentionally NOT exposed: once submitted, the request can only be cancelled by an administrator from `/admin/account-deletions` (sub-menu under Configuration). Cancelling re-enables the `ShopUser` and stamps the request with `cancelled_at` + `cancelled_by_admin_id` for audit.
+- **Cancellation** — customer-initiated cancellation is intentionally NOT exposed: once submitted, the request can only be cancelled by an administrator from `/admin/account-deletions` (under the **Customers** menu). Cancelling re-enables the `ShopUser` and stamps the request with `cancelled_at` + `cancelled_by_admin_id` for audit.
 - **Grace expiry** — a console command processes due requests:
   ```
   bin/console three-brs:account-deletion:process-due

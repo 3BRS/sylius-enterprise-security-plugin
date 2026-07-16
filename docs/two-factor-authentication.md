@@ -16,9 +16,9 @@ three_brs_sylius_enterprise_security:
     two_factor_authentication:
         issuer: 'Sylius'
         customer:
-            mode: 'allowed'  # disabled | allowed | enforced
+            mode: 'disabled'  # disabled | allowed | enforced
         admin:
-            mode: 'enforced'
+            mode: 'disabled'  # disabled | allowed | enforced
         recovery_codes:
             customer:
                 enabled: true

@@ -1,0 +1,11 @@
+{% if three_brs_password_login_enabled('customer') %}
+    {{ include('@SyliusShop/checkout/address/content/form/user.html.twig') }}
+{% else %}
+    {# Password login is off for customers: render the email field alone, without the inline
+       sign-in widget — its password box would offer a way in that the shop no longer accepts. #}
+    {% set form = hookable_metadata.context.form %}
+
+    {% if form.customer is defined %}
+        {{ form_row(form.customer.email, sylius_test_form_attribute('login-email')) }}
+    {% endif %}
+{% endif %}

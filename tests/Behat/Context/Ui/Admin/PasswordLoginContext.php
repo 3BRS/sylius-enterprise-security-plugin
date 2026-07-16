@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
+use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Context\Ui\Admin\Helper\SecurePasswordTrait;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
+use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\User\Model\UserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
@@ -37,19 +40,8 @@ class PasswordLoginContext implements Context
         protected CustomerRepositoryInterface $customerRepository,
         protected UserRepositoryInterface $adminUserRepository,
         protected SharedStorageInterface $sharedStorage,
+        protected EntityManagerInterface $entityManager,
     ) {
-    }
-
-    /**
-     * Password login defaults to ON for both scopes; reset before each scenario so a
-     * previous "disabled" scenario cannot bleed into the next one.
-     *
-     * @BeforeScenario
-     */
-    public function resetPasswordLogin(): void
-    {
-        $this->setPasswordLogin(SettingsScope::ADMIN, true);
-        $this->setPasswordLogin(SettingsScope::CUSTOMER, true);
     }
 
     /**
@@ -143,6 +135,103 @@ class PasswordLoginContext implements Context
     }
 
     /**
+     * @When I enable the account of customer :email
+     */
+    public function iEnableTheAccountOfCustomer(string $email): void
+    {
+        $this->iOpenTheCustomerEditPage($email);
+
+        $this->session->getPage()->checkField('sylius_admin_customer[user][enabled]');
+        $this->submitForm('sylius_admin_customer');
+    }
+
+    /**
+     * Submits the customer form with an email that already belongs to somebody else, so the save is
+     * refused and the form comes back — the render on which Sylius has already swapped the nested
+     * user form for its own type, which is where the password field would otherwise reappear.
+     *
+     * @When I try to enable the account of customer :email using the email of :takenEmail
+     */
+    public function iTryToEnableTheAccountOfCustomerUsingATakenEmail(string $email, string $takenEmail): void
+    {
+        $this->iOpenTheCustomerEditPage($email);
+
+        $page = $this->session->getPage();
+        $page->fillField('sylius_admin_customer[email]', $takenEmail);
+        $page->checkField('sylius_admin_customer[user][enabled]');
+
+        $this->submitForm('sylius_admin_customer');
+    }
+
+    /**
+     * @Then the customer form should come back with an error
+     */
+    public function theCustomerFormShouldComeBackWithAnError(): void
+    {
+        $page = $this->session->getPage();
+
+        Assert::notNull(
+            $page->find('css', 'form[id="sylius_admin_customer"]'),
+            'Expected the customer form to be rendered again.',
+        );
+        Assert::notNull(
+            $page->find('css', '.invalid-feedback, .alert-danger'),
+            'Expected the re-rendered customer form to show a validation error.',
+        );
+    }
+
+    /**
+     * @Then customer :email should have an account without a password
+     */
+    public function customerShouldHaveAnAccountWithoutAPassword(string $email): void
+    {
+        // The account was created by the request the browser made, in its own entity manager.
+        $this->entityManager->clear();
+
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
+        Assert::isInstanceOf($customer, CustomerInterface::class);
+
+        $user = $customer->getUser();
+        Assert::isInstanceOf($user, ShopUserInterface::class, 'Expected the customer to have an account.');
+        Assert::true($user->isEnabled(), 'Expected the account to be enabled.');
+        Assert::null($user->getPassword(), 'Expected the account to be stored without a password.');
+    }
+
+    /**
+     * @When I create an administrator :email
+     */
+    public function iCreateAnAdministrator(string $email): void
+    {
+        $this->session->visit($this->router->generate(
+            'sylius_admin_admin_user_create',
+            [],
+            UrlGeneratorInterface::ABSOLUTE_URL,
+        ));
+
+        $page = $this->session->getPage();
+        $page->fillField('sylius_admin_admin_user[firstName]', 'New');
+        $page->fillField('sylius_admin_admin_user[lastName]', 'Administrator');
+        $page->fillField('sylius_admin_admin_user[email]', $email);
+        $page->fillField('sylius_admin_admin_user[username]', $email);
+        $page->selectFieldOption('sylius_admin_admin_user[localeCode]', 'en_US');
+        $page->checkField('sylius_admin_admin_user[enabled]');
+
+        $this->submitForm('sylius_admin_admin_user');
+    }
+
+    /**
+     * @Then administrator :email should exist without a password
+     */
+    public function administratorShouldExistWithoutAPassword(string $email): void
+    {
+        $this->entityManager->clear();
+
+        $admin = $this->adminUserRepository->findOneByEmail($email);
+        Assert::isInstanceOf($admin, UserInterface::class, 'Expected the administrator to be created.');
+        Assert::null($admin->getPassword(), 'Expected the administrator to be stored without a password.');
+    }
+
+    /**
      * @When I visit the admin login page
      */
     public function iVisitTheAdminLoginPage(): void
@@ -165,6 +254,15 @@ class PasswordLoginContext implements Context
         $page->fillField('_username', $email);
         $page->fillField('_password', $this->retrieveSecurePassword($password));
         $page->pressButton('Login');
+    }
+
+    /** The save button lives in a separate twig hook, so the form itself is submitted instead. */
+    protected function submitForm(string $formId): void
+    {
+        $form = $this->session->getPage()->find('css', sprintf('form[id="%s"]', $formId));
+        Assert::isInstanceOf($form, NodeElement::class, sprintf('Form "%s" not found on the page.', $formId));
+
+        $form->submit();
     }
 
     /**

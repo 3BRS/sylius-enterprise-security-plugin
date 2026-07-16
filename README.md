@@ -65,7 +65,7 @@ Most features ship **disabled by default** (the exception is **Password Login**,
 | Admin IP Whitelist | Restrict admin-panel access to allowed IPs / CIDR ranges, with a team-wide global list plus optional per-admin lists. | [admin-ip-whitelist](docs/admin-ip-whitelist.md) |
 | Admin IP Blacklist | Block specific IPs / CIDR ranges from the admin panel with a global deny-list — always wins over the whitelist, is identity-agnostic, and fails open when empty. | [admin-ip-blacklist](docs/admin-ip-blacklist.md) |
 | Admin Customer Management | A Security section on the Sylius customer detail page — force password reset, block / unblock, sign out of all or individual sessions, plus active-sessions and login-history tables. | [admin-customer-management](docs/admin-customer-management.md) |
-| Password Login | Global per-group (customer / admin) switch — **on by default** — for classic email + password sign-in and registration. Turn it off for a group and its login / registration forms (and "forgot password" link) are hidden, everyone must use a magic link, passkey or social login, and that group's password expiration / force-change pause too. | [password-login](docs/password-login.md) |
+| Password Login | Global per-group (customer / admin) switch — **on by default** — for classic email + password sign-in and registration. Turn it off for a group and its login / registration forms are hidden (including the checkout inline sign-in), its forgotten-password pages are closed, the admin panel creates that group's accounts without a password, everyone must use a magic link, passkey or social login, and that group's password expiration / force-change pause too. | [password-login](docs/password-login.md) |
 
 
 ## Installation (into an existing Sylius application)
@@ -74,7 +74,7 @@ This section is for **consuming** the plugin in your own Sylius project — you 
 
 > **This plugin requires the standalone `3brs/enterprise-security-bundle` package and does not work without it.** The bundle is the framework-agnostic core (security validators, services, entity contracts); the plugin is the thin Sylius integration layer on top (admin / shop UI, controllers, routes, fixtures). That's why step 1 installs **both** packages (the bundle comes in as a dependency of the plugin) and step 2 registers them, and the entity traits in step 5 implement interfaces that live in the bundle.
 
-> Every feature ships **disabled by default** (see each feature's doc under [`docs/`](docs/)). You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
+> Almost every feature ships **disabled by default** (see each feature's doc under [`docs/`](docs/)) — the one exception is **Password Login**, which is **on** so existing stores keep working. You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
 
 1. Require the plugin (its standalone bundle and the Scheb 2FA bundle are pulled in automatically as dependencies):
 
@@ -101,7 +101,8 @@ This section is for **consuming** the plugin in your own Sylius project — you 
 
    three_brs_sylius_enterprise_security:
        # Turn on and tune the features you need — each feature's doc under
-       # docs/ documents its options and defaults (everything is off by default).
+       # docs/ documents its options and defaults (everything is off by default,
+       # except Password Login, which is on).
    ```
 
 4. Import the plugin routes by creating `config/routes/three_brs_enterprise_security.yaml` (without this none of the plugin endpoints — passkey, magic link, 2FA setup, OAuth, account deletion, settings UI — are registered):

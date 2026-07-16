@@ -9,6 +9,7 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractPasskeyLoginVerifyController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifierInterface;
@@ -23,6 +24,7 @@ class PasskeyLoginVerifyController extends AbstractPasskeyLoginVerifyController 
         LoggerInterface $logger,
         protected CustomerSessionLoginHandlerInterface $sessionLoginHandler,
         bool $enabled,
+        UserCheckerInterface $userChecker,
     ) {
         parent::__construct(
             $verifier,
@@ -30,6 +32,7 @@ class PasskeyLoginVerifyController extends AbstractPasskeyLoginVerifyController 
             $router,
             $logger,
             $enabled,
+            $userChecker,
         );
     }
 

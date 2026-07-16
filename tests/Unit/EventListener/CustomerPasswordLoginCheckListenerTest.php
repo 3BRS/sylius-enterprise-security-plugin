@@ -25,13 +25,25 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterfac
 #[CoversClass(CustomerPasswordLoginCheckListener::class)]
 class CustomerPasswordLoginCheckListenerTest extends TestCase
 {
-    public function testIgnoresRequestsThatAreNotTheWebLoginCheck(): void
+    public function testIgnoresRequestsThatAreNotAWebLoginCheck(): void
     {
-        // json_login / API auth uses a different route — must never be blocked here,
-        // even with password login disabled (the plugin leaves the API untouched).
+        // The API authenticates on its own routes and is never gated — the plugin behaves there
+        // as if it were not installed.
         self::expectNotToPerformAssertions();
 
+        $listener = $this->listener(passwordLoginEnabled: false, route: 'sylius_api_shop_authentication_token');
+        $listener->onCheckPassport($this->passwordEvent($this->createStub(ShopUserInterface::class)));
+    }
+
+    public function testThrowsOnTheCheckoutInlineSignIn(): void
+    {
+        // json_login backs the inline sign-in of the checkout address step — it lives on the shop
+        // firewall, so it obeys the toggle just like the login page does.
         $listener = $this->listener(passwordLoginEnabled: false, route: 'sylius_shop_json_login_check');
+
+        $this->expectException(CustomUserMessageAuthenticationException::class);
+        $this->expectExceptionMessage('three_brs.password_login.disabled');
+
         $listener->onCheckPassport($this->passwordEvent($this->createStub(ShopUserInterface::class)));
     }
 

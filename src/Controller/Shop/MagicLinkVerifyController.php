@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractMagicLinkVerifyController;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkRecordInterface;
@@ -31,6 +32,7 @@ class MagicLinkVerifyController extends AbstractMagicLinkVerifyController implem
         LoggerInterface $logger,
         protected CustomerSessionLoginHandlerInterface $sessionLoginHandler,
         bool $enabled,
+        UserCheckerInterface $userChecker,
     ) {
         parent::__construct(
             $verifier,
@@ -39,6 +41,7 @@ class MagicLinkVerifyController extends AbstractMagicLinkVerifyController implem
             $clock,
             $logger,
             $enabled,
+            $userChecker,
         );
     }
 

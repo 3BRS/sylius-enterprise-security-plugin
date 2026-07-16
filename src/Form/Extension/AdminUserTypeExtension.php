@@ -8,12 +8,18 @@ use Sylius\Bundle\AdminBundle\Form\Type\AdminUserType;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\Options;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 class AdminUserTypeExtension extends AbstractTypeExtension implements AdminUserTypeExtensionInterface
 {
+    /** Sylius adds this group for users that have no id yet; it carries the NotBlank on plainPassword. */
+    protected const CREATE_VALIDATION_GROUP = 'sylius_user_create';
+
     public function __construct(
         protected PasswordLoginCheckerInterface $passwordLoginChecker,
     ) {
@@ -40,6 +46,37 @@ class AdminUserTypeExtension extends AbstractTypeExtension implements AdminUserT
                 'required' => false,
             ]);
         }
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->addNormalizer(
+            'validation_groups',
+            function (Options $options, mixed $value): mixed {
+                if ($this->passwordLoginChecker->isEnabled(SettingsScope::ADMIN)) {
+                    return $value;
+                }
+
+                // Sylius validates a new user in the "sylius_user_create" group, which requires a plain
+                // password. With password login disabled that field does not exist, so the constraint
+                // would reject every new administrator with an error nobody can act on. Administrators
+                // created this way have no password and sign in with a magic link or a connected social
+                // account — the same shape of account an OAuth sign-up creates.
+                $createGroup = static::CREATE_VALIDATION_GROUP;
+
+                return static function (FormInterface $form) use ($value, $createGroup): mixed {
+                    $groups = $value instanceof \Closure ? $value($form) : $value;
+                    if (!is_array($groups)) {
+                        return $groups;
+                    }
+
+                    return array_values(array_filter(
+                        $groups,
+                        static fn (mixed $group): bool => $group !== $createGroup,
+                    ));
+                };
+            },
+        );
     }
 
     public static function getExtendedTypes(): iterable

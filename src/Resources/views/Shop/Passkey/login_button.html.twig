@@ -8,7 +8,8 @@
                 data-verify-url="{{ path('three_brs_shop_passkey_login_verify') }}"
                 data-fallback-url="{{ path('sylius_shop_account_dashboard') }}"
                 data-cancelled-message="{{ 'three_brs.ui.passkey.login_cancelled'|trans }}"
-                data-error-message="{{ 'three_brs.ui.passkey.login_failed'|trans }}">
+                data-error-message="{{ 'three_brs.ui.passkey.login_failed'|trans }}"
+                data-refused-message="{{ 'three_brs.ui.passkey.login_refused'|trans }}">
             {{ 'three_brs.ui.passkey.sign_in_with_passkey'|trans }}
         </button>
         <p id="three_brs_passkey_unsupported_notice" class="text-muted small mt-2 mb-0 d-none">

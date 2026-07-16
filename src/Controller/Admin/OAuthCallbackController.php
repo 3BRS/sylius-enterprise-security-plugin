@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractOAuthCallbackController;
@@ -37,8 +38,9 @@ class OAuthCallbackController extends AbstractOAuthCallbackController implements
         StateCookieSignerInterface $stateCookieSigner,
         protected AdminUserSessionLoginHandlerInterface $sessionLoginHandler,
         protected UserProviderInterface $userProvider,
+        UserCheckerInterface $userChecker,
     ) {
-        parent::__construct($registry, $router, $tokenStorage, $security, $logger, $stateCookieSigner);
+        parent::__construct($registry, $router, $tokenStorage, $security, $logger, $stateCookieSigner, $userChecker);
     }
 
     protected function getOAuthGroup(): string

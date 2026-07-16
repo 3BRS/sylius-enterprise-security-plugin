@@ -7,6 +7,7 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractTwoFactorRecoveryChallengeController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\RecoveryCodeVerifierInterface;
@@ -19,8 +20,9 @@ class TwoFactorRecoveryChallengeController extends AbstractTwoFactorRecoveryChal
         TokenStorageInterface $tokenStorage,
         RouterInterface $router,
         Environment $twig,
+        UserCheckerInterface $userChecker,
     ) {
-        parent::__construct($tokenStorage, $router, $twig);
+        parent::__construct($tokenStorage, $router, $twig, $userChecker);
     }
 
     protected function isAcceptableUser(UserInterface $user): bool
