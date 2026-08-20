@@ -15,6 +15,7 @@
 !/etc/build/.gitkeep
 
 /tests/Application/yarn.lock
+/tests/Application/config/reference.php
 
 docker-compose.override.yaml
 docker-compose.override.dist.yaml
