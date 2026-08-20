@@ -46,7 +46,7 @@
 
 ## Features
 
-Most features ship **disabled by default** (the exception is **Password Login**, which is on so existing stores keep working) — enable and tune the ones you need (each linked doc covers its options and defaults).
+Most features ship **disabled by default** — enable and tune the ones you need (each linked doc covers its options and defaults). Two are active out of the box: **Password Login**, which is on so existing stores keep working, and **Password Policy**, which has no on/off switch and applies as soon as the plugin is installed (customers: minimum 8 characters; admins: minimum 12, with an uppercase letter, a lowercase letter, a number and a special character).
 
 | Feature | What it does | Doc |
 | --- | --- | --- |
@@ -58,7 +58,7 @@ Most features ship **disabled by default** (the exception is **Password Login**,
 | 3rd-party OAuth (Social Login) | Google, Apple and Microsoft sign-in per group, with account-link takeover protection (a single-use, time-limited emailed code), optional domain-gated auto-registration and an extensible provider registry. | [oauth-social-login](docs/oauth-social-login.md) |
 | Magic Link Login | Passwordless email sign-in with single-use, hashed, time-limited tokens, anti-enumeration, timing-attack padding and rate limiting. As a passwordless method it bypasses 2FA (the second factor guards password login only). | [magic-link-login](docs/magic-link-login.md) |
 | Passkey Login (WebAuthn / FIDO2) | Passwordless passkeys (Touch ID / Windows Hello / Android lock / hardware keys), multiple labelled keys per user, built on `web-auth/webauthn-lib`. As a passwordless method it bypasses 2FA (the second factor guards password login only). | [passkey-login](docs/passkey-login.md) |
-| Account Lockout & Rate Limiting | Persistent per-user account lockout after N failed sign-ins (auto- or admin-unlock) plus ephemeral request rate limiting (login, password reset, registration, magic link). | [account-lockout-rate-limiting](docs/account-lockout-rate-limiting.md) |
+| Account Lockout & Rate Limiting | Persistent per-user account lockout after N failed sign-ins (auto- or admin-unlock) plus ephemeral request rate limiting (login, password reset and magic link for both groups; registration for customers). | [account-lockout-rate-limiting](docs/account-lockout-rate-limiting.md) |
 | Session Management & Login Notifications | Active-session listing with manual revocation (single or all-other), plus optional email alerts on sign-in from a previously unseen device; pluggable GeoIP lookup. | [session-management-login-notifications](docs/session-management-login-notifications.md) |
 | Centralized Security Settings UI | A single admin page (`/admin/security-settings`) to configure every feature at runtime — values persist in the database and apply on the next request, no YAML edits or redeploys. | [centralized-security-settings-ui](docs/centralized-security-settings-ui.md) |
 | Self-Service Account Deletion (GDPR) | Customer-driven erasure (GDPR right to be forgotten) with a configurable grace period, admin-side cancellation and a cron that anonymizes name / email / phone / address. | [account-deletion-gdpr](docs/account-deletion-gdpr.md) |
@@ -68,13 +68,13 @@ Most features ship **disabled by default** (the exception is **Password Login**,
 | Password Login | Global per-group (customer / admin) switch — **on by default** — for classic email + password sign-in and registration. Turn it off for a group and its login / registration forms are hidden (including the checkout inline sign-in), its forgotten-password pages are closed, the admin panel creates that group's accounts without a password, everyone must use a magic link, passkey or social login, and that group's password expiration / force-change pause too. | [password-login](docs/password-login.md) |
 
 
-## Installation (into an existing Sylius application)
+## Installation
 
 This section is for **consuming** the plugin in your own Sylius project — you register the bundle/plugin and wire the config yourself. If you instead want to **work on the plugin itself**, skip to **Development** below: its bundled test application already has the bundle, plugin and routes registered, so you don't repeat these steps.
 
 > **This plugin requires the standalone `3brs/enterprise-security-bundle` package and does not work without it.** The bundle is the framework-agnostic core (security validators, services, entity contracts); the plugin is the thin Sylius integration layer on top (admin / shop UI, controllers, routes, fixtures). That's why step 1 installs **both** packages (the bundle comes in as a dependency of the plugin) and step 2 registers them, and the entity traits in step 5 implement interfaces that live in the bundle.
 
-> Almost every feature ships **disabled by default** (see each feature's doc under [`docs/`](docs/)) — the one exception is **Password Login**, which is **on** so existing stores keep working. You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
+> Almost every feature ships **disabled by default** (see each feature's doc under [`docs/`](docs/)). **Password Login** is on so existing stores keep working, and **Password Policy** applies from installation with no on/off switch. You enable only what you need in step 3, and the firewall / entity wiring in steps 5–6 is only required for the features you turn on.
 
 1. Require the plugin (its standalone bundle and the Scheb 2FA bundle are pulled in automatically as dependencies):
 
@@ -116,6 +116,7 @@ This section is for **consuming** the plugin in your own Sylius project — you 
 
    ```php
    // src/Entity/User/ShopUser.php
+   use Doctrine\ORM\Mapping as ORM;
    use Sylius\Component\Core\Model\ShopUser as BaseShopUser;
    use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
    use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
@@ -124,6 +125,8 @@ This section is for **consuming** the plugin in your own Sylius project — you 
    use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationShopUserTrait;
    use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthShopUserTrait;
 
+   #[ORM\Entity]
+   #[ORM\Table(name: 'sylius_shop_user')]
    class ShopUser extends BaseShopUser implements PasswordExpirationShopUserInterface, TwoFactorAuthShopUserInterface, LockableShopUserInterface
    {
        use PasswordExpirationShopUserTrait;
@@ -134,6 +137,7 @@ This section is for **consuming** the plugin in your own Sylius project — you 
 
    ```php
    // src/Entity/User/AdminUser.php
+   use Doctrine\ORM\Mapping as ORM;
    use Sylius\Component\Core\Model\AdminUser as BaseAdminUser;
    use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
    use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationAdminUserInterface;
@@ -142,6 +146,8 @@ This section is for **consuming** the plugin in your own Sylius project — you 
    use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\PasswordExpirationAdminUserTrait;
    use ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\TwoFactorAuthAdminUserTrait;
 
+   #[ORM\Entity]
+   #[ORM\Table(name: 'sylius_admin_user')]
    class AdminUser extends BaseAdminUser implements PasswordExpirationAdminUserInterface, TwoFactorAuthAdminUserInterface, LockableAdminUserInterface
    {
        use PasswordExpirationAdminUserTrait;
@@ -149,6 +155,8 @@ This section is for **consuming** the plugin in your own Sylius project — you 
        use LockableAdminUserTrait;
    }
    ```
+
+   The traits add mapped columns, so both classes must be Doctrine entities registered as your application's shop and admin user models — which is how a standard Sylius application already ships them. Step 7 creates the columns from that mapping.
 
    > Magic link, passkey, OAuth, session management, login notifications and account deletion keep their data in their own tables (foreign-keyed to `ShopUser` / `AdminUser`) and need **no** traits.
 
@@ -162,20 +170,16 @@ This section is for **consuming** the plugin in your own Sylius project — you 
    bin/console doctrine:schema:update --complete --force
    ```
 
-   In production generate and run a migration with your usual workflow instead.
+   The plugin ships no Doctrine migrations. The command above reads the entity mapping and applies it
+   directly, which suits development. For production, generate a migration from the same mapping with
+   `bin/console doctrine:migrations:diff` (once the bundle and the step 5 traits are in place) and run it
+   through your usual deployment workflow, likewise for any later upgrade that adds tables or columns.
 
 8. Install the bundled assets (e.g. the passkey browser script):
 
    ```bash
    bin/console assets:install
    ```
-
-## Upgrading from 1.x
-
-Per-user password-login control has been replaced by a global per-scope switch, managed on the **Security Settings** admin screen. The admin-side trait and interface it required are gone, so a consumer whose `AdminUser` still follows the earlier README hits a class-not-found error on `composer update` — before the schema is even reached. Migrate by hand:
-
-1. Remove `PasswordLoginControlAdminUserTrait` and `PasswordLoginControlAdminUserInterface` (both under `ThreeBRS\SyliusEnterpriseSecurityPlugin\Model\`) from your `AdminUser` entity — the trait `use`, the `implements`, and their two imports.
-2. Run `bin/console doctrine:schema:update --complete --force` (or a migration in production) to drop the now-orphaned `sylius_admin_user.password_login_allowed` column and `three_brs_customer_login_preference` table. Their stored per-user preferences are discarded on purpose — the global switch supersedes them.
 
 ## Troubleshooting
 
@@ -265,15 +269,15 @@ This section is **only** for contributing to / developing the plugin — not for
 
 ### Bootstrapping the dev environment
 
-Spin up the dockerized test application (DB, PHP, assets, migrations, fixtures wiring) in one go:
+Spin up the dockerized test application (DB, PHP, schema, assets, fixtures wiring) in one go:
 
 ```bash
 make init
 ```
 
-This builds the containers, runs `composer install`, creates the database, applies all migrations (including the plugin's `three_brs_*_social_account_link` tables) and builds the frontend assets. Use `make init-tests` for the `test` environment.
+This builds the containers, runs `composer install`, creates the database, applies the schema with `doctrine:schema:update --complete --force` and builds the frontend assets. Use `make init-tests` for the `test` environment.
 
-In the dev environment both Google and Apple OAuth providers are swapped for a fake in-memory provider (see [`tests/Application/config/services_dev.yaml`](./tests/Application/config/services_dev.yaml)) so the social-login buttons work end-to-end without any external credentials. To exercise the real Google/Apple flows locally, comment out the `FakeOAuthProvider` override and fill in your credentials in `tests/Application/.env.local`.
+In the dev environment the Google, Apple and Microsoft OAuth providers are all swapped for a fake in-memory one, and GeoIP lookup is swapped for a fake that resolves Docker/local addresses so the Active Sessions UI shows a location without a MaxMind database (see [`tests/Application/config/services_dev.yaml`](./tests/Application/config/services_dev.yaml)). The social-login buttons therefore work end-to-end without any external credentials. To exercise a real provider flow locally, comment out its `FakeOAuthProvider` override and fill in your credentials in `tests/Application/.env.local`.
 
 ### Testing
 
