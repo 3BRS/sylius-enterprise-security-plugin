@@ -7,7 +7,7 @@
     "require": {
         "php": "^8.3",
         "sylius/sylius": "^2.1",
-        "3brs/enterprise-security-bundle": "2.1.0",
+        "3brs/enterprise-security-bundle": "~2.2.1",
         "scheb/2fa-bundle": "^7.13",
         "scheb/2fa-totp": "^7.13",
         "spomky-labs/otphp": "^11.4",
@@ -19,6 +19,8 @@
         "thenetworg/oauth2-azure": "^2.2",
         "web-auth/webauthn-lib": "^5.0",
         "symfony/rate-limiter": "^6.4|^7.4",
+        "psr/clock": "^1.0",
+        "symfony/clock": "^6.4|^7.4",
         "matomo/device-detector": "^6.5"
     },
     "require-dev": {

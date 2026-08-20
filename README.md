@@ -189,7 +189,7 @@ Cannot create union with both "object" and class type.
 
 this is an **upstream api-platform regression, not a plugin bug**. API Platform's property-metadata scanner (Symfony's `PhpStanExtractor` → `TypeInfo`) chokes on generic `@template T of object` PHPDoc present in some of the plugin's transitive dependencies (e.g. `web-auth/webauthn-lib`), trying to build an `object|SomeClass` union that `TypeInfo` rejects. Because API Platform is enabled by default in Sylius 2, you hit it right after installing the plugin.
 
-It affects api-platform `4.3.x` (reproduced on 4.3.5–4.3.7; no fixed release exists at the time of writing). Until an upstream fix ships, work around it by decorating the property-info extractors with a wrapper that swallows the `TypeInfo` exception.
+It affects api-platform `4.3.x` (reproduced on 4.3.5–4.3.7 and still on 4.3.17; no fixed release exists at the time of writing). Until an upstream fix ships, work around it by decorating the property-info extractors with a wrapper that swallows the `TypeInfo` exception.
 
 Add the decorator class to your application — use the plugin's [`SafePhpStanExtractor`](tests/Application/src/PropertyInfo/SafePhpStanExtractor.php) as a reference implementation. It implements every property-info extractor interface (on Symfony 7.3+ also `ConstructorArgumentTypeExtractorInterface`) and returns `null` whenever the inner extractor throws `Symfony\Component\TypeInfo\Exception\InvalidArgumentException`. Then register it over both Symfony's and API Platform's extractor services:
 
