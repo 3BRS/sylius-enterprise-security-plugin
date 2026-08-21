@@ -14,9 +14,13 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpBlacklist\IpBlacklistCheck
  * toggle and inverts the "matches" check into a "deny" decision — a global
  * CIDR hit means the IP is denied.
  *
- * Listener priority 5 in services.yaml runs this BEFORE the whitelist
- * listener (priority 4), so a blacklist hit short-circuits via setResponse()
- * and the whitelist's allow-gate never gets a chance to override.
+ * Listener priority 20 in services.yaml runs this above the firewall (8) and
+ * ahead of both of the whitelist listener's passes (18 and 4), so a blacklist
+ * hit short-circuits via setResponse() and no allow decision can override it.
+ * Above the firewall matters because the authenticator answers
+ * /admin/login-check and /admin/2fa_check itself: below it, a blocked address
+ * could still post to the login form and drive an administrator's lockout
+ * counter.
  */
 class AdminIpBlacklistListener extends AbstractIpRestrictionListener implements AdminIpBlacklistListenerInterface
 {

@@ -19,6 +19,62 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistCheck
 #[CoversClass(AdminIpWhitelistListener::class)]
 class AdminIpWhitelistListenerTest extends TestCase
 {
+    public function testPreAuthPassDeniesAnAddressNoEntryCovers(): void
+    {
+        $checker = $this->createMock(IpWhitelistCheckerInterface::class);
+        $checker->method('isFeatureEnabled')->willReturn(true);
+        $checker->method('isAllowedAnonymously')->willReturn(false);
+        // Calling this here would consult an empty token storage and lock out every
+        // admin whose access rests on a personal entry rather than the global list.
+        $checker->expects(self::never())->method('isAllowedForAdmin');
+
+        $event = $this->createEvent('/admin/login-check');
+        $this->createListener($checker, $this->tokenStorageEmpty())->onKernelRequestPreAuth($event);
+
+        $response = $event->getResponse();
+        self::assertInstanceOf(Response::class, $response);
+        self::assertSame(Response::HTTP_FORBIDDEN, $response->getStatusCode());
+    }
+
+    public function testPreAuthPassLetsThroughAnAddressAPerAdminEntryCovers(): void
+    {
+        $checker = $this->createMock(IpWhitelistCheckerInterface::class);
+        $checker->method('isFeatureEnabled')->willReturn(true);
+        $checker->method('isAllowedAnonymously')->willReturn(true);
+        $checker->expects(self::never())->method('isAllowedForAdmin');
+
+        // The documented pure per-admin setup: no global CIDR, so the admin has to be
+        // able to reach the login form before anyone knows who they are.
+        $event = $this->createEvent('/admin/login');
+        $this->createListener($checker, $this->tokenStorageEmpty())->onKernelRequestPreAuth($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testPreAuthPassIgnoresPathsOutsideTheAdminPrefix(): void
+    {
+        $checker = $this->createMock(IpWhitelistCheckerInterface::class);
+        $checker->method('isFeatureEnabled')->willReturn(true);
+        $checker->expects(self::never())->method('isAllowedAnonymously');
+
+        $event = $this->createEvent('/admin-panel-lookalike');
+        $this->createListener($checker, $this->tokenStorageEmpty())->onKernelRequestPreAuth($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testPreAuthPassDoesNothingWhenTheFeatureIsOff(): void
+    {
+        $checker = $this->createMock(IpWhitelistCheckerInterface::class);
+        $checker->method('isFeatureEnabled')->willReturn(false);
+        $checker->expects(self::never())->method('isAllowedAnonymously');
+
+        $event = $this->createEvent('/admin/login-check');
+        $this->createListener($checker, $this->tokenStorageEmpty())->onKernelRequestPreAuth($event);
+
+        self::assertNull($event->getResponse());
+    }
+
     private function createListener(
         IpWhitelistCheckerInterface $checker,
         TokenStorageInterface $tokenStorage,
