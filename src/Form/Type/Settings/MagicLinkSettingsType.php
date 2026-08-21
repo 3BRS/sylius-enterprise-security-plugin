@@ -8,6 +8,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
@@ -28,7 +29,7 @@ class MagicLinkSettingsType extends AbstractType implements MagicLinkSettingsTyp
                 'label' => 'three_brs.ui.security_settings.magic_link.expiration_seconds',
                 'required' => true,
                 'attr' => ['min' => SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MIN, 'max' => SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MAX],
-                'constraints' => [new Range(min: SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MIN, max: SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MAX)],
+                'constraints' => [new NotBlank(), new Range(min: SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MIN, max: SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MAX)],
             ])
         ;
     }
