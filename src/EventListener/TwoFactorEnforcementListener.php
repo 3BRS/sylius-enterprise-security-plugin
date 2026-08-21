@@ -36,6 +36,16 @@ class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterf
         'sylius_admin_request_password_reset',
         'sylius_admin_render_password_reset',
         'sylius_admin_password_reset',
+        // The two pages that clear an expired password. PasswordExpirationListener
+        // runs first (priority 4 against 3) and sends an expired user here, so
+        // without these two entries this listener bounces them straight back to
+        // two-factor setup, from where the expiration listener bounces them here
+        // again — neither controller ever runs. Changing the password is the right
+        // one to let through: AbstractPasswordHistoryListener::stampPasswordChangedAt()
+        // clears `forcePasswordChange` on save, after which the expiration listener
+        // falls silent and the next request reaches two-factor setup normally.
+        'sylius_shop_account_change_password',
+        'three_brs_admin_force_password_change',
     ];
 
     protected const EXCLUDED_ROUTE_PREFIXES = [

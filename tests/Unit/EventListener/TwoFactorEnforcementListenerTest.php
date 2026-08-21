@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\EventListener;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -102,6 +103,40 @@ class TwoFactorEnforcementListenerTest extends TestCase
         );
 
         $event = $this->createEvent('three_brs_shop_two_factor_setup');
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function changePasswordRouteProvider(): iterable
+    {
+        yield 'shop' => ['sylius_shop_account_change_password'];
+        yield 'admin' => ['three_brs_admin_force_password_change'];
+    }
+
+    /**
+     * PasswordExpirationListener runs one priority above this one and sends a user
+     * with an expired password to these two pages. Redirecting them away to
+     * two-factor setup put the two listeners in a loop that neither controller
+     * could break out of, so both remediation pages have to pass through here.
+     */
+    #[DataProvider('changePasswordRouteProvider')]
+    public function testDoesNotRedirectAwayFromTheChangePasswordPage(string $route): void
+    {
+        $checker = $this->createMock(TwoFactorEnforcementCheckerInterface::class);
+        $checker->expects(self::never())->method('shouldEnforceForShopUser');
+        $checker->expects(self::never())->method('shouldEnforceForAdminUser');
+
+        $listener = $this->createListener(
+            $this->tokenStorageWithUser($this->createStub(TestShopUserForEnforcement::class)),
+            $checker,
+            $this->createStub(RouterInterface::class),
+        );
+
+        $event = $this->createEvent($route);
         $listener->onKernelRequest($event);
 
         self::assertNull($event->getResponse());
