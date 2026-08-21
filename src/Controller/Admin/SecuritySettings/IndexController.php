@@ -38,7 +38,6 @@ class IndexController implements IndexControllerInterface
         return new Response($this->twig->render(
             '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/SecuritySettings/index.html.twig',
             [
-                'scope' => $scope,
                 'scope_value' => $scope->value,
                 'form' => $form->createView(),
             ],

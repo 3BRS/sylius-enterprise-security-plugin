@@ -68,7 +68,6 @@ class IpWhitelistAdminEditController implements IpWhitelistAdminEditControllerIn
             [
                 'form' => $form->createView(),
                 'admin' => $admin,
-                'whitelist' => $whitelist,
             ],
         ));
     }
