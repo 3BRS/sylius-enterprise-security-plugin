@@ -14,6 +14,9 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository
 #[ORM\Index(name: 'idx_customer_session_shop_user', columns: ['shop_user_id'])]
 class CustomerSession implements CustomerSessionInterface
 {
+    /** Matches the `user_agent` column width below; `static::` so a subclass can widen both together. */
+    protected const USER_AGENT_MAX_LENGTH = 1024;
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[ORM\Column(type: 'integer')]
@@ -86,7 +89,12 @@ class CustomerSession implements CustomerSessionInterface
 
     public function setUserAgent(?string $userAgent): void
     {
-        $this->userAgent = $userAgent;
+        // Truncated to the column width here rather than at the call site: the
+        // header arrives unbounded from the client and every writer would
+        // otherwise have to remember the limit this entity owns.
+        $this->userAgent = $userAgent === null
+            ? null
+            : mb_substr($userAgent, 0, static::USER_AGENT_MAX_LENGTH);
     }
 
     public function getIpAddress(): ?string
