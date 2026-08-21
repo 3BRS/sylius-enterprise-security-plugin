@@ -4,7 +4,7 @@
 - Covers all flows: account settings change, forgot-password reset, admin-forced change, and admin editing another user's password
 - Detection is Doctrine-based — the listener catches password updates at flush time regardless of which flow triggered them
 - Email contains timestamp, IP address (when available), and a secure-account link when the change was not initiated by the user
-- `initiatedByUser` is derived from the current security token: when the authenticated user matches the user whose password changed, the secure-account link is omitted
+- `initiatedByUser` is decided in two steps. A change made through one of the password-reset routes (`sylius_shop_password_reset`, `sylius_admin_password_reset` and their API counterparts) always counts as self-initiated — the user is following their own reset link and there is no authenticated session to compare against. Otherwise the current security token decides: the change counts as self-initiated when the authenticated user is the one whose password changed. Either way, self-initiated means the secure-account link is omitted
 - Configurable independently for customers and admins (enable/disable)
 
 ```yaml

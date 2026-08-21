@@ -1,7 +1,7 @@
 # Passkey Login (WebAuthn / FIDO2)
 
 - Passwordless sign-in for shop customers and admin users using passkeys (platform authenticators like Touch ID / Windows Hello / Android lock, or hardware security keys such as YubiKey). Independently configurable per group.
-- Multiple passkeys per user — labelled (e.g. "MacBook Touch ID", "YubiKey") so the user can identify them. Managed at `/account/passkey` (shop) and `/admin/account/passkey` (admin).
+- Multiple passkeys per user — labelled (e.g. "MacBook Touch ID", "YubiKey") so the user can identify them. Managed at `/{_locale}/account/passkey` (shop) and `/admin/account/passkey` (admin).
 - Per-user credential storage in dedicated tables (`three_brs_customer_passkey_credential`, `three_brs_admin_user_passkey_credential`) — credential ID, public key, sign counter and other metadata serialized as JSON.
 - Built on `web-auth/webauthn-lib` — server-side challenge generation and assertion verification follow the standard WebAuthn ceremony.
 - Bypasses 2FA: like OAuth and magic link, the verify controller writes the authenticated token directly, so a user with `scheb/2fa` enabled is **not** challenged for the second factor after a passkey sign-in — two-factor only guards plain email + password sign-in

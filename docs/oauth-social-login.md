@@ -1,6 +1,6 @@
 # 3rd-party OAuth (Social Login)
 
-- **Google and Apple sign-in** for shop customers and admin users — sign-in buttons are rendered on the shop login + register pages and on the admin login page
+- **Google, Apple and Microsoft sign-in** for shop customers and admin users — sign-in buttons are rendered on the shop login + register pages and on the admin login page
 - **Independent shop/admin configuration** — each provider is enabled and configured separately for the shop and admin groups, so you can register two distinct OAuth clients (different client IDs, consent screens, redirect URIs). Useful when the shop-facing app and the internal admin app live as separate applications on the provider side
 - **Three callback flows** depending on what the plugin finds for the OAuth identity's email:
   - existing linked account → straight log-in

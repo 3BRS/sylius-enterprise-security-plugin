@@ -23,6 +23,9 @@ Throttled endpoints:
 | Password reset | ✓ | ✓ |
 | Register | ✓ | — *(admin has no self-registration)* |
 | Magic link | ✓ | ✓ |
+| Account deletion request | ✓ | — *(customer-scope feature)* |
+
+The account-deletion request posts the customer's current password, so it presents the same brute-force surface as a password reset and draws on that same counter rather than one of its own — `rate_limit.customer.password_reset` governs both.
 
 When the limit is exceeded the user is redirected back to the form with a `three_brs.rate_limit.too_many_requests` error flash.
 
