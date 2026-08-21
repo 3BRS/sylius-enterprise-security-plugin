@@ -13,7 +13,7 @@
         {% include '@SyliusAdmin/shared/crud/common/navbar.html.twig' %}
 
         {% set user = app.user %}
-        {% set links = user is not null ? three_brs_admin_social_links(user) : [] %}
+        {% set links = three_brs_admin_social_links(user) %}
         {% set providers = three_brs_social_providers('admin') %}
         {% set linkable = providers|filter(p => links|filter(l => l.provider == p)|length == 0) %}
 
@@ -22,8 +22,8 @@
                 {{ breadcrumbs([
                     { name: 'sylius.ui.dashboard', url: path('sylius_admin_dashboard'), active: false },
                     { name: 'sylius.menu.admin.main.configuration.admin_users', url: path('sylius_admin_admin_user_index'), active: false },
-                    { name: app.user.id, url: path('sylius_admin_admin_user_update', {'id': app.user.id}), active: false },
-                    { name: 'sylius.ui.edit', url: path('sylius_admin_admin_user_update', {'id': app.user.id}), active: false },
+                    { name: user.id, url: path('sylius_admin_admin_user_update', {'id': user.id}), active: false },
+                    { name: 'sylius.ui.edit', url: path('sylius_admin_admin_user_update', {'id': user.id}), active: false },
                     { name: 'three_brs.ui.social_login.menu_item', active: true },
                 ]) }}
                 <div class="row mt-3 row-gap-2 align-items-center">
