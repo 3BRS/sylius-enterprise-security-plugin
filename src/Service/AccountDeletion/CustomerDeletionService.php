@@ -15,6 +15,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequest;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequestInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 
 class CustomerDeletionService implements CustomerDeletionServiceInterface
 {
@@ -26,6 +27,7 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         protected ClockInterface $clock,
         protected LoggerInterface $logger,
         protected GracePeriodCalculatorInterface $gracePeriodCalculator,
+        protected CustomerSessionTrackerInterface $sessionTracker,
         protected int $gracePeriodDays,
     ) {
     }
@@ -46,6 +48,18 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
 
         $this->entityManager->persist($request);
         $this->entityManager->flush();
+
+        // Disabling the user stops the next sign-in, not the sessions already open:
+        // nothing re-reads isEnabled() on a later request, and ShopUser does not
+        // implement EquatableInterface, so ContextListener sees no change either. A
+        // customer who asked to be erased from one device would otherwise keep
+        // browsing on another for the whole grace period. The admin block path does
+        // the same thing, for the same reason.
+        //
+        // Revoked after the flush above rather than inside disableShopUser(): the
+        // tracker commits, and doing it earlier would persist the disabled account
+        // before the request that justifies it.
+        $this->revokeSessions($customer);
 
         // Email is best-effort: the request is already committed, so a transient SMTP
         // failure must not unwind the deletion request. Admin can still see the pending
@@ -74,6 +88,20 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         $this->enableShopUser($request->getCustomer());
 
         $this->entityManager->flush();
+    }
+
+    /**
+     * A no-op when session management is off, since no rows exist to revoke. The
+     * open sessions of an installation that does not track them stay open — closing
+     * those needs a check on the live `enabled` flag, which this plugin does not
+     * make on every request.
+     */
+    protected function revokeSessions(CustomerInterface $customer): void
+    {
+        $user = $customer->getUser();
+        if ($user instanceof ShopUserInterface) {
+            $this->sessionTracker->revokeAll($user);
+        }
     }
 
     protected function disableShopUser(CustomerInterface $customer): void

@@ -1337,6 +1337,7 @@ services:
             $logger: '@logger'
             $gracePeriodCalculator: '@ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\GracePeriodCalculator'
             $gracePeriodDays: '%three_brs.account_deletion.customer.grace_period_days%'
+            $sessionTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService
