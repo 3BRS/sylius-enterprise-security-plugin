@@ -95,17 +95,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
         $this->registerSessionManagement($container, $config['session_management']);
         $this->registerLoginNotifications($container, $config['login_notifications']);
         $this->registerAccountDeletion($container, $config['account_deletion']);
-        $this->registerIpWhitelist($container, $config['ip_whitelist']);
-        $this->registerIpBlacklist($container, $config['ip_blacklist']);
-        $this->registerPasswordLogin($container, $config['password_login']);
         $this->registerSecuritySettingsDefaults($container, $config);
-    }
-
-    /** @param array<string, array<string, mixed>> $config */
-    protected function registerPasswordLogin(ContainerBuilder $container, array $config): void
-    {
-        $container->setParameter('three_brs.password_login.customer.enabled', (bool) $config['customer']['enabled']);
-        $container->setParameter('three_brs.password_login.admin.enabled', (bool) $config['admin']['enabled']);
     }
 
     /** @param array<string, mixed> $config */
@@ -120,18 +110,6 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     {
         $container->setParameter('three_brs.account_deletion.customer.enabled', (bool) $config['customer']['enabled']);
         $container->setParameter('three_brs.account_deletion.customer.grace_period_days', (int) $config['customer']['grace_period_days']);
-    }
-
-    /** @param array<string, mixed> $config */
-    protected function registerIpWhitelist(ContainerBuilder $container, array $config): void
-    {
-        $container->setParameter('three_brs.ip_whitelist.enabled', (bool) $config['enabled']);
-    }
-
-    /** @param array<string, mixed> $config */
-    protected function registerIpBlacklist(ContainerBuilder $container, array $config): void
-    {
-        $container->setParameter('three_brs.ip_blacklist.enabled', (bool) $config['enabled']);
     }
 
     /** @param array<string, mixed> $config */
@@ -158,12 +136,11 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     {
         foreach (['customer', 'admin'] as $group) {
             $groupConfig = $config[$group];
+            // Only `enabled` is consumed at compile time — services.yaml gates the
+            // lockout listeners on it. The thresholds are read per request from the
+            // DB-backed settings through PolicyFactory, so a parameter copy of them
+            // would be a second, stale source for the same two numbers.
             $container->setParameter(sprintf('three_brs.account_lockout.%s.enabled', $group), (bool) $groupConfig['enabled']);
-            $container->setParameter(sprintf('three_brs.account_lockout.%s.max_attempts', $group), (int) $groupConfig['max_attempts']);
-            $container->setParameter(
-                sprintf('three_brs.account_lockout.%s.auto_unlock_after', $group),
-                $groupConfig['auto_unlock_after'] === null ? null : (int) $groupConfig['auto_unlock_after'],
-            );
         }
     }
 
