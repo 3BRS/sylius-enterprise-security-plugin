@@ -62,14 +62,19 @@ abstract class AbstractCustomerSecurityActionController
         return new RedirectResponse($this->router->generate('sylius_admin_customer_show', ['id' => $customerId]));
     }
 
-    protected function loadShopUserOr404(int $customerId): ShopUserInterface
+    protected function loadCustomerOr404(int $customerId): CustomerInterface
     {
         $customer = $this->customerRepository->find($customerId);
         if (!$customer instanceof CustomerInterface) {
             throw new NotFoundHttpException();
         }
 
-        $shopUser = $customer->getUser();
+        return $customer;
+    }
+
+    protected function loadShopUserOr404(int $customerId): ShopUserInterface
+    {
+        $shopUser = $this->loadCustomerOr404($customerId)->getUser();
         if (!$shopUser instanceof ShopUserInterface) {
             throw new NotFoundHttpException();
         }
@@ -82,5 +87,13 @@ abstract class AbstractCustomerSecurityActionController
         $this->addFlashMessage($request, 'success', $flashKey);
 
         return new RedirectResponse($this->router->generate('sylius_admin_customer_show', ['id' => $customerId]));
+    }
+
+    /** For the cases where the right place to send the administrator is not the customer's page. */
+    protected function flashAndRedirect(Request $request, string $type, string $flashKey, string $route): Response
+    {
+        $this->addFlashMessage($request, $type, $flashKey);
+
+        return new RedirectResponse($this->router->generate($route));
     }
 }

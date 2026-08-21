@@ -38,6 +38,7 @@ three_brs:
         password_reset_forced: 'The customer will be required to change their password on next sign-in.'
         blocked: 'Customer account has been blocked. Active sessions were signed out.'
         unblocked: 'Customer account has been unblocked.'
+        unblock_blocked_by_deletion_request: 'This account is disabled because the customer asked for it to be deleted. Cancel the deletion request to restore access.'
         sessions_revoked: 'All active sessions for this customer have been signed out.'
         session_revoked: 'The selected session has been signed out.'
     ui:
