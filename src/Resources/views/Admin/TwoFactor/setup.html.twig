@@ -83,20 +83,5 @@
     <link rel="stylesheet" href="{{ asset('bundles/threebrssyliusenterprisesecurityplugin/css/copy_field.css') }}">
     <script src="{{ asset('bundles/threebrssyliusenterprisesecurityplugin/js/copy_field.js') }}"></script>
 
-    <script>
-        (function () {
-            document.querySelectorAll('[data-totp-code]').forEach(function (input) {
-                input.addEventListener('input', function () {
-                    var digits = input.value.replace(/\D/g, '').slice(0, 6);
-                    input.value = digits.length > 3 ? digits.slice(0, 3) + '-' + digits.slice(3) : digits;
-                });
-                var form = input.closest('form');
-                if (form) {
-                    form.addEventListener('submit', function () {
-                        input.value = input.value.replace(/-/g, '');
-                    });
-                }
-            });
-        })();
-    </script>
+    <script src="{{ asset('bundles/threebrssyliusenterprisesecurityplugin/js/totp_input.js') }}"></script>
 {% endblock %}
