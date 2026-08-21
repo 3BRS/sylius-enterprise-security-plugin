@@ -6,6 +6,7 @@
     {% set activeSessions = three_brs_customer_active_sessions(shopUser) %}
     {% set loginHistory = three_brs_customer_login_history(shopUser, 20) %}
     {% set isEnabled = shopUser.enabled %}
+{% set pendingDeletion = three_brs_customer_deletion_request(shopUser) %}
     {% set forceChangeRequested = shopUser.forcePasswordChange|default(false) %}
     {% set lockedAt = shopUser.lockedAt|default(null) %}
 
@@ -31,6 +32,17 @@
                 {% else %}
                     <span class="badge bg-danger text-white" data-test-three-brs-customer-security-state="blocked">
                         {{ 'three_brs.ui.customer_security.state_blocked'|trans }}
+                    </span>
+                {% endif %}
+
+                {# A disabled account looks the same whether an administrator blocked it or the
+                   customer asked to be erased. Only the first is undone by Unblock, so say which. #}
+                {% if pendingDeletion is not null %}
+                    <span class="badge bg-purple text-white"
+                          data-test-three-brs-customer-security-pending-deletion>
+                        {{ 'three_brs.ui.customer_security.pending_deletion'|trans({
+                            '%date%': pendingDeletion.scheduledFor|date('Y-m-d'),
+                        }) }}
                     </span>
                 {% endif %}
 
@@ -67,6 +79,15 @@
                             data-test-three-brs-customer-security-block>
                         {{ 'three_brs.ui.customer_security.block'|trans }}
                     </button>
+                {% elseif pendingDeletion is not null %}
+                    {# Unblocking would flip `enabled` back without touching the request, so the cron
+                       would erase the customer on schedule anyway. Cancelling belongs on the deletion
+                       screen, where it is recorded against the administrator who did it. #}
+                    <a class="btn btn-outline-secondary"
+                       href="{{ path('three_brs_admin_account_deletions') }}"
+                       data-test-three-brs-customer-security-review-deletion>
+                        {{ 'three_brs.ui.customer_security.review_deletion_request'|trans }}
+                    </a>
                 {% else %}
                     <button type="button" class="btn btn-outline-success"
                             data-bs-toggle="modal"

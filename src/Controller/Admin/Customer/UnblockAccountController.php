@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
 
 class UnblockAccountController extends AbstractCustomerSecurityActionController implements UnblockAccountControllerInterface
 {
@@ -20,6 +21,7 @@ class UnblockAccountController extends AbstractCustomerSecurityActionController 
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
         protected EntityManagerInterface $entityManager,
+        protected CustomerDeletionRequestRepositoryInterface $deletionRequestRepository,
         CsrfTokenManagerInterface $csrfTokenManager,
         RouterInterface $router,
     ) {
@@ -33,7 +35,24 @@ class UnblockAccountController extends AbstractCustomerSecurityActionController 
             return $csrfFailure;
         }
 
+        $customer = $this->loadCustomerOr404($id);
         $shopUser = $this->loadShopUserOr404($id);
+
+        // `enabled = false` is the whole of how a scheduled erasure is enforced, so
+        // flipping it back here would quietly undo it: the customer signs in again,
+        // the administrator believes the account is restored, and the cron anonymises
+        // name, e-mail, phone and addresses on the scheduled day regardless. The
+        // request has its own screen, where cancelling is recorded against the
+        // administrator who did it.
+        if ($this->deletionRequestRepository->findActiveForCustomer($customer) !== null) {
+            return $this->flashAndRedirect(
+                $request,
+                'error',
+                'three_brs.customer_security.unblock_blocked_by_deletion_request',
+                'three_brs_admin_account_deletions',
+            );
+        }
+
         $shopUser->setEnabled(true);
         $this->entityManager->flush();
 

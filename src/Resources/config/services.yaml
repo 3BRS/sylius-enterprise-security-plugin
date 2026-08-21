@@ -1572,6 +1572,7 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
+            $deletionRequestRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -1598,6 +1599,7 @@ services:
         arguments:
             $sessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
             $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
+            $deletionRequestRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
         tags:
             - { name: 'twig.extension' }
 

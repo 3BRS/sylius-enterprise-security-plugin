@@ -206,6 +206,8 @@ three_brs:
             block: 'Block account'
             confirm_block: 'Block this customer? They will be signed out and unable to sign in until you unblock them.'
             unblock: 'Unblock account'
+            pending_deletion: 'Deletion requested — scheduled for %date%'
+            review_deletion_request: 'Review deletion request'
             confirm_unblock: 'Unblock this customer? They will be able to sign in again.'
             revoke_all_sessions: 'Sign out from all devices'
             confirm_revoke_all_sessions: 'Sign this customer out of every active session?'

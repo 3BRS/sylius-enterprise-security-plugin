@@ -17,6 +17,8 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\UnblockAccountController;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequestInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
 
 #[CoversClass(UnblockAccountController::class)]
 class UnblockAccountControllerTest extends TestCase
@@ -45,10 +47,35 @@ class UnblockAccountControllerTest extends TestCase
         self::assertInstanceOf(RedirectResponse::class, $response);
     }
 
+    public function testRefusesToUnblockAnAccountScheduledForDeletion(): void
+    {
+        // `enabled = false` is the whole of how a scheduled erasure is enforced, so
+        // enabling the user here would undo it silently: they sign in again, the
+        // administrator believes the account is restored, and the cron anonymises
+        // them on the scheduled day anyway.
+        $shopUser = $this->createMock(ShopUserInterface::class);
+        $shopUser->expects(self::never())->method('setEnabled');
+
+        $customer = $this->createStub(CustomerInterface::class);
+        $customer->method('getUser')->willReturn($shopUser);
+
+        $controller = $this->createController(
+            $customer,
+            validToken: true,
+            expectFlush: false,
+            pendingDeletion: $this->createStub(CustomerDeletionRequestInterface::class),
+        );
+
+        $response = $controller(self::request('valid-token'), 42);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+    }
+
     private function createController(
         ?CustomerInterface $customer,
         bool $validToken,
         bool $expectFlush,
+        ?CustomerDeletionRequestInterface $pendingDeletion = null,
     ): UnblockAccountController {
         $customerRepository = $this->createStub(CustomerRepositoryInterface::class);
         $customerRepository->method('find')->willReturn($customer);
@@ -62,7 +89,10 @@ class UnblockAccountControllerTest extends TestCase
         $router = $this->createStub(RouterInterface::class);
         $router->method('generate')->willReturn('/admin/customers/42');
 
-        return new UnblockAccountController($customerRepository, $em, $csrf, $router);
+        $deletionRequests = $this->createStub(CustomerDeletionRequestRepositoryInterface::class);
+        $deletionRequests->method('findActiveForCustomer')->willReturn($pendingDeletion);
+
+        return new UnblockAccountController($customerRepository, $em, $deletionRequests, $csrf, $router);
     }
 
     private static function request(string $token): Request
