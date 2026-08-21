@@ -16,6 +16,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Http\RememberMe\RememberMeHandlerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserSession;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\SessionRevocationListener;
@@ -41,6 +42,7 @@ class SessionRevocationListenerTest extends TestCase
             $customerRepository,
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
+            $this->createStub(RememberMeHandlerInterface::class),
             true,
             true,
         );
@@ -66,6 +68,7 @@ class SessionRevocationListenerTest extends TestCase
             $customerRepository,
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
+            $this->createStub(RememberMeHandlerInterface::class),
             true,
             true,
         );
@@ -90,6 +93,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(CustomerSessionRepositoryInterface::class),
             $adminRepository,
             $this->makeRouter('/admin/login'),
+            $this->createStub(RememberMeHandlerInterface::class),
             true,
             true,
         );
@@ -115,6 +119,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(CustomerSessionRepositoryInterface::class),
             $adminRepository,
             $this->makeRouter('/admin/login'),
+            $this->createStub(RememberMeHandlerInterface::class),
             true,
             true,
         );
@@ -132,6 +137,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(CustomerSessionRepositoryInterface::class),
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
+            $this->createStub(RememberMeHandlerInterface::class),
             false,
             false,
         );
@@ -146,6 +152,97 @@ class SessionRevocationListenerTest extends TestCase
         $router->method('generate')->willReturn($url);
 
         return $router;
+    }
+
+    public function testClearsTheRememberMeCookieWhenTheSessionIsRevoked(): void
+    {
+        $session = new CustomerSession();
+        $session->setSessionId('sess-1');
+        $session->setRevokedAt(new \DateTimeImmutable());
+
+        $customerRepository = $this->createStub(CustomerSessionRepositoryInterface::class);
+        $customerRepository->method('findOneBySessionId')->willReturn($session);
+
+        $event = $this->makeEvent('sess-1', $this->createStub(ShopUserInterface::class), invalidatesSession: true);
+
+        // Without this the firewall re-authenticates the revoked device from the
+        // surviving cookie on the very next request, and the tracker writes a
+        // fresh unrevoked row — signing the user out for exactly one request.
+        $rememberMe = $this->createMock(RememberMeHandlerInterface::class);
+        $rememberMe->expects(self::once())->method('clearRememberMeCookie');
+
+        $listener = new SessionRevocationListener(
+            $event->getRequest()->attributes->get('_test_token_storage'),
+            $customerRepository,
+            $this->createStub(AdminUserSessionRepositoryInterface::class),
+            $this->makeRouter('/login'),
+            $rememberMe,
+            true,
+            true,
+        );
+        $listener->onKernelRequest($event);
+
+        self::assertInstanceOf(RedirectResponse::class, $event->getResponse());
+    }
+
+    public function testLeavesTheRememberMeCookieAloneWhenTheSessionIsActive(): void
+    {
+        $session = new CustomerSession();
+        $session->setSessionId('sess-1');
+
+        $customerRepository = $this->createStub(CustomerSessionRepositoryInterface::class);
+        $customerRepository->method('findOneBySessionId')->willReturn($session);
+
+        $event = $this->makeEvent('sess-1', $this->createStub(ShopUserInterface::class));
+
+        $rememberMe = $this->createMock(RememberMeHandlerInterface::class);
+        $rememberMe->expects(self::never())->method('clearRememberMeCookie');
+
+        $listener = new SessionRevocationListener(
+            $event->getRequest()->attributes->get('_test_token_storage'),
+            $customerRepository,
+            $this->createStub(AdminUserSessionRepositoryInterface::class),
+            $this->makeRouter('/login'),
+            $rememberMe,
+            true,
+            true,
+        );
+        $listener->onKernelRequest($event);
+
+        self::assertNull($event->getResponse());
+    }
+
+    public function testStillRedirectsWhenTheFirewallHasNoRememberMe(): void
+    {
+        $session = new CustomerSession();
+        $session->setSessionId('sess-1');
+        $session->setRevokedAt(new \DateTimeImmutable());
+
+        $customerRepository = $this->createStub(CustomerSessionRepositoryInterface::class);
+        $customerRepository->method('findOneBySessionId')->willReturn($session);
+
+        $event = $this->makeEvent('sess-1', $this->createStub(ShopUserInterface::class), invalidatesSession: true);
+
+        // Symfony's firewall-aware handler throws when the current firewall has no
+        // `remember_me` key; an application without it must still get its redirect.
+        $rememberMe = $this->createStub(RememberMeHandlerInterface::class);
+        $rememberMe->method('clearRememberMeCookie')
+            ->willThrowException(new \LogicException('No RememberMeHandler found for this firewall.'));
+
+        $listener = new SessionRevocationListener(
+            $event->getRequest()->attributes->get('_test_token_storage'),
+            $customerRepository,
+            $this->createStub(AdminUserSessionRepositoryInterface::class),
+            $this->makeRouter('/login'),
+            $rememberMe,
+            true,
+            true,
+        );
+        $listener->onKernelRequest($event);
+
+        $response = $event->getResponse();
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('/login', $response->getTargetUrl());
     }
 
     protected function makeEvent(string $sessionId, object $user, bool $invalidatesSession = false): RequestEvent

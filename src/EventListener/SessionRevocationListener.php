@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Http\RememberMe\RememberMeHandlerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 
@@ -23,6 +24,7 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
         protected CustomerSessionRepositoryInterface $customerSessionRepository,
         protected AdminUserSessionRepositoryInterface $adminSessionRepository,
         protected RouterInterface $router,
+        protected RememberMeHandlerInterface $rememberMeHandler,
         protected bool $customerEnabled,
         protected bool $adminEnabled,
         protected string $customerLoginRoute = 'sylius_shop_login',
@@ -73,6 +75,8 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
 
     protected function logoutAndRedirect(Request $request, string $loginRoute): Response
     {
+        $this->clearRememberMeCookie();
+
         $request->getSession()->invalidate();
         $this->tokenStorage->setToken(null);
 
@@ -87,6 +91,34 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
         }
 
         return new RedirectResponse($this->router->generate($loginRoute));
+    }
+
+    /**
+     * Without this the revoked device signs itself straight back in: the firewall
+     * runs at priority 8, this listener at 4, so on the very next request
+     * RememberMeAuthenticator sees empty token storage plus a still-valid cookie
+     * and authenticates, and the session tracker records a fresh, unrevoked row.
+     *
+     * The cookie is cleared through the firewall-aware handler rather than
+     * assembled by hand, because its name, path, domain and samesite all come
+     * from the firewall configuration — the admin firewall alone puts it under
+     * `/%sylius_admin.path_name%`. The handler marks the request, and Symfony's
+     * remember-me ResponseListener stamps the deletion onto whatever response
+     * this method returns, so the redirect and the JSON branch are both covered.
+     *
+     * A full LogoutEvent would clear the cookie too, but it would also run every
+     * other logout listener on the firewall — cart, customer context, the
+     * two-factor trusted device — and let DefaultLogoutListener override the
+     * login route this class is configured with.
+     */
+    protected function clearRememberMeCookie(): void
+    {
+        try {
+            $this->rememberMeHandler->clearRememberMeCookie();
+        } catch (\LogicException) {
+            // The firewall this request belongs to has no `remember_me` configured,
+            // so there is no cookie to clear and nothing to report.
+        }
     }
 
     protected function isJsonRequest(Request $request): bool
