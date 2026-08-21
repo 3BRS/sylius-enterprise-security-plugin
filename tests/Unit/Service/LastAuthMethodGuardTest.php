@@ -15,11 +15,12 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLin
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 #[CoversClass(LastAuthMethodGuard::class)]
 class LastAuthMethodGuardTest extends TestCase
 {
-    public function testShopUserWithPasswordCanAlwaysUnlink(): void
+    public function testShopUserWithAUsablePasswordCanUnlink(): void
     {
         $user = $this->createStub(ShopUserInterface::class);
         $user->method('getPassword')->willReturn('$argon2i$hashed');
@@ -156,17 +157,73 @@ class LastAuthMethodGuardTest extends TestCase
         self::assertFalse($guard->canRemovePasskeyForAdminUser($user));
     }
 
+    public function testAPasswordDoesNotCountWhilePasswordLoginIsOffForTheScope(): void
+    {
+        // The switch makes AbstractPasswordLoginCheckListener refuse the credential
+        // whatever else the account has, so the stored hash is not a way back in and
+        // this link is the last method that still works.
+        $link = $this->createStub(CustomerSocialAccountLinkInterface::class);
+        $customerRepo = $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class);
+        $customerRepo->method('countByShopUser')->willReturn(1);
+        $customerRepo->method('findOneByShopUserAndProvider')->willReturn($link);
+
+        $user = $this->createStub(ShopUserInterface::class);
+        $user->method('getPassword')->willReturn('$argon2i$hashed');
+
+        $guard = $this->makeGuard($customerRepo, passwordLoginEnabled: false);
+
+        self::assertFalse($guard->canUnlinkSocialForShopUser($user, 'google'));
+    }
+
+    public function testAPasswordDoesNotCountForTheLastPasskeyEitherWhilePasswordLoginIsOff(): void
+    {
+        $customerPasskeyRepo = $this->createStub(CustomerPasskeyCredentialRepositoryInterface::class);
+        $customerPasskeyRepo->method('countByShopUser')->willReturn(1);
+
+        $customerRepo = $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class);
+        $customerRepo->method('countByShopUser')->willReturn(0);
+
+        $user = $this->createStub(ShopUserInterface::class);
+        $user->method('getPassword')->willReturn('$argon2i$hashed');
+
+        $guard = $this->makeGuard($customerRepo, null, $customerPasskeyRepo, passwordLoginEnabled: false);
+
+        // Removing it is the one that cannot be undone: a new passkey can only be
+        // registered while signed in.
+        self::assertFalse($guard->canRemovePasskeyForShopUser($user));
+    }
+
+    public function testAdminPasswordDoesNotCountWhilePasswordLoginIsOffForTheScope(): void
+    {
+        $link = $this->createStub(AdminUserSocialAccountLinkInterface::class);
+        $adminRepo = $this->createStub(AdminUserSocialAccountLinkRepositoryInterface::class);
+        $adminRepo->method('countByAdminUser')->willReturn(1);
+        $adminRepo->method('findOneByAdminUserAndProvider')->willReturn($link);
+
+        $user = $this->createStub(AdminUserInterface::class);
+        $user->method('getPassword')->willReturn('$argon2i$hashed');
+
+        $guard = $this->makeGuard(null, $adminRepo, passwordLoginEnabled: false);
+
+        self::assertFalse($guard->canUnlinkSocialForAdminUser($user, 'google'));
+    }
+
     protected function makeGuard(
         ?CustomerSocialAccountLinkRepositoryInterface $customerRepo = null,
         ?AdminUserSocialAccountLinkRepositoryInterface $adminRepo = null,
         ?CustomerPasskeyCredentialRepositoryInterface $customerPasskeyRepo = null,
         ?AdminUserPasskeyCredentialRepositoryInterface $adminPasskeyRepo = null,
+        bool $passwordLoginEnabled = true,
     ): LastAuthMethodGuard {
+        $passwordLoginChecker = $this->createStub(PasswordLoginCheckerInterface::class);
+        $passwordLoginChecker->method('isEnabled')->willReturn($passwordLoginEnabled);
+
         return new LastAuthMethodGuard(
             $customerRepo ?? $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class),
             $adminRepo ?? $this->createStub(AdminUserSocialAccountLinkRepositoryInterface::class),
             $customerPasskeyRepo ?? $this->createStub(CustomerPasskeyCredentialRepositoryInterface::class),
             $adminPasskeyRepo ?? $this->createStub(AdminUserPasskeyCredentialRepositoryInterface::class),
+            $passwordLoginChecker,
         );
     }
 }

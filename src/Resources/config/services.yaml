@@ -374,6 +374,7 @@ services:
             $adminLinkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepository'
             $customerPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository'
             $adminPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository'
+            $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthInitiateController:
         arguments:
