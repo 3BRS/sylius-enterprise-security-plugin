@@ -19,7 +19,7 @@ Throttled endpoints:
 
 | Action | Customer | Admin |
 |---|---|---|
-| Login | ✓ | ✓ |
+| Login | ✓ *(both the login form and the checkout inline sign-in, sharing one counter)* | ✓ |
 | Password reset | ✓ | ✓ |
 | Register | ✓ | — *(admin has no self-registration)* |
 | Magic link | ✓ | ✓ |
