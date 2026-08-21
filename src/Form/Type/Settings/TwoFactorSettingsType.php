@@ -43,7 +43,7 @@ class TwoFactorSettingsType extends AbstractType implements TwoFactorSettingsTyp
                 'label' => 'three_brs.ui.security_settings.two_factor.recovery_codes_count',
                 'required' => true,
                 'attr' => ['min' => 1, 'max' => SecuritySettingsBounds::TWO_FACTOR_RECOVERY_CODES_COUNT_MAX],
-                'constraints' => [new Range(min: 1, max: SecuritySettingsBounds::TWO_FACTOR_RECOVERY_CODES_COUNT_MAX)],
+                'constraints' => [new NotBlank(), new Range(min: 1, max: SecuritySettingsBounds::TWO_FACTOR_RECOVERY_CODES_COUNT_MAX)],
             ])
         ;
     }

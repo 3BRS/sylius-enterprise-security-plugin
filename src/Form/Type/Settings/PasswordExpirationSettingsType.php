@@ -8,6 +8,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
@@ -28,7 +29,7 @@ class PasswordExpirationSettingsType extends AbstractType implements PasswordExp
                 'label' => 'three_brs.ui.security_settings.password_expiration.days',
                 'required' => true,
                 'attr' => ['min' => 1, 'max' => SecuritySettingsBounds::PASSWORD_EXPIRATION_DAYS_MAX],
-                'constraints' => [new Range(min: 1, max: SecuritySettingsBounds::PASSWORD_EXPIRATION_DAYS_MAX)],
+                'constraints' => [new NotBlank(), new Range(min: 1, max: SecuritySettingsBounds::PASSWORD_EXPIRATION_DAYS_MAX)],
             ])
         ;
     }

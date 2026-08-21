@@ -8,6 +8,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
@@ -28,7 +29,7 @@ class AccountLockoutSettingsType extends AbstractType implements AccountLockoutS
                 'label' => 'three_brs.ui.security_settings.account_lockout.max_attempts',
                 'required' => true,
                 'attr' => ['min' => 1, 'max' => SecuritySettingsBounds::ACCOUNT_LOCKOUT_MAX_ATTEMPTS_MAX],
-                'constraints' => [new Range(min: 1, max: SecuritySettingsBounds::ACCOUNT_LOCKOUT_MAX_ATTEMPTS_MAX)],
+                'constraints' => [new NotBlank(), new Range(min: 1, max: SecuritySettingsBounds::ACCOUNT_LOCKOUT_MAX_ATTEMPTS_MAX)],
             ])
             ->add('auto_unlock_after', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.account_lockout.auto_unlock_after',
