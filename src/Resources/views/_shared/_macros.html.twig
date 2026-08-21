@@ -13,7 +13,6 @@
  # @param csrf_id             CSRF token id (passed to twig csrf_token() function).
  # @param confirm_label       Already-translated confirm button label.
  # @param confirm_btn_class   Bootstrap btn-* class for confirm button (e.g. 'btn-danger').
- # @param test_attr           Optional raw data-test-* attribute string for the submit button.
  #}
 {#
  # Returns the Tabler icon class for an OAuth provider. Falls back to a
@@ -28,7 +27,7 @@
     {{- provider in known ? 'ti-brand-' ~ provider : 'ti-link' -}}
 {% endmacro %}
 
-{% macro confirmation_modal(modal_id, title, body, action_url, csrf_id, confirm_label, confirm_btn_class, test_attr = '') %}
+{% macro confirmation_modal(modal_id, title, body, action_url, csrf_id, confirm_label, confirm_btn_class) %}
     <div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -46,8 +45,7 @@
                             {{ 'three_brs.ui.cancel'|trans }}
                         </button>
                         <button type="submit" class="btn {{ confirm_btn_class }}"
-                                data-test-three-brs-modal-confirm="{{ modal_id }}"
-                                {{ test_attr|raw }}>
+                                data-test-three-brs-modal-confirm="{{ modal_id }}">
                             {{ confirm_label }}
                         </button>
                     </form>
