@@ -19,10 +19,42 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManagerIn
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerAnonymizerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 
 #[CoversClass(CustomerDeletionService::class)]
 class CustomerDeletionServiceTest extends TestCase
 {
+    public function testRequestDeletionRevokesTheCustomersOtherSessions(): void
+    {
+        // Disabling the user stops the next sign-in, not the ones already open —
+        // nothing re-reads isEnabled() on a later request. Without this the customer
+        // keeps browsing on their other device for the whole grace period.
+        $shopUser = $this->createStub(ShopUserInterface::class);
+
+        $customer = $this->createStub(CustomerInterface::class);
+        $customer->method('getUser')->willReturn($shopUser);
+
+        $repository = $this->createStub(CustomerDeletionRequestRepositoryInterface::class);
+        $repository->method('findActiveForCustomer')->willReturn(null);
+
+        $tracker = $this->createMock(CustomerSessionTrackerInterface::class);
+        $tracker->expects(self::once())->method('revokeAll')->with($shopUser);
+
+        $service = new CustomerDeletionService(
+            $repository,
+            $this->createStub(CustomerAnonymizerInterface::class),
+            $this->createStub(AccountDeletionEmailManagerInterface::class),
+            $this->createStub(EntityManagerInterface::class),
+            $this->fixedClock('2026-05-07 10:00:00'),
+            $this->createStub(LoggerInterface::class),
+            new GracePeriodCalculator(),
+            $tracker,
+            30,
+        );
+
+        $service->requestDeletion($customer);
+    }
+
     public function testRequestDeletionDisablesShopUserAndPersistsRequest(): void
     {
         $shopUser = $this->createMock(ShopUserInterface::class);
@@ -49,6 +81,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->fixedClock('2026-05-07 10:00:00'),
             $this->createStub(LoggerInterface::class),
             new GracePeriodCalculator(),
+            $this->createStub(CustomerSessionTrackerInterface::class),
             30,
         );
 
@@ -72,6 +105,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->fixedClock('2026-05-07 10:00:00'),
             $this->createStub(LoggerInterface::class),
             new GracePeriodCalculator(),
+            $this->createStub(CustomerSessionTrackerInterface::class),
             30,
         );
 
@@ -104,6 +138,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->fixedClock('2026-05-10 12:00:00'),
             $this->createStub(LoggerInterface::class),
             new GracePeriodCalculator(),
+            $this->createStub(CustomerSessionTrackerInterface::class),
             30,
         );
 
@@ -129,6 +164,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->fixedClock('2026-05-10 12:00:00'),
             $this->createStub(LoggerInterface::class),
             new GracePeriodCalculator(),
+            $this->createStub(CustomerSessionTrackerInterface::class),
             30,
         );
 
