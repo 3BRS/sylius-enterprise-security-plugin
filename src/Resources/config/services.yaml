@@ -1087,6 +1087,7 @@ services:
             $customerSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
             $adminSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
             $router: '@router'
+            $rememberMeHandler: '@security.authenticator.firewall_aware_remember_me_handler'
             $customerEnabled: '%three_brs.session_management.customer.enabled%'
             $adminEnabled: '%three_brs.session_management.admin.enabled%'
             # Override these in your application's services.yaml if you renamed
