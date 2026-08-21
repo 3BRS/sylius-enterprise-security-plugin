@@ -51,6 +51,24 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
             ],
         ]);
 
+        // Registered here rather than on the bundle class: Symfony calls prepend()
+        // on extensions only, so a PrependExtensionInterface on the bundle is never
+        // invoked. Without this the plugin's entities are mapped solely by
+        // `doctrine.orm.auto_mapping`, and an application that turns it off — usual
+        // with several entity managers — sees none of the three_brs_* tables.
+        $container->prependExtensionConfig('doctrine', [
+            'orm' => [
+                'mappings' => [
+                    'ThreeBRSSyliusEnterpriseSecurityPlugin' => [
+                        'type' => 'attribute',
+                        'dir' => __DIR__ . '/../Entity',
+                        'prefix' => 'ThreeBRS\\SyliusEnterpriseSecurityPlugin\\Entity',
+                        'alias' => 'ThreeBRSSyliusEnterpriseSecurityPlugin',
+                    ],
+                ],
+            ],
+        ]);
+
         $config = $this->processConfiguration(
             new Configuration(),
             $container->getExtensionConfig($this->getAlias()),
