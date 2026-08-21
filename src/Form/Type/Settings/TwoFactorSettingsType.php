@@ -9,6 +9,7 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorMode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
@@ -36,6 +37,7 @@ class TwoFactorSettingsType extends AbstractType implements TwoFactorSettingsTyp
                 'choices' => $modeChoices,
                 'expanded' => true,
                 'required' => true,
+                'constraints' => [new NotBlank()],
             ])
             ->add('recovery_codes_count', IntegerType::class, [
                 'label' => 'three_brs.ui.security_settings.two_factor.recovery_codes_count',
