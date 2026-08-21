@@ -4,7 +4,9 @@ Inverse of the whitelist — instead of saying "only these IPs can reach the pan
 
 The global list is configured under Security settings → Administrators → "Admin IP blacklist".
 
-**Blacklist always wins over the whitelist.** A blacklisted IP cannot sign in, even if the whitelist would otherwise allow it. The blacklist request listener runs at priority 5, before the whitelist listener at priority 4, so a blacklist hit short-circuits the whitelist check entirely. This ordering means you can keep a permissive whitelist (or none) for the team while still being able to block individual abusive IPs.
+**Blacklist always wins over the whitelist.** A blacklisted IP cannot sign in, even if the whitelist would otherwise allow it. The blacklist request listener runs at priority 20, ahead of both of the whitelist listener's passes (18 and 4), so a blacklist hit short-circuits every allow decision. This ordering means you can keep a permissive whitelist (or none) for the team while still being able to block individual abusive IPs.
+
+Both listeners run above Symfony's firewall (priority 8), which matters for the endpoints the firewall answers by itself — `/admin/login-check`, `/admin/2fa_check` and `/admin/logout`. Below it, the authenticator sets a response first and stops propagation, and a blocked address could still post credentials to the login form. That address could not sign in, but each attempt still counted towards the target administrator's [lockout counter](account-lockout-rate-limiting.md) — the very thing a deny-list is reached for when a host is hammering the form. A blocked address is now turned away before the authenticator sees it, which also means it cannot log out; a signed-in administrator whose address is added to the list simply stops being served.
 
 The check is identity-agnostic: any request whose client IP matches the global list is denied with HTTP 403 (plain-text body), whether or not anyone is signed in — so a known-bad IP cannot even reach the login form.
 

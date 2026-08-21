@@ -1473,8 +1473,17 @@ services:
             $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker'
             $tokenStorage: '@security.token_storage'
         tags:
-            # Priority 4: after Symfony security firewall (priority 8) so the
-            # token storage already has the authenticated admin available.
+            # Two passes, because the decision has two halves and they need different
+            # positions relative to the firewall (priority 8).
+            #
+            # Priority 18 — above the firewall and above RateLimitListener (16), so an
+            # address no entry covers is turned away before the authenticator answers
+            # /admin/login-check itself and before it can spend anyone's rate-limit
+            # budget. Only the identity-independent half runs here; token storage is
+            # still empty.
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequestPreAuth', priority: 18 }
+            # Priority 4 — below the firewall, where the authenticated admin is known
+            # and the check narrows to that admin's own entry.
             - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 4 }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\IpWhitelistSettingsType:
@@ -1525,9 +1534,13 @@ services:
         arguments:
             $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpBlacklist\IpBlacklistChecker'
         tags:
-            # Priority 5: BEFORE the whitelist listener (priority 4). A blacklist
-            # hit short-circuits via setResponse() so the whitelist check never runs.
-            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 5 }
+            # Priority 20 — above the firewall (8), above RateLimitListener (16) and
+            # above the whitelist's pre-auth pass (18), so a blacklist hit still wins
+            # over any allow decision and a denied address never reaches the
+            # authenticator on /admin/login-check or /admin/2fa_check. The check needs
+            # only the path and the client address, so it does not depend on anything
+            # the firewall or the router sets up.
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 20 }
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\IpBlacklistSettingsType:
         tags:
