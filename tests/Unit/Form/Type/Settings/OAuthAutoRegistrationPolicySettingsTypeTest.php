@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Form\Type\Settings;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Test\FormIntegrationTestCase;
+use Symfony\Component\Validator\Validation;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAutoRegistrationPolicySettingsType;
 
 #[CoversClass(OAuthAutoRegistrationPolicySettingsType::class)]
@@ -69,11 +72,48 @@ class OAuthAutoRegistrationPolicySettingsTypeTest extends FormIntegrationTestCas
     /**
      * @return FormInterface<mixed>
      */
-    protected function createForm(): FormInterface
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unusableLocaleProvider(): iterable
+    {
+        // Reaches AdminUser.locale_code, a varchar(12), during an OAuth callback whose
+        // only catch is for OAuthProviderException.
+        yield 'longer than the column' => ['English (United States)'];
+        yield 'not a locale at all' => ['not-a-locale'];
+    }
+
+    #[DataProvider('unusableLocaleProvider')]
+    public function testRejectsALocaleTheColumnCannotHold(string $locale): void
+    {
+        $form = $this->createForm(includeDefaultLocale: true);
+        $form->submit(['default_locale' => $locale, 'auto_register_allowed_email_domains' => '']);
+
+        self::assertGreaterThan(0, $form->get('default_locale')->getErrors()->count());
+    }
+
+    public function testAcceptsAnOrdinaryLocale(): void
+    {
+        $form = $this->createForm(includeDefaultLocale: true);
+        $form->submit(['default_locale' => 'en_US', 'auto_register_allowed_email_domains' => '']);
+
+        self::assertCount(0, $form->get('default_locale')->getErrors());
+    }
+
+    protected function createForm(bool $includeDefaultLocale = false): FormInterface
     {
         return $this->factory->create(OAuthAutoRegistrationPolicySettingsType::class, null, [
             'translation_prefix' => 'three_brs.ui.security_settings.oauth_customer_policy',
-            'include_default_locale' => false,
+            'include_default_locale' => $includeDefaultLocale,
         ]);
+    }
+
+    /** @return object[] */
+    protected function getExtensions(): array
+    {
+        // The domain checks below raise their errors from a POST_SUBMIT listener, so
+        // they pass without this; the locale field is guarded by constraints, which
+        // need the validator wired in.
+        return [new ValidatorExtension(Validation::createValidator())];
     }
 }
