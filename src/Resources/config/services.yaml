@@ -1361,6 +1361,9 @@ services:
             $router: '@router'
             $twig: '@twig'
             $formFactory: '@form.factory'
+            $sessionTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
+            $sessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $sessionTrackingEnabled: '%three_brs.session_management.customer.enabled%'
         tags:
             - { name: 'controller.service_arguments' }
 

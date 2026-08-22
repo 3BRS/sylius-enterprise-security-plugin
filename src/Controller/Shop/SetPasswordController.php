@@ -16,7 +16,9 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\SetPasswordType;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 use Twig\Environment;
 
 class SetPasswordController implements SetPasswordControllerInterface
@@ -29,7 +31,45 @@ class SetPasswordController implements SetPasswordControllerInterface
         protected RouterInterface $router,
         protected Environment $twig,
         protected FormFactoryInterface $formFactory,
+        protected CustomerSessionTrackerInterface $sessionTracker,
+        protected CustomerSessionRepositoryInterface $sessionRepository,
+        protected bool $sessionTrackingEnabled,
     ) {
+    }
+
+    /**
+     * Every other place that regenerates the session id does so inside an
+     * authentication flow, which records the new one straight afterwards. This one
+     * does not, so without re-tracking the live session ends up with no row at all —
+     * and a session with no row is reachable by no revocation path: not the
+     * customer's own "sign out other devices", not the administrator's revoke-all,
+     * not blocking the account. The stale row meanwhile stays listed as active for
+     * ever, since nothing expires it.
+     *
+     * The old row is revoked before the new one is written: track() returns the
+     * existing record when the id matches, so the order matters.
+     */
+    protected function reTrackSession(
+        Request $request,
+        ShopUserInterface $user,
+        string $previousSessionId,
+        string $currentSessionId,
+    ): void {
+        if (!$this->sessionTrackingEnabled) {
+            return;
+        }
+
+        $previous = $this->sessionRepository->findOneBySessionId($previousSessionId);
+        if ($previous !== null) {
+            $this->sessionTracker->revoke($previous);
+        }
+
+        $this->sessionTracker->track(
+            $user,
+            $currentSessionId,
+            $request->headers->get('User-Agent'),
+            $request->getClientIp(),
+        );
     }
 
     public function __invoke(Request $request): Response
@@ -68,7 +108,10 @@ class SetPasswordController implements SetPasswordControllerInterface
 
             // Regenerate the session id after this credential change (defense in depth).
             $session = $request->getSession();
+            $previousSessionId = $session->getId();
             $session->migrate(true);
+
+            $this->reTrackSession($request, $user, $previousSessionId, $session->getId());
 
             if ($session instanceof FlashBagAwareSessionInterface) {
                 $session->getFlashBag()->add('success', 'three_brs.set_password.success');

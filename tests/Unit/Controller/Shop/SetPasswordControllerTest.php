@@ -19,7 +19,10 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SetPasswordController;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSessionInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 use Twig\Environment;
 
 #[CoversClass(SetPasswordController::class)]
@@ -101,6 +104,64 @@ class SetPasswordControllerTest extends TestCase
         self::assertSame('/account/dashboard', $response->getTargetUrl());
     }
 
+    public function testReplacesTheTrackedSessionAfterRegeneratingTheId(): void
+    {
+        $user = $this->createStub(ShopUserInterface::class);
+        $user->method('getPassword')->willReturn(null);
+
+        $form = $this->createStub(FormInterface::class);
+        $form->method('isSubmitted')->willReturn(true);
+        $form->method('isValid')->willReturn(true);
+        $form->method('getData')->willReturn(['newPassword' => 'NewStrongPass1!']);
+
+        // Without this the live session ends up with no row, and a session with no row
+        // is reachable by no revocation path at all — while the stale row stays listed
+        // as active for ever.
+        $stale = $this->createStub(CustomerSessionInterface::class);
+        $repository = $this->createStub(CustomerSessionRepositoryInterface::class);
+        $repository->method('findOneBySessionId')->willReturn($stale);
+
+        $tracker = $this->createMock(CustomerSessionTrackerInterface::class);
+        $tracker->expects(self::once())->method('revoke')->with($stale);
+        $tracker->expects(self::once())->method('track');
+
+        $controller = $this->createController(
+            user: $user,
+            form: $form,
+            expectFlush: true,
+            sessionTracker: $tracker,
+            sessionRepository: $repository,
+            sessionTrackingEnabled: true,
+        );
+
+        $controller(self::request());
+    }
+
+    public function testWritesNoSessionRowWhenTrackingIsOff(): void
+    {
+        $user = $this->createStub(ShopUserInterface::class);
+        $user->method('getPassword')->willReturn(null);
+
+        $form = $this->createStub(FormInterface::class);
+        $form->method('isSubmitted')->willReturn(true);
+        $form->method('isValid')->willReturn(true);
+        $form->method('getData')->willReturn(['newPassword' => 'NewStrongPass1!']);
+
+        $tracker = $this->createMock(CustomerSessionTrackerInterface::class);
+        $tracker->expects(self::never())->method('track');
+        $tracker->expects(self::never())->method('revoke');
+
+        $controller = $this->createController(
+            user: $user,
+            form: $form,
+            expectFlush: true,
+            sessionTracker: $tracker,
+            sessionTrackingEnabled: false,
+        );
+
+        $controller(self::request());
+    }
+
     public function testRendersFormAgainWhenSubmissionIsInvalid(): void
     {
         $user = $this->createStub(ShopUserInterface::class);
@@ -124,6 +185,9 @@ class SetPasswordControllerTest extends TestCase
         bool $expectFlush,
         string $hashedPassword = 'hashed',
         bool $passwordLoginBlocked = false,
+        ?CustomerSessionTrackerInterface $sessionTracker = null,
+        ?CustomerSessionRepositoryInterface $sessionRepository = null,
+        bool $sessionTrackingEnabled = false,
     ): SetPasswordController {
         $token = null;
         if ($user !== null) {
@@ -157,7 +221,18 @@ class SetPasswordControllerTest extends TestCase
         $formFactory = $this->createStub(FormFactoryInterface::class);
         $formFactory->method('create')->willReturn($form ?? $this->createStub(FormInterface::class));
 
-        return new SetPasswordController($tokenStorage, $passwordLoginChecker, $passwordHasher, $entityManager, $router, $twig, $formFactory);
+        return new SetPasswordController(
+            $tokenStorage,
+            $passwordLoginChecker,
+            $passwordHasher,
+            $entityManager,
+            $router,
+            $twig,
+            $formFactory,
+            $sessionTracker ?? $this->createStub(CustomerSessionTrackerInterface::class),
+            $sessionRepository ?? $this->createStub(CustomerSessionRepositoryInterface::class),
+            $sessionTrackingEnabled,
+        );
     }
 
     private static function request(): Request
