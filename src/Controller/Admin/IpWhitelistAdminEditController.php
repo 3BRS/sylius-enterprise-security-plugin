@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\FlashHelperTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelist;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelistInterface;
@@ -20,6 +21,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\AdminUserIpWhitelistType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 use Twig\Environment;
 
+#[IsGranted('ROLE_ADMINISTRATION_ACCESS')]
 class IpWhitelistAdminEditController implements IpWhitelistAdminEditControllerInterface
 {
     use FlashHelperTrait;

@@ -8,10 +8,12 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractUnlockUserController;
 use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableAdminUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManagerInterface;
 
+#[IsGranted('ROLE_ADMINISTRATION_ACCESS')]
 class UnlockAdminController extends AbstractUnlockUserController implements UnlockAdminControllerInterface
 {
     protected const CSRF_TOKEN_ID = 'three_brs_unlock_admin';

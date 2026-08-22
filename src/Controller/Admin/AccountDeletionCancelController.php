@@ -8,10 +8,12 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractAccountDeletionCancelController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface;
 
+#[IsGranted('ROLE_ADMINISTRATION_ACCESS')]
 class AccountDeletionCancelController extends AbstractAccountDeletionCancelController implements AccountDeletionCancelControllerInterface
 {
     public function __construct(

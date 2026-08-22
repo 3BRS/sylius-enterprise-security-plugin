@@ -13,10 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
+#[IsGranted('ROLE_ADMINISTRATION_ACCESS')]
 class ForcePasswordResetController extends AbstractCustomerSecurityActionController implements ForcePasswordResetControllerInterface
 {
     protected const CSRF_TOKEN_ID = 'three_brs_customer_force_password_reset';

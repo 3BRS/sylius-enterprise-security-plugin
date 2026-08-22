@@ -8,11 +8,13 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SecuritySettingsType;
 use Twig\Environment;
 
+#[IsGranted('ROLE_ADMINISTRATION_ACCESS')]
 class IndexController implements IndexControllerInterface
 {
     public function __construct(
