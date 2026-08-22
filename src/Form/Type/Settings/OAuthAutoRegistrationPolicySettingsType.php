@@ -13,6 +13,8 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\Locale;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
@@ -21,6 +23,9 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
  */
 class OAuthAutoRegistrationPolicySettingsType extends AbstractType implements OAuthAutoRegistrationPolicySettingsTypeInterface
 {
+    /** Matches the width of Sylius's `sylius_admin_user.locale_code` column. */
+    protected const LOCALE_CODE_MAX_LENGTH = 12;
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var string $prefix */
@@ -32,7 +37,16 @@ class OAuthAutoRegistrationPolicySettingsType extends AbstractType implements OA
             $builder->add('default_locale', TextType::class, [
                 'label' => $prefix . '.default_locale',
                 'required' => true,
-                'constraints' => [new NotBlank()],
+                // Written straight onto AdminUser.locale_code, a varchar(12): a longer
+                // value reaches the driver as a "data too long" error in the middle of
+                // an OAuth callback, where AbstractOAuthCallbackController catches only
+                // OAuthProviderException. Length keeps it out of the column; Locale
+                // keeps a well-formed-looking value from being a locale nobody has.
+                'constraints' => [
+                    new NotBlank(),
+                    new Length(max: static::LOCALE_CODE_MAX_LENGTH),
+                    new Locale(canonicalize: true),
+                ],
                 'help' => $prefix . '.default_locale_help',
             ]);
         }
