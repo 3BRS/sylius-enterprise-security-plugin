@@ -18,6 +18,7 @@ use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\SetPasswordType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 use Twig\Environment;
 
@@ -33,7 +34,7 @@ class SetPasswordController implements SetPasswordControllerInterface
         protected FormFactoryInterface $formFactory,
         protected CustomerSessionTrackerInterface $sessionTracker,
         protected CustomerSessionRepositoryInterface $sessionRepository,
-        protected bool $sessionTrackingEnabled,
+        protected ScopedFeatureCheckerInterface $sessionManagement,
     ) {
     }
 
@@ -55,7 +56,7 @@ class SetPasswordController implements SetPasswordControllerInterface
         string $previousSessionId,
         string $currentSessionId,
     ): void {
-        if (!$this->sessionTrackingEnabled) {
+        if (!$this->sessionManagement->isEnabled(SettingsScope::CUSTOMER)) {
             return;
         }
 

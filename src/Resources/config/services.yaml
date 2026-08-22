@@ -1051,8 +1051,8 @@ services:
             $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
             $geoIpLookup: '@ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface'
             $clock: '@clock'
-            $sessionTrackingEnabled: '%three_brs.session_management.customer.enabled%'
-            $loginNotificationsEnabled: '%three_brs.login_notifications.customer.enabled%'
+            $sessionManagement: '@three_brs.feature.session_management'
+            $loginNotifications: '@three_brs.feature.login_notifications'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandlerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler
@@ -1066,8 +1066,8 @@ services:
             $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
             $geoIpLookup: '@ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface'
             $clock: '@clock'
-            $sessionTrackingEnabled: '%three_brs.session_management.admin.enabled%'
-            $loginNotificationsEnabled: '%three_brs.login_notifications.admin.enabled%'
+            $sessionManagement: '@three_brs.feature.session_management'
+            $loginNotifications: '@three_brs.feature.login_notifications'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandler
@@ -1095,10 +1095,40 @@ services:
             $tokenStorage: '@security.token_storage'
             $customerTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
             $adminTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
-            $customerEnabled: '%three_brs.session_management.customer.enabled%'
-            $adminEnabled: '%three_brs.session_management.admin.enabled%'
+            $sessionManagement: '@three_brs.feature.session_management'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest' }
+
+    # One per feature: the configuration file says whether the installation set the
+    # feature up, Security Settings says whether it is on today, and both have to agree.
+    three_brs.feature.session_management:
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureChecker
+        arguments:
+            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $feature: 'session_management'
+            $customerConfigured: '%three_brs.session_management.customer.enabled%'
+            $adminConfigured: '%three_brs.session_management.admin.enabled%'
+
+    three_brs.feature.login_notifications:
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureChecker
+        arguments:
+            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $feature: 'login_notifications'
+            $customerConfigured: '%three_brs.login_notifications.customer.enabled%'
+            $adminConfigured: '%three_brs.login_notifications.admin.enabled%'
+
+    # Security Settings advertises a switch for these features; without this the
+    # controllers answered to a container parameter and the switch changed nothing
+    # but the menu.
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\FeatureToggleListener:
+        arguments:
+            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.controller', method: 'onKernelController' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\FeatureToggleListenerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\FeatureToggleListener
+
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\SessionRevocationListener:
         arguments:
@@ -1110,8 +1140,7 @@ services:
             # an application that persists no logins has none, and a hard reference
             # would stop its container from compiling.
             $rememberMeHandler: '@?security.authenticator.firewall_aware_remember_me_handler'
-            $customerEnabled: '%three_brs.session_management.customer.enabled%'
-            $adminEnabled: '%three_brs.session_management.admin.enabled%'
+            $sessionManagement: '@three_brs.feature.session_management'
             # Override these in your application's services.yaml if you renamed
             # the standard Sylius login routes.
             $customerLoginRoute: 'sylius_shop_login'
@@ -1125,8 +1154,7 @@ services:
             $adminTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTracker'
             $customerSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
             $adminSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
-            $customerEnabled: '%three_brs.session_management.customer.enabled%'
-            $adminEnabled: '%three_brs.session_management.admin.enabled%'
+            $sessionManagement: '@three_brs.feature.session_management'
         tags:
             # Priority 16: run BEFORE Symfony's built-in SessionLogoutListener
             # (priority 0) which calls $session->invalidate() — we need the
@@ -1384,7 +1412,7 @@ services:
             $formFactory: '@form.factory'
             $sessionTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
             $sessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
-            $sessionTrackingEnabled: '%three_brs.session_management.customer.enabled%'
+            $sessionManagement: '@three_brs.feature.session_management'
         tags:
             - { name: 'controller.service_arguments' }
 

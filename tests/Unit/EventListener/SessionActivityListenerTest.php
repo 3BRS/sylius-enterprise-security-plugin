@@ -17,6 +17,8 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\SessionActivityListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTrackerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 #[CoversClass(SessionActivityListener::class)]
 class SessionActivityListenerTest extends TestCase
@@ -104,8 +106,7 @@ class SessionActivityListenerTest extends TestCase
             $tokenStorage,
             $customerTracker,
             $adminTracker,
-            $customerEnabled,
-            $adminEnabled,
+            $this->makeFeature($customerEnabled, $adminEnabled),
         );
     }
 
@@ -126,4 +127,21 @@ class SessionActivityListenerTest extends TestCase
             $isMain ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::SUB_REQUEST,
         );
     }
+
+    /**
+     * The two switches a feature answers to are combined behind this checker, so the
+     * tests stub the answer rather than the configuration flag on its own.
+     */
+    protected function makeFeature(bool $customerEnabled, ?bool $adminEnabled = null): ScopedFeatureCheckerInterface
+    {
+        $adminEnabled ??= $customerEnabled;
+
+        $checker = $this->createStub(ScopedFeatureCheckerInterface::class);
+        $checker->method('isEnabled')->willReturnCallback(
+            static fn (SettingsScope $scope): bool => $scope === SettingsScope::ADMIN ? $adminEnabled : $customerEnabled,
+        );
+
+        return $checker;
+    }
+
 }

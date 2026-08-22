@@ -8,6 +8,8 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTrackerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 
@@ -17,8 +19,7 @@ class SessionActivityListener implements SessionActivityListenerInterface
         protected TokenStorageInterface $tokenStorage,
         protected CustomerSessionTrackerInterface $customerTracker,
         protected AdminUserSessionTrackerInterface $adminTracker,
-        protected bool $customerEnabled,
-        protected bool $adminEnabled,
+        protected ScopedFeatureCheckerInterface $sessionManagement,
     ) {
     }
 
@@ -27,7 +28,8 @@ class SessionActivityListener implements SessionActivityListenerInterface
         if (!$event->isMainRequest()) {
             return;
         }
-        if (!$this->customerEnabled && !$this->adminEnabled) {
+        if (!$this->sessionManagement->isEnabled(SettingsScope::CUSTOMER) &&
+            !$this->sessionManagement->isEnabled(SettingsScope::ADMIN)) {
             return;
         }
 
@@ -46,12 +48,12 @@ class SessionActivityListener implements SessionActivityListenerInterface
         }
         $user = $token->getUser();
 
-        if ($this->customerEnabled && $user instanceof ShopUserInterface) {
+        if ($this->sessionManagement->isEnabled(SettingsScope::CUSTOMER) && $user instanceof ShopUserInterface) {
             $this->customerTracker->touch($sessionId);
 
             return;
         }
-        if ($this->adminEnabled && $user instanceof AdminUserInterface) {
+        if ($this->sessionManagement->isEnabled(SettingsScope::ADMIN) && $user instanceof AdminUserInterface) {
             $this->adminTracker->touch($sessionId);
         }
     }

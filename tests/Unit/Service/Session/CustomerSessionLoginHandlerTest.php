@@ -20,6 +20,8 @@ use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpResult;
 use ThreeBRS\EnterpriseSecurityBundle\Session\SessionFingerprintGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentInfo;
 use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 #[CoversClass(CustomerSessionLoginHandler::class)]
 class CustomerSessionLoginHandlerTest extends TestCase
@@ -167,8 +169,8 @@ class CustomerSessionLoginHandlerTest extends TestCase
             $userAgentParser,
             $geoIpLookup ?? $this->createStub(GeoIpLookupInterface::class),
             $clock,
-            $sessionTrackingEnabled,
-            $loginNotificationsEnabled,
+            $this->makeFeature($sessionTrackingEnabled),
+            $this->makeFeature($loginNotificationsEnabled),
         );
     }
 
@@ -185,4 +187,21 @@ class CustomerSessionLoginHandlerTest extends TestCase
 
         return $request;
     }
+
+    /**
+     * The two switches a feature answers to are combined behind this checker, so the
+     * tests stub the answer rather than the configuration flag on its own.
+     */
+    protected function makeFeature(bool $customerEnabled, ?bool $adminEnabled = null): ScopedFeatureCheckerInterface
+    {
+        $adminEnabled ??= $customerEnabled;
+
+        $checker = $this->createStub(ScopedFeatureCheckerInterface::class);
+        $checker->method('isEnabled')->willReturnCallback(
+            static fn (SettingsScope $scope): bool => $scope === SettingsScope::ADMIN ? $adminEnabled : $customerEnabled,
+        );
+
+        return $checker;
+    }
+
 }

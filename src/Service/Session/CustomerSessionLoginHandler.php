@@ -10,7 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 use ThreeBRS\EnterpriseSecurityBundle\Session\GeoIp\GeoIpLookupInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Session\SessionFingerprintGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManagerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
 
 /**
  * Tracks the active session row + emits a new-device email after a customer
@@ -29,28 +31,29 @@ class CustomerSessionLoginHandler implements CustomerSessionLoginHandlerInterfac
         protected UserAgentParserInterface $userAgentParser,
         protected GeoIpLookupInterface $geoIpLookup,
         protected ClockInterface $clock,
-        protected bool $sessionTrackingEnabled,
-        protected bool $loginNotificationsEnabled,
+        protected ScopedFeatureCheckerInterface $sessionManagement,
+        protected ScopedFeatureCheckerInterface $loginNotifications,
     ) {
     }
 
     public function handle(ShopUserInterface $user, Request $request): void
     {
-        if (!$this->sessionTrackingEnabled && !$this->loginNotificationsEnabled) {
+        if (!$this->sessionManagement->isEnabled(SettingsScope::CUSTOMER) &&
+            !$this->loginNotifications->isEnabled(SettingsScope::CUSTOMER)) {
             return;
         }
 
         $userAgent = $request->headers->get('User-Agent');
         $ipAddress = $request->getClientIp();
 
-        if ($this->sessionTrackingEnabled) {
+        if ($this->sessionManagement->isEnabled(SettingsScope::CUSTOMER)) {
             $sessionId = $this->extractSessionId($request);
             if ($sessionId !== null) {
                 $this->tracker->track($user, $sessionId, $userAgent, $ipAddress);
             }
         }
 
-        if ($this->loginNotificationsEnabled) {
+        if ($this->loginNotifications->isEnabled(SettingsScope::CUSTOMER)) {
             $fingerprint = $this->fingerprintGenerator->generate($userAgent, $ipAddress);
             $isNewDevice = $this->newDeviceDetector->checkAndRemember($user, $fingerprint);
             if ($isNewDevice) {
