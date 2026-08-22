@@ -66,3 +66,7 @@ login and registration work as usual until you turn a group off in Security sett
 > unconditionally. Before switching it off, make sure at least one other method is enabled for
 > that group (social login, magic link, or passkey), or users with no other method will be
 > locked out of the web. (They can always be recovered by turning password login back on.)
+>
+> While a group is off, `LastAuthMethodGuard` stops counting the password as a way back in, so a user whose only other method is a
+> single social link or a single passkey can no longer remove it. The same applies to a provider you switch off in Security
+> settings: links to it stop counting for everyone who has one.

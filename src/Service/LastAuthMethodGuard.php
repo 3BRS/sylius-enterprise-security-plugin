@@ -6,6 +6,9 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service;
 
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistryInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\SocialAccountLinkRecordInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLinkRepositoryInterface;
@@ -20,6 +23,8 @@ class LastAuthMethodGuard implements LastAuthMethodGuardInterface
         protected CustomerPasskeyCredentialRepositoryInterface $customerPasskeyRepository,
         protected AdminUserPasskeyCredentialRepositoryInterface $adminPasskeyRepository,
         protected PasswordLoginCheckerInterface $passwordLoginChecker,
+        protected PasskeyCheckerInterface $passkeyChecker,
+        protected OAuthProviderRegistryInterface $oauthRegistry,
     ) {
     }
 
@@ -34,8 +39,12 @@ class LastAuthMethodGuard implements LastAuthMethodGuardInterface
             return true;
         }
 
-        $remainingSocial = $this->customerLinkRepository->countByShopUser($user) - 1;
-        $passkeys = $this->customerPasskeyRepository->countByShopUser($user);
+        $remainingSocial = $this->countUsableLinks(
+            $this->customerLinkRepository->findAllByShopUser($user),
+            $this->oauthRegistry->getEnabledForCustomer(),
+            $provider,
+        );
+        $passkeys = $this->countUsablePasskeysForShopUser($user);
 
         return ($remainingSocial + $passkeys) >= 1;
     }
@@ -51,8 +60,12 @@ class LastAuthMethodGuard implements LastAuthMethodGuardInterface
             return true;
         }
 
-        $remainingSocial = $this->adminLinkRepository->countByAdminUser($user) - 1;
-        $passkeys = $this->adminPasskeyRepository->countByAdminUser($user);
+        $remainingSocial = $this->countUsableLinks(
+            $this->adminLinkRepository->findAllByAdminUser($user),
+            $this->oauthRegistry->getEnabledForAdmin(),
+            $provider,
+        );
+        $passkeys = $this->countUsablePasskeysForAdminUser($user);
 
         return ($remainingSocial + $passkeys) >= 1;
     }
@@ -63,8 +76,11 @@ class LastAuthMethodGuard implements LastAuthMethodGuardInterface
             return true;
         }
 
-        $remainingPasskeys = $this->customerPasskeyRepository->countByShopUser($user) - 1;
-        $socialLinks = $this->customerLinkRepository->countByShopUser($user);
+        $remainingPasskeys = max(0, $this->countUsablePasskeysForShopUser($user) - 1);
+        $socialLinks = $this->countUsableLinks(
+            $this->customerLinkRepository->findAllByShopUser($user),
+            $this->oauthRegistry->getEnabledForCustomer(),
+        );
 
         return ($remainingPasskeys + $socialLinks) >= 1;
     }
@@ -75,10 +91,65 @@ class LastAuthMethodGuard implements LastAuthMethodGuardInterface
             return true;
         }
 
-        $remainingPasskeys = $this->adminPasskeyRepository->countByAdminUser($user) - 1;
-        $socialLinks = $this->adminLinkRepository->countByAdminUser($user);
+        $remainingPasskeys = max(0, $this->countUsablePasskeysForAdminUser($user) - 1);
+        $socialLinks = $this->countUsableLinks(
+            $this->adminLinkRepository->findAllByAdminUser($user),
+            $this->oauthRegistry->getEnabledForAdmin(),
+        );
 
         return ($remainingPasskeys + $socialLinks) >= 1;
+    }
+
+    /**
+     * A link is a way back in only while its provider is switched on for the
+     * scope. A provider can be turned off in Security Settings, or lose its
+     * credentials in the configuration, and either way the sign-in page stops
+     * offering it — the stored link stays behind and opens nothing.
+     *
+     * The provider being unlinked is named rather than subtracted, because the
+     * one on its way out may itself be a disabled provider that never counted.
+     *
+     * @param list<SocialAccountLinkRecordInterface> $links
+     * @param list<OAuthProviderInterface>           $enabledProviders
+     */
+    protected function countUsableLinks(array $links, array $enabledProviders, ?string $excludedProvider = null): int
+    {
+        $enabledNames = array_map(
+            static fn (OAuthProviderInterface $provider): string => $provider->getName(),
+            $enabledProviders,
+        );
+
+        $usable = 0;
+        foreach ($links as $link) {
+            $name = $link->getProvider();
+            if ($name === $excludedProvider) {
+                continue;
+            }
+
+            if (in_array($name, $enabledNames, true)) {
+                ++$usable;
+            }
+        }
+
+        return $usable;
+    }
+
+    protected function countUsablePasskeysForShopUser(ShopUserInterface $user): int
+    {
+        if (!$this->passkeyChecker->isEnabled(SettingsScope::CUSTOMER)) {
+            return 0;
+        }
+
+        return $this->customerPasskeyRepository->countByShopUser($user);
+    }
+
+    protected function countUsablePasskeysForAdminUser(AdminUserInterface $user): int
+    {
+        if (!$this->passkeyChecker->isEnabled(SettingsScope::ADMIN)) {
+            return 0;
+        }
+
+        return $this->adminPasskeyRepository->countByAdminUser($user);
     }
 
     /**
