@@ -375,6 +375,8 @@ services:
             $customerPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository'
             $adminPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository'
             $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
+            $passkeyChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasskeyCheckerInterface'
+            $oauthRegistry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthInitiateController:
         arguments:
@@ -1421,6 +1423,15 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginChecker
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasskeyChecker:
+        arguments:
+            $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $customerConfigured: '%three_brs.passkey.customer.enabled%'
+            $adminConfigured: '%three_brs.passkey.admin.enabled%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasskeyCheckerInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasskeyChecker
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerPasswordLoginCheckListener:
         arguments:
