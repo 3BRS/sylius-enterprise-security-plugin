@@ -17,7 +17,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSocialAccountLin
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasskeyCheckerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 
 #[CoversClass(LastAuthMethodGuard::class)]
@@ -215,7 +215,7 @@ class LastAuthMethodGuardTest extends TestCase
         $passwordLoginChecker = $this->createStub(PasswordLoginCheckerInterface::class);
         $passwordLoginChecker->method('isEnabled')->willReturn($passwordLoginEnabled);
 
-        $passkeyChecker = $this->createStub(PasskeyCheckerInterface::class);
+        $passkeyChecker = $this->createStub(ScopedFeatureCheckerInterface::class);
         $passkeyChecker->method('isEnabled')->willReturn($passkeyEnabled);
 
         $providers = array_map(fn (string $name) => $this->provider($name), $enabledProviders);
