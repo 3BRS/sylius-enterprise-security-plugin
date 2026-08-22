@@ -222,7 +222,6 @@ three_brs:
             unknown_device: 'Unknown device'
             session_online: 'Online'
             session_offline: 'Offline'
-            cancel: 'Cancel'
         ip_whitelist:
             menu_item: 'Admin IP whitelist'
             title: 'Admin IP whitelist'

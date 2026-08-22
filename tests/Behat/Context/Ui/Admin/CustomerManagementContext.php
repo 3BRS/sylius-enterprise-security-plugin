@@ -110,7 +110,7 @@ class CustomerManagementContext implements Context
     protected function submitConfirmationModal(string $modalId): void
     {
         $button = $this->session->getPage()->find('css', sprintf(
-            '[data-test-three-brs-customer-security-confirm="%s"]',
+            '[data-test-three-brs-modal-confirm="%s"]',
             $modalId,
         ));
         Assert::notNull($button, sprintf('Confirmation modal "%s" not found.', $modalId));

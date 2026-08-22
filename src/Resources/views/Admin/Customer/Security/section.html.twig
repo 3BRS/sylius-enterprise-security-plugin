@@ -10,7 +10,7 @@
     {% set forceChangeRequested = shopUser.forcePasswordChange|default(false) %}
     {% set lockedAt = shopUser.lockedAt|default(null) %}
 
-    {% import '@ThreeBRSSyliusEnterpriseSecurityPlugin/Admin/Customer/Security/_macros.html.twig' as security %}
+    {% import '@ThreeBRSSyliusEnterpriseSecurityPlugin/_shared/_macros.html.twig' as shared %}
 
     <div class="card mb-3" data-test-three-brs-customer-security>
         <div class="card-header">
@@ -208,7 +208,7 @@
 
     {# --- Confirmation modals (Bootstrap, Sylius admin style) --- #}
     {% if not forceChangeRequested and three_brs_password_login_enabled('customer') %}
-        {{ security.action_modal(
+        {{ shared.confirmation_modal(
             'three-brs-customer-modal-force-reset',
             'three_brs.ui.customer_security.force_password_reset'|trans,
             'three_brs.ui.customer_security.confirm_force_password_reset'|trans,
@@ -220,7 +220,7 @@
     {% endif %}
 
     {% if isEnabled %}
-        {{ security.action_modal(
+        {{ shared.confirmation_modal(
             'three-brs-customer-modal-block',
             'three_brs.ui.customer_security.block'|trans,
             'three_brs.ui.customer_security.confirm_block'|trans,
@@ -230,7 +230,7 @@
             'btn-danger'
         ) }}
     {% else %}
-        {{ security.action_modal(
+        {{ shared.confirmation_modal(
             'three-brs-customer-modal-unblock',
             'three_brs.ui.customer_security.unblock'|trans,
             'three_brs.ui.customer_security.confirm_unblock'|trans,
@@ -242,7 +242,7 @@
     {% endif %}
 
     {% if activeSessions|length > 0 %}
-        {{ security.action_modal(
+        {{ shared.confirmation_modal(
             'three-brs-customer-modal-revoke-all',
             'three_brs.ui.customer_security.revoke_all_sessions'|trans,
             'three_brs.ui.customer_security.confirm_revoke_all_sessions'|trans,
@@ -253,7 +253,7 @@
         ) }}
 
         {% for session in activeSessions %}
-            {{ security.action_modal(
+            {{ shared.confirmation_modal(
                 'three-brs-customer-modal-revoke-session-' ~ session.id,
                 'three_brs.ui.customer_security.revoke_session'|trans,
                 'three_brs.ui.customer_security.confirm_revoke_session'|trans,
