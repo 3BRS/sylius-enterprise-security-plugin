@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
+
+use ThreeBRS\EnterpriseSecurityBundle\Controller\AccountDeletionsListControllerInterface as BaseAccountDeletionsListControllerInterface;
+
+interface AccountDeletionsListControllerInterface extends BaseAccountDeletionsListControllerInterface
+{
+}
