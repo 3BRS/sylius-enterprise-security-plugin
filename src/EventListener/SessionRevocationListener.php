@@ -24,7 +24,7 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
         protected CustomerSessionRepositoryInterface $customerSessionRepository,
         protected AdminUserSessionRepositoryInterface $adminSessionRepository,
         protected RouterInterface $router,
-        protected RememberMeHandlerInterface $rememberMeHandler,
+        protected ?RememberMeHandlerInterface $rememberMeHandler,
         protected bool $customerEnabled,
         protected bool $adminEnabled,
         protected string $customerLoginRoute = 'sylius_shop_login',
@@ -106,6 +106,11 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
      * remember-me ResponseListener stamps the deletion onto whatever response
      * this method returns, so the redirect and the JSON branch are both covered.
      *
+     * Symfony registers the handler only once some firewall configures
+     * `remember_me`, so an application that persists no logins has no such service
+     * and the argument arrives null. Requiring it would stop such an application
+     * from compiling its container at all.
+     *
      * A full LogoutEvent would clear the cookie too, but it would also run every
      * other logout listener on the firewall — cart, customer context, the
      * two-factor trusted device — and let DefaultLogoutListener override the
@@ -113,6 +118,10 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
      */
     protected function clearRememberMeCookie(): void
     {
+        if ($this->rememberMeHandler === null) {
+            return;
+        }
+
         try {
             $this->rememberMeHandler->clearRememberMeCookie();
         } catch (\LogicException) {

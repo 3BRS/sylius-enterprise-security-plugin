@@ -245,6 +245,38 @@ class SessionRevocationListenerTest extends TestCase
         self::assertSame('/login', $response->getTargetUrl());
     }
 
+    /**
+     * Symfony registers the firewall-aware handler only once some firewall configures
+     * `remember_me`. An application that persists no logins has no such service, and the
+     * listener is wired unconditionally, so it has to work with nothing to hand.
+     */
+    public function testStillRedirectsWhenTheApplicationHasNoRememberMeHandlerAtAll(): void
+    {
+        $session = new CustomerSession();
+        $session->setSessionId('sess-1');
+        $session->setRevokedAt(new \DateTimeImmutable());
+
+        $customerRepository = $this->createStub(CustomerSessionRepositoryInterface::class);
+        $customerRepository->method('findOneBySessionId')->willReturn($session);
+
+        $event = $this->makeEvent('sess-1', $this->createStub(ShopUserInterface::class), invalidatesSession: true);
+
+        $listener = new SessionRevocationListener(
+            $event->getRequest()->attributes->get('_test_token_storage'),
+            $customerRepository,
+            $this->createStub(AdminUserSessionRepositoryInterface::class),
+            $this->makeRouter('/login'),
+            null,
+            true,
+            true,
+        );
+        $listener->onKernelRequest($event);
+
+        $response = $event->getResponse();
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('/login', $response->getTargetUrl());
+    }
+
     protected function makeEvent(string $sessionId, object $user, bool $invalidatesSession = false): RequestEvent
     {
         $session = $this->createMock(SessionInterface::class);
