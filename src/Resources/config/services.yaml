@@ -1392,7 +1392,7 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\AccountDeletionCancelController:
         arguments:
-            $entityManager: '@doctrine.orm.entity_manager'
+            $deletionRequestRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
             $deletionService: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService'
             $csrfTokenManager: '@security.csrf.token_manager'
             $tokenStorage: '@security.token_storage'

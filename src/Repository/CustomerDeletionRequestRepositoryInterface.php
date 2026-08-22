@@ -13,6 +13,13 @@ interface CustomerDeletionRequestRepositoryInterface extends BundleCustomerDelet
     public function findActiveForCustomer(CustomerInterface $customer): ?CustomerDeletionRequestInterface;
 
     /**
+     * The pending predicate belongs in the query rather than in the caller: cancelling
+     * one that is already cancelled or completed throws, and the controller's contract
+     * with the bundle is "found or not".
+     */
+    public function findPendingById(int $id): ?CustomerDeletionRequestInterface;
+
+    /**
      * @return list<CustomerDeletionRequestInterface>
      */
     public function findDue(\DateTimeImmutable $now): array;

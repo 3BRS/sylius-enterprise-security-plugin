@@ -33,6 +33,19 @@ class CustomerDeletionRequestRepository extends ServiceEntityRepository implemen
         ;
     }
 
+    public function findPendingById(int $id): ?CustomerDeletionRequestInterface
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.id = :id')
+            ->andWhere('r.cancelledAt IS NULL')
+            ->andWhere('r.completedAt IS NULL')
+            ->setParameter('id', $id)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
     public function findDue(\DateTimeImmutable $now): array
     {
         /** @var list<CustomerDeletionRequest> $result */
