@@ -376,7 +376,7 @@ services:
             $customerPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepository'
             $adminPasskeyRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepository'
             $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
-            $passkeyChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasskeyCheckerInterface'
+            $passkeyChecker: '@three_brs.feature.passkey'
             $oauthRegistry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\OAuthInitiateController:
@@ -917,7 +917,7 @@ services:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepository
 
     three_brs.controller.admin.locked_customers:
-        class: ThreeBRS\EnterpriseSecurityBundle\Controller\LockedUsersListController
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedUsersListController
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedShopUserRepository'
             $twig: '@twig'
@@ -927,7 +927,7 @@ services:
             - { name: 'controller.service_arguments' }
 
     three_brs.controller.admin.locked_admins:
-        class: ThreeBRS\EnterpriseSecurityBundle\Controller\LockedUsersListController
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\LockedUsersListController
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\LockedAdminUserRepository'
             $twig: '@twig'
@@ -1430,7 +1430,7 @@ services:
             - { name: 'controller.service_arguments' }
 
     three_brs.controller.admin.account_deletions:
-        class: ThreeBRS\EnterpriseSecurityBundle\Controller\AccountDeletionsListController
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\AccountDeletionsListController
         arguments:
             $repository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
             $twig: '@twig'
@@ -1471,14 +1471,13 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginChecker
 
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasskeyChecker:
+    three_brs.feature.passkey:
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureChecker
         arguments:
             $featureToggle: '@ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggle'
+            $feature: 'passkey'
             $customerConfigured: '%three_brs.passkey.customer.enabled%'
             $adminConfigured: '%three_brs.passkey.admin.enabled%'
-
-    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasskeyCheckerInterface:
-        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasskeyChecker
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\CustomerPasswordLoginCheckListener:
         arguments:

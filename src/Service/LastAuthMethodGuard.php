@@ -23,7 +23,7 @@ class LastAuthMethodGuard implements LastAuthMethodGuardInterface
         protected CustomerPasskeyCredentialRepositoryInterface $customerPasskeyRepository,
         protected AdminUserPasskeyCredentialRepositoryInterface $adminPasskeyRepository,
         protected PasswordLoginCheckerInterface $passwordLoginChecker,
-        protected PasskeyCheckerInterface $passkeyChecker,
+        protected ScopedFeatureCheckerInterface $passkeyChecker,
         protected OAuthProviderRegistryInterface $oauthRegistry,
     ) {
     }
