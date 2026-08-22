@@ -15,6 +15,12 @@ use PHPUnit\Framework\TestCase;
  * difference announces itself: an override of a block the layout never declares
  * is dropped in silence, and a class no stylesheet defines simply does nothing,
  * so the page renders unstyled rather than broken.
+ *
+ * What decides this is the layout a template extends, not the directory it sits
+ * in, so the list is read from the `extends` line. A template that picks its
+ * layout at render time serves both and is out of scope: its `body_class` block
+ * is meaningful on the administration side, and forbidding it there would be
+ * wrong.
  */
 class ShopTemplateStylingTest extends TestCase
 {
@@ -28,7 +34,7 @@ class ShopTemplateStylingTest extends TestCase
      */
     public static function shopTemplateProvider(): iterable
     {
-        $root = \dirname(__DIR__, 3) . '/src/Resources/views/Shop';
+        $root = \dirname(__DIR__, 3) . '/src/Resources/views';
         $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root));
 
         foreach ($files as $file) {
@@ -36,7 +42,17 @@ class ShopTemplateStylingTest extends TestCase
                 continue;
             }
 
-            yield 'Shop/' . str_replace($root . '/', '', $file->getPathname()) => [$file->getPathname()];
+            $contents = (string) file_get_contents($file->getPathname());
+            if (preg_match('/{%-?\s*extends\s+([^%]+)%}/', $contents, $extends) !== 1) {
+                continue;
+            }
+
+            $layout = $extends[1];
+            if (!str_contains($layout, '@SyliusShop/') || str_contains($layout, '@SyliusAdmin/')) {
+                continue;
+            }
+
+            yield str_replace($root . '/', '', $file->getPathname()) => [$file->getPathname()];
         }
     }
 
