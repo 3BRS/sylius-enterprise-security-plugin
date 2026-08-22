@@ -8,6 +8,7 @@ use Sylius\Bundle\UiBundle\Menu\Event\MenuBuilderEvent;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\FeatureToggleInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
@@ -19,6 +20,7 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
         protected TokenStorageInterface $tokenStorage,
         protected RouterInterface $router,
         protected PasswordLoginCheckerInterface $passwordLoginChecker,
+        protected OAuthProviderRegistryInterface $oauthRegistry,
     ) {
     }
 
@@ -39,10 +41,10 @@ class ShopAccountMenuListener implements ShopAccountMenuListenerInterface
 
     public function addSocialAccountsItem(MenuBuilderEvent $event): void
     {
-        if (
-            !$this->features->isEnabled('oauth.google', SettingsScope::CUSTOMER) &&
-            !$this->features->isEnabled('oauth.apple', SettingsScope::CUSTOMER)
-        ) {
+        // The registry is what the sign-in page offers and what the account page
+        // lists, so it decides here too. Naming the providers instead left whoever
+        // added the third one — and whoever adds a fourth — out of the check.
+        if ($this->oauthRegistry->getEnabledForCustomer() === []) {
             return;
         }
 

@@ -296,6 +296,7 @@ services:
             $tokenStorage: '@security.token_storage'
             $router: '@router'
             $passwordLoginChecker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface'
+            $oauthRegistry: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistry'
         tags:
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addTwoFactorItem' }
             - { name: 'kernel.event_listener', event: 'sylius.menu.shop.account', method: 'addSocialAccountsItem' }
