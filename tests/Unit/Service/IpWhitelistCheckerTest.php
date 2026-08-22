@@ -7,10 +7,11 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Service;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\AdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelistInterface;
+use ThreeBRS\EnterpriseSecurityBundle\IpRestriction\AbstractIpRestrictionChecker;
 use ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcher;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserIpWhitelistInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker;
 
@@ -183,5 +184,23 @@ class IpWhitelistCheckerTest extends TestCase
         $checker = $this->createChecker(true, [], null, [$entry]);
 
         self::assertFalse($checker->isAllowedAnonymously(''));
+    }
+
+    /**
+     * The whitelist and the blacklist ask the same two questions of settings — is the
+     * feature on, and what does the global CIDR list hold — and the answer belongs in
+     * the shared base. Kept apart, a change to the base reaches only one of them: give
+     * getGlobalCidrs() a trim, and a stored " 10.0.0.0/8" starts matching for the
+     * blacklist while the whitelist keeps rejecting it and locks every admin out.
+     */
+    public function testTheGlobalListIsReadByTheSharedBaseRatherThanRestatedHere(): void
+    {
+        foreach (['isFeatureEnabled', 'getGlobalCidrs'] as $method) {
+            self::assertSame(
+                AbstractIpRestrictionChecker::class,
+                (new \ReflectionMethod(IpWhitelistChecker::class, $method))->getDeclaringClass()->getName(),
+                sprintf('%s() should come from the base both IP restriction checkers share.', $method),
+            );
+        }
     }
 }

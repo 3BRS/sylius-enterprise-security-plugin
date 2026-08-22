@@ -5,28 +5,32 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist;
 
 use Sylius\Component\Core\Model\AdminUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\IpRestriction\AbstractIpRestrictionChecker;
 use ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcherInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 
-class IpWhitelistChecker implements IpWhitelistCheckerInterface
+/**
+ * Plugin-side whitelist semantics on top of the bundle's generic
+ * AbstractIpRestrictionChecker, the same base the blacklist checker uses. The
+ * bundle answers "does the global CIDR list cover this IP?"; for the whitelist
+ * scope that means the address is allowed, and on top of it the plugin adds the
+ * per-admin lists, which have no counterpart on the blacklist side.
+ */
+class IpWhitelistChecker extends AbstractIpRestrictionChecker implements IpWhitelistCheckerInterface
 {
     public function __construct(
-        protected SettingsProviderInterface $settingsProvider,
+        SettingsProviderInterface $settingsProvider,
         protected AdminUserIpWhitelistRepositoryInterface $adminWhitelistRepository,
-        protected CidrMatcherInterface $cidrMatcher,
+        CidrMatcherInterface $cidrMatcher,
     ) {
-    }
-
-    public function isFeatureEnabled(): bool
-    {
-        return $this->settingsProvider->getBool('ip_whitelist.enabled', SettingsScope::ADMIN);
+        parent::__construct($settingsProvider, $cidrMatcher);
     }
 
     public function isAllowedByGlobal(string $ip): bool
     {
-        return $this->cidrMatcher->matchesAny($ip, $this->getGlobalCidrs());
+        return $this->matchesGlobal($ip);
     }
 
     public function isAllowedAnonymously(string $ip): bool
@@ -62,20 +66,13 @@ class IpWhitelistChecker implements IpWhitelistCheckerInterface
         return $this->cidrMatcher->matchesAny($ip, $entity->getCidrs());
     }
 
-    public function getGlobalCidrs(): array
+    protected function getSettingsKey(): string
     {
-        $value = $this->settingsProvider->get('ip_whitelist.global_cidrs', SettingsScope::ADMIN);
-        if (!is_array($value)) {
-            return [];
-        }
+        return 'ip_whitelist';
+    }
 
-        $cidrs = [];
-        foreach ($value as $cidr) {
-            if (is_string($cidr) && $cidr !== '') {
-                $cidrs[] = $cidr;
-            }
-        }
-
-        return $cidrs;
+    protected function getScope(): SettingsScope
+    {
+        return SettingsScope::ADMIN;
     }
 }
