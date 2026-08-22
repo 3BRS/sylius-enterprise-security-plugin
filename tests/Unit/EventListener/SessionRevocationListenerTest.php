@@ -22,6 +22,8 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\SessionRevocationListener;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 #[CoversClass(SessionRevocationListener::class)]
 class SessionRevocationListenerTest extends TestCase
@@ -43,8 +45,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
             $this->createStub(RememberMeHandlerInterface::class),
-            true,
-            true,
+            $this->makeFeature(true),
         );
         $listener->onKernelRequest($event);
 
@@ -69,8 +70,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
             $this->createStub(RememberMeHandlerInterface::class),
-            true,
-            true,
+            $this->makeFeature(true),
         );
         $listener->onKernelRequest($event);
 
@@ -94,8 +94,7 @@ class SessionRevocationListenerTest extends TestCase
             $adminRepository,
             $this->makeRouter('/admin/login'),
             $this->createStub(RememberMeHandlerInterface::class),
-            true,
-            true,
+            $this->makeFeature(true),
         );
         $listener->onKernelRequest($event);
 
@@ -120,8 +119,7 @@ class SessionRevocationListenerTest extends TestCase
             $adminRepository,
             $this->makeRouter('/admin/login'),
             $this->createStub(RememberMeHandlerInterface::class),
-            true,
-            true,
+            $this->makeFeature(true),
         );
         $listener->onKernelRequest($event);
 
@@ -138,8 +136,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
             $this->createStub(RememberMeHandlerInterface::class),
-            false,
-            false,
+            $this->makeFeature(false),
         );
         $listener->onKernelRequest($event);
 
@@ -177,8 +174,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
             $rememberMe,
-            true,
-            true,
+            $this->makeFeature(true),
         );
         $listener->onKernelRequest($event);
 
@@ -204,8 +200,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
             $rememberMe,
-            true,
-            true,
+            $this->makeFeature(true),
         );
         $listener->onKernelRequest($event);
 
@@ -235,8 +230,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
             $rememberMe,
-            true,
-            true,
+            $this->makeFeature(true),
         );
         $listener->onKernelRequest($event);
 
@@ -267,8 +261,7 @@ class SessionRevocationListenerTest extends TestCase
             $this->createStub(AdminUserSessionRepositoryInterface::class),
             $this->makeRouter('/login'),
             null,
-            true,
-            true,
+            $this->makeFeature(true),
         );
         $listener->onKernelRequest($event);
 
@@ -306,4 +299,21 @@ class SessionRevocationListenerTest extends TestCase
 
         return new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
     }
+
+    /**
+     * The two switches a feature answers to are combined behind this checker, so the
+     * tests stub the answer rather than the configuration flag on its own.
+     */
+    protected function makeFeature(bool $customerEnabled, ?bool $adminEnabled = null): ScopedFeatureCheckerInterface
+    {
+        $adminEnabled ??= $customerEnabled;
+
+        $checker = $this->createStub(ScopedFeatureCheckerInterface::class);
+        $checker->method('isEnabled')->willReturnCallback(
+            static fn (SettingsScope $scope): bool => $scope === SettingsScope::ADMIN ? $adminEnabled : $customerEnabled,
+        );
+
+        return $checker;
+    }
+
 }

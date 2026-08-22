@@ -7,8 +7,10 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionTrackerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 
@@ -27,14 +29,14 @@ class SessionLogoutListener implements SessionLogoutListenerInterface
         protected AdminUserSessionTrackerInterface $adminTracker,
         protected CustomerSessionRepositoryInterface $customerSessionRepository,
         protected AdminUserSessionRepositoryInterface $adminSessionRepository,
-        protected bool $customerEnabled,
-        protected bool $adminEnabled,
+        protected ScopedFeatureCheckerInterface $sessionManagement,
     ) {
     }
 
     public function onLogout(LogoutEvent $event): void
     {
-        if (!$this->customerEnabled && !$this->adminEnabled) {
+        if (!$this->sessionManagement->isEnabled(SettingsScope::CUSTOMER) &&
+            !$this->sessionManagement->isEnabled(SettingsScope::ADMIN)) {
             return;
         }
 
@@ -53,7 +55,7 @@ class SessionLogoutListener implements SessionLogoutListenerInterface
             return;
         }
 
-        if ($this->customerEnabled && $user instanceof ShopUserInterface) {
+        if ($this->sessionManagement->isEnabled(SettingsScope::CUSTOMER) && $user instanceof ShopUserInterface) {
             $session = $this->customerSessionRepository->findOneBySessionId($sessionId);
             if ($session !== null) {
                 $this->customerTracker->revoke($session);
@@ -62,7 +64,7 @@ class SessionLogoutListener implements SessionLogoutListenerInterface
             return;
         }
 
-        if ($this->adminEnabled && $user instanceof AdminUserInterface) {
+        if ($this->sessionManagement->isEnabled(SettingsScope::ADMIN) && $user instanceof AdminUserInterface) {
             $session = $this->adminSessionRepository->findOneBySessionId($sessionId);
             if ($session !== null) {
                 $this->adminTracker->revoke($session);

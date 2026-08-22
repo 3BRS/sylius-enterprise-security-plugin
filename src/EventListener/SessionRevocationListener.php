@@ -14,8 +14,10 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Http\RememberMe\RememberMeHandlerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
 
 class SessionRevocationListener implements SessionRevocationListenerInterface
 {
@@ -25,8 +27,7 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
         protected AdminUserSessionRepositoryInterface $adminSessionRepository,
         protected RouterInterface $router,
         protected ?RememberMeHandlerInterface $rememberMeHandler,
-        protected bool $customerEnabled,
-        protected bool $adminEnabled,
+        protected ScopedFeatureCheckerInterface $sessionManagement,
         protected string $customerLoginRoute = 'sylius_shop_login',
         protected string $adminLoginRoute = 'sylius_admin_login',
     ) {
@@ -37,7 +38,8 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
         if (!$event->isMainRequest()) {
             return;
         }
-        if (!$this->customerEnabled && !$this->adminEnabled) {
+        if (!$this->sessionManagement->isEnabled(SettingsScope::CUSTOMER) &&
+            !$this->sessionManagement->isEnabled(SettingsScope::ADMIN)) {
             return;
         }
 
@@ -56,7 +58,7 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
         }
         $user = $token->getUser();
 
-        if ($this->customerEnabled && $user instanceof ShopUserInterface) {
+        if ($this->sessionManagement->isEnabled(SettingsScope::CUSTOMER) && $user instanceof ShopUserInterface) {
             $session = $this->customerSessionRepository->findOneBySessionId($sessionId);
             if ($session !== null && $session->isRevoked()) {
                 $event->setResponse($this->logoutAndRedirect($request, $this->customerLoginRoute));
@@ -65,7 +67,7 @@ class SessionRevocationListener implements SessionRevocationListenerInterface
             return;
         }
 
-        if ($this->adminEnabled && $user instanceof AdminUserInterface) {
+        if ($this->sessionManagement->isEnabled(SettingsScope::ADMIN) && $user instanceof AdminUserInterface) {
             $session = $this->adminSessionRepository->findOneBySessionId($sessionId);
             if ($session !== null && $session->isRevoked()) {
                 $event->setResponse($this->logoutAndRedirect($request, $this->adminLoginRoute));

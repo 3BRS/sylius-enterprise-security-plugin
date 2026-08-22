@@ -24,6 +24,8 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 use Twig\Environment;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 #[CoversClass(SetPasswordController::class)]
 class SetPasswordControllerTest extends TestCase
@@ -231,7 +233,7 @@ class SetPasswordControllerTest extends TestCase
             $formFactory,
             $sessionTracker ?? $this->createStub(CustomerSessionTrackerInterface::class),
             $sessionRepository ?? $this->createStub(CustomerSessionRepositoryInterface::class),
-            $sessionTrackingEnabled,
+            $this->makeFeature($sessionTrackingEnabled),
         );
     }
 
@@ -242,4 +244,21 @@ class SetPasswordControllerTest extends TestCase
 
         return $request;
     }
+
+    /**
+     * The two switches a feature answers to are combined behind this checker, so the
+     * tests stub the answer rather than the configuration flag on its own.
+     */
+    protected function makeFeature(bool $customerEnabled, ?bool $adminEnabled = null): ScopedFeatureCheckerInterface
+    {
+        $adminEnabled ??= $customerEnabled;
+
+        $checker = $this->createStub(ScopedFeatureCheckerInterface::class);
+        $checker->method('isEnabled')->willReturnCallback(
+            static fn (SettingsScope $scope): bool => $scope === SettingsScope::ADMIN ? $adminEnabled : $customerEnabled,
+        );
+
+        return $checker;
+    }
+
 }
