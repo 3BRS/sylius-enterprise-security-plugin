@@ -99,10 +99,14 @@ three_brs_shop_oauth_confirm_link:
     methods: [GET, POST]
 
 three_brs_shop_social_account_unlink:
-    path: /account/oauth/{provider}/unlink
+    # The only shop /account route that lacked {_locale}. Without the attribute
+    # NonChannelLocaleListener returns early, so the redirect after unlinking landed
+    # the customer on the default locale rather than the one they were browsing.
+    path: /{_locale}/account/oauth/{provider}/unlink
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\SocialAccountUnlinkController
     methods: [POST]
     requirements:
+        _locale: '[a-z]{2}(?:_[A-Z]{2})?'
         provider: '[a-z_]+'
 
 three_brs_admin_oauth_initiate:

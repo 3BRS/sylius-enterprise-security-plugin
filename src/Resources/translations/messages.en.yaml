@@ -54,7 +54,6 @@ three_brs:
             cidrs_help: 'One IP or CIDR per line. IPv4 and IPv6 are supported (e.g. 10.0.0.0/8, 192.168.1.1, 2001:db8::/32).'
     ui:
         cancel: 'Cancel'
-        confirm: 'Confirm'
         copy: 'Copy'
         admin_security:
             title: 'Security'
@@ -103,13 +102,11 @@ three_brs:
             or_continue_with: 'Or continue with'
             linked_accounts_title: 'Linked 3rd-party OAuth accounts'
             link_accounts_title: 'Link 3rd-party OAuth accounts'
-            available_providers_title: 'Available providers'
             no_links_yet: 'You have not linked any 3rd-party OAuth accounts yet.'
             no_links_yet_subtitle: 'Link a provider from the list to sign in faster next time.'
             all_linked: 'All available providers are already linked.'
             customer_intro: 'Link your Google, Apple or Microsoft account to sign in faster next time. You can unlink a provider at any time — as long as you keep either a password or another linked provider.'
             unlink: 'Unlink'
-            link_provider: 'Link %provider%'
             provider_column: 'Provider'
             email_column: 'Email'
             provider:
@@ -171,7 +168,6 @@ three_brs:
             menu_item: 'Passkeys'
             title: 'Passkeys'
             intro: 'Passkeys let you sign in with a fingerprint, face scan, screen lock, or hardware security key — no password needed.'
-            add_new: 'Add a new passkey'
             register: 'Create'
             name_your_passkey: 'Name your passkey'
             label_field_label: 'Passkey name'
@@ -241,7 +237,6 @@ three_brs:
             username: 'Administrator'
             per_admin_state: 'Per-admin whitelist'
             per_admin_cidrs: 'Per-admin allowed IPs / CIDRs'
-            not_configured: 'Not configured'
             enabled_empty: 'Enabled (empty)'
             edit: 'Edit'
             no_admins: 'No administrators found.'
@@ -274,6 +269,8 @@ three_brs:
             intro: 'Configure authentication and security policies for customers and administrators. Changes apply immediately on next request.'
             scope_customer: 'Customers'
             scope_admin: 'Administrators'
+            # Unused: the settings screen has no global tab yet. Kept because the scope
+            # itself is real — SettingsDefaultsBuilder seeds it — and a tab for it is planned.
             scope_global: 'Global'
             save: 'Save'
             password_settings_disabled_note: 'These settings cannot be edited while password login is turned off for this group; their stored values are kept, and password expiration and the force-password-change action stay suspended. Turn "Password login" back on to edit them.'
