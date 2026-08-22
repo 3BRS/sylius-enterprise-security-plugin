@@ -46,6 +46,11 @@ Feature: Admin panel can be restricted by IP whitelist
         When I open any admin page
         Then the admin response status should be 403
 
+    Scenario: Sign-in itself is refused from a non-allowed IP
+        Given the admin IP whitelist is enabled with global CIDRs "203.0.113.0/24"
+        When I submit the admin sign-in form as "admin@example.com" with "Password1!"
+        Then the admin response status should be 403
+
     Scenario: Admin can list IP whitelist administrators
         Given the admin IP whitelist is enabled with global CIDRs "127.0.0.1"
         When I am logged in as "admin@example.com" administrator

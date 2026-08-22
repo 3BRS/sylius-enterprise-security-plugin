@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
@@ -101,6 +102,36 @@ class IpWhitelistContext implements Context
             ['id' => $admin->getId()],
             UrlGeneratorInterface::ABSOLUTE_URL,
         ));
+    }
+
+    /**
+     * The sign-in POST is answered by the firewall itself, with no controller behind
+     * it, so it is only covered while the IP check runs above the firewall. Every
+     * other scenario here reaches the panel through SecurityService::logIn(), which
+     * puts the token into the session directly and never travels this route.
+     *
+     * Below the firewall this same request is handled by the authenticator, which
+     * answers a redirect — not a 403 — whether the credentials pass or the CSRF token
+     * is missing, so the status alone tells the two arrangements apart.
+     *
+     * @When I submit the admin sign-in form as :email with :password
+     */
+    public function iSubmitTheAdminSignInForm(string $email, string $password): void
+    {
+        $driver = $this->session->getDriver();
+        Assert::isInstanceOf($driver, BrowserKitDriver::class);
+
+        $client = $driver->getClient();
+        // The answer to this request is the assertion, so the redirect a successful
+        // sign-in would return must not be followed — the page behind it is refused
+        // as well, and following it would report that refusal instead.
+        $client->followRedirects(false);
+
+        $client->request(
+            'POST',
+            $this->router->generate('sylius_admin_login_check', [], UrlGeneratorInterface::ABSOLUTE_URL),
+            ['_username' => $email, '_password' => $password],
+        );
     }
 
     /**
