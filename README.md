@@ -112,7 +112,7 @@ This section is for **consuming** the plugin in your own Sylius project — you 
        resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/routes.yaml"
    ```
 
-5. Add the relevant traits to your `ShopUser` and `AdminUser` entities. Include **only** the traits for the features you enabled — `PasswordExpiration*` (Password Expiration), `TwoFactorAuth*` (Two-Factor Authentication), `Lockable*` (Account Lockout). (Password Expiration also reads the account creation date via `getCreatedAt()` as its fallback for users who have never changed their password — Sylius's base `ShopUser` / `AdminUser` already expose it, so no extra wiring is needed here.) The full set:
+5. Add the relevant traits to your `ShopUser` and `AdminUser` entities. Include the traits for the features you enabled — `TwoFactorAuth*` (Two-Factor Authentication), `Lockable*` (Account Lockout) — and `PasswordExpiration*` whichever way you configure Password Expiration: *Force password reset* in [admin customer management](docs/admin-customer-management.md) has no on/off switch of its own, and the button is shown to administrators whether or not the feature is on. (Password Expiration also reads the account creation date via `getCreatedAt()` as its fallback for users who have never changed their password — Sylius's base `ShopUser` / `AdminUser` already expose it, so no extra wiring is needed here.) The full set:
 
    ```php
    // src/Entity/User/ShopUser.php
@@ -161,7 +161,7 @@ This section is for **consuming** the plugin in your own Sylius project — you 
    > Magic link, passkey, OAuth, session management, login notifications and account deletion keep their data in their own tables (foreign-keyed to `ShopUser` / `AdminUser`) and need **no** traits.
 
 6. Configure the firewall for the features you enabled, in `config/packages/security.yaml` (and `config/packages/scheb_2fa.yaml` for 2FA). Each feature's doc under `docs/` contains the exact block to copy:
-   - **Two-Factor Authentication** — the `scheb_2fa.yaml` config, the shop `success_handler`, and the `two_factor` blocks on the `shop` / `admin` firewalls.
+   - **Two-Factor Authentication** — the `scheb_2fa.yaml` config, the shop `success_handler`, the `two_factor` blocks on the `shop` / `admin` firewalls, and the two `access_control` entries granting `IS_AUTHENTICATED_2FA_IN_PROGRESS` on the challenge pages. Without those, a token still awaiting its second factor cannot reach the page that asks for it.
    - **3rd-party OAuth**, **Magic Link Login**, **Passkey Login** — the `PUBLIC_ACCESS` `access_control` entries that expose their login endpoints.
 
 7. Update the database schema to create the plugin tables (`three_brs_*`) and the trait columns added in step 5:

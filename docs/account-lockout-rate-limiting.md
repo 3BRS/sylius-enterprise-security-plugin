@@ -27,7 +27,10 @@ Throttled endpoints:
 
 The account-deletion request posts the customer's current password, so it presents the same brute-force surface as a password reset and draws on that same counter rather than one of its own — `rate_limit.customer.password_reset` governs both.
 
-When the limit is exceeded the user is redirected back to the form with a `three_brs.rate_limit.too_many_requests` error flash.
+When the limit is exceeded a form post is redirected back to the form it came from, with a
+`three_brs.rate_limit.too_many_requests` error flash. A request that arrives as JSON — the checkout's inline sign-in posts that
+way — is answered with HTTP 429 and `{"error": "three_brs.rate_limit.too_many_requests"}` instead, so the JavaScript that sent
+it can read the outcome rather than follow a redirect it never asked for.
 
 > **Admin manual unlock:** clicking *Unlock* on a locked account clears the DB lockout state and the login rate-limit counter for that user, so they can sign in immediately.
 
