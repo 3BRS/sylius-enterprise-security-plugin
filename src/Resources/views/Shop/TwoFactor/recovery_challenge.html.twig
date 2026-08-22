@@ -2,13 +2,18 @@
 
 {% block title %}{{ 'three_brs.ui.two_factor.recovery_challenge_title'|trans }} | {{ parent() }}{% endblock %}
 
-{% block body_class %}d-flex flex-column{% endblock %}
-
-{% block content %}
-    <div class="page page-center">
-        <div class="container container-tight py-4">
-            <div class="card card-md" data-test-two-factor-recovery-challenge>
-                <div class="card-body">
+{#
+ # Laid out like the shared challenge page this is reached from
+ # (TwoFactor/challenge.html.twig), so the two halves of the same sign-in step
+ # look alike: Bootstrap utilities the shop ships, and the whole body replaced
+ # rather than the content slot, which keeps the storefront navigation out of a
+ # step the customer has not finished yet.
+ #}
+{% block body %}
+    <div class="d-flex align-items-center justify-content-center min-vh-100 py-4">
+        <div class="container" style="max-width: 30rem;">
+            <div class="card shadow-sm" data-test-two-factor-recovery-challenge>
+                <div class="card-body p-4">
                     <h2 class="h2 text-center mb-2">{{ 'three_brs.ui.two_factor.recovery_challenge_title'|trans }}</h2>
                     <p class="text-muted text-center mb-4">{{ 'three_brs.ui.two_factor.recovery_challenge_intro'|trans }}</p>
 
