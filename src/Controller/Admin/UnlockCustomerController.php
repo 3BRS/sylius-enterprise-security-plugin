@@ -8,10 +8,12 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractUnlockUserController;
 use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManagerInterface;
 
+#[IsGranted('ROLE_ADMINISTRATION_ACCESS')]
 class UnlockCustomerController extends AbstractUnlockUserController implements UnlockCustomerControllerInterface
 {
     protected const CSRF_TOKEN_ID = 'three_brs_unlock_customer';

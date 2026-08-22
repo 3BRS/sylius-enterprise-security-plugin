@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\FlashHelperTrait;
 use ThreeBRS\EnterpriseSecurityBundle\IpWhitelist\CidrMatcherInterface;
@@ -22,6 +23,7 @@ use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\SecuritySettingsType;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 
+#[IsGranted('ROLE_ADMINISTRATION_ACCESS')]
 class SaveController implements SaveControllerInterface
 {
     use FlashHelperTrait;

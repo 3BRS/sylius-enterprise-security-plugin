@@ -10,8 +10,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 
+#[IsGranted('ROLE_ADMINISTRATION_ACCESS')]
 class RevokeAllSessionsController extends AbstractCustomerSecurityActionController implements RevokeAllSessionsControllerInterface
 {
     protected const CSRF_TOKEN_ID = 'three_brs_customer_revoke_all_sessions';

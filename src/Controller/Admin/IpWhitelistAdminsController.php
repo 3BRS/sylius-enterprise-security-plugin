@@ -7,10 +7,12 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserIpWhitelistRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistCheckerInterface;
 use Twig\Environment;
 
+#[IsGranted('ROLE_ADMINISTRATION_ACCESS')]
 class IpWhitelistAdminsController implements IpWhitelistAdminsControllerInterface
 {
     /** @param UserRepositoryInterface<AdminUserInterface> $adminUserRepository */
