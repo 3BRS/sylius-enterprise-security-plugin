@@ -123,9 +123,16 @@ class SetPasswordControllerTest extends TestCase
         $repository = $this->createStub(CustomerSessionRepositoryInterface::class);
         $repository->method('findOneBySessionId')->willReturn($stale);
 
+        $tracked = null;
         $tracker = $this->createMock(CustomerSessionTrackerInterface::class);
         $tracker->expects(self::once())->method('revoke')->with($stale);
-        $tracker->expects(self::once())->method('track');
+        $tracker->expects(self::once())->method('track')->willReturnCallback(
+            function (ShopUserInterface $user, string $sessionId) use (&$tracked): CustomerSessionInterface {
+                $tracked = $sessionId;
+
+                return $this->createStub(CustomerSessionInterface::class);
+            },
+        );
 
         $controller = $this->createController(
             user: $user,
@@ -136,7 +143,19 @@ class SetPasswordControllerTest extends TestCase
             sessionTrackingEnabled: true,
         );
 
-        $controller(self::request());
+        $request = self::request();
+        $request->getSession()->start();
+        $idBeforeSubmit = $request->getSession()->getId();
+
+        $controller($request);
+
+        // The id is what the row is found by, and track() returns the existing record
+        // when it matches, so writing the pre-migrate id would revoke the old row and
+        // then hand it straight back — the live session would end up with no row of its
+        // own. Naming the id rather than counting the call is the difference.
+        self::assertNotSame('', $idBeforeSubmit);
+        self::assertNotSame($idBeforeSubmit, $request->getSession()->getId());
+        self::assertSame($request->getSession()->getId(), $tracked);
     }
 
     public function testWritesNoSessionRowWhenTrackingIsOff(): void
