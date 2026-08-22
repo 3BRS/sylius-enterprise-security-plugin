@@ -845,6 +845,21 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManagerInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\AdminUserLockoutManager
 
+    # Disabling an account has to end the sessions it already has, and session
+    # tracking — the plugin's own way of doing that — is off by default. Refusing
+    # to refresh a disabled user reaches every stateful firewall without one.
+    three_brs.security.shop_user_provider:
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\AccountStateAwareUserProvider
+        decorates: sylius.shop_user_provider.email_or_name_based
+        arguments:
+            $decorated: '@.inner'
+
+    three_brs.security.admin_user_provider:
+        class: ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\AccountStateAwareUserProvider
+        decorates: sylius.admin_user_provider.email_or_name_based
+        arguments:
+            $decorated: '@.inner'
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\ShopUserLockoutChecker:
         arguments:
             $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager'
