@@ -7,7 +7,6 @@ three_brs:
         invalid_code: 'The authentication code is invalid. Please try again.'
         invalid_code_length: 'The authentication code must be 6 digits.'
     password_expiration:
-        changed_successfully: 'Your password has been changed successfully.'
     password_history:
         reused: 'This password has been used recently. Please choose a different password.'
         similar_to_current: 'New password is too similar to the current password. Please choose a different password.'
