@@ -4,7 +4,7 @@ Active session listing with manual revocation, plus optional email notifications
 
 **Session Management** — every successful sign-in (after a user passes any 2FA or recovery-code challenge) is recorded as a row in `three_brs_customer_session` / `three_brs_admin_user_session` with the User-Agent, IP address, optional country / city, the PHP session ID, plus `created_at`, `last_activity_at`, and `revoked_at` timestamps.
 
-- **Listing UI** — customers see their active sessions at `/{_locale}/account/sessions` (Active sessions item in the account menu); admins see them at `/admin/account/sessions` (Sessions item under Configuration). Each row shows the parsed browser + OS, IP, location, last-activity time, and a "current" marker on the row matching the request's session ID.
+- **Listing UI** — customers see their active sessions at `/{_locale}/account/sessions` (Active sessions item in the account menu); administrators see their own from the **Security** dropdown in the header of their user edit page (Active sessions). Each row shows the parsed browser + OS, IP, location, last-activity time, and a "current" marker on the row matching the request's session ID.
 - **Revoke individual session** — a POST form per row marks `revoked_at` on a single record. The *current* session is intentionally non-revocable; sign out instead.
 - **Revoke all other sessions** — a top-level POST flips `revoked_at` on every active record except the current one.
 - **Activity tracking** — a `kernel.request` listener updates `last_activity_at` on every authenticated request, throttled to **once per 60 seconds** per session to avoid write-amplification on hot pages.
@@ -34,7 +34,7 @@ three_brs_sylius_enterprise_security:
             enabled: false
 ```
 
-The plugin adds an **Active sessions** entry to the shop account menu and a **Sessions** entry to the admin Configuration sub-menu — both shown only when session management is enabled for the relevant group.
+The plugin adds an **Active sessions** entry to the shop account menu, shown only when session management is enabled for customers. On the administration side the entry sits in the **Security** dropdown of the administrator's own user edit page, next to two-factor authentication, social accounts and passkeys; it is rendered whatever the setting says, and the page itself answers 404 while session management is off for administrators.
 
 ## Enabling GeoIP location lookups
 

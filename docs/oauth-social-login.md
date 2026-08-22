@@ -71,6 +71,24 @@ Callback URLs to register with the providers:
 
 > **Customer auto-registration:** by default `auto_register_allowed_email_domains` is empty and any verified OAuth identity can auto-register as a customer (preserves the commercial signup-friendly default). Populate the list to restrict customer auto-registration to specific domains (useful e.g. for B2B stores or as a bot-mitigation measure).
 
+## Firewall
+
+The admin sign-in endpoints sit under the administration path and are therefore covered by
+whatever rule guards the panel, which the caller cannot satisfy before signing in. Open them
+in `config/packages/security.yaml`, above that rule:
+
+```yaml
+security:
+    access_control:
+        - { path: "%sylius.security.admin_regex%/oauth/[a-z_]+/start", role: PUBLIC_ACCESS }
+        - { path: "%sylius.security.admin_regex%/oauth/[a-z_]+/callback", role: PUBLIC_ACCESS }
+        - { path: "%sylius.security.admin_regex%/oauth/confirm-link", role: PUBLIC_ACCESS }
+        # ... your remaining rules, including the admin catch-all, below these
+```
+
+The storefront endpoints need no entry: Sylius guards only `/{_locale}/account` on the shop
+side, and these routes fall outside it.
+
 ## Google Cloud setup
 
 1. Open the [Google Cloud Console](https://console.cloud.google.com/) and create (or select) a project.

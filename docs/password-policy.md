@@ -1,8 +1,13 @@
 # Password Policy
 
-- Configurable minimum and maximum password length (overrides Sylius's default 3-character minimum)
+- Configurable minimum and maximum password length, applied alongside Sylius's own four-character
+  minimum on `plainPassword`, so the stricter of the two decides. Where both would complain about a
+  short password, only the policy message is shown.
 - Complexity requirements: uppercase, lowercase, numbers, and special characters — each independently toggleable
-- Core validation logic implemented as a reusable Symfony validator in `enterprise-security-bundle` (no Sylius dependency)
+- The `PasswordPolicy` constraint, the policy model and the violation filter live in
+  `enterprise-security-bundle` and carry no Sylius dependency; the constraint validator that reads the
+  policy and checks the password is the plugin's `PasswordPolicyValidator`, which the constraint
+  resolves to through the `three_brs.validator.password_policy` alias
 - Sylius plugin layer applies the policy to `ShopUser` (customer) and `AdminUser` entities with separate configuration for each
 
 ## Defaults for password policy
