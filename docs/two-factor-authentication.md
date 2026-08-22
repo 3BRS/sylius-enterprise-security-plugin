@@ -1,7 +1,8 @@
 # Two-Factor Authentication
 
 - TOTP-based 2FA for shop and admin users (compatible with Google Authenticator, Authy, 1Password, etc.)
-- QR code + manual secret setup from account page (shop) or admin dashboard (admin)
+- QR code + manual secret setup, from the account page in the storefront and from the **Security** dropdown in the header of an
+  administrator's own user edit page in the panel
 - Recovery codes — single-use backup codes generated at setup, regenerable from the manage view (invalidates all previous codes)
 - Trusted device — opt-in cookie (scheb JWT) to skip 2FA on a known device; revocable per user by bumping the user's `trustedTokenVersion`
 - Enforcement modes per user type: `disabled`, `allowed`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
@@ -56,16 +57,27 @@ security:
             form_login:
                 success_handler: ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler.shop
             two_factor:
-                auth_form_path: /2fa
-                check_path: /2fa_check
+                auth_form_path: three_brs_shop_two_factor_challenge
+                check_path: three_brs_shop_two_factor_check
                 prepare_on_login: true
                 prepare_on_access_denied: true
         admin:
             two_factor:
-                auth_form_path: /admin/2fa
-                check_path: /admin/2fa_check
+                auth_form_path: three_brs_admin_two_factor_challenge
+                check_path: three_brs_admin_two_factor_check
                 prepare_on_login: true
                 prepare_on_access_denied: true
+
+    access_control:
+        # A token holding a pending second factor carries no roles, so the challenge
+        # pages have to sit above whatever rule guards the rest of the panel.
+        - { path: ^/2fa, role: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+        - { path: "%sylius.security.admin_regex%/2fa", role: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+        # ... your remaining rules, including the admin catch-all, below this
 ```
+
+The paths are given as route names rather than URLs: Sylius takes the administration
+path from `SYLIUS_ADMIN_ROUTING_PATH_NAME`, so `/admin/2fa` holds only for an
+installation that left it alone, while the route name follows it.
 
 The admin firewall does not need a custom `success_handler` — Sylius does not override it there, so the default Symfony handler is used and scheb's `TwoFactorAccessListener` transparently redirects authenticated-but-not-yet-verified admins to `/admin/2fa` on the next request.
