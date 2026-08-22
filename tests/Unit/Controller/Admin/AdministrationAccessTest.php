@@ -35,6 +35,7 @@ class AdministrationAccessTest extends TestCase
         'three_brs_admin_oauth_initiate' => 'anonymous: starts the provider round trip',
         'three_brs_admin_oauth_callback' => 'anonymous: returns from the provider',
         'three_brs_admin_oauth_confirm_link' => 'anonymous: confirms linking before the session exists',
+        'three_brs_admin_passkey_login_options' => 'anonymous: hands out the challenge to sign in with',
         // Half-authenticated: the token has no roles until the second factor passes.
         'three_brs_admin_two_factor_recovery_challenge' => 'two-factor in progress',
         // Signed in, but held on one page until the password is changed.
@@ -58,6 +59,7 @@ class AdministrationAccessTest extends TestCase
         'three_brs_admin_sessions_revoke_others',
         'three_brs_admin_session_revoke',
         'three_brs_admin_social_account_unlink',
+        'three_brs_admin_social_accounts',
     ];
 
     /**
@@ -71,14 +73,16 @@ class AdministrationAccessTest extends TestCase
 
         foreach ($routes as $name => $route) {
             $path = $route['path'] ?? '';
-            $controller = $route['controller'] ?? '';
+            $controller = self::resolveController($root, $route['controller'] ?? '');
 
             if (!str_contains($path, 'sylius_admin.path_name')) {
                 continue;
             }
 
-            // Services wired by id are the bundle's own controllers; the plugin has
-            // no class of its own to carry the attribute.
+            // What is left after resolution belongs to the bundle, which knows nothing
+            // about Sylius roles. Where such a page lists other people's accounts the
+            // plugin subclasses it; anything still pointing at the bundle here is a
+            // page whose caller has no administrator identity to check yet.
             if (!str_contains($controller, 'SyliusEnterpriseSecurityPlugin\\Controller\\Admin')) {
                 continue;
             }
@@ -114,4 +118,21 @@ class AdministrationAccessTest extends TestCase
             self::assertArrayHasKey($name, $routes, sprintf('Route "%s" is exempted but no longer exists.', $name));
         }
     }
+
+    /**
+     * Routes may name a service id rather than a class; services.yaml says which
+     * class stands behind it, and that is where the attribute has to sit.
+     */
+    protected static function resolveController(string $root, string $controller): string
+    {
+        if ($controller === '' || str_contains($controller, '\\')) {
+            return $controller;
+        }
+
+        /** @var array{services?: array<string, array{class?: string}>} $services */
+        $services = Yaml::parseFile($root . '/src/Resources/config/services.yaml');
+
+        return $services['services'][$controller]['class'] ?? $controller;
+    }
+
 }
