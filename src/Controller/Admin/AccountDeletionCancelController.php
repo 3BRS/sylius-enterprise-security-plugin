@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractAccountDeletionCancelController;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequest;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequestInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface;
 
 class AccountDeletionCancelController extends AbstractAccountDeletionCancelController implements AccountDeletionCancelControllerInterface
 {
     public function __construct(
-        protected EntityManagerInterface $entityManager,
+        protected CustomerDeletionRequestRepositoryInterface $deletionRequestRepository,
         protected CustomerDeletionServiceInterface $deletionService,
         protected TokenStorageInterface $tokenStorage,
         CsrfTokenManagerInterface $csrfTokenManager,
@@ -29,8 +27,12 @@ class AccountDeletionCancelController extends AbstractAccountDeletionCancelContr
 
     protected function cancelDeletionRequest(int $id): bool
     {
-        $deletionRequest = $this->entityManager->find(CustomerDeletionRequest::class, $id);
-        if (!$deletionRequest instanceof CustomerDeletionRequestInterface) {
+        // Pending is part of the lookup: two tabs, a double submit or the cron
+        // stamping completedAt between render and click all reach a request that
+        // cancelByAdmin() refuses with a RuntimeException, and this controller has no
+        // catch — the administrator got a 500 for clicking a button twice.
+        $deletionRequest = $this->deletionRequestRepository->findPendingById($id);
+        if ($deletionRequest === null) {
             return false;
         }
 
