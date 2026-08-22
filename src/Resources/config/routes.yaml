@@ -1,5 +1,5 @@
 three_brs_admin_force_password_change:
-    path: /admin/force-password-change
+    path: /%sylius_admin.path_name%/force-password-change
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\ForcePasswordChangeController
     methods: [GET, POST]
 
@@ -32,22 +32,22 @@ three_brs_shop_two_factor_regenerate_recovery_codes:
         _locale: '[a-z]{2}(?:_[A-Z]{2})?'
 
 three_brs_admin_two_factor_setup:
-    path: /admin/two-factor/setup
+    path: /%sylius_admin.path_name%/two-factor/setup
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorSetupController
     methods: [GET, POST]
 
 three_brs_admin_two_factor_recovery_codes:
-    path: /admin/two-factor/recovery-codes
+    path: /%sylius_admin.path_name%/two-factor/recovery-codes
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRecoveryCodesController
     methods: [GET]
 
 three_brs_admin_two_factor_disable:
-    path: /admin/two-factor/disable
+    path: /%sylius_admin.path_name%/two-factor/disable
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorDisableController
     methods: [POST]
 
 three_brs_admin_two_factor_regenerate_recovery_codes:
-    path: /admin/two-factor/recovery-codes/regenerate
+    path: /%sylius_admin.path_name%/two-factor/recovery-codes/regenerate
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRegenerateRecoveryCodesController
     methods: [POST]
 
@@ -66,16 +66,16 @@ three_brs_shop_two_factor_recovery_challenge:
     methods: [GET, POST]
 
 three_brs_admin_two_factor_challenge:
-    path: /admin/2fa
+    path: /%sylius_admin.path_name%/2fa
     controller: scheb_two_factor.form_controller::form
     methods: [GET]
 
 three_brs_admin_two_factor_check:
-    path: /admin/2fa_check
+    path: /%sylius_admin.path_name%/2fa_check
     methods: [POST]
 
 three_brs_admin_two_factor_recovery_challenge:
-    path: /admin/2fa/recovery
+    path: /%sylius_admin.path_name%/2fa/recovery
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorRecoveryChallengeController
     methods: [GET, POST]
 
@@ -106,33 +106,33 @@ three_brs_shop_social_account_unlink:
         provider: '[a-z_]+'
 
 three_brs_admin_oauth_initiate:
-    path: /admin/oauth/{provider}/start
+    path: /%sylius_admin.path_name%/oauth/{provider}/start
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthInitiateController
     methods: [GET]
     requirements:
         provider: '[a-z_]+'
 
 three_brs_admin_oauth_callback:
-    path: /admin/oauth/{provider}/callback
+    path: /%sylius_admin.path_name%/oauth/{provider}/callback
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthCallbackController
     methods: [GET, POST]
     requirements:
         provider: '[a-z_]+'
 
 three_brs_admin_oauth_confirm_link:
-    path: /admin/oauth/confirm-link
+    path: /%sylius_admin.path_name%/oauth/confirm-link
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\OAuthConfirmLinkController
     methods: [GET, POST]
 
 three_brs_admin_social_account_unlink:
-    path: /admin/oauth/{provider}/unlink
+    path: /%sylius_admin.path_name%/oauth/{provider}/unlink
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SocialAccountUnlinkController
     methods: [POST]
     requirements:
         provider: '[a-z_]+'
 
 three_brs_admin_social_accounts:
-    path: /admin/social-accounts
+    path: /%sylius_admin.path_name%/social-accounts
     controller: three_brs.controller.admin.social_accounts
     methods: [GET]
 
@@ -156,12 +156,12 @@ three_brs_shop_magic_link_verify:
         token: '[A-Za-z0-9_-]+'
 
 three_brs_admin_magic_link_request:
-    path: /admin/magic-link
+    path: /%sylius_admin.path_name%/magic-link
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\MagicLinkRequestController
     methods: [GET, POST]
 
 three_brs_admin_magic_link_verify:
-    path: /admin/magic-link/verify/{token}
+    path: /%sylius_admin.path_name%/magic-link/verify/{token}
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\MagicLinkVerifyController
     methods: [GET]
     requirements:
@@ -203,56 +203,56 @@ three_brs_shop_passkey_login_verify:
     methods: [POST]
 
 three_brs_admin_passkey_index:
-    path: /admin/account/passkey
+    path: /%sylius_admin.path_name%/account/passkey
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyController
     methods: [GET]
 
 three_brs_admin_passkey_delete:
-    path: /admin/account/passkey/{id}/delete
+    path: /%sylius_admin.path_name%/account/passkey/{id}/delete
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyDeleteController
     methods: [POST]
     requirements:
         id: '\d+'
 
 three_brs_admin_passkey_register_options:
-    path: /admin/passkey/register/options
+    path: /%sylius_admin.path_name%/passkey/register/options
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyRegistrationOptionsController
     methods: [POST]
 
 three_brs_admin_passkey_register_verify:
-    path: /admin/passkey/register/verify
+    path: /%sylius_admin.path_name%/passkey/register/verify
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyRegistrationVerifyController
     methods: [POST]
 
 three_brs_admin_passkey_login_options:
-    path: /admin/passkey/login/options
+    path: /%sylius_admin.path_name%/passkey/login/options
     controller: three_brs.controller.admin.passkey_login_options
     methods: [POST]
 
 three_brs_admin_passkey_login_verify:
-    path: /admin/passkey/login/verify
+    path: /%sylius_admin.path_name%/passkey/login/verify
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\PasskeyLoginVerifyController
     methods: [POST]
 
 three_brs_admin_locked_customers:
-    path: /admin/locked-customers
+    path: /%sylius_admin.path_name%/locked-customers
     controller: three_brs.controller.admin.locked_customers
     methods: [GET]
 
 three_brs_admin_locked_customer_unlock:
-    path: /admin/locked-customers/{id}/unlock
+    path: /%sylius_admin.path_name%/locked-customers/{id}/unlock
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\UnlockCustomerController
     methods: [POST]
     requirements:
         id: '\d+'
 
 three_brs_admin_locked_admins:
-    path: /admin/locked-admins
+    path: /%sylius_admin.path_name%/locked-admins
     controller: three_brs.controller.admin.locked_admins
     methods: [GET]
 
 three_brs_admin_locked_admin_unlock:
-    path: /admin/locked-admins/{id}/unlock
+    path: /%sylius_admin.path_name%/locked-admins/{id}/unlock
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\UnlockAdminController
     methods: [POST]
     requirements:
@@ -281,29 +281,29 @@ three_brs_shop_session_revoke:
         id: '\d+'
 
 three_brs_admin_sessions:
-    path: /admin/account/sessions
+    path: /%sylius_admin.path_name%/account/sessions
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SessionsController
     methods: [GET]
 
 three_brs_admin_sessions_revoke_others:
-    path: /admin/account/sessions/revoke-others
+    path: /%sylius_admin.path_name%/account/sessions/revoke-others
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SessionRevokeOthersController
     methods: [POST]
 
 three_brs_admin_session_revoke:
-    path: /admin/account/sessions/{id}/revoke
+    path: /%sylius_admin.path_name%/account/sessions/{id}/revoke
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SessionRevokeController
     methods: [POST]
     requirements:
         id: '\d+'
 
 three_brs_admin_security_settings_index:
-    path: /admin/security-settings
+    path: /%sylius_admin.path_name%/security-settings
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\IndexController
     methods: [GET]
 
 three_brs_admin_security_settings_save:
-    path: /admin/security-settings/save
+    path: /%sylius_admin.path_name%/security-settings/save
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\SecuritySettings\SaveController
     methods: [POST]
 
@@ -315,59 +315,59 @@ three_brs_shop_account_deletion_request:
         _locale: '[a-z]{2}(?:_[A-Z]{2})?'
 
 three_brs_admin_account_deletions:
-    path: /admin/account-deletions
+    path: /%sylius_admin.path_name%/account-deletions
     controller: three_brs.controller.admin.account_deletions
     methods: [GET]
 
 three_brs_admin_account_deletion_cancel:
-    path: /admin/account-deletions/{id}/cancel
+    path: /%sylius_admin.path_name%/account-deletions/{id}/cancel
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\AccountDeletionCancelController
     methods: [POST]
     requirements:
         id: '\d+'
 
 three_brs_admin_ip_whitelist_admins:
-    path: /admin/ip-whitelist/admins
+    path: /%sylius_admin.path_name%/ip-whitelist/admins
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpWhitelistAdminsController
     methods: [GET]
 
 three_brs_admin_ip_whitelist_admin_edit:
-    path: /admin/ip-whitelist/admins/{id}
+    path: /%sylius_admin.path_name%/ip-whitelist/admins/{id}
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\IpWhitelistAdminEditController
     methods: [GET, POST]
     requirements:
         id: '\d+'
 
 three_brs_admin_customer_force_password_reset:
-    path: /admin/customers/{id}/force-password-reset
+    path: /%sylius_admin.path_name%/customers/{id}/force-password-reset
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\ForcePasswordResetController
     methods: [POST]
     requirements:
         id: '\d+'
 
 three_brs_admin_customer_block:
-    path: /admin/customers/{id}/block
+    path: /%sylius_admin.path_name%/customers/{id}/block
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\BlockAccountController
     methods: [POST]
     requirements:
         id: '\d+'
 
 three_brs_admin_customer_unblock:
-    path: /admin/customers/{id}/unblock
+    path: /%sylius_admin.path_name%/customers/{id}/unblock
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\UnblockAccountController
     methods: [POST]
     requirements:
         id: '\d+'
 
 three_brs_admin_customer_revoke_all_sessions:
-    path: /admin/customers/{id}/revoke-all-sessions
+    path: /%sylius_admin.path_name%/customers/{id}/revoke-all-sessions
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\RevokeAllSessionsController
     methods: [POST]
     requirements:
         id: '\d+'
 
 three_brs_admin_customer_revoke_session:
-    path: /admin/customers/{id}/sessions/{sessionId}/revoke
+    path: /%sylius_admin.path_name%/customers/{id}/sessions/{sessionId}/revoke
     controller: ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\RevokeSessionController
     methods: [POST]
     requirements:

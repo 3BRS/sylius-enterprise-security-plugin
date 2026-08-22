@@ -1474,6 +1474,11 @@ services:
         arguments:
             $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpWhitelist\IpWhitelistChecker'
             $tokenStorage: '@security.token_storage'
+            # Sylius derives the admin prefix from an env var, so the constructor default
+            # of '/admin' only matches an installation that left it alone. Anywhere it was
+            # renamed the listener would look at a path that never occurs and let every
+            # address through without a word.
+            $adminPathPrefix: '/%sylius_admin.path_name%'
         tags:
             # Two passes, because the decision has two halves and they need different
             # positions relative to the firewall (priority 8).
@@ -1535,6 +1540,8 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\EventListener\AdminIpBlacklistListener:
         arguments:
             $checker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\IpBlacklist\IpBlacklistChecker'
+            # See the whitelist listener above: '/admin' is a default, not a guarantee.
+            $adminPathPrefix: '/%sylius_admin.path_name%'
         tags:
             # Priority 20 — above the firewall (8), above RateLimitListener (16) and
             # above the whitelist's pre-auth pass (18), so a blacklist hit still wins
