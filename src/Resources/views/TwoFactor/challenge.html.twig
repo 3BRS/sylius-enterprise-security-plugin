@@ -1,4 +1,11 @@
-{% set is_admin = app.request.pathInfo starts with '/admin' %}
+{#
+ # One template serves both firewalls, and the route it was reached through is what
+ # tells them apart. The URL cannot: Sylius takes the admin path from
+ # SYLIUS_ADMIN_ROUTING_PATH_NAME, so an installation that renamed it would render the
+ # storefront layout on the administrator's gate and send the recovery-code link to the
+ # shop controller, which serves customers only.
+ #}
+{% set is_admin = app.request.attributes.get('_route') == 'three_brs_admin_two_factor_challenge' %}
 {% extends is_admin ? '@SyliusAdmin/shared/layout/base.html.twig' : '@SyliusShop/shared/layout/base.html.twig' %}
 
 {% block title %}{{ 'three_brs.ui.two_factor.challenge_title'|trans }} | {{ parent() }}{% endblock %}

@@ -30,8 +30,8 @@ security:
                 csrf_parameter: _csrf_admin_security_token
                 csrf_token_id: admin_authenticate
             two_factor:
-                auth_form_path: /admin/2fa
-                check_path: /admin/2fa_check
+                auth_form_path: three_brs_admin_two_factor_challenge
+                check_path: three_brs_admin_two_factor_check
                 default_target_path: sylius_admin_dashboard
                 post_only: true
                 enable_csrf: false
@@ -96,8 +96,8 @@ security:
                 csrf_parameter: _csrf_shop_security_token
                 csrf_token_id: shop_authenticate
             two_factor:
-                auth_form_path: /2fa
-                check_path: /2fa_check
+                auth_form_path: three_brs_shop_two_factor_challenge
+                check_path: three_brs_shop_two_factor_check
                 default_target_path: sylius_shop_homepage
                 post_only: true
                 enable_csrf: false
