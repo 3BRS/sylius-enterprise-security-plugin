@@ -739,6 +739,7 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
             $timingPadding: '@ThreeBRS\EnterpriseSecurityBundle\Timing\DeadlineTimingPadding'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler:
         arguments:
@@ -748,6 +749,7 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
             $clock: '@clock'
             $timingPadding: '@ThreeBRS\EnterpriseSecurityBundle\Timing\DeadlineTimingPadding'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\MagicLinkRequestType:
         tags:
@@ -1385,7 +1387,7 @@ services:
             $clock: '@clock'
             $logger: '@logger'
             $gracePeriodCalculator: '@ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\GracePeriodCalculator'
-            $gracePeriodDays: '%three_brs.account_deletion.customer.grace_period_days%'
+            $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
             $sessionTracker: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionServiceInterface:

@@ -11,11 +11,14 @@ use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\AccountDeletion\GracePeriodCalculatorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequest;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequestInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 class CustomerDeletionService implements CustomerDeletionServiceInterface
 {
@@ -28,7 +31,7 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         protected LoggerInterface $logger,
         protected GracePeriodCalculatorInterface $gracePeriodCalculator,
         protected CustomerSessionTrackerInterface $sessionTracker,
-        protected int $gracePeriodDays,
+        protected SettingsProviderInterface $settings,
     ) {
     }
 
@@ -42,7 +45,7 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
 
         $request = new CustomerDeletionRequest();
         $request->setCustomer($customer);
-        $request->setScheduledFor($this->gracePeriodCalculator->calculateScheduledFor($now, $this->gracePeriodDays));
+        $request->setScheduledFor($this->gracePeriodCalculator->calculateScheduledFor($now, $this->getGracePeriodDays()));
 
         $this->disableShopUser($customer);
 
@@ -118,5 +121,21 @@ class CustomerDeletionService implements CustomerDeletionServiceInterface
         if ($user instanceof ShopUserInterface) {
             $user->setEnabled(true);
         }
+    }
+
+    /**
+     * The grace period is what an administrator sets in Security Settings, not what
+     * the container was built with — the field was editable, saved and read back into
+     * the form, while requests kept being scheduled on the configuration file's value.
+     *
+     * The stamped date is what the customer is told and what the cron acts on, so a
+     * value from outside the range the form accepts is clamped rather than trusted:
+     * zero would erase the account the same day the request arrives.
+     */
+    protected function getGracePeriodDays(): int
+    {
+        $days = $this->settings->getInt('account_deletion.grace_period_days', SettingsScope::CUSTOMER);
+
+        return max(1, min(SecuritySettingsBounds::ACCOUNT_DELETION_GRACE_PERIOD_DAYS_MAX, $days));
     }
 }
