@@ -45,7 +45,14 @@ scheb_two_factor:
         key: '%env(THREE_BRS_TWO_FACTOR_TRUSTED_DEVICE_KEY)%' # required, >=256-bit secret for JWT HMAC-SHA256
     totp:
         issuer: '%three_brs.two_factor.issuer%'
+        template: '@ThreeBRSSyliusEnterpriseSecurityPlugin/TwoFactor/challenge.html.twig'
 ```
+
+`template` is what puts the plugin's challenge page in front of the user. Both challenge
+routes hand off to scheb's own form controller, which renders whatever this names; left
+unset it falls back to `@SchebTwoFactor/Authentication/form.html.twig`, a bare form outside
+the Sylius layout with no link to the recovery-code challenge — so the recovery codes
+issued during setup could not be used to sign in.
 
 On the **shop firewall**, replace Sylius' default `form_login.success_handler` (`sylius.authentication.success_handler`) with the plugin's 2FA-aware wrapper. The default Sylius handler returns a `JsonResponse` on XHR and redirects straight to the target path without checking for a `TwoFactorTokenInterface`, which produces a broken UX during 2FA challenges:
 

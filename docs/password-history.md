@@ -3,6 +3,7 @@
 - Prevents users from reusing recent passwords
 - Configurable number of previous passwords to remember per user type
 - Separate history tables for customers (`three_brs_customer_password_history`) and admins (`three_brs_admin_user_password_history`)
+- Fixture (`three_brs_password_history`) to preload previous password hashes for customers and administrators, for demo/testing of the reuse check
 
 ## Defaults for password history
 
