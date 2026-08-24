@@ -7,71 +7,57 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\AbstractPasskeyAssertionVerifier;
+use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyCredentialRecordInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyValidatorFactoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Passkey\SessionPasskeyOptionsStorageInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasskeyCredentialInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserPasskeyCredentialRepositoryInterface;
-use Webauthn\AuthenticatorAssertionResponse;
-use Webauthn\PublicKeyCredential;
-use Webauthn\PublicKeyCredentialRequestOptions;
-use Webauthn\PublicKeyCredentialSource;
 
-class AdminPasskeyAssertionVerifier implements AdminPasskeyAssertionVerifierInterface
+class AdminPasskeyAssertionVerifier extends AbstractPasskeyAssertionVerifier implements AdminPasskeyAssertionVerifierInterface
 {
     public function __construct(
-        protected AdminUserPasskeyCredentialRepositoryInterface $credentialRepository,
+        AdminUserPasskeyCredentialRepositoryInterface $credentialRepository,
         protected EntityManagerInterface $entityManager,
-        protected SessionPasskeyOptionsStorageInterface $sessionStorage,
-        protected PasskeyWebauthnSerializerInterface $serializer,
-        protected PasskeyValidatorFactoryInterface $validatorFactory,
-        protected ClockInterface $clock,
+        SessionPasskeyOptionsStorageInterface $sessionStorage,
+        PasskeyWebauthnSerializerInterface $serializer,
+        PasskeyValidatorFactoryInterface $validatorFactory,
+        ClockInterface $clock,
     ) {
+        parent::__construct($credentialRepository, $sessionStorage, $serializer, $validatorFactory, $clock);
     }
 
     public function verify(string $credentialResponseJson, string $host): AdminPasskeyAssertionResultInterface
     {
-        $serializedOptions = $this->sessionStorage->consume(AdminPasskeyAssertionOptionsBuilder::SESSION_KEY);
-        if ($serializedOptions === null) {
-            throw new \RuntimeException('No passkey assertion ceremony in progress.');
-        }
+        $result = parent::verify($credentialResponseJson, $host);
+        \assert($result instanceof AdminPasskeyAssertionResultInterface);
 
-        $options = $this->serializer->deserialize($serializedOptions, PublicKeyCredentialRequestOptions::class);
-        $publicKeyCredential = $this->serializer->deserialize($credentialResponseJson, PublicKeyCredential::class);
+        return $result;
+    }
 
-        $response = $publicKeyCredential->response;
-        if (!$response instanceof AuthenticatorAssertionResponse) {
-            throw new \RuntimeException('Expected AuthenticatorAssertionResponse from client.');
-        }
+    protected function getOptionsSessionKey(): string
+    {
+        return AdminPasskeyAssertionOptionsBuilder::SESSION_KEY;
+    }
 
-        $stored = $this->credentialRepository->findOneByCredentialId($publicKeyCredential->rawId);
-        if ($stored === null) {
-            throw new \RuntimeException('Passkey credential not recognized.');
-        }
+    protected function resolveUser(PasskeyCredentialRecordInterface $credential): UserInterface
+    {
+        \assert($credential instanceof AdminUserPasskeyCredentialInterface);
 
-        $source = $this->serializer->denormalize($stored->getCredentialSource(), PublicKeyCredentialSource::class);
+        return $credential->getAdminUser();
+    }
 
-        $updated = $this->validatorFactory->createAssertionValidator()->check(
-            $source,
-            $response,
-            $options,
-            $host,
-            $source->userHandle,
-        );
-
-        $stored->setCredentialSource($this->serializer->normalize($updated));
-        $stored->setLastUsedAt($this->clock->now());
-        // Flush belongs here (not in caller): signCount + lastUsedAt persistence MUST be atomic with
-        // the WebAuthn check above to close the replay-attack window between concurrent assertions.
-        $this->entityManager->flush();
-
-        $user = $this->resolveUser($stored);
+    protected function createResult(UserInterface $user): AdminPasskeyAssertionResultInterface
+    {
+        \assert($user instanceof AdminUserInterface);
 
         return new AdminPasskeyAssertionResult($user);
     }
 
-    protected function resolveUser(AdminUserPasskeyCredentialInterface $credential): AdminUserInterface
+    protected function commit(): void
     {
-        return $credential->getAdminUser();
+        $this->entityManager->flush();
     }
 }
