@@ -7,10 +7,13 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Session\AbstractNewDeviceDetector;
+use ThreeBRS\EnterpriseSecurityBundle\Session\KnownDeviceRecordInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerKnownDevice;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerKnownDeviceRepositoryInterface;
 
-class CustomerNewDeviceDetector implements CustomerNewDeviceDetectorInterface
+class CustomerNewDeviceDetector extends AbstractNewDeviceDetector implements CustomerNewDeviceDetectorInterface
 {
     public function __construct(
         protected CustomerKnownDeviceRepositoryInterface $repository,
@@ -18,28 +21,37 @@ class CustomerNewDeviceDetector implements CustomerNewDeviceDetectorInterface
     ) {
     }
 
-    public function checkAndRemember(ShopUserInterface $user, string $fingerprint): bool
+    protected function isKnownDevice(UserInterface $user, string $fingerprint): bool
     {
-        if ($this->repository->existsForShopUser($user, $fingerprint)) {
-            return false;
-        }
+        \assert($user instanceof ShopUserInterface);
+
+        return $this->repository->existsForShopUser($user, $fingerprint);
+    }
+
+    protected function createRecord(UserInterface $user, string $fingerprint): KnownDeviceRecordInterface
+    {
+        \assert($user instanceof ShopUserInterface);
 
         $device = new CustomerKnownDevice();
         $device->setShopUser($user);
         $device->setFingerprint($fingerprint);
 
-        try {
-            $this->entityManager->persist($device);
-            $this->entityManager->flush();
-        } catch (UniqueConstraintViolationException) {
-            // Concurrent login from the same device raced ahead and persisted the
-            // (user, fingerprint) row first. Treat as already-known so we don't fire
-            // a duplicate "new device" notification email.
-            $this->entityManager->detach($device);
+        return $device;
+    }
 
-            return false;
-        }
+    protected function save(KnownDeviceRecordInterface $record): void
+    {
+        $this->entityManager->persist($record);
+        $this->entityManager->flush();
+    }
 
-        return true;
+    protected function discardUnflushed(KnownDeviceRecordInterface $record): void
+    {
+        $this->entityManager->detach($record);
+    }
+
+    protected function isConcurrentInsertConflict(\Throwable $exception): bool
+    {
+        return $exception instanceof UniqueConstraintViolationException;
     }
 }
