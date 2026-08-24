@@ -84,7 +84,7 @@ class FeatureToggleListenerTest extends TestCase
     public function testAMappedRouteIsDeclared(string $route): void
     {
         /** @var array<string, mixed> $routes */
-        $routes = Yaml::parseFile(\dirname(__DIR__, 3) . '/src/Resources/config/routes.yaml');
+        $routes = Yaml::parseFile(\dirname(__DIR__, 3) . '/config/routes.yaml');
 
         self::assertArrayHasKey($route, $routes);
     }
