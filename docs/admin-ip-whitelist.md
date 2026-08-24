@@ -4,6 +4,7 @@ Restrict admin panel access to a configured set of IP addresses or CIDR ranges. 
 
 - **Global list** — team-wide allow. Use this when everyone shares the same network: corporate LAN, VPN exit gateway, office static IP, cloud bastion CIDR. Configured under Security settings → Administrators → "Admin IP whitelist".
 - **Per-admin list** — personal extras that don't belong in the team-wide list. Managed on `/admin/ip-whitelist/admins`. Pick an administrator and toggle their personal allow-list on/off with its own CIDR set. An admin's CIDRs stay private to that admin — they are not exposed in the global view, and they grant access only when **that specific admin** signs in. Useful when admin A occasionally signs in from a home IP that has no business being in the team-wide list (where it would also unlock admin B and the rest).
+- Fixture (`three_brs_ip_whitelist`) to preload per-administrator CIDR entries, enabled and disabled, for demo/testing
 
 Access is granted when **either** the request IP matches the global list **or** the authenticated admin's own (enabled) list matches. A failed check returns HTTP 403 with a plain-text body — there is no redirect or login form fallback.
 

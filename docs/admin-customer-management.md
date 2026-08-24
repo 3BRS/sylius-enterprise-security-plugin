@@ -16,6 +16,7 @@ Two read-only tables also live in the section:
 
 - **Active sessions** — every non-revoked `CustomerSession`, with IP, location (country / city if GeoIP is configured), device (user agent), signed-in / last-activity timestamps, and a per-row Sign-out button.
 - **Login history** — the last 20 sessions (active and revoked), newest first. Each row shows whether the session is currently active or when it was ended. The list is populated by the session-tracking listener, so it only contains data captured **after** session management was enabled — historical sign-ins from before then are not retroactively visible.
+- Fixture (`three_brs_customer_security_states`) to preload customers in each state the section renders — blocked, forced password change, with and without active sessions
 
 ## Prerequisites and interactions
 

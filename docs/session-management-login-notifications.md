@@ -12,10 +12,11 @@ Active session listing with manual revocation, plus optional email notifications
 - **Bundled MaxMind GeoIP lookup** — plugin ships `MaxMindGeoIpLookup` ready to wire against a local GeoLite2 / GeoIP2 `.mmdb`. Other providers (IP2Location, online APIs, internal services) are pluggable via `GeoIpLookupInterface`. See [Enabling GeoIP location lookups](#enabling-geoip-location-lookups) below.
 - **No entity changes required** — sessions and known devices live in their own tables and reference `ShopUser` / `AdminUser` via foreign key; no traits to add.
 - **User-Agent parsing** — uses `matomo/device-detector` to extract a human-readable browser name and operating system for both the session list UI and the login-notification email body.
+- Fixture (`three_brs_session`) to preload active sessions and known devices for both groups, for demo/testing of the listing, revocation and new-device notification
 
 **Login Notifications** — on a successful sign-in, the plugin computes a fingerprint from `sha256(User-Agent + '|' + client IP)`. If that fingerprint isn't already stored in `three_brs_customer_known_device` / `three_brs_admin_user_known_device` for the user, the plugin persists it and sends a `three_brs_login_notification` email containing the time, parsed browser/OS, IP, and (if a GeoIP provider is wired up) country and city. Subsequent logins from the same UA + IP combination are treated as a known device and produce no email.
 
-> **First-time enable on an existing installation:** the known-device table is empty when you first turn `login_notifications` on, so every active user will receive a notification email at their next sign-in (every device is "new" until it lands in the table). Expect a burst of emails right after deploy. If you want to suppress that initial wave, pre-populate `three_brs_*_known_device` rows for each `(user_id, fingerprint)` you consider trusted before flipping the switch.
+> **First-time enable on an existing installation:** the known-device table is empty when you first turn `login_notifications` on, so every active user will receive a notification email at their next sign-in (every device is "new" until it lands in the table). Expect a burst of emails right after deploy. If you want to suppress that initial wave, pre-populate `three_brs_customer_known_device` / `three_brs_admin_user_known_device` rows for each pair you consider trusted before flipping the switch — the columns are `shop_user_id` and `admin_user_id` respectively, plus `fingerprint`.
 
 ## Defaults for session management & login notifications
 
