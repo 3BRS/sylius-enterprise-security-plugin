@@ -14,6 +14,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManage
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminMagicLinkRequestHandler;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Timing\TimingPaddingInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 
 #[CoversClass(AdminMagicLinkRequestHandler::class)]
 class AdminMagicLinkRequestHandlerTest extends TestCase
@@ -37,7 +38,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::never())->method('padTo');
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $generator, $mailer, $em, $clock, $timingPadding, false, 300);
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $generator, $mailer, $em, $clock, $timingPadding, false, $this->makeSettings(300));
 
         $handler->request('admin@example.com');
     }
@@ -63,7 +64,7 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $generator, $mailer, $em, $clock, $timingPadding, true, $this->makeSettings(300));
 
         $handler->request('nobody@example.com');
     }
@@ -95,8 +96,20 @@ class AdminMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new AdminMagicLinkRequestHandler($userRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
+        $handler = new AdminMagicLinkRequestHandler($userRepo, $generator, $mailer, $em, $clock, $timingPadding, true, $this->makeSettings(300));
 
         $handler->request('ADMIN@example.com');
     }
+
+    /**
+     * The value the administrator set, which is what the handler now reads.
+     */
+    protected function makeSettings(int $expirationSeconds = 300): SettingsProviderInterface
+    {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getInt')->willReturn($expirationSeconds);
+
+        return $settings;
+    }
+
 }

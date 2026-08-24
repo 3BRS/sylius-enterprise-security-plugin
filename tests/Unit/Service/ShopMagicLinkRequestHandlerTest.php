@@ -15,6 +15,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManager
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopMagicLinkRequestHandler;
 use ThreeBRS\EnterpriseSecurityBundle\Timing\TimingPaddingInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 
 #[CoversClass(ShopMagicLinkRequestHandler::class)]
 class ShopMagicLinkRequestHandlerTest extends TestCase
@@ -38,7 +39,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::never())->method('padTo');
 
-        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, false, 300);
+        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, false, $this->makeSettings(300));
 
         $handler->request('john@example.com');
     }
@@ -64,7 +65,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
+        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, true, $this->makeSettings(300));
 
         $handler->request('');
     }
@@ -90,7 +91,7 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
+        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, true, $this->makeSettings(300));
 
         $handler->request('nobody@example.com');
     }
@@ -124,8 +125,102 @@ class ShopMagicLinkRequestHandlerTest extends TestCase
         $timingPadding = $this->createMock(TimingPaddingInterface::class);
         $timingPadding->expects(self::once())->method('padTo');
 
-        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, true, 300);
+        $handler = new ShopMagicLinkRequestHandler($customerRepo, $generator, $mailer, $em, $clock, $timingPadding, true, $this->makeSettings(300));
 
         $handler->request('john@example.com');
     }
+
+    /**
+     * The lifetime field is offered in Security Settings, saved and read back into the
+     * form, and for a while that was all it did — the link kept expiring on the value
+     * the container was built with. Pinning the stamp rather than the call is what
+     * tells the two apart.
+     */
+    public function testTheTokenExpiresOnTheLifetimeFromSettings(): void
+    {
+        $customer = $this->createStub(CustomerInterface::class);
+        $customer->method('getUser')->willReturn($this->createStub(ShopUserInterface::class));
+
+        $customerRepo = $this->createStub(CustomerRepositoryInterface::class);
+        $customerRepo->method('findOneBy')->willReturn($customer);
+
+        $stored = null;
+        $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('persist')->willReturnCallback(function (object $entity) use (&$stored): void {
+            $stored = $entity;
+        });
+
+        $handler = new ShopMagicLinkRequestHandler(
+            $customerRepo,
+            $this->createStub(MagicLinkTokenGeneratorInterface::class),
+            $this->createStub(CustomerMagicLinkEmailManagerInterface::class),
+            $em,
+            $this->clockAt('2026-05-07 10:00:00'),
+            $this->createStub(TimingPaddingInterface::class),
+            true,
+            $this->makeSettings(900),
+        );
+
+        $handler->request('john@example.com');
+
+        self::assertNotNull($stored);
+        self::assertSame('2026-05-07 10:15:00', $stored->getExpiresAt()->format('Y-m-d H:i:s'));
+    }
+
+    /**
+     * Only something writing the row directly can put a value outside the range the
+     * form accepts there, and a link that outlives its window is the wrong way to fail.
+     */
+    public function testAnOutOfRangeLifetimeIsClamped(): void
+    {
+        $customer = $this->createStub(CustomerInterface::class);
+        $customer->method('getUser')->willReturn($this->createStub(ShopUserInterface::class));
+
+        $customerRepo = $this->createStub(CustomerRepositoryInterface::class);
+        $customerRepo->method('findOneBy')->willReturn($customer);
+
+        $stored = null;
+        $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('persist')->willReturnCallback(function (object $entity) use (&$stored): void {
+            $stored = $entity;
+        });
+
+        $handler = new ShopMagicLinkRequestHandler(
+            $customerRepo,
+            $this->createStub(MagicLinkTokenGeneratorInterface::class),
+            $this->createStub(CustomerMagicLinkEmailManagerInterface::class),
+            $em,
+            $this->clockAt('2026-05-07 10:00:00'),
+            $this->createStub(TimingPaddingInterface::class),
+            true,
+            $this->makeSettings(999999),
+        );
+
+        $handler->request('john@example.com');
+
+        self::assertNotNull($stored);
+        // SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MAX — one hour.
+        self::assertSame('2026-05-07 11:00:00', $stored->getExpiresAt()->format('Y-m-d H:i:s'));
+    }
+
+    /**
+     * The value the administrator set, which is what the handler now reads.
+     */
+    protected function makeSettings(int $expirationSeconds = 300): SettingsProviderInterface
+    {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getInt')->willReturn($expirationSeconds);
+
+        return $settings;
+    }
+
+
+    protected function clockAt(string $when): ClockInterface
+    {
+        $clock = $this->createStub(ClockInterface::class);
+        $clock->method('now')->willReturn(new \DateTimeImmutable($when));
+
+        return $clock;
+    }
+
 }

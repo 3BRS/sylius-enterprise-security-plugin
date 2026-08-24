@@ -9,9 +9,12 @@ use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\EnterpriseSecurityBundle\Timing\TimingPaddingInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserMagicLinkToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserMagicLinkEmailManagerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterface
 {
@@ -26,7 +29,7 @@ class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterf
         protected ClockInterface $clock,
         protected TimingPaddingInterface $timingPadding,
         protected bool $enabled,
-        protected int $expirationSeconds,
+        protected SettingsProviderInterface $settings,
     ) {
     }
 
@@ -54,12 +57,13 @@ class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterf
             $token = new AdminUserMagicLinkToken();
             $token->setAdminUser($user);
             $token->setTokenHash($tokenHash);
-            $token->setExpiresAt($now->add(new \DateInterval('PT' . $this->expirationSeconds . 'S')));
+            $expirationSeconds = $this->getExpirationSeconds();
+            $token->setExpiresAt($now->add(new \DateInterval('PT' . $expirationSeconds . 'S')));
 
             $this->entityManager->persist($token);
             $this->entityManager->flush();
 
-            $this->emailManager->sendMagicLink($user, $plainToken, $this->expirationSeconds);
+            $this->emailManager->sendMagicLink($user, $plainToken, $expirationSeconds);
         } finally {
             $this->timingPadding->padTo($startedAt);
         }
@@ -74,5 +78,24 @@ class AdminMagicLinkRequestHandler implements AdminMagicLinkRequestHandlerInterf
         $user = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
 
         return $user instanceof AdminUserInterface ? $user : null;
+    }
+
+    /**
+     * The lifetime is what an administrator sets in Security Settings, not what the
+     * container was built with — the field was editable, saved and read back into the
+     * form, while the link kept expiring on the configuration file's value.
+     *
+     * A value from outside the range the form accepts can only come from something
+     * that wrote the row directly, and a link that never expires is the wrong way to
+     * fail, so it is clamped rather than trusted.
+     */
+    protected function getExpirationSeconds(): int
+    {
+        $seconds = $this->settings->getInt('magic_link.expiration_seconds', SettingsScope::ADMIN);
+
+        return max(
+            SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MIN,
+            min(SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MAX, $seconds),
+        );
     }
 }

@@ -20,6 +20,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRe
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerAnonymizerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDeletionService;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 
 #[CoversClass(CustomerDeletionService::class)]
 class CustomerDeletionServiceTest extends TestCase
@@ -49,7 +50,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(LoggerInterface::class),
             new GracePeriodCalculator(),
             $tracker,
-            30,
+            $this->makeSettings(30),
         );
 
         $service->requestDeletion($customer);
@@ -82,7 +83,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(LoggerInterface::class),
             new GracePeriodCalculator(),
             $this->createStub(CustomerSessionTrackerInterface::class),
-            30,
+            $this->makeSettings(30),
         );
 
         $request = $service->requestDeletion($customer);
@@ -106,7 +107,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(LoggerInterface::class),
             new GracePeriodCalculator(),
             $this->createStub(CustomerSessionTrackerInterface::class),
-            30,
+            $this->makeSettings(30),
         );
 
         $this->expectException(\RuntimeException::class);
@@ -139,7 +140,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(LoggerInterface::class),
             new GracePeriodCalculator(),
             $this->createStub(CustomerSessionTrackerInterface::class),
-            30,
+            $this->makeSettings(30),
         );
 
         $service->cancelByAdmin($request, $admin);
@@ -165,7 +166,7 @@ class CustomerDeletionServiceTest extends TestCase
             $this->createStub(LoggerInterface::class),
             new GracePeriodCalculator(),
             $this->createStub(CustomerSessionTrackerInterface::class),
-            30,
+            $this->makeSettings(30),
         );
 
         $this->expectException(\RuntimeException::class);
@@ -179,4 +180,87 @@ class CustomerDeletionServiceTest extends TestCase
 
         return $clock;
     }
+
+    /**
+     * The grace-period field is offered in Security Settings, saved and read back into
+     * the form, and for a while that was all it did — requests kept being scheduled on
+     * the value the container was built with. The stamped date is what the customer is
+     * told and what the cron acts on, so it is the date that has to be pinned.
+     */
+    public function testTheRequestIsScheduledOnTheGracePeriodFromSettings(): void
+    {
+        $stored = null;
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('persist')->willReturnCallback(function (object $entity) use (&$stored): void {
+            $stored = $entity;
+        });
+
+        $service = new CustomerDeletionService(
+            $this->createStub(CustomerDeletionRequestRepositoryInterface::class),
+            $this->createStub(CustomerAnonymizerInterface::class),
+            $this->createStub(AccountDeletionEmailManagerInterface::class),
+            $entityManager,
+            $this->fixedClock('2026-05-07 10:00:00'),
+            $this->createStub(LoggerInterface::class),
+            new GracePeriodCalculator(),
+            $this->createStub(CustomerSessionTrackerInterface::class),
+            $this->makeSettings(7),
+        );
+
+        $service->requestDeletion($this->makeCustomerWithShopUser());
+
+        self::assertNotNull($stored);
+        self::assertSame('2026-05-14', $stored->getScheduledFor()->format('Y-m-d'));
+    }
+
+    /**
+     * Zero would erase the account on the day the request arrives, and only something
+     * writing the row directly can put it there.
+     */
+    public function testAnOutOfRangeGracePeriodIsClamped(): void
+    {
+        $stored = null;
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('persist')->willReturnCallback(function (object $entity) use (&$stored): void {
+            $stored = $entity;
+        });
+
+        $service = new CustomerDeletionService(
+            $this->createStub(CustomerDeletionRequestRepositoryInterface::class),
+            $this->createStub(CustomerAnonymizerInterface::class),
+            $this->createStub(AccountDeletionEmailManagerInterface::class),
+            $entityManager,
+            $this->fixedClock('2026-05-07 10:00:00'),
+            $this->createStub(LoggerInterface::class),
+            new GracePeriodCalculator(),
+            $this->createStub(CustomerSessionTrackerInterface::class),
+            $this->makeSettings(0),
+        );
+
+        $service->requestDeletion($this->makeCustomerWithShopUser());
+
+        self::assertNotNull($stored);
+        self::assertSame('2026-05-08', $stored->getScheduledFor()->format('Y-m-d'));
+    }
+
+    /**
+     * The grace period the administrator set, which is what the service now reads.
+     */
+    protected function makeSettings(int $gracePeriodDays): SettingsProviderInterface
+    {
+        $settings = $this->createStub(SettingsProviderInterface::class);
+        $settings->method('getInt')->willReturn($gracePeriodDays);
+
+        return $settings;
+    }
+
+
+    protected function makeCustomerWithShopUser(): CustomerInterface
+    {
+        $customer = $this->createStub(CustomerInterface::class);
+        $customer->method('getUser')->willReturn($this->createStub(ShopUserInterface::class));
+
+        return $customer;
+    }
+
 }

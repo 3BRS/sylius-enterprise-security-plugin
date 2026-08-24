@@ -170,12 +170,10 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     {
         $container->getDefinition(ShopMagicLinkRequestHandler::class)
             ->setArgument('$enabled', $config['customer']['enabled'])
-            ->setArgument('$expirationSeconds', $config['customer']['expiration_seconds'])
         ;
 
         $container->getDefinition(AdminMagicLinkRequestHandler::class)
             ->setArgument('$enabled', $config['admin']['enabled'])
-            ->setArgument('$expirationSeconds', $config['admin']['expiration_seconds'])
         ;
 
         $container->setParameter('three_brs.magic_link.customer.enabled', $config['customer']['enabled']);

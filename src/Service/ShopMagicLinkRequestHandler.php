@@ -10,9 +10,12 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\EnterpriseSecurityBundle\Timing\TimingPaddingInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerMagicLinkToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerMagicLinkEmailManagerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterface
 {
@@ -27,7 +30,7 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
         protected ClockInterface $clock,
         protected TimingPaddingInterface $timingPadding,
         protected bool $enabled,
-        protected int $expirationSeconds,
+        protected SettingsProviderInterface $settings,
     ) {
     }
 
@@ -55,12 +58,13 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
             $token = new CustomerMagicLinkToken();
             $token->setShopUser($user);
             $token->setTokenHash($tokenHash);
-            $token->setExpiresAt($now->add(new \DateInterval('PT' . $this->expirationSeconds . 'S')));
+            $expirationSeconds = $this->getExpirationSeconds();
+            $token->setExpiresAt($now->add(new \DateInterval('PT' . $expirationSeconds . 'S')));
 
             $this->entityManager->persist($token);
             $this->entityManager->flush();
 
-            $this->emailManager->sendMagicLink($user, $plainToken, $this->expirationSeconds);
+            $this->emailManager->sendMagicLink($user, $plainToken, $expirationSeconds);
         } finally {
             $this->timingPadding->padTo($startedAt);
         }
@@ -80,5 +84,24 @@ class ShopMagicLinkRequestHandler implements ShopMagicLinkRequestHandlerInterfac
         $user = $customer->getUser();
 
         return $user instanceof ShopUserInterface ? $user : null;
+    }
+
+    /**
+     * The lifetime is what an administrator sets in Security Settings, not what the
+     * container was built with — the field was editable, saved and read back into the
+     * form, while the link kept expiring on the configuration file's value.
+     *
+     * A value from outside the range the form accepts can only come from something
+     * that wrote the row directly, and a link that never expires is the wrong way to
+     * fail, so it is clamped rather than trusted.
+     */
+    protected function getExpirationSeconds(): int
+    {
+        $seconds = $this->settings->getInt('magic_link.expiration_seconds', SettingsScope::CUSTOMER);
+
+        return max(
+            SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MIN,
+            min(SecuritySettingsBounds::MAGIC_LINK_EXPIRATION_SECONDS_MAX, $seconds),
+        );
     }
 }
