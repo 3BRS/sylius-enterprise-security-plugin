@@ -26,7 +26,7 @@ class AdminPathAssumptionTest extends TestCase
      */
     public static function templateProvider(): iterable
     {
-        $root = \dirname(__DIR__, 3) . '/src/Resources/views';
+        $root = \dirname(__DIR__, 3) . '/templates';
         $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root));
 
         foreach ($files as $file) {

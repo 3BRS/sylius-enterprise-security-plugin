@@ -97,7 +97,7 @@ This section is for **consuming** the plugin in your own Sylius project — you 
 
    ```yaml
    imports:
-       - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/config.yaml" }
+       - { resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/config/config.yaml" }
 
    three_brs_sylius_enterprise_security:
        # Turn on and tune the features you need — each feature's doc under
@@ -109,7 +109,7 @@ This section is for **consuming** the plugin in your own Sylius project — you 
 
    ```yaml
    three_brs_enterprise_security:
-       resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/Resources/config/routes.yaml"
+       resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/config/routes.yaml"
    ```
 
 5. Add the relevant traits to your `ShopUser` and `AdminUser` entities. Include the traits for the features you enabled — `TwoFactorAuth*` (Two-Factor Authentication), `Lockable*` (Account Lockout) — and `PasswordExpiration*` whichever way you configure Password Expiration: *Force password reset* in [admin customer management](docs/admin-customer-management.md) has no on/off switch of its own, and the button is shown to administrators whether or not the feature is on. (Password Expiration also reads the account creation date via `getCreatedAt()` as its fallback for users who have never changed their password — Sylius's base `ShopUser` / `AdminUser` already expose it, so no extra wiring is needed here.) The full set:

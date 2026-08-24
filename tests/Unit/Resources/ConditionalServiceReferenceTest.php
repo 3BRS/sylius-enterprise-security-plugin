@@ -34,7 +34,7 @@ class ConditionalServiceReferenceTest extends TestCase
     #[DataProvider('conditionalServiceProvider')]
     public function testAConditionalServiceIsReferencedOptionally(string $serviceId, string $condition): void
     {
-        $services = (string) file_get_contents(\dirname(__DIR__, 3) . '/src/Resources/config/services.yaml');
+        $services = (string) file_get_contents(\dirname(__DIR__, 3) . '/config/services.yaml');
 
         $hard = substr_count($services, sprintf("'@%s'", $serviceId));
 

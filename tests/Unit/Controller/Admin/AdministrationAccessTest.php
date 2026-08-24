@@ -69,7 +69,7 @@ class AdministrationAccessTest extends TestCase
     {
         $root = \dirname(__DIR__, 4);
         /** @var array<string, array{path?: string, controller?: string}> $routes */
-        $routes = Yaml::parseFile($root . '/src/Resources/config/routes.yaml');
+        $routes = Yaml::parseFile($root . '/config/routes.yaml');
 
         foreach ($routes as $name => $route) {
             $path = $route['path'] ?? '';
@@ -111,7 +111,7 @@ class AdministrationAccessTest extends TestCase
     {
         $root = \dirname(__DIR__, 4);
         /** @var array<string, mixed> $routes */
-        $routes = Yaml::parseFile($root . '/src/Resources/config/routes.yaml');
+        $routes = Yaml::parseFile($root . '/config/routes.yaml');
 
         $exempted = [...array_keys(self::NO_ADMIN_IDENTITY_YET), ...self::OWN_ACCOUNT];
         foreach ($exempted as $name) {
@@ -130,7 +130,7 @@ class AdministrationAccessTest extends TestCase
         }
 
         /** @var array{services?: array<string, array{class?: string}>} $services */
-        $services = Yaml::parseFile($root . '/src/Resources/config/services.yaml');
+        $services = Yaml::parseFile($root . '/config/services.yaml');
 
         return $services['services'][$controller]['class'] ?? $controller;
     }
