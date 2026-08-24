@@ -94,8 +94,6 @@ three_brs:
             recovery_code: 'Recovery code'
             verify_recovery_code: 'Verify recovery code'
             back_to_challenge: 'Back to authenticator code'
-            recovery_code_required: 'Please enter a recovery code.'
-            invalid_recovery_code: 'This recovery code is invalid or already used.'
             menu_item: 'Two-factor authentication'
         social_login:
             menu_item: '3rd-party OAuth'

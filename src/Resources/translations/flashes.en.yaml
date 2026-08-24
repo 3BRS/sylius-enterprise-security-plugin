@@ -2,33 +2,20 @@ three_brs:
     password_expired: 'Your password has expired. Please set a new password to continue.'
     set_password:
         success: 'Your password has been set. You can now also sign in with your email and password.'
-    account_state:
-        sign_in_refused: 'This account is disabled and cannot be used to sign in.'
     password_login:
         registration_disabled: 'Registration with an email and password is currently disabled. Please use one of the other available sign-in methods.'
         password_management_disabled: 'Password login is currently disabled, so a forgotten-password reset cannot be requested.'
     lockout:
         account_locked: 'Account is locked. Try again later or contact an administrator.'
-        unlocked: 'Account has been unlocked.'
-        already_unlocked: 'Account is no longer locked — nothing to do.'
-    rate_limit:
-        too_many_requests: 'Too many requests. Please wait a moment and try again.'
-    session:
-        revoked: 'Session signed out.'
-        others_revoked: 'All other sessions have been signed out.'
-        cannot_revoke_current: 'You cannot sign out the current session this way. Use the sign-out link instead.'
     security_settings:
         saved: 'Security settings saved.'
         invalid: 'Invalid security settings submission.'
         concurrent_conflict: 'Settings were not saved because another administrator updated the same values concurrently. Reload the page and try again.'
         session_expired: 'Your session was renewed (e.g. you signed in elsewhere) and the form is no longer valid. Refresh the page and try again — your previous values are still there.'
     account_deletion:
-        requested: 'Your account has been scheduled for deletion. Sign-in is now disabled.'
         cancelled: 'Account deletion cancelled. The customer can sign in again.'
-        invalid_password: 'The password you entered is incorrect.'
     two_factor:
         enforcement_required: 'Two-factor authentication is required. Please set it up to continue.'
-        disabled: 'Two-factor authentication has been disabled.'
     ip_whitelist:
         admin:
             saved: 'IP whitelist saved for this administrator.'
@@ -43,17 +30,4 @@ three_brs:
         session_revoked: 'The selected session has been signed out.'
     ui:
         social_login:
-            already_linked: 'This 3rd-party account is already linked to your account.'
-            already_linked_other_account: 'This 3rd-party account is linked to a different user.'
-            cannot_unlink_last_method: 'Cannot unlink the last remaining sign-in method. Set a password first or keep at least one other 3rd-party link.'
-            unlinked: '3rd-party account unlinked.'
-            linked: '3rd-party account linked.'
-            not_logged_in: 'You must be logged in to link a 3rd-party account.'
-            missing_email: 'The provider did not share an email address, cannot continue.'
             auto_register_refused: 'Self-registration through this 3rd-party OAuth provider is not allowed. Please contact an administrator.'
-        magic_link:
-            request_sent: 'If an account exists for the email you entered, a sign-in link has been sent.'
-            invalid_or_expired: 'This magic link is invalid or has expired. Request a new one to sign in.'
-        passkey:
-            removed: 'Passkey removed.'
-            cannot_remove_last_auth_method: 'You cannot remove the last sign-in method on your account. Set a password or add another passkey first.'

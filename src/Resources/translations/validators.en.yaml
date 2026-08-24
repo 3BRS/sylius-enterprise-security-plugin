@@ -4,23 +4,12 @@ three_brs:
         password_required: 'Please enter your password.'
     two_factor:
         code_required: 'Please enter your authentication code.'
-        invalid_code: 'The authentication code is invalid. Please try again.'
         invalid_code_length: 'The authentication code must be 6 digits.'
-    password_expiration:
     password_history:
-        reused: 'This password has been used recently. Please choose a different password.'
         similar_to_current: 'New password is too similar to the current password. Please choose a different password.'
     password_policy:
-        min_length: 'Password must be at least {{ limit }} characters long.'
-        max_length: 'Password must not exceed {{ limit }} characters.'
         max_length_below_min: 'Maximum length must be greater than or equal to the minimum length.'
-        require_uppercase: 'Password must contain at least one uppercase letter.'
-        require_lowercase: 'Password must contain at least one lowercase letter.'
-        require_numbers: 'Password must contain at least one number.'
-        require_special_characters: 'Password must contain at least one special character.'
     ip_whitelist:
-        invalid_cidr: '"{{ value }}" is not a valid IP address or CIDR range.'
-        duplicate_cidr: '"{{ value }}" is listed more than once.'
         enabled_requires_cidrs: 'You enabled the IP whitelist but left the global CIDR list empty. Without at least one global CIDR — or a per-admin override that covers your current IP — every admin (including you) will be locked out on the next request. Add at least one CIDR before saving.'
     oauth_policy:
         invalid_domain: 'This value is not a valid email domain.'
