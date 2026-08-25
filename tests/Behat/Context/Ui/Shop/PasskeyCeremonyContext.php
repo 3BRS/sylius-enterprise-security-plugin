@@ -167,7 +167,7 @@ class PasskeyCeremonyContext implements Context
     public function iShouldBeLoggedInAs(string $email): void
     {
         // A logged-in user reaches the dashboard; an anonymous user is redirected to /login.
-        $this->client->request('GET', $this->router->generate('sylius_shop_account_dashboard'));
+        $this->client->request('GET', $this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US']));
         $finalUrl = (string) $this->client->getRequest()->getUri();
         Assert::notContains($finalUrl, '/login', sprintf('Expected to be on the account dashboard, got "%s".', $finalUrl));
 

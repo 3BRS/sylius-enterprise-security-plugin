@@ -129,7 +129,7 @@ class SecuritySettingsContext implements Context
      */
     public function customerAttemptsFailedSignIns(string $email, int $count): void
     {
-        $loginUrl = $this->router->generate('sylius_shop_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $loginUrl = $this->router->generate('sylius_shop_login', ['_locale' => 'en_US'], UrlGeneratorInterface::ABSOLUTE_URL);
         for ($i = 0; $i < $count; $i++) {
             $this->session->visit($loginUrl);
             $page = $this->session->getPage();

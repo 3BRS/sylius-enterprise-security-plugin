@@ -40,7 +40,7 @@ class PasswordLoginContext implements Context
      */
     public function iAttemptToSignIn(string $email, string $password): void
     {
-        $this->session->visit($this->router->generate('sylius_shop_login'));
+        $this->session->visit($this->router->generate('sylius_shop_login', ['_locale' => 'en_US']));
         $this->fillAndSubmitLoginForm($email, $password);
     }
 
@@ -63,7 +63,7 @@ class PasswordLoginContext implements Context
      */
     public function iVisitTheShopLoginPage(): void
     {
-        $this->session->visit($this->router->generate('sylius_shop_login'));
+        $this->session->visit($this->router->generate('sylius_shop_login', ['_locale' => 'en_US']));
     }
 
     /**
@@ -71,7 +71,7 @@ class PasswordLoginContext implements Context
      */
     public function iVisitTheShopRegistrationPage(): void
     {
-        $this->session->visit($this->router->generate('sylius_shop_register'));
+        $this->session->visit($this->router->generate('sylius_shop_register', ['_locale' => 'en_US']));
     }
 
     /**
@@ -86,7 +86,7 @@ class PasswordLoginContext implements Context
         $driver = $this->session->getDriver();
         Assert::isInstanceOf($driver, BrowserKitDriver::class);
 
-        $driver->getClient()->request('POST', $this->router->generate('sylius_shop_register'));
+        $driver->getClient()->request('POST', $this->router->generate('sylius_shop_register', ['_locale' => 'en_US']));
     }
 
     /**
@@ -175,7 +175,7 @@ class PasswordLoginContext implements Context
      */
     public function iVisitMyAccountDashboard(): void
     {
-        $this->session->visit($this->router->generate('sylius_shop_account_dashboard'));
+        $this->session->visit($this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US']));
     }
 
     /**

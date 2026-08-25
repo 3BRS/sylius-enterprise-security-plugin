@@ -31,7 +31,7 @@ class PasskeyContext implements Context
      */
     public function iVisitThePasskeyManagementPage(): void
     {
-        $this->session->visit($this->router->generate('three_brs_shop_passkey_index'));
+        $this->session->visit($this->router->generate('three_brs_shop_passkey_index', ['_locale' => 'en_US']));
     }
 
     /**

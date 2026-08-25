@@ -38,7 +38,7 @@ class AccountDeletionContext implements Context
      */
     public function iVisitAccountDeletionPage(): void
     {
-        $this->session->visit($this->router->generate('three_brs_shop_account_deletion_request', [], UrlGeneratorInterface::ABSOLUTE_URL));
+        $this->session->visit($this->router->generate('three_brs_shop_account_deletion_request', ['_locale' => 'en_US'], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
     /**
