@@ -101,7 +101,12 @@ class SettingsProviderTest extends TestCase
         $repository = $this->createStub(SecuritySettingRepositoryInterface::class);
         $repository->method('findAllSettings')->willReturn([$setting]);
 
+        // The default has to be something other than null, or the stored NULL and the
+        // fallback are the same answer and the test cannot tell them apart. A stored
+        // NULL means the administrator cleared the field on purpose — "manual unlock
+        // only" — and it has to win over whatever the configuration file says.
         $defaults = $this->createStub(SettingsDefaultsProviderInterface::class);
+        $defaults->method('get')->willReturn(1800);
 
         $provider = new SettingsProvider($repository, $defaults);
 

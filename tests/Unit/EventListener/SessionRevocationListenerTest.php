@@ -130,10 +130,20 @@ class SessionRevocationListenerTest extends TestCase
     {
         $event = $this->makeEvent('sess-1', $this->createStub(ShopUserInterface::class));
 
+        // The repositories have to refuse the lookup rather than answer null to it.
+        // A stub returns null anyway, so a revoked row can never be found, and the
+        // response stays null whether or not the switch is honoured — the whole
+        // feature guard could be deleted and this would still pass.
+        $customerRepository = $this->createMock(CustomerSessionRepositoryInterface::class);
+        $customerRepository->expects(self::never())->method('findOneBySessionId');
+
+        $adminRepository = $this->createMock(AdminUserSessionRepositoryInterface::class);
+        $adminRepository->expects(self::never())->method('findOneBySessionId');
+
         $listener = new SessionRevocationListener(
             $event->getRequest()->attributes->get('_test_token_storage'),
-            $this->createStub(CustomerSessionRepositoryInterface::class),
-            $this->createStub(AdminUserSessionRepositoryInterface::class),
+            $customerRepository,
+            $adminRepository,
             $this->makeRouter('/login'),
             $this->createStub(RememberMeHandlerInterface::class),
             $this->makeFeature(false),

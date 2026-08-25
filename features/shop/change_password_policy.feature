@@ -18,7 +18,7 @@ Feature: Customer change password policy
     @ui
     Scenario: Customer can change password to one that meets the minimum length
         When I want to change my password
-        And I change my password from "Password1!" to "validpassword"
+        And I change my password from "Password1!" to "Vr9#Kolobezka"
         Then my password should be changed successfully
 
     @ui

@@ -19,6 +19,7 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\Customer\ForcePasswordResetController;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 /** @internal */
 interface TestShopUserForcePassword extends \Sylius\Component\Core\Model\ShopUserInterface, PasswordExpirationShopUserInterface
@@ -103,8 +104,12 @@ class ForcePasswordResetControllerTest extends TestCase
         $router = $this->createStub(RouterInterface::class);
         $router->method('generate')->willReturnCallback(static fn (string $route, array $params = []): string => '/admin/customers/' . ($params['id'] ?? ''));
 
-        $passwordLoginChecker = $this->createStub(PasswordLoginCheckerInterface::class);
-        $passwordLoginChecker->method('isEnabled')->willReturn($passwordLoginEnabled);
+        // The scope is the point: without naming it the test passes whichever
+        // switch the controller consults, and it has to consult the customer switch, since this action resets a customer's password.
+        $passwordLoginChecker = $this->createMock(PasswordLoginCheckerInterface::class);
+        $passwordLoginChecker->method('isEnabled')
+            ->with(SettingsScope::CUSTOMER)
+            ->willReturn($passwordLoginEnabled);
 
         return new ForcePasswordResetController($customerRepository, $em, $csrf, $router, $passwordLoginChecker);
     }

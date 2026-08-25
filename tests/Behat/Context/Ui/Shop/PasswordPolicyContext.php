@@ -93,10 +93,24 @@ class PasswordPolicyContext implements Context
      */
     public function iShouldBeRegisteredSuccessfully(): void
     {
-        Assert::false(
-            $this->session->getPage()->hasContent('Password must be at least'),
-            'Registration failed due to password policy violation.',
-        );
+        // Ruling out one message let a password that broke three other rules count as
+        // a success: the password under test was long enough, so the only error this
+        // looked for was never going to be there.
+        $page = $this->session->getPage();
+
+        foreach ([
+            'Password must be at least',
+            'must not exceed',
+            'uppercase letter',
+            'lowercase letter',
+            'at least one number',
+            'special character',
+        ] as $message) {
+            Assert::false(
+                $page->hasContent($message),
+                sprintf('Registration was refused: "%s" on %s.', $message, $this->session->getCurrentUrl()),
+            );
+        }
     }
 
     private function assertValidationError(string $message): void

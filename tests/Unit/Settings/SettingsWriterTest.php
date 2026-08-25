@@ -69,8 +69,20 @@ class SettingsWriterTest extends TestCase
         $repository = $this->createStub(SecuritySettingRepositoryInterface::class);
         $repository->method('findOneByPathAndScope')->willReturn(null);
 
+        // Counting the persist() calls says three rows were written, not which. The
+        // entities are built inside setMany(), so they have to be captured to tell a
+        // correct write from one that stored the wrong path, scope or value.
+        // persist() runs before setValue(), so the entities are collected here and
+        // read after setMany() returns — reading them inside the callback would only
+        // ever see a null value.
+        $written = [];
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->expects(self::exactly(3))->method('persist');
+        $em->expects(self::exactly(3))->method('persist')->willReturnCallback(
+            function (object $entity) use (&$written): void {
+                self::assertInstanceOf(SecuritySetting::class, $entity);
+                $written[] = $entity;
+            },
+        );
 
         $provider = $this->createStub(SettingsProviderInterface::class);
 
@@ -80,5 +92,16 @@ class SettingsWriterTest extends TestCase
             'password_policy.require_uppercase' => true,
             'password_history.enabled' => true,
         ]);
+
+        $stored = [];
+        foreach ($written as $setting) {
+            $stored[$setting->getPath()] = [$setting->getScope(), $setting->getValue()];
+        }
+
+        self::assertSame([
+            'password_policy.min_length' => [SettingsScope::ADMIN->value, 16],
+            'password_policy.require_uppercase' => [SettingsScope::ADMIN->value, true],
+            'password_history.enabled' => [SettingsScope::ADMIN->value, true],
+        ], $stored);
     }
 }

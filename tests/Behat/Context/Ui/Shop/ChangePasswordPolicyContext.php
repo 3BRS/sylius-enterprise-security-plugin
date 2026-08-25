@@ -95,10 +95,35 @@ class ChangePasswordPolicyContext implements Context
      */
     public function myPasswordShouldBeChangedSuccessfully(): void
     {
+        // Ruling out one message let a password that broke three other rules count as
+        // a success: "validpassword" is long enough, so the only error this looked for
+        // was never going to be there.
         Assert::false(
-            $this->session->getPage()->hasContent('Password must be at least'),
-            'Password change failed due to password policy violation.',
+            $this->hasAnyPolicyViolation(),
+            sprintf('The password was refused on %s.', $this->session->getCurrentUrl()),
         );
+    }
+
+    protected function hasAnyPolicyViolation(): bool
+    {
+        $page = $this->session->getPage();
+
+        foreach ([
+            'Password must be at least',
+            'must not exceed',
+            'uppercase letter',
+            'lowercase letter',
+            'at least one number',
+            'special character',
+            'used recently',
+            'too similar',
+        ] as $message) {
+            if ($page->hasContent($message)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function assertValidationError(string $message): void

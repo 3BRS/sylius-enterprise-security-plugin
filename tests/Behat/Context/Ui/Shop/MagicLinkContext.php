@@ -148,8 +148,24 @@ class MagicLinkContext implements Context
         $url = $this->session->getCurrentUrl();
         Assert::notContains($url, '/magic-link', sprintf('Expected redirect off magic link pages after login, got "%s".', $url));
 
-        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
-        Assert::notNull($customer, sprintf('Customer "%s" not found.', $email));
+        // Being off the magic-link pages says only that something redirected, and the
+        // customer row was created by the Given two lines above — neither shows a
+        // session was opened. The account dashboard is behind the firewall, so
+        // reaching it without landing on the sign-in page is what "signed in" means.
+        $this->session->visit('/en_US/account/dashboard');
+
+        $dashboardUrl = $this->session->getCurrentUrl();
+        Assert::notContains(
+            $dashboardUrl,
+            '/login',
+            sprintf('Following the magic link left no session — the dashboard bounced to "%s".', $dashboardUrl),
+        );
+        Assert::same(200, $this->session->getStatusCode(), 'The account dashboard was not reachable after the magic link.');
+
+        Assert::true(
+            $this->session->getPage()->hasContent($email),
+            sprintf('The dashboard does not show "%s", so the session belongs to somebody else.', $email),
+        );
     }
 
     protected function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void
