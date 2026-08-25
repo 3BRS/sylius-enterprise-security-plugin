@@ -29,6 +29,21 @@ jobs:
                     # so only exercise the pinned version with the dist resolution.
                     -   prefer: "lowest"
                         api_platform: "4.3.5"
+                include:
+                    # composer.json allows php ^8.3 and symfony ^6.4|^7.4, and a
+                    # constraint nothing installs is a claim nobody has checked. Both
+                    # ends are covered by one leg each rather than by widening the
+                    # matrix, which would turn six runs into twenty-four.
+                    -   php: "8.4"
+                        sylius: "2.2"
+                        symfony: "7.4"
+                        prefer: "dist"
+                        api_platform: "default"
+                    -   php: "8.3"
+                        sylius: "2.2"
+                        symfony: "6.4"
+                        prefer: "dist"
+                        api_platform: "default"
 
         services:
             mysql:
