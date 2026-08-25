@@ -1,0 +1,54 @@
+# TypeInfo safety net for the property-info chain.
+#
+# SafePhpStanExtractor swallows the TypeInfo exceptions upstream PHPDoc tags
+# provoke (see the class docblock). It decorates six extractor services, three
+# from Symfony and three api-platform registers itself.
+#
+# It lives under symfony/7+ because it implements PropertyDocBlockExtractorInterface
+# and speaks symfony/type-info, neither of which exists on 6.4 — registering it
+# there aborts container compilation. Nothing is lost: type-info arrived in 7.1,
+# so below it there is no exception to swallow.
+services:
+    Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo\SafePhpStanExtractor:
+        arguments:
+            $inner: '@.inner'
+        decorates: property_info.phpstan_extractor
+        decoration_on_invalid: ignore
+
+    three_brs.test.property_info.safe_php_doc_extractor:
+        class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo\SafePhpStanExtractor
+        arguments:
+            $inner: '@.inner'
+        decorates: property_info.php_doc_extractor
+        decoration_on_invalid: ignore
+
+    three_brs.test.property_info.safe_reflection_extractor:
+        class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo\SafePhpStanExtractor
+        arguments:
+            $inner: '@.inner'
+        decorates: property_info.reflection_extractor
+        decoration_on_invalid: ignore
+
+    # API Platform registers its own extractor services with the same classes;
+    # decorate those too so the validator chain doesn't bypass the safety net.
+
+    three_brs.test.property_info.api_platform_safe_phpstan_extractor:
+        class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo\SafePhpStanExtractor
+        arguments:
+            $inner: '@.inner'
+        decorates: api_platform.property_info.phpstan_extractor
+        decoration_on_invalid: ignore
+
+    three_brs.test.property_info.api_platform_safe_php_doc_extractor:
+        class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo\SafePhpStanExtractor
+        arguments:
+            $inner: '@.inner'
+        decorates: api_platform.property_info.php_doc_extractor
+        decoration_on_invalid: ignore
+
+    three_brs.test.property_info.api_platform_safe_reflection_extractor:
+        class: Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\PropertyInfo\SafePhpStanExtractor
+        arguments:
+            $inner: '@.inner'
+        decorates: api_platform.property_info.reflection_extractor
+        decoration_on_invalid: ignore
