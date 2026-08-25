@@ -10,9 +10,6 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 class Configuration implements ConfigurationInterface
 {
-    /**
-     * @return TreeBuilder<'array'>
-     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('three_brs_sylius_enterprise_security');
