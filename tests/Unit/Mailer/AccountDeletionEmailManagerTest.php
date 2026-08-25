@@ -22,7 +22,12 @@ class AccountDeletionEmailManagerTest extends TestCase
             ->with(
                 Emails::ACCOUNT_DELETION_REQUESTED,
                 ['user@example.com'],
-                self::callback(static fn (array $data): bool => $data['scheduledFor'] instanceof \DateTimeImmutable),
+                // Pinning the type only let any date through, and the date is what the
+                // customer is told their account disappears on.
+                self::callback(
+                    static fn (array $data): bool => $data['scheduledFor'] instanceof \DateTimeImmutable
+                        && $data['scheduledFor']->format('Y-m-d') === '2026-06-06',
+                ),
             )
         ;
 
