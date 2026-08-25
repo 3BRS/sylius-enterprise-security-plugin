@@ -84,6 +84,14 @@ jobs:
                       | grep -v -E '(symfony/flex|symfony/webpack-encore-bundle|symfony/maker-bundle)' \
                       | xargs printf '%s:${{ matrix.symfony }}.* ' \
                       | xargs composer require --no-interaction --no-update
+                    # Pinning only what composer.json names leaves the transitive
+                    # components free, and from PHP 8.4 up Symfony 8 becomes
+                    # installable — so they jump a major while the named ones stay
+                    # put. Doctrine then refuses the mismatched var-exporter and the
+                    # leg fails for a reason that has nothing to do with the plugin.
+                    composer require --no-interaction --no-update --no-scripts \
+                      "symfony/var-exporter:${{ matrix.symfony }}.*" \
+                      "symfony/error-handler:${{ matrix.symfony }}.*"
 
             -   name: Pin API Platform version
                 if: matrix.api_platform != 'default'
