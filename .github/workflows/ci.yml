@@ -44,6 +44,30 @@ jobs:
                         symfony: "6.4"
                         prefer: "dist"
                         api_platform: "default"
+                    # The corners of the supported space. Each end was reachable
+                    # above, but only with everything else in the middle, so a fault
+                    # that needs two extremes at once had nowhere to show.
+                    #
+                    # Oldest of everything, and the resolution that actually installs
+                    # the floor of every constraint:
+                    -   php: "8.3"
+                        sylius: "2.1"
+                        symfony: "6.4"
+                        prefer: "lowest"
+                        api_platform: "default"
+                    # Newest PHP against the oldest Symfony — the mix that produced
+                    # the var-exporter major jump:
+                    -   php: "8.4"
+                        sylius: "2.2"
+                        symfony: "6.4"
+                        prefer: "dist"
+                        api_platform: "default"
+                    # Newest PHP against the oldest Sylius:
+                    -   php: "8.4"
+                        sylius: "2.1"
+                        symfony: "7.4"
+                        prefer: "dist"
+                        api_platform: "default"
 
         services:
             mysql:
