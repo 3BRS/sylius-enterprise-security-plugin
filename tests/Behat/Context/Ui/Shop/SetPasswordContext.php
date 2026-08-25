@@ -52,7 +52,7 @@ class SetPasswordContext implements Context
      */
     public function iVisitTheSetPasswordPage(): void
     {
-        $this->session->visit($this->router->generate('three_brs_shop_set_password', [], UrlGeneratorInterface::ABSOLUTE_URL));
+        $this->session->visit($this->router->generate('three_brs_shop_set_password', ['_locale' => 'en_US'], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
     /**
@@ -60,7 +60,7 @@ class SetPasswordContext implements Context
      */
     public function iVisitMyAccountDashboard(): void
     {
-        $this->session->visit($this->router->generate('sylius_shop_account_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL));
+        $this->session->visit($this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US'], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
     /**

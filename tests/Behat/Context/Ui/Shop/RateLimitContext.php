@@ -37,7 +37,7 @@ class RateLimitContext implements Context
      */
     public function iTryToSignIn(string $email, string $password): void
     {
-        $this->session->visit($this->router->generate('sylius_shop_login'));
+        $this->session->visit($this->router->generate('sylius_shop_login', ['_locale' => 'en_US']));
         $page = $this->session->getPage();
         $page->fillField('_username', $email);
         $page->fillField('_password', $password);
