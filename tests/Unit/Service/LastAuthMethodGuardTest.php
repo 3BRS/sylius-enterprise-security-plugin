@@ -19,6 +19,7 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLink
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\LastAuthMethodGuard;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 #[CoversClass(LastAuthMethodGuard::class)]
 class LastAuthMethodGuardTest extends TestCase
@@ -94,14 +95,14 @@ class LastAuthMethodGuardTest extends TestCase
 
     public function testAdminUserBehavesTheSame(): void
     {
-        $guard = $this->makeGuard(adminLinks: ['google']);
+        $guard = $this->makeGuard(adminLinks: ['google'], expectedScope: SettingsScope::ADMIN);
 
         self::assertFalse($guard->canUnlinkSocialForAdminUser($this->adminUser(null), 'google'));
     }
 
     public function testAdminLinkToADisabledProviderIsNoFallback(): void
     {
-        $guard = $this->makeGuard(adminLinks: ['google', 'apple'], enabledProviders: ['google']);
+        $guard = $this->makeGuard(adminLinks: ['google', 'apple'], enabledProviders: ['google'], expectedScope: SettingsScope::ADMIN);
 
         self::assertFalse($guard->canUnlinkSocialForAdminUser($this->adminUser(null), 'google'));
     }
@@ -136,7 +137,7 @@ class LastAuthMethodGuardTest extends TestCase
 
     public function testAdminPasskeyRemovalBehavesTheSame(): void
     {
-        $guard = $this->makeGuard(adminPasskeys: 1);
+        $guard = $this->makeGuard(adminPasskeys: 1, expectedScope: SettingsScope::ADMIN);
 
         self::assertFalse($guard->canRemovePasskeyForAdminUser($this->adminUser(null)));
     }
@@ -157,7 +158,7 @@ class LastAuthMethodGuardTest extends TestCase
 
     public function testAdminPasswordDoesNotCountWhilePasswordLoginIsOffForTheScope(): void
     {
-        $guard = $this->makeGuard(adminLinks: ['google'], passwordLoginEnabled: false);
+        $guard = $this->makeGuard(adminLinks: ['google'], passwordLoginEnabled: false, expectedScope: SettingsScope::ADMIN);
 
         self::assertFalse($guard->canUnlinkSocialForAdminUser($this->adminUser('$argon2i$hashed'), 'google'));
     }
@@ -185,6 +186,7 @@ class LastAuthMethodGuardTest extends TestCase
         array $enabledProviders = ['google', 'apple', 'microsoft'],
         bool $passwordLoginEnabled = true,
         bool $passkeyEnabled = true,
+        SettingsScope $expectedScope = SettingsScope::CUSTOMER,
     ): LastAuthMethodGuard {
         $customerRepo = $this->createStub(CustomerSocialAccountLinkRepositoryInterface::class);
         $customerRepo->method('findAllByShopUser')->willReturn(
@@ -212,11 +214,19 @@ class LastAuthMethodGuardTest extends TestCase
         $adminPasskeyRepo = $this->createStub(AdminUserPasskeyCredentialRepositoryInterface::class);
         $adminPasskeyRepo->method('countByAdminUser')->willReturn($adminPasskeys);
 
+        // One answer for every scope makes "ForTheScope" unpinned — the guard could
+        // read the customer switch while deciding an administrator's account and
+        // nothing here would notice. Answer per scope instead, and let the scenarios
+        // that name a scope be the ones that constrain it.
         $passwordLoginChecker = $this->createStub(PasswordLoginCheckerInterface::class);
-        $passwordLoginChecker->method('isEnabled')->willReturn($passwordLoginEnabled);
+        $passwordLoginChecker->method('isEnabled')->willReturnCallback(
+            static fn (SettingsScope $scope): bool => $scope === $expectedScope ? $passwordLoginEnabled : true,
+        );
 
         $passkeyChecker = $this->createStub(ScopedFeatureCheckerInterface::class);
-        $passkeyChecker->method('isEnabled')->willReturn($passkeyEnabled);
+        $passkeyChecker->method('isEnabled')->willReturnCallback(
+            static fn (SettingsScope $scope): bool => $scope === $expectedScope ? $passkeyEnabled : true,
+        );
 
         $providers = array_map(fn (string $name) => $this->provider($name), $enabledProviders);
         $registry = $this->createStub(OAuthProviderRegistryInterface::class);

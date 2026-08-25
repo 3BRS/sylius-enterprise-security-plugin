@@ -40,6 +40,16 @@ Feature: Admin panel can be restricted by IP whitelist
         And I open any admin page
         Then the admin response status should be 200
 
+    # The 200 above is also what an unenforced whitelist returns, so it says nothing on
+    # its own. This is its other half: from the same address, the administrator whose
+    # own list does not cover it is refused, which is what makes the entry the reason.
+    Scenario: An administrator whose own list does not cover the address is refused
+        Given the admin IP whitelist is enabled with no global CIDRs
+        And administrator "admin@example.com" has per-admin IP whitelist enabled with CIDRs "127.0.0.1"
+        When I am logged in as "other@example.com" administrator
+        And I open any admin page
+        Then the admin response status should be 403
+
     Scenario: Disabled per-admin entry is ignored
         Given the admin IP whitelist is enabled with global CIDRs "203.0.113.0/24"
         And administrator "admin@example.com" has per-admin IP whitelist disabled with CIDRs "127.0.0.1"

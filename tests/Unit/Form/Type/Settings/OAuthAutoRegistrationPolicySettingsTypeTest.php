@@ -11,6 +11,9 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Test\FormIntegrationTestCase;
 use Symfony\Component\Validator\Validation;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\Settings\OAuthAutoRegistrationPolicySettingsType;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\Locale;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 
 #[CoversClass(OAuthAutoRegistrationPolicySettingsType::class)]
 class OAuthAutoRegistrationPolicySettingsTypeTest extends FormIntegrationTestCase
@@ -79,17 +82,37 @@ class OAuthAutoRegistrationPolicySettingsTypeTest extends FormIntegrationTestCas
     {
         // Reaches AdminUser.locale_code, a varchar(12), during an OAuth callback whose
         // only catch is for OAuthProviderException.
-        yield 'longer than the column' => ['English (United States)'];
-        yield 'not a locale at all' => ['not-a-locale'];
+        //
+        // The rule each case has to answer for is named, because the value below is
+        // refused by the Locale constraint as well — asking only "was there an error"
+        // let the length rule be deleted with the test still green, and the column is
+        // what that rule protects.
+        yield 'longer than the column' => ['English (United States)', Length::class];
+        yield 'not a locale at all' => ['not-a-locale', Locale::class];
     }
 
+    /**
+     * @param class-string $expectedConstraint
+     */
     #[DataProvider('unusableLocaleProvider')]
-    public function testRejectsALocaleTheColumnCannotHold(string $locale): void
+    public function testRejectsALocaleTheColumnCannotHold(string $locale, string $expectedConstraint): void
     {
         $form = $this->createForm(includeDefaultLocale: true);
         $form->submit(['default_locale' => $locale, 'auto_register_allowed_email_domains' => '']);
 
-        self::assertGreaterThan(0, $form->get('default_locale')->getErrors()->count());
+        $broken = [];
+        foreach ($form->get('default_locale')->getErrors() as $error) {
+            $cause = $error->getCause();
+            if ($cause instanceof ConstraintViolationInterface && $cause->getConstraint() !== null) {
+                $broken[] = $cause->getConstraint()::class;
+            }
+        }
+
+        self::assertContains(
+            $expectedConstraint,
+            $broken,
+            sprintf('"%s" should be refused by %s; it was refused by %s.', $locale, $expectedConstraint, implode(', ', $broken) ?: 'nothing'),
+        );
     }
 
     public function testAcceptsAnOrdinaryLocale(): void

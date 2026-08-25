@@ -107,6 +107,20 @@ class ApiPlatformNestedIriTest extends KernelTestCase
         $type = $propertyInfo->getType($class, $property);
 
         self::assertInstanceOf(Type::class, $type, sprintf('No type resolved for %s::$%s.', $class, $property));
+
+        // Not assertStringContainsString: every concrete Sylius model is a literal
+        // prefix of its own interface, so the degraded "…ProductVariantInterface|null"
+        // contains "…ProductVariant" and satisfies exactly the outcome this rejects.
+        self::assertDoesNotMatchRegularExpression(
+            '/\b' . preg_quote($expectedConcreteClass, '/') . 'Interface\b/',
+            (string) $type,
+            sprintf(
+                '%s::$%s resolved to the interface rather than %s, so api-platform cannot build the nested IRI.',
+                $class,
+                $property,
+                $expectedConcreteClass,
+            ),
+        );
         self::assertStringContainsString(
             $expectedConcreteClass,
             (string) $type,
