@@ -22,7 +22,7 @@ Feature: Customer registration password policy
         When I specify the first name as "John"
         And I specify the last name as "Doe"
         And I specify the email as "john@example.com"
-        And I register with password "validpassword"
+        And I register with password "Vr9#Kolobezka"
         Then I should be registered successfully
 
     @ui

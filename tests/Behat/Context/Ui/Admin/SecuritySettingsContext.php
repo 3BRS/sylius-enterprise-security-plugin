@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Doctrine\ORM\EntityManagerInterface;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use Webmozart\Assert\Assert;
 
 class SecuritySettingsContext implements Context
@@ -19,7 +21,48 @@ class SecuritySettingsContext implements Context
         protected Session $session,
         protected RouterInterface $router,
         protected SettingsProviderInterface $settingsProvider,
+        protected SettingsWriterInterface $settingsWriter,
+        protected EntityManagerInterface $entityManager,
     ) {
+    }
+
+    /**
+     * Read the row itself rather than ask the provider.
+     *
+     * Two things would otherwise answer for the administrator's click. The provider
+     * falls back to the configuration file when no row exists, so a feature the YAML
+     * enables reads as enabled whether or not anything was saved. And the request
+     * runs on its own entity manager, so a row it updates leaves this process holding
+     * the entity it read earlier.
+     */
+    protected function storedSetting(string $path, SettingsScope $scope): ?string
+    {
+        $value = $this->entityManager->getConnection()->fetchOne(
+            'SELECT value FROM three_brs_security_setting WHERE path = :path AND scope = :scope',
+            ['path' => $path, 'scope' => $scope->value],
+        );
+
+        return $value === false ? null : (string) $value;
+    }
+
+    /**
+     * The provider falls back to the configuration file when the table holds no row,
+     * and the hook empties the table before each scenario — so a feature the YAML
+     * enables reads as enabled before anything is clicked. Writing the row first is
+     * what makes "the administrator turned it on" observable.
+     *
+     * @Given customer passkey is switched off
+     */
+    public function customerPasskeyIsSwitchedOff(): void
+    {
+        $this->settingsWriter->setMany(SettingsScope::CUSTOMER, ['passkey.enabled' => false]);
+        $this->settingsWriter->flush();
+        $this->settingsProvider->refresh();
+
+        Assert::false(
+            $this->settingsProvider->getBool('passkey.enabled', SettingsScope::CUSTOMER),
+            'Expected customer passkey to start switched off.',
+        );
     }
 
     /**
@@ -178,10 +221,10 @@ class SecuritySettingsContext implements Context
      */
     public function theCustomerPasskeyFeatureShouldBeEnabled(): void
     {
-        $this->settingsProvider->refresh();
-        Assert::true(
-            $this->settingsProvider->getBool('passkey.enabled', SettingsScope::CUSTOMER),
-            'Customer passkey feature is not enabled in DB.',
+        Assert::same(
+            'true',
+            $this->storedSetting('passkey.enabled', SettingsScope::CUSTOMER),
+            'The saved settings do not switch customer passkey on.',
         );
     }
 

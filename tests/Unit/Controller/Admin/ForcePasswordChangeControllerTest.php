@@ -22,6 +22,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\ForcePasswordChangeController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\PasswordLoginCheckerInterface;
 use Twig\Environment;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 
 #[CoversClass(ForcePasswordChangeController::class)]
 class ForcePasswordChangeControllerTest extends TestCase
@@ -85,8 +86,13 @@ class ForcePasswordChangeControllerTest extends TestCase
         $tokenStorage = $this->createStub(TokenStorageInterface::class);
         $tokenStorage->method('getToken')->willReturn($token);
 
-        $checker = $this->createStub(PasswordLoginCheckerInterface::class);
-        $checker->method('isEnabled')->willReturn($passwordLoginEnabled);
+        // The scope is the point: without naming it the test passes whichever switch
+        // the controller consults, and it has to consult the admin one — this page is
+        // the administrator's own forced password change.
+        $checker = $this->createMock(PasswordLoginCheckerInterface::class);
+        $checker->method('isEnabled')
+            ->with(SettingsScope::ADMIN)
+            ->willReturn($passwordLoginEnabled);
 
         $router = $this->createStub(RouterInterface::class);
         $router->method('generate')->willReturnCallback(static fn (string $route): string => match ($route) {

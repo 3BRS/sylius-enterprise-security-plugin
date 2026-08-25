@@ -333,6 +333,8 @@
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="router"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.account_deletion"
