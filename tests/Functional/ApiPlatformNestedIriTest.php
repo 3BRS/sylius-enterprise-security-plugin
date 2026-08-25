@@ -11,6 +11,7 @@ use Sylius\Component\Core\Model\ProductImage;
 use Sylius\Component\Core\Model\ProductVariant;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
+use Symfony\Component\HttpKernel\Kernel as SymfonyKernel;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\TypeInfo\Type;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Kernel;
@@ -91,6 +92,13 @@ class ApiPlatformNestedIriTest extends KernelTestCase
     #[DataProvider('doctrineRelationProvider')]
     public function testDoctrineRelationResolvesToConcreteClassForNestedIri(string $class, string $property, string $expectedConcreteClass): void
     {
+        // The workaround this pins is TypeInfo's, and property-info grew getType()
+        // alongside it in Symfony 7.1. Below that the extractor speaks only the
+        // legacy getTypes(), and there is no union for anything to reject.
+        if (version_compare(SymfonyKernel::VERSION, '7.1', '<')) {
+            self::markTestSkipped('Property-info getType() and the TypeInfo union it guards arrived in Symfony 7.1.');
+        }
+
         self::bootKernel(['environment' => 'test', 'debug' => true]);
 
         /** @var PropertyTypeExtractorInterface $propertyInfo */
