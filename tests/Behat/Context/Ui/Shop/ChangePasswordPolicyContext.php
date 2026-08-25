@@ -21,10 +21,22 @@ class ChangePasswordPolicyContext implements Context
     public function iChangeMyPasswordFromTo(string $currentPassword, string $newPassword): void
     {
         $page = $this->session->getPage();
-        $page->find('css', '[data-test-current-password]')?->setValue($currentPassword);
-        $page->find('css', '[data-test-new-password]')?->setValue($newPassword);
-        $page->find('css', '[data-test-confirmation-new-password]')?->setValue($newPassword);
-        $page->find('css', '[data-test-button="save-changes"]')?->press();
+
+        // Filling nothing and pressing nothing used to be silent: the step passed and
+        // whatever assertion came next failed instead, naming the wrong thing.
+        foreach ([
+            '[data-test-current-password]' => $currentPassword,
+            '[data-test-new-password]' => $newPassword,
+            '[data-test-confirmation-new-password]' => $newPassword,
+        ] as $selector => $value) {
+            $field = $page->find('css', $selector);
+            Assert::notNull($field, sprintf('No "%s" on %s.', $selector, $this->session->getCurrentUrl()));
+            $field->setValue($value);
+        }
+
+        $submit = $page->find('css', '[data-test-button="save-changes"]');
+        Assert::notNull($submit, sprintf('No save button on %s.', $this->session->getCurrentUrl()));
+        $submit->press();
     }
 
     /**
