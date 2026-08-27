@@ -1,7 +1,6 @@
 .PHONY: run up down init var ci
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
-export COMPOSE_FILE := compose.yml:compose.override.yaml
 
 run: init
 
@@ -14,9 +13,10 @@ down:
 init:
 	which docker > /dev/null || (echo "Please install docker binary" && exit 1)
 	if command -v direnv &> /dev/null; then \
-		cp --update=none .envrc.dist .envrc; \
+		[ -f .envrc ] || cp .envrc.dist .envrc; \
 		direnv allow; \
 	fi
+	[ -f compose.override.yaml ] || cp compose.override.dist.yaml compose.override.yaml
 	docker compose up -d
 	./bin-docker/composer install
 	docker compose exec -T -u root php rm -rf "tests/Application/var/$(APP_ENV)"
@@ -33,9 +33,10 @@ init:
 init-tests:
 	which docker > /dev/null || (echo "Please install docker binary" && exit 1)
 	if command -v direnv &> /dev/null; then \
-		cp --update=none .envrc.dist .envrc; \
+		[ -f .envrc ] || cp .envrc.dist .envrc; \
 		direnv allow; \
 	fi
+	[ -f compose.override.yaml ] || cp compose.override.dist.yaml compose.override.yaml
 	docker compose up -d
 	./bin-docker/composer install
 	@make var
