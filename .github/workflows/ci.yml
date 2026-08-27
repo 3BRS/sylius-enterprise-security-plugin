@@ -184,3 +184,118 @@ jobs:
                 env:
                     DATABASE_URL: "mysql://root:pass_root@127.0.0.1:3306/sylius_test?serverVersion=8.0&charset=utf8mb4"
                 run: vendor/bin/behat --no-interaction --format=progress
+
+    browser:
+        # The matrix above runs the Behat suite on BrowserKit, which cannot execute
+        # JavaScript, so the passkey ceremony the plugin ships is exercised nowhere in
+        # it. This leg runs the one suite that needs a real browser. It is deliberately
+        # a single configuration: it guards the shipped JavaScript, not the support
+        # matrix, and the rest of the suite already covers the versions.
+        name: "Behat (browser)"
+        runs-on: ubuntu-latest
+
+        env:
+            DATABASE_URL: "mysql://root:pass_root@127.0.0.1:3306/sylius_test?serverVersion=8.0&charset=utf8mb4"
+
+        services:
+            mysql:
+                image: mysql:8.0
+                env:
+                    MYSQL_ROOT_PASSWORD: pass_root
+                ports:
+                    - 3306:3306
+                options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v4
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: "8.3"
+                    extensions: intl, mbstring, pdo_mysql
+                    tools: composer:v2
+
+            -   name: Setup Node
+                uses: actions/setup-node@v4
+                with:
+                    node-version: '20'
+
+            -   name: Install Yarn
+                run: npm install -g yarn
+
+            -   name: Install dependencies
+                run: composer update --prefer-dist --no-interaction --no-scripts
+
+            -   name: Run post-install scripts
+                run: composer run-script post-install-cmd --no-interaction
+
+            -   name: Install Yarn dependencies
+                run: yarn --cwd=tests/Application install --pure-lockfile
+
+            -   name: Build assets
+                run: GULP_ENV=prod yarn --cwd=tests/Application build
+
+            -   name: Install bundle assets
+                # passkey.js is served to the browser as a static file out of
+                # public/bundles, which is generated and gitignored. Skipping this
+                # leaves a 404 in place of the script the scenario exists to run.
+                #
+                # The target is named because the default is `public` relative to the
+                # working directory, not to kernel.project_dir. From the repository
+                # root that is the plugin's own asset source, so the command copies it
+                # into itself until the paths are too long to open.
+                run: php bin/console assets:install tests/Application/public --env=test
+
+            -   name: Wait for MySQL
+                run: |
+                    until mysqladmin ping -h 127.0.0.1 -P 3306 -u root -ppass_root --silent; do
+                        echo "Waiting for MySQL..."
+                        sleep 2
+                    done
+
+            -   name: Setup database
+                run: |
+                    php bin/console doctrine:database:create --env=test --no-interaction --if-not-exists
+                    php bin/console doctrine:migrations:migrate --env=test --no-interaction
+                    php bin/console doctrine:schema:update --env=test --no-interaction --complete --force
+
+            -   name: Start Chrome
+                # behat.yml.dist reaches the browser at http://chrome:9222, which is the
+                # container name under docker compose. Aliasing it here is what lets one
+                # configuration serve both, instead of a CI-only profile that would then
+                # drift from the one developers actually run.
+                run: |
+                    echo "127.0.0.1 chrome" | sudo tee -a /etc/hosts
+                    google-chrome --version
+                    google-chrome \
+                      --headless=new \
+                      --no-sandbox \
+                      --disable-gpu \
+                      --disable-dev-shm-usage \
+                      --remote-debugging-address=127.0.0.1 \
+                      --remote-debugging-port=9222 \
+                      --remote-allow-origins='*' \
+                      about:blank > "${{ runner.temp }}/chrome.log" 2>&1 &
+                    until curl -sf -o /dev/null http://localhost:9222/json/version; do sleep 1; done
+
+            -   name: Start the test web server
+                # WebAuthn refuses to run outside a secure context and wants rp_id to
+                # equal the origin host, so the browser has to reach the application as
+                # localhost - 127.0.0.1 is trustworthy but is not a usable rp_id. There
+                # is no nginx here: index_test.php doubles as the router for `php -S`
+                # and pins APP_ENV=test, so the browser shares the suite's database.
+                run: |
+                    PHP_CLI_SERVER_WORKERS=4 php -S 0.0.0.0:8081 \
+                      -t tests/Application/public \
+                      tests/Application/public/index_test.php \
+                      > "${{ runner.temp }}/web-server.log" 2>&1 &
+                    until curl -sf -o /dev/null http://localhost:8081/en_US/login; do sleep 1; done
+
+            -   name: Behat
+                run: vendor/bin/behat -p javascript --suite=shop_passkey_browser --no-interaction --format=progress
+
+            -   name: Web server log
+                if: failure()
+                run: cat "${{ runner.temp }}/web-server.log"
