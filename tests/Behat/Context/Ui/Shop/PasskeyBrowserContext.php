@@ -52,6 +52,13 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         // The page target only exists once something has been visited.
         $this->getSession()->visit($this->locatePath('/'));
 
+        // Chrome outlives the scenario, and so do the authenticators added to it - with
+        // the resident credentials they hold. The database does not: it is purged
+        // between scenarios, so a credential minted for an earlier scenario names a user
+        // id nobody has any more. Left in place it is still offered at sign-in, and the
+        // server rejects it. Disabling drops every authenticator and starts this
+        // scenario with an empty one.
+        $this->sendCommand('WebAuthn.disable');
         $this->sendCommand('WebAuthn.enable');
 
         $result = $this->sendCommand('WebAuthn.addVirtualAuthenticator', [
@@ -174,6 +181,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         }
 
         $input->setValue($label);
+        $this->captureBrowserAlerts();
         $session->executeScript("document.querySelector('#three_brs_passkey_register_button').click();");
 
         $this->waitForPasskeyToAppear($label);
@@ -190,7 +198,108 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
             throw new ExpectationException('The passkey list is not on the page.', $this->getSession()->getDriver());
         }
 
-        Assert::contains($list->getText(), $label);
+        Assert::contains(
+            $list->getText(),
+            $label,
+            sprintf('The passkey list does not name %s. alerts=%s', $label, $this->capturedBrowserAlerts()),
+        );
+    }
+
+    /**
+     * @When I sign out in the browser
+     */
+    public function iSignOutInTheBrowser(): void
+    {
+        $session = $this->getSession();
+        $session->visit($this->locatePath('/en_US/logout'));
+        $this->waitForDocumentReady();
+
+        // Checked rather than assumed. If the session outlived the logout, the ceremony
+        // that follows would be performed by a browser that is already signed in, and
+        // would pass without proving anything about signing in with a passkey.
+        $session->visit($this->locatePath('/en_US/account/dashboard'));
+        $this->waitForDocumentReady();
+
+        if (!str_contains($session->getCurrentUrl(), '/login')) {
+            throw new ExpectationException(sprintf(
+                'Still signed in after logout: the account dashboard answered at %s.',
+                $session->getCurrentUrl(),
+            ), $session->getDriver());
+        }
+    }
+
+    /**
+     * @When I sign in to the shop in the browser with a passkey
+     */
+    public function iSignInToTheShopInTheBrowserWithAPasskey(): void
+    {
+        $session = $this->getSession();
+        $session->visit($this->locatePath('/en_US/login'));
+        $this->waitForDocumentReady();
+
+        if ($session->getPage()->find('css', '#three_brs_passkey_login_button') === null) {
+            throw new ExpectationException(sprintf(
+                'No passkey login button on the login page. url=%s status=%s body=%s',
+                $session->getCurrentUrl(),
+                (string) $session->getStatusCode(),
+                mb_substr(preg_replace('/\s+/', ' ', strip_tags($session->getPage()->getContent())) ?? '', 0, 500),
+            ), $session->getDriver());
+        }
+
+        $this->captureBrowserAlerts();
+        $session->executeScript("document.getElementById('three_brs_passkey_login_button').click();");
+
+        $this->waitForNavigationAwayFrom('/login');
+
+        if (str_contains($session->getCurrentUrl(), '/login')) {
+            throw new ExpectationException(sprintf(
+                'The passkey ceremony did not sign the browser in. url=%s alerts=%s',
+                $session->getCurrentUrl(),
+                $this->capturedBrowserAlerts(),
+            ), $session->getDriver());
+        }
+    }
+
+    /**
+     * @Then I should be signed in to the shop in the browser as :email
+     */
+    public function iShouldBeSignedInToTheShopInTheBrowser(string $email): void
+    {
+        $session = $this->getSession();
+        $session->visit($this->locatePath('/en_US/account/dashboard'));
+        $this->waitForDocumentReady();
+
+        if (str_contains($session->getCurrentUrl(), '/login')) {
+            throw new ExpectationException(sprintf(
+                'Not signed in: the account dashboard sent the browser to %s.',
+                $session->getCurrentUrl(),
+            ), $session->getDriver());
+        }
+
+        // The dashboard is behind the firewall, so reaching it proves a session exists;
+        // the address proves whose it is, which is the half a shared session would hide.
+        Assert::contains($session->getPage()->getText(), $email);
+    }
+
+    /**
+     * passkey.js reports every failure with window.alert. A driven browser cannot
+     * dismiss that on its own, so a failed ceremony would stop on a modal dialog and the
+     * step would time out with nothing to say. Replacing alert captures the message
+     * instead, which is then the reason the failure report can give.
+     */
+    protected function captureBrowserAlerts(): void
+    {
+        $this->getSession()->executeScript(
+            'window.__threeBrsAlerts = [];' .
+            'window.alert = function (message) { window.__threeBrsAlerts.push(message); };',
+        );
+    }
+
+    protected function capturedBrowserAlerts(): string
+    {
+        return (string) $this->getSession()->evaluateScript(
+            "(window.__threeBrsAlerts || []).join(' | ') || 'none'",
+        );
     }
 
     protected function credentialsAreValid(string $email, string $password): bool
