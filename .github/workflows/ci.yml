@@ -293,6 +293,12 @@ jobs:
                 # is no nginx here: index_test.php doubles as the router for `php -S`
                 # and pins APP_ENV=test, so the browser shares the suite's database.
                 run: |
+                    # `php -S` builds $_SERVER for each request out of the request, and
+                    # $_ENV is not populated from the environment here either, so Dotenv
+                    # finds no DATABASE_URL and falls back to .env.test - which names the
+                    # docker compose host and resolves to nothing on a runner. This file
+                    # is loaded last and is the one channel that reaches the server.
+                    printf 'DATABASE_URL=%s\n' "$DATABASE_URL" > tests/Application/.env.test.local
                     PHP_CLI_SERVER_WORKERS=4 php -S 0.0.0.0:8081 \
                       -t tests/Application/public \
                       tests/Application/public/index_test.php \
