@@ -25,7 +25,7 @@ init:
 	./bin-docker/php ./bin/console doctrine:migrations:migrate --no-interaction
 	./bin-docker/php ./bin/console doctrine:schema:update --no-interaction --complete --force
 	./bin-docker/php ./bin/console doctrine:migration:sync-metadata-storage
-	./bin-docker/php ./bin/console assets:install
+	./bin-docker/php ./bin/console assets:install tests/Application/public
 	./bin-docker/yarn --cwd=tests/Application install --pure-lockfile
 	GULP_ENV=prod ./bin-docker/yarn --cwd=tests/Application build
 	@make var
@@ -45,7 +45,7 @@ init-tests:
 	./bin-docker/php ./bin/console --env=test doctrine:migrations:migrate --no-interaction
 	./bin-docker/php ./bin/console --env=test doctrine:schema:update --no-interaction --complete --force
 	./bin-docker/php ./bin/console --env=test doctrine:migration:sync-metadata-storage
-	./bin-docker/php ./bin/console --env=test assets:install
+	./bin-docker/php ./bin/console --env=test assets:install tests/Application/public
 	./bin-docker/yarn --cwd=tests/Application install --pure-lockfile
 	GULP_ENV=prod ./bin-docker/yarn --cwd=tests/Application build
 	@make var
