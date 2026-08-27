@@ -26,6 +26,7 @@ imports:
     - suites/shop_passkey.yml
     - suites/admin_passkey.yml
     - suites/shop_passkey_ceremony.yml
+    - suites/shop_passkey_browser.yml
     - suites/admin_passkey_ceremony.yml
     - suites/shop_lockout.yml
     - suites/admin_lockout.yml
