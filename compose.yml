@@ -43,6 +43,31 @@ services:
         networks:
             - sylius
 
+    # Headless Chrome for Behat @javascript scenarios. dmore/chrome-mink-driver
+    # talks to it over CDP, which is also how the WebAuthn virtual authenticator is
+    # installed - the plugin ships 302 lines of browser JavaScript that the default
+    # BrowserKit session cannot execute at all.
+    chrome:
+        image: zenika/alpine-chrome:latest
+        command:
+            - --no-sandbox
+            - --disable-gpu
+            - --disable-dev-shm-usage
+            - --disable-software-rasterizer
+            - --hide-scrollbars
+            - --remote-debugging-address=0.0.0.0
+            - --remote-debugging-port=9222
+            - --remote-allow-origins=*
+            # WebAuthn only runs in a secure context, and rp_id must match the origin's
+            # host. Serving the app as http://nginx would fail both; mapping localhost
+            # at the resolver puts the browser on http://localhost - which browsers
+            # treat as secure - while it still reaches the nginx container.
+            - --host-resolver-rules=MAP localhost nginx
+        ports:
+            - "${CHROME_HOST_MAPPING_PORT:-0}:9222"
+        networks:
+            - sylius
+
     mysql:
         image: mysql:8.0
         platform: linux/amd64

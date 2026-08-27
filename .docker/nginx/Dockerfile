@@ -6,7 +6,12 @@ ENV WORKING_DIR=/srv/sylius/tests/Application
 
 WORKDIR "${WORKING_DIR}"
 
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+# The base image ships /etc/nginx/templates/default.conf.template, and the stock
+# nginx entrypoint (20-envsubst-on-templates.sh) renders every template into
+# conf.d at container start - which overwrote a conf copied straight to conf.d,
+# so this file never took effect. Copying over the template both fixes that and
+# is what substitutes ${FASTCGI_PASS} below.
+COPY ./nginx.conf /etc/nginx/templates/default.conf.template
 
 ENV FASTCGI_PASS=php:9000
 
