@@ -30,6 +30,8 @@ use Webmozart\Assert\Assert;
  */
 class PasskeyBrowserContext extends RawMinkContext implements Context
 {
+    protected const NAVIGATION_TIMEOUT_SECONDS = 10;
+
     protected ?string $authenticatorId = null;
 
     /**
@@ -76,7 +78,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
      */
     public function theCustomerCanSignInWith(string $email, string $password): void
     {
-        $user = $this->shopUserRepository->findOneBy(['username' => $email]);
+        $user = $this->shopUserRepository->findOneBy(['usernameCanonical' => strtolower($email)]);
         Assert::isInstanceOf($user, ShopUserInterface::class, sprintf('No shop user %s.', $email));
 
         $user->setPassword($this->userPasswordHasher->hashPassword($user, $password));
@@ -122,7 +124,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
             "document.querySelector('form input[type=\"password\"]').form.submit();",
         );
 
-        $this->waitForDocumentReady();
+        $this->waitForNavigationAwayFrom('/login');
 
         if (str_contains($session->getCurrentUrl(), '/login')) {
             throw new ExpectationException(sprintf(
@@ -193,7 +195,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
 
     protected function credentialsAreValid(string $email, string $password): bool
     {
-        $user = $this->shopUserRepository->findOneBy(['username' => $email]);
+        $user = $this->shopUserRepository->findOneBy(['usernameCanonical' => strtolower($email)]);
 
         return $user instanceof ShopUserInterface
             && $this->userPasswordHasher->isPasswordValid($user, $password);
@@ -215,6 +217,29 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
     protected function waitForDocumentReady(): void
     {
         $this->getSession()->wait(10000, "document.readyState === 'complete'");
+    }
+
+    /**
+     * `form.submit()` returns before the browser starts navigating, and the document it
+     * is about to leave is still `complete` - so waiting on readyState alone measures
+     * the page we are trying to get away from and returns at once. On a fast machine
+     * the navigation wins that race anyway; on a loaded CI runner it does not, and the
+     * step reports a sign-in failure that never happened. Watch the location instead.
+     */
+    protected function waitForNavigationAwayFrom(string $urlFragment): void
+    {
+        $session = $this->getSession();
+        $deadline = microtime(true) + self::NAVIGATION_TIMEOUT_SECONDS;
+
+        while (microtime(true) < $deadline) {
+            if (!str_contains($session->getCurrentUrl(), $urlFragment)) {
+                $this->waitForDocumentReady();
+
+                return;
+            }
+
+            usleep(100000);
+        }
     }
 
     /**
