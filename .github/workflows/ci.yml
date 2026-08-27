@@ -278,7 +278,13 @@ jobs:
                       --remote-debugging-port=9222 \
                       --remote-allow-origins='*' \
                       about:blank > "${{ runner.temp }}/chrome.log" 2>&1 &
-                    until curl -sf -o /dev/null http://localhost:9222/json/version; do sleep 1; done
+                    for _ in $(seq 1 30); do
+                        curl -sf -o /dev/null http://localhost:9222/json/version && exit 0
+                        sleep 1
+                    done
+                    echo "Chrome did not open a debugging port:"
+                    cat "${{ runner.temp }}/chrome.log"
+                    exit 1
 
             -   name: Start the test web server
                 # WebAuthn refuses to run outside a secure context and wants rp_id to
@@ -291,7 +297,18 @@ jobs:
                       -t tests/Application/public \
                       tests/Application/public/index_test.php \
                       > "${{ runner.temp }}/web-server.log" 2>&1 &
-                    until curl -sf -o /dev/null http://localhost:8081/en_US/login; do sleep 1; done
+                    # Asking for a static asset rather than a page: no scenario has run
+                    # yet, so the database holds no channel and every route answers 500.
+                    # It doubles as proof that assets:install put the script in place.
+                    for _ in $(seq 1 30); do
+                        curl -sf -o /dev/null \
+                          http://localhost:8081/bundles/threebrssyliusenterprisesecurityplugin/js/passkey.js \
+                          && exit 0
+                        sleep 1
+                    done
+                    echo "Web server did not serve the passkey script:"
+                    cat "${{ runner.temp }}/web-server.log"
+                    exit 1
 
             -   name: Behat
                 run: vendor/bin/behat -p javascript --suite=shop_passkey_browser --no-interaction --format=progress
