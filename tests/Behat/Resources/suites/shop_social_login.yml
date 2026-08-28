@@ -14,5 +14,7 @@ default:
                 - sylius.behat.context.transform.shared_storage
                 - sylius.behat.context.ui.shop.login
                 - three_brs.behat.context.ui.shop.social_login
+                # Combination K6: a locked account still signs in through OAuth.
+                - three_brs.behat.context.ui.shop.alternative_sign_in
             filters:
                 tags: "@shop&&@social_login&&@ui"

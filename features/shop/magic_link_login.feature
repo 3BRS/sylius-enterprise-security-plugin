@@ -29,6 +29,20 @@ Feature: Customer magic link login
         And I follow the magic link from the email sent to "existing@example.com"
         Then I should be logged in as "existing@example.com"
 
+    @ui @combination
+    Scenario: A magic link signs in a customer whose account is locked
+        Given the customer "existing@example.com" has been locked out
+        When I request a magic link for "existing@example.com"
+        And I follow the magic link from the email sent to "existing@example.com"
+        Then I should be logged in as "existing@example.com"
+
+    @ui @combination
+    Scenario: A magic link does not ask a customer with 2FA for a second factor
+        Given the customer "existing@example.com" has 2FA enabled with a known secret
+        When I request a magic link for "existing@example.com"
+        And I follow the magic link from the email sent to "existing@example.com"
+        Then I should be signed in without a second factor as "existing@example.com"
+
     @ui
     Scenario: Following a valid magic link signs me in
         Given a valid magic link token "shop-valid-1" exists for "existing@example.com"

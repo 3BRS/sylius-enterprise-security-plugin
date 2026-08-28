@@ -210,6 +210,27 @@ class MagicLinkContext implements Context
         $this->session->visit((string) $data['magicLinkUrl']);
     }
 
+    /**
+     * The guard that refuses the request runs above the controller, so a refusal
+     * must leave the link exactly as it was — an administrator turned away by an
+     * address restriction still has to be able to use the link from an allowed
+     * address. Asserting the response code alone does not show that: Mink follows
+     * redirects, so a consumed link that signs the administrator in and then hits
+     * the same restriction on the dashboard reports the same 403.
+     *
+     * @Then the admin magic link :plainToken should still be unused
+     */
+    public function theAdminMagicLinkShouldStillBeUnused(string $plainToken): void
+    {
+        $this->entityManager->clear();
+
+        $token = $this->entityManager->getRepository(AdminUserMagicLinkToken::class)
+            ->findOneBy(['tokenHash' => $this->tokenGenerator->hash($plainToken)]);
+
+        Assert::notNull($token, sprintf('Magic link token "%s" no longer exists.', $plainToken));
+        Assert::null($token->getUsedAt(), sprintf('Magic link token "%s" was consumed by a refused request.', $plainToken));
+    }
+
     protected function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void
     {
         $user = $this->findAdminUser($email);
