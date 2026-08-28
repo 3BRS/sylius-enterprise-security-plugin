@@ -22,6 +22,19 @@ Feature: Admin can configure security settings via UI
         And I change the customer minimum password length to 16
         Then the customer password minimum length should be 16
 
+    @combination
+    Scenario: A length past the bound is refused and the stored one survives
+        # PASSWORD_POLICY_MIN_LENGTH_MAX is 64. The browser would stop 999 at the
+        # input, which is exactly why the server is asked here instead: a plain
+        # POST never sees the spinner.
+        When I am logged in as "admin@example.com" administrator
+        And I open the security settings page
+        And I switch to the "customer" scope
+        And I change the customer minimum password length to 16
+        Then the customer password minimum length should be 16
+        When I change the customer minimum password length to 999
+        Then the customer password minimum length should be 16
+
     Scenario: Admin enables passkey for customers via UI
         Given customer passkey is switched off
         When I am logged in as "admin@example.com" administrator
