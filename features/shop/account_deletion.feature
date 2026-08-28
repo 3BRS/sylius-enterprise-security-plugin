@@ -17,6 +17,14 @@ Feature: Customer self-service account deletion
         And the customer "delete-me@example.com" should be disabled
         And an account deletion request email should have been sent to "delete-me@example.com"
 
+    @ui @combination
+    Scenario: Asking for deletion ends the sessions the account is signed in on
+        Given the customer "delete-me@example.com" is signed in on another device as session "elsewhere-1"
+        When I visit the account deletion page
+        And I confirm account deletion with my password "Password1!"
+        Then a deletion request should be scheduled for "delete-me@example.com"
+        And the session "elsewhere-1" should have been ended
+
     @ui
     Scenario: Wrong password keeps the account active
         When I visit the account deletion page
