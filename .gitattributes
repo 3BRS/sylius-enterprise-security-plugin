@@ -1,14 +1,47 @@
-/.circleci export-ignore
+# What `composer require` must not pull into vendor/. Anything not listed here
+# ships to every consumer of the plugin, so a rule that silently matches nothing
+# is worse than a missing one — check with:
+#
+#   git archive --format=tar HEAD | tar -t | awk -F/ '{print $1}' | sort -u
+#
+# Directories the plugin needs at run time — src, config, templates, translations,
+# public, docs, migrations — are deliberately absent.
+
+# Development environment
 /.docker export-ignore
 /.editorconfig export-ignore
+/.envrc.dist export-ignore
+/.env.dev export-ignore
+/.env.test export-ignore
 /.gitattributes export-ignore
-/.github export-ignore
-/behat.yml.dist export-ignore
-/compose.yaml export-ignore
-/doc export-ignore
-/ecs.php export-ignore
-/features export-ignore
+/.gitignore export-ignore
+# The composer scripts that call bin/ are the root package's own, and composer
+# does not run a dependency's scripts, so consumers never reach them.
+/bin export-ignore
+/bin-docker export-ignore
+/compose.yml export-ignore
+/compose.override.dist.yaml export-ignore
 /Makefile export-ignore
-/phpstan.neon export-ignore
+/webpack.config.js export-ignore
+
+# Instructions for the assistant working on this repository
+/CLAUDE.md export-ignore
+
+# Continuous integration
+/.circleci export-ignore
+/.github export-ignore
+
+# Tests
+/behat.yml.dist export-ignore
+/features export-ignore
 /phpunit.xml.dist export-ignore
 /tests export-ignore
+
+# Static analysis and coding standard
+/ecs.php export-ignore
+/phpstan.neon export-ignore
+/rector.php export-ignore
+
+# Left behind by the old layout; kept as a rule so a reappearing directory does
+# not ship unnoticed.
+/doc export-ignore
