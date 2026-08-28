@@ -15,6 +15,15 @@ Feature: Customer self-service account deletion
         And I confirm account deletion with my password "Password1!"
         Then a deletion request should be scheduled for "delete-me@example.com"
         And the customer "delete-me@example.com" should be disabled
+        And an account deletion request email should have been sent to "delete-me@example.com"
+
+    @ui @combination
+    Scenario: Asking for deletion ends the sessions the account is signed in on
+        Given the customer "delete-me@example.com" is signed in on another device as session "elsewhere-1"
+        When I visit the account deletion page
+        And I confirm account deletion with my password "Password1!"
+        Then a deletion request should be scheduled for "delete-me@example.com"
+        And the session "elsewhere-1" should have been ended
 
     @ui
     Scenario: Wrong password keeps the account active
@@ -22,6 +31,7 @@ Feature: Customer self-service account deletion
         And I confirm account deletion with my password "WrongPassword!"
         Then no deletion request should exist for "delete-me@example.com"
         And the customer "delete-me@example.com" should be enabled
+        And no account deletion email should have been sent to "delete-me@example.com"
 
     @ui
     Scenario: With password login off the acknowledgement alone deletes the account
@@ -30,9 +40,11 @@ Feature: Customer self-service account deletion
         And I confirm account deletion without a password
         Then a deletion request should be scheduled for "delete-me@example.com"
         And the customer "delete-me@example.com" should be disabled
+        And an account deletion request email should have been sent to "delete-me@example.com"
 
     @ui
     Scenario: Anonymization runs after the grace period elapses
         Given the customer "delete-me@example.com" requested deletion 60 days ago with grace 30
         When the account deletion process-due command runs
         Then the customer formerly known as "delete-me@example.com" should be anonymized
+        And an account deletion completed email should have been sent to "delete-me@example.com"

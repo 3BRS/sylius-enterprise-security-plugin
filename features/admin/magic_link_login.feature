@@ -13,12 +13,26 @@ Feature: Admin magic link login
         When I request an admin magic link for "admin@example.com"
         Then I should see an admin magic link request confirmation
         And an admin magic link token should have been stored for "admin@example.com"
+        And an admin magic link email should have been sent to "admin@example.com"
 
     @ui
     Scenario: Requesting a magic link for an unknown admin email does not leak that fact
         When I request an admin magic link for "unknown@example.com"
         Then I should see an admin magic link request confirmation
         And no admin magic link token should have been stored for "unknown@example.com"
+        And no admin magic link email should have been sent to "unknown@example.com"
+
+    @ui
+    Scenario: The link in the email is the one that signs the administrator in
+        When I request an admin magic link for "admin@example.com"
+        And I follow the admin magic link from the email sent to "admin@example.com"
+        Then I should be logged in as admin "admin@example.com"
+
+    @ui @combination
+    Scenario: Switching magic link off for customers leaves the admin one alone
+        Given magic link is disabled for customers
+        Then the customer magic link page should be gone
+        And the admin magic link page should still be there
 
     @ui
     Scenario: Following a valid admin magic link signs me in

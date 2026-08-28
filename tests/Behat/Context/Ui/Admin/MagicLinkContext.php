@@ -5,12 +5,18 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserMagicLinkToken;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use Webmozart\Assert\Assert;
 
 class MagicLinkContext implements Context
@@ -20,7 +26,16 @@ class MagicLinkContext implements Context
         protected UserRepositoryInterface $adminUserRepository,
         protected MagicLinkTokenGeneratorInterface $tokenGenerator,
         protected EntityManagerInterface $entityManager,
+        protected SpySender $spySender,
+        protected SettingsWriterInterface $settingsWriter,
+        protected SettingsProviderInterface $settingsProvider,
     ) {
+    }
+
+    #[BeforeScenario]
+    public function resetSentEmails(): void
+    {
+        $this->spySender->reset();
     }
 
     /**
@@ -146,6 +161,124 @@ class MagicLinkContext implements Context
 
         $user = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::notNull($user, sprintf('Administrator "%s" not found.', $email));
+
+        // Leaving the magic-link page says only that something redirected, and the
+        // row above was created by the Background — neither shows a session was
+        // opened. The dashboard is behind the firewall, so reaching it without
+        // being bounced to the sign-in page is what "signed in" means.
+        $this->session->visit('/admin/');
+
+        $dashboardUrl = $this->session->getCurrentUrl();
+        Assert::notContains(
+            $dashboardUrl,
+            '/admin/login',
+            sprintf('Following the magic link left no session — the dashboard bounced to "%s".', $dashboardUrl),
+        );
+        Assert::same(200, $this->session->getStatusCode(), 'The admin dashboard was not reachable after the magic link.');
+    }
+
+    /**
+     * @Then an admin magic link email should have been sent to :email
+     */
+    public function anAdminMagicLinkEmailShouldHaveBeenSentTo(string $email): void
+    {
+        Assert::true(
+            $this->spySender->hasSentEmail(Emails::MAGIC_LINK, $email),
+            sprintf('No magic link email was sent to "%s" (sent: %s).', $email, $this->spySender->describeSentEmails()),
+        );
+    }
+
+    /**
+     * @Then no admin magic link email should have been sent to :email
+     */
+    public function noAdminMagicLinkEmailShouldHaveBeenSentTo(string $email): void
+    {
+        Assert::false(
+            $this->spySender->hasSentEmail(Emails::MAGIC_LINK, $email),
+            sprintf('A magic link email was sent to "%s" although none was expected.', $email),
+        );
+    }
+
+    /**
+     * Storing a token and mailing a usable link are different things: the token
+     * assertions above still pass when the address in the email points at the
+     * shop route or carries the stored hash instead of the plain token.
+     *
+     * @When I follow the admin magic link from the email sent to :email
+     */
+    public function iFollowTheAdminMagicLinkFromTheEmailSentTo(string $email): void
+    {
+        $data = $this->spySender->getLastSentDataTo(Emails::MAGIC_LINK, $email);
+        Assert::notNull($data, sprintf('No magic link email was sent to "%s" (sent: %s).', $email, $this->spySender->describeSentEmails()));
+        Assert::keyExists($data, 'magicLinkUrl', 'The magic link email carries no sign-in address.');
+
+        $this->session->visit((string) $data['magicLinkUrl']);
+    }
+
+    /**
+     * The guard that refuses the request runs above the controller, so a refusal
+     * must leave the link exactly as it was — an administrator turned away by an
+     * address restriction still has to be able to use the link from an allowed
+     * address. Asserting the response code alone does not show that: Mink follows
+     * redirects, so a consumed link that signs the administrator in and then hits
+     * the same restriction on the dashboard reports the same 403.
+     *
+     * @Then the admin magic link :plainToken should still be unused
+     */
+    public function theAdminMagicLinkShouldStillBeUnused(string $plainToken): void
+    {
+        $this->entityManager->clear();
+
+        $token = $this->entityManager->getRepository(AdminUserMagicLinkToken::class)
+            ->findOneBy(['tokenHash' => $this->tokenGenerator->hash($plainToken)]);
+
+        Assert::notNull($token, sprintf('Magic link token "%s" no longer exists.', $plainToken));
+        Assert::null($token->getUsedAt(), sprintf('Magic link token "%s" was consumed by a refused request.', $plainToken));
+    }
+
+    /**
+     * @Given magic link is disabled for customers
+     */
+    public function magicLinkIsDisabledForCustomers(): void
+    {
+        $this->switchMagicLink(SettingsScope::CUSTOMER, false);
+    }
+
+    /**
+     * Combination K17: a switch thrown for one scope must not answer for the other.
+     * Finding the customer page gone proves only that the switch works at all — the
+     * admin page still being there is what proves it was scoped.
+     *
+     * @Then the customer magic link page should be gone
+     */
+    public function theCustomerMagicLinkPageShouldBeGone(): void
+    {
+        $this->session->visit('/magic-link');
+
+        Assert::same(404, $this->session->getStatusCode(), sprintf(
+            'The customer magic link page answered %d after the customer switch was turned off.',
+            $this->session->getStatusCode(),
+        ));
+    }
+
+    /**
+     * @Then the admin magic link page should still be there
+     */
+    public function theAdminMagicLinkPageShouldStillBeThere(): void
+    {
+        $this->session->visit('/admin/magic-link');
+
+        Assert::same(200, $this->session->getStatusCode(), sprintf(
+            'The admin magic link page answered %d although only the customer switch was turned off.',
+            $this->session->getStatusCode(),
+        ));
+    }
+
+    protected function switchMagicLink(SettingsScope $scope, bool $enabled): void
+    {
+        $this->settingsWriter->set('magic_link.enabled', $scope, $enabled);
+        $this->settingsWriter->flush();
+        $this->settingsProvider->refresh();
     }
 
     protected function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void

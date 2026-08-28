@@ -16,7 +16,7 @@ class SpySender implements SenderInterface
      *
      * @var array<int, array{code: string, recipients: array<string>, data: array<string, mixed>}>
      */
-    private static array $sentEmails = [];
+    protected static array $sentEmails = [];
 
     public function send(
         string $code,
@@ -46,19 +46,79 @@ class SpySender implements SenderInterface
         return [];
     }
 
-    public function hasSentEmailToRecipient(string $recipient): bool
+    /**
+     * Deliberately takes the code as well: asking only whether *something*
+     * reached an address passes even when the wrong email did, and the code is
+     * what tells a login notification from a deletion notice.
+     */
+    public function hasSentEmail(string $code, string $recipient): bool
     {
+        return $this->findLastSentEmail($code, $recipient) !== null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getLastSentDataTo(string $code, string $recipient): ?array
+    {
+        return $this->findLastSentEmail($code, $recipient)['data'] ?? null;
+    }
+
+    /**
+     * Every address a given kind of email reached, in the order it went out.
+     * Asking "did it reach X" cannot see a copy that also reached somebody who
+     * should not have had one.
+     *
+     * @return list<string>
+     */
+    public function recipientsOf(string $code): array
+    {
+        $recipients = [];
+
         foreach (self::$sentEmails as $email) {
-            if (in_array($recipient, $email['recipients'], true)) {
-                return true;
+            if ($email['code'] === $code) {
+                foreach ($email['recipients'] as $recipient) {
+                    $recipients[] = $recipient;
+                }
             }
         }
 
-        return false;
+        return $recipients;
+    }
+
+    /**
+     * Renders what actually went out, so a failing expectation says which email
+     * was sent instead of merely that the expected one was not.
+     */
+    public function describeSentEmails(): string
+    {
+        if (self::$sentEmails === []) {
+            return 'no emails were sent';
+        }
+
+        return implode(', ', array_map(
+            static fn (array $email): string => sprintf('%s -> %s', $email['code'], implode('/', $email['recipients'])),
+            self::$sentEmails,
+        ));
     }
 
     public function reset(): void
     {
         self::$sentEmails = [];
+    }
+
+    /**
+     * @return array{code: string, recipients: array<string>, data: array<string, mixed>}|null
+     */
+    protected function findLastSentEmail(string $code, string $recipient): ?array
+    {
+        for ($i = count(self::$sentEmails) - 1; $i >= 0; --$i) {
+            $email = self::$sentEmails[$i];
+            if ($email['code'] === $code && in_array($recipient, $email['recipients'], true)) {
+                return $email;
+            }
+        }
+
+        return null;
     }
 }

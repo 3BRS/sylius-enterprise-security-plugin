@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
@@ -14,14 +16,20 @@ use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\SessionRecordFixtureTrait;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Command\ProcessDueAccountDeletionsCommand;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequest;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessorInterface;
 use Webmozart\Assert\Assert;
 
 class AccountDeletionContext implements Context
 {
+    use SessionRecordFixtureTrait;
+
     public function __construct(
         protected Session $session,
         protected RouterInterface $router,
@@ -30,7 +38,15 @@ class AccountDeletionContext implements Context
         protected CustomerDueDeletionsProcessorInterface $dueProcessor,
         protected EntityManagerInterface $entityManager,
         protected SharedStorageInterface $sharedStorage,
+        protected SpySender $spySender,
+        protected CustomerSessionRepositoryInterface $sessionRepository,
     ) {
+    }
+
+    #[BeforeScenario]
+    public function resetSentEmails(): void
+    {
+        $this->spySender->reset();
     }
 
     /**
@@ -173,6 +189,101 @@ class AccountDeletionContext implements Context
 
         $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::null($customer, sprintf('Customer "%s" still exists with original email.', $email));
+    }
+
+    /**
+     * @Then an account deletion request email should have been sent to :email
+     */
+    public function anAccountDeletionRequestEmailShouldHaveBeenSentTo(string $email): void
+    {
+        $data = $this->spySender->getLastSentDataTo(Emails::ACCOUNT_DELETION_REQUESTED, $email);
+        Assert::notNull($data, sprintf(
+            'No account deletion request email was sent to "%s" (sent: %s).',
+            $email,
+            $this->spySender->describeSentEmails(),
+        ));
+
+        // The email is the only place the customer learns how long they have to
+        // change their mind, so the date it announces has to be the date the
+        // processor will actually act on.
+        $request = $this->deletionRepository->findActiveForCustomer($this->loadCustomer($email));
+        Assert::notNull($request, sprintf('No pending deletion request for "%s" to compare the email against.', $email));
+
+        Assert::keyExists($data, 'scheduledFor', 'The deletion request email announces no date.');
+        Assert::isInstanceOf($data['scheduledFor'], DateTimeInterface::class);
+        Assert::same(
+            $data['scheduledFor']->format('Y-m-d H:i'),
+            $request->getScheduledFor()->format('Y-m-d H:i'),
+            'The deletion request email announces a different date than the one stored on the request.',
+        );
+    }
+
+    /**
+     * @Then no account deletion email should have been sent to :email
+     */
+    public function noAccountDeletionEmailShouldHaveBeenSentTo(string $email): void
+    {
+        Assert::false(
+            $this->spySender->hasSentEmail(Emails::ACCOUNT_DELETION_REQUESTED, $email)
+            || $this->spySender->hasSentEmail(Emails::ACCOUNT_DELETION_COMPLETED, $email),
+            sprintf('An account deletion email was sent to "%s" although none was expected.', $email),
+        );
+    }
+
+    /**
+     * @Then an account deletion completed email should have been sent to :email
+     */
+    public function anAccountDeletionCompletedEmailShouldHaveBeenSentTo(string $email): void
+    {
+        // Anonymization overwrites the address, so the notice has to leave before
+        // the customer is rewritten — asserting on the original address is what
+        // proves the order.
+        Assert::true(
+            $this->spySender->hasSentEmail(Emails::ACCOUNT_DELETION_COMPLETED, $email),
+            sprintf(
+                'No account deletion completed email was sent to "%s" (sent: %s).',
+                $email,
+                $this->spySender->describeSentEmails(),
+            ),
+        );
+    }
+
+    /**
+     * @Given the customer :email is signed in on another device as session :sessionId
+     */
+    public function theCustomerIsSignedInOnAnotherDeviceAsSession(string $email, string $sessionId): void
+    {
+        $user = $this->loadCustomer($email)->getUser();
+        Assert::isInstanceOf($user, ShopUserInterface::class);
+
+        $this->recordSessionFor($user, $sessionId);
+    }
+
+    /**
+     * Combination K12: asking for deletion has to end the sessions the account is
+     * already signed in on. Disabling the account closes the front door, but a
+     * session already open is not the front door — it is a browser somewhere still
+     * holding the account, and the grace period is exactly when somebody would
+     * notice and object.
+     *
+     * @Then the session :sessionId should have been ended
+     */
+    public function theSessionShouldHaveBeenEnded(string $sessionId): void
+    {
+        Assert::true(
+            $this->findRecordedSession($sessionId)->isRevoked(),
+            sprintf('Session "%s" is still open after the account was asked to be deleted.', $sessionId),
+        );
+    }
+
+    protected function getEntityManager(): EntityManagerInterface
+    {
+        return $this->entityManager;
+    }
+
+    protected function getSessionRepository(): CustomerSessionRepositoryInterface
+    {
+        return $this->sessionRepository;
     }
 
     protected function loadCustomer(string $email): CustomerInterface

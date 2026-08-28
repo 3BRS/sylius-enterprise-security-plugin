@@ -28,3 +28,24 @@ Feature: Customer two-factor authentication trusted-device skip
         And I sign out from the shop
         And I sign in with email "john@example.com" and password "Password1!"
         Then I should be on the 2FA challenge page
+
+    @ui @combination
+    Scenario: Revoking the sessions leaves the trusted device trusted
+        Given the customer "john@example.com" has 2FA enabled with a known secret
+        When I sign in with email "john@example.com" and password "Password1!"
+        And I submit a valid TOTP challenge code trusting this device
+        Then I should be fully authenticated
+        When every session of customer "john@example.com" is revoked
+        And I sign out from the shop
+        And I sign in with email "john@example.com" and password "Password1!"
+        Then I should be fully authenticated
+
+    @ui @combination
+    Scenario: Revoking the trusted devices leaves the sessions open
+        Given the customer "john@example.com" has 2FA enabled with a known secret
+        And a session "elsewhere-1" is recorded for customer "john@example.com"
+        When I sign in with email "john@example.com" and password "Password1!"
+        And I submit a valid TOTP challenge code trusting this device
+        Then I should be fully authenticated
+        When the customer "john@example.com" revokes all trusted devices
+        Then the recorded session "elsewhere-1" should still be open

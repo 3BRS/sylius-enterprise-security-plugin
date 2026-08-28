@@ -25,6 +25,7 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\CustomerPasswordPolicyContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="sylius.email_sender"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.password_history"
@@ -66,6 +67,7 @@
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="router"/>
 			<argument type="service" id="sylius.repository.shop_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.password_change_notification"
@@ -133,6 +135,8 @@
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.two_factor_trusted_device"
@@ -182,6 +186,7 @@
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="sylius.email_sender"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.magic_link"
@@ -190,6 +195,9 @@
 			<argument type="service" id="sylius.repository.admin_user"/>
 			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="sylius.email_sender"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.passkey"
@@ -213,6 +221,14 @@
 		<service id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\Passkey\FakeAuthenticator"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\Passkey\FakeAuthenticator"
 				 public="true"/>
+
+		<service id="three_brs.behat.context.ui.shop.alternative_sign_in"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\AlternativeSignInContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="router"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager"/>
+		</service>
 
 		<service id="three_brs.behat.context.ui.shop.passkey_ceremony"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasskeyCeremonyContext">
@@ -264,6 +280,8 @@
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
 			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
+					<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 
 
@@ -293,6 +311,13 @@
 			<argument type="service" id="sylius.repository.admin_user"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="router"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.passkey_browser"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PasskeyBrowserContext">
+			<argument type="service" id="security.user_password_hasher"/>
+			<argument type="service" id="sylius.repository.shop_user"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
 		</service>
 
 		<service id="three_brs.behat.context.hook.rate_limiter_cache"
@@ -346,6 +371,8 @@
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessor"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
+			<argument type="service" id="sylius.email_sender"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.set_password"

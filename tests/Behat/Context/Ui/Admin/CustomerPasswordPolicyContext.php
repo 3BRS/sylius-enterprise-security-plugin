@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use Webmozart\Assert\Assert;
 
 class CustomerPasswordPolicyContext implements Context
@@ -14,7 +17,14 @@ class CustomerPasswordPolicyContext implements Context
     public function __construct(
         private Session $session,
         private CustomerRepositoryInterface $customerRepository,
+        protected SpySender $spySender,
     ) {
+    }
+
+    #[BeforeScenario]
+    public function resetSentEmails(): void
+    {
+        $this->spySender->reset();
     }
 
     /**
@@ -81,5 +91,24 @@ class CustomerPasswordPolicyContext implements Context
             $this->session->getPage()->hasContent($message),
             sprintf('Expected validation error "%s" not found on page.', $message),
         );
+    }
+
+    /**
+     * Combination K13: an administrator setting somebody else's password is the
+     * one case where the notice must not follow the person who caused it. Asking
+     * only whether it reached the customer would pass just as well if a copy also
+     * went to the administrator, which is why this looks at every recipient.
+     *
+     * @Then the password change notice should have gone to :email and nobody else
+     */
+    public function thePasswordChangeNoticeShouldHaveGoneToAndNobodyElse(string $email): void
+    {
+        $recipients = $this->spySender->recipientsOf(Emails::PASSWORD_CHANGED);
+
+        Assert::same($recipients, [$email], sprintf(
+            'The password change notice went to %s; it belongs to "%s" alone.',
+            $recipients === [] ? 'nobody' : '"' . implode('", "', $recipients) . '"',
+            $email,
+        ));
     }
 }

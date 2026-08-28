@@ -14,5 +14,9 @@ default:
                 - sylius.behat.context.transform.shared_storage
                 - three_brs.behat.context.ui.shop.two_factor_setup
                 - three_brs.behat.context.ui.shop.two_factor_enforcement
+                # Combination K3: enforcement with password login switched off, where
+                # the only way in is the very path enforcement redirects away from.
+                - three_brs.behat.context.ui.shop.password_login
+                - three_brs.behat.context.ui.shop.magic_link
             filters:
                 tags: "@shop&&@two_factor_enforcement&&@ui"

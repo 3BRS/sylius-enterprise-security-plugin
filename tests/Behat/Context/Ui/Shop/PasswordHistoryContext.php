@@ -13,6 +13,8 @@ use Webmozart\Assert\Assert;
 
 class PasswordHistoryContext implements Context
 {
+    protected const RECENTLY_USED_MESSAGE = 'This password has been used recently';
+
     public function __construct(
         private Session $session,
         private CustomerRepositoryInterface $customerRepository,
@@ -45,8 +47,25 @@ class PasswordHistoryContext implements Context
     public function iShouldBeNotifiedThatThisPasswordWasRecentlyUsed(): void
     {
         Assert::true(
-            $this->session->getPage()->hasContent('This password has been used recently'),
+            $this->session->getPage()->hasContent(self::RECENTLY_USED_MESSAGE),
             'Expected password history validation error not found on page.',
+        );
+    }
+
+    /**
+     * Combination K10: the two rejections must stay distinguishable. Asserting only
+     * that the right one appeared would pass on a page that shows both.
+     *
+     * @Then I should not be notified that this password was recently used
+     */
+    public function iShouldNotBeNotifiedThatThisPasswordWasRecentlyUsed(): void
+    {
+        $content = (string) $this->session->getPage()->getContent();
+
+        Assert::notContains(
+            $content,
+            self::RECENTLY_USED_MESSAGE,
+            'The page blames the password history for a rejection that was about the policy.',
         );
     }
 

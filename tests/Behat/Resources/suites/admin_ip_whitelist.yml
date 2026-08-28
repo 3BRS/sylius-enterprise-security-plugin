@@ -14,5 +14,8 @@ default:
                 - sylius.behat.context.transform.shared_storage
                 - sylius.behat.context.ui.admin.login
                 - three_brs.behat.context.ui.admin.ip_whitelist
+                # Combination K8: a magic link must not carry an administrator past
+                # the address restriction.
+                - three_brs.behat.context.ui.admin.magic_link
             filters:
                 tags: "@admin&&@ip_whitelist&&@ui"

@@ -13,6 +13,7 @@ use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Sylius\Component\User\Security\PasswordUpdaterInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use Webmozart\Assert\Assert;
 
 class PasswordChangeNotificationContext implements Context
@@ -64,7 +65,7 @@ class PasswordChangeNotificationContext implements Context
     public function aPasswordChangeNotificationEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::true(
-            $this->spySender->hasSentEmailToRecipient($email),
+            $this->spySender->hasSentEmail(Emails::PASSWORD_CHANGED, $email),
             sprintf('Expected a password change notification email to be sent to "%s", but it was not.', $email),
         );
     }
@@ -93,5 +94,44 @@ class PasswordChangeNotificationContext implements Context
         $page->find('css', '[data-test-password-reset-new]')?->setValue($newPassword);
         $page->find('css', '[data-test-password-reset-confirmation]')?->setValue($newPassword);
         $page->pressButton('Reset');
+    }
+
+    /**
+     * The template only prints the "somebody else did this" warning and the reset
+     * link when `initiatedByUser` is false, so the flag decides whether the email
+     * is a receipt or an alarm — and nothing else in the suite reads it.
+     *
+     * @Then the password change notification to :email should read as self-initiated
+     */
+    public function thePasswordChangeNotificationToShouldReadAsSelfInitiated(string $email): void
+    {
+        Assert::false($this->somebodyElseChangedThePasswordOf($email), sprintf(
+            'The password change notification to "%s" warns that somebody else made the change.',
+            $email,
+        ));
+    }
+
+    /**
+     * @Then the password change notification to :email should warn that somebody else changed it
+     */
+    public function thePasswordChangeNotificationToShouldWarnThatSomebodyElseChangedIt(string $email): void
+    {
+        Assert::true($this->somebodyElseChangedThePasswordOf($email), sprintf(
+            'The password change notification to "%s" reads as self-initiated.',
+            $email,
+        ));
+    }
+
+    protected function somebodyElseChangedThePasswordOf(string $email): bool
+    {
+        $data = $this->spySender->getLastSentDataTo(Emails::PASSWORD_CHANGED, $email);
+        Assert::notNull($data, sprintf(
+            'No password change notification was sent to "%s" (sent: %s).',
+            $email,
+            $this->spySender->describeSentEmails(),
+        ));
+        Assert::keyExists($data, 'initiatedByUser', 'The password change notification does not say who made the change.');
+
+        return $data['initiatedByUser'] === false;
     }
 }

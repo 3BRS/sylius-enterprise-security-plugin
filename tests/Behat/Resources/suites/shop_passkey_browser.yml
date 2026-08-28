@@ -1,9 +1,14 @@
-default:
+# Declared under its own profile, not `default`: this suite needs the chrome and
+# nginx containers, which the CI workflow does not yet start. Run it with
+# `vendor/bin/behat -p javascript`. Behat merges the default profile in, so the
+# extensions configured there still apply.
+javascript:
     suites:
-        shop_passkey_ceremony:
+        shop_passkey_browser:
             contexts:
                 - sylius.behat.context.hook.doctrine_orm
                 - three_brs.behat.context.hook.security_settings
+                - three_brs.behat.context.hook.rate_limiter_cache
                 - sylius.behat.context.setup.channel
                 - sylius.behat.context.setup.currency
                 - sylius.behat.context.setup.geographical
@@ -12,7 +17,6 @@ default:
                 - sylius.behat.context.setup.shop_security
                 - sylius.behat.context.transform.shared_storage
                 - three_brs.behat.context.ui.shop.passkey_ceremony
-                # Combination K2: a passkey signs in past the second factor.
-                - three_brs.behat.context.ui.shop.two_factor_login
+                - three_brs.behat.context.ui.shop.passkey_browser
             filters:
-                tags: "@shop&&@passkey_ceremony&&@ui"
+                tags: "@shop&&@passkey_browser&&@javascript"

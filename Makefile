@@ -1,7 +1,6 @@
 .PHONY: run up down init var ci
 
 MAKEFLAGS += --no-print-directory # to disable "make: Entering directory ..." messages
-export COMPOSE_FILE := compose.yml:compose.override.yaml
 
 run: init
 
@@ -14,9 +13,10 @@ down:
 init:
 	which docker > /dev/null || (echo "Please install docker binary" && exit 1)
 	if command -v direnv &> /dev/null; then \
-		cp --update=none .envrc.dist .envrc; \
+		[ -f .envrc ] || cp .envrc.dist .envrc; \
 		direnv allow; \
 	fi
+	[ -f compose.override.yaml ] || cp compose.override.dist.yaml compose.override.yaml
 	docker compose up -d
 	./bin-docker/composer install
 	docker compose exec -T -u root php rm -rf "tests/Application/var/$(APP_ENV)"
@@ -25,7 +25,7 @@ init:
 	./bin-docker/php ./bin/console doctrine:migrations:migrate --no-interaction
 	./bin-docker/php ./bin/console doctrine:schema:update --no-interaction --complete --force
 	./bin-docker/php ./bin/console doctrine:migration:sync-metadata-storage
-	./bin-docker/php ./bin/console assets:install
+	./bin-docker/php ./bin/console assets:install tests/Application/public
 	./bin-docker/yarn --cwd=tests/Application install --pure-lockfile
 	GULP_ENV=prod ./bin-docker/yarn --cwd=tests/Application build
 	@make var
@@ -33,9 +33,10 @@ init:
 init-tests:
 	which docker > /dev/null || (echo "Please install docker binary" && exit 1)
 	if command -v direnv &> /dev/null; then \
-		cp --update=none .envrc.dist .envrc; \
+		[ -f .envrc ] || cp .envrc.dist .envrc; \
 		direnv allow; \
 	fi
+	[ -f compose.override.yaml ] || cp compose.override.dist.yaml compose.override.yaml
 	docker compose up -d
 	./bin-docker/composer install
 	@make var
@@ -44,7 +45,7 @@ init-tests:
 	./bin-docker/php ./bin/console --env=test doctrine:migrations:migrate --no-interaction
 	./bin-docker/php ./bin/console --env=test doctrine:schema:update --no-interaction --complete --force
 	./bin-docker/php ./bin/console --env=test doctrine:migration:sync-metadata-storage
-	./bin-docker/php ./bin/console --env=test assets:install
+	./bin-docker/php ./bin/console --env=test assets:install tests/Application/public
 	./bin-docker/yarn --cwd=tests/Application install --pure-lockfile
 	GULP_ENV=prod ./bin-docker/yarn --cwd=tests/Application build
 	@make var
@@ -71,6 +72,12 @@ phpunit:
 
 behat:
 	./bin-docker/docker-bash bin/behat.sh
+
+# Inverts every assertion of absence in the Behat contexts and insists the suite
+# notices. Not part of `make tests`: it runs the whole suite several times, and the
+# thing it guards changes only when assertions are written.
+assertion-sweep:
+	./bin-docker/docker-bash -c "php bin/assertion_sweep.php $(ARGS)"
 
 ecs:
 	./bin-docker/docker-bash bin/ecs.sh

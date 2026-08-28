@@ -14,5 +14,10 @@ default:
                 - sylius.behat.context.transform.shared_storage
                 - sylius.behat.context.ui.shop.login
                 - three_brs.behat.context.ui.shop.magic_link
+                # Combinations K1 and K5 from docs/manual-test-plan.md: a magic link
+                # meets the second factor and the lockout, both of which guard the
+                # password form only.
+                - three_brs.behat.context.ui.shop.two_factor_login
+                - three_brs.behat.context.ui.shop.alternative_sign_in
             filters:
                 tags: "@shop&&@magic_link&&@ui"

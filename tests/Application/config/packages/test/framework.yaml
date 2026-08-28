@@ -1,4 +1,14 @@
 framework:
     test: ~
     session:
-        storage_factory_id: session.storage.factory.mock_file
+        # A real browser keeps its session in a cookie, which the mock_file storage the
+        # rest of the test setup would use does not honour - it fakes persistence for
+        # BrowserKit and drops what a browser sends.
+        storage_factory_id: session.storage.factory.native
+        # With the default null handler, save_path is left to php.ini, and PHP then
+        # garbage-collects into a system directory the process may not own: on CI that
+        # is /var/lib/php/sessions, and gc_probability makes it fail on roughly one
+        # request in a hundred, in whichever scenario happened to draw it. Naming a
+        # handler puts the sessions, and their collection, inside the app's cache.
+        handler_id: session.handler.native_file
+        save_path: '%kernel.cache_dir%/sessions'
