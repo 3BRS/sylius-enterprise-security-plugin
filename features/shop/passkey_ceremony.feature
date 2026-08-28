@@ -8,13 +8,13 @@ Feature: Customer passkey registration and login ceremony
         Given the store operates on a single channel in "United States"
         And there is a customer account "passkey-user@example.com" identified by "Pass1Word!"
 
-    @ui
+    @ui @T40
     Scenario: Registering a passkey persists a credential for the user
         Given I am logged in to the shop as "passkey-user@example.com"
         When I register a shop passkey labelled "MacBook Touch ID"
         Then a shop passkey labelled "MacBook Touch ID" should be stored for "passkey-user@example.com"
 
-    @ui
+    @ui @T41
     Scenario: Signing in with a previously registered passkey succeeds
         Given I am logged in to the shop as "passkey-user@example.com"
         And I register a shop passkey labelled "iPhone"

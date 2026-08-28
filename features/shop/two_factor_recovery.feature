@@ -8,7 +8,7 @@ Feature: Customer two-factor authentication recovery-code fallback
         Given the store operates on a single channel in "United States"
         And there is a customer account "john@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T24
     Scenario: Customer uses a valid recovery code to complete 2FA challenge
         Given the customer "john@example.com" has 2FA enabled with recovery codes
         When I sign in with email "john@example.com" and password "Password1!"

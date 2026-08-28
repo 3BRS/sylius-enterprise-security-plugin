@@ -12,6 +12,7 @@ Feature: Global password login switch (shop)
         When I attempt to sign in with email "customer@example.com" and password "Password1!"
         Then I should be signed in to the shop
 
+    @T71
     Scenario: Password sign-in is not offered while the switch is off
         Given password login is disabled for customers
         When I visit the shop login page

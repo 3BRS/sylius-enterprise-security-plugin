@@ -9,7 +9,7 @@ Feature: Customer two-factor authentication enforcement
         And there is a customer account "john@example.com" identified by "Password1!"
         And 2FA enforcement is enabled for customers
 
-    @ui
+    @ui @T21
     Scenario: Customer without 2FA is redirected to the setup page
         Given I am logged in as "john@example.com"
         When I visit the account dashboard

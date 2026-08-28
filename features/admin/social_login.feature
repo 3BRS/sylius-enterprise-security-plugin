@@ -8,7 +8,7 @@ Feature: Admin social login (OAuth)
         Given the store operates on a single channel in "United States"
         And there is an administrator "admin@example.com" identified by "AdminPass1!"
 
-    @ui
+    @ui @T34
     Scenario: First-time admin social login auto-registers an admin account
         Given the "google" OAuth provider will return admin user "g-admin-1" with email "newadmin@example.com"
         When I click the admin "google" social login button

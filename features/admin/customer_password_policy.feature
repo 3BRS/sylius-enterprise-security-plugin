@@ -33,7 +33,7 @@ Feature: Admin editing customer password policy
         When I change the password of customer "john@example.com" to "StrongPass1!"
         Then the customer should be saved successfully
 
-    @ui @combination
+    @ui @combination @T16
     Scenario: The notice about a password an administrator set goes to the customer
         # An account, not just a customer record: the Background's customer has no
         # sign-in yet, and giving one a first password is a create rather than a

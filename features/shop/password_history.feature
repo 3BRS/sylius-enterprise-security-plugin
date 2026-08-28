@@ -9,7 +9,7 @@ Feature: Customer password history
         And there is a customer account "john@example.com" identified by "CurrentPass1!"
         And I am logged in as "john@example.com"
 
-    @ui
+    @ui @T06
     Scenario: Customer cannot reuse a password from their history
         Given the password "OldPass1!" is in the history of customer "john@example.com"
         When I want to change my password
@@ -23,7 +23,7 @@ Feature: Customer password history
         And I change my password from "CurrentPass1!" to "BrandNewPass1!"
         Then my password should be changed successfully
 
-    @ui @combination
+    @ui @combination @T08
     Scenario: History is per account — one customer's old password is free for another
         Given the password "SharedPass1!" is in the history of customer "john@example.com"
         # This account is created last on purpose: Sylius' account step swaps the

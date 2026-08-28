@@ -11,7 +11,7 @@ Feature: Admin can cancel pending account deletion requests
         And the customer "delete-me@example.com" requested deletion 1 days ago with grace 30
         And I am logged in as "admin@example.com" administrator
 
-    @ui
+    @ui @T61
     Scenario: Admin sees the pending request and cancels it
         When I open the account deletions admin page
         Then I should see "delete-me@example.com" in the pending deletions list

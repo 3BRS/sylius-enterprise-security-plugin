@@ -8,14 +8,14 @@ Feature: Customer two-factor authentication setup
         Given the store operates on a single channel in "United States"
         And there is a customer account "john@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T22
     Scenario: Customer sees the 2FA setup page with QR code and secret
         Given I am logged in as "john@example.com"
         When I visit the 2FA setup page
         Then I should see the 2FA QR code
         And I should see the TOTP secret
 
-    @ui
+    @ui @T20
     Scenario: Customer enables 2FA with a valid TOTP code
         Given I am logged in as "john@example.com"
         When I visit the 2FA setup page
@@ -39,7 +39,7 @@ Feature: Customer two-factor authentication setup
         When I visit the 2FA setup page
         Then I should see the 2FA disable button
 
-    @ui
+    @ui @T19
     Scenario: Customer disables 2FA
         Given the customer "john@example.com" already has 2FA enabled with recovery codes
         And I am logged in as "john@example.com"
@@ -48,7 +48,7 @@ Feature: Customer two-factor authentication setup
         Then 2FA should not be enabled for "john@example.com"
         And the customer should have no recovery codes
 
-    @ui
+    @ui @T25
     Scenario: Customer regenerates recovery codes — previous ones stop working
         Given the customer "john@example.com" already has 2FA enabled with recovery codes
         And I am logged in as "john@example.com"

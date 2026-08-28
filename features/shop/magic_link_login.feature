@@ -8,7 +8,7 @@ Feature: Customer magic link login
         Given the store operates on a single channel in "United States"
         And there is a customer account "existing@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T35
     Scenario: Requesting a magic link for an existing account shows a neutral confirmation
         When I request a magic link for "existing@example.com"
         Then I should see a magic link request confirmation
@@ -16,14 +16,14 @@ Feature: Customer magic link login
         And a magic link email should have been sent to "existing@example.com"
         And the magic link email to "existing@example.com" should expire in 5 minutes
 
-    @ui
+    @ui @T39
     Scenario: Requesting a magic link for an unknown email does not leak that fact
         When I request a magic link for "unknown@example.com"
         Then I should see a magic link request confirmation
         And no magic link token should have been stored for "unknown@example.com"
         And no magic link email should have been sent to "unknown@example.com"
 
-    @ui
+    @ui @T36
     Scenario: The link in the email is the one that signs the customer in
         When I request a magic link for "existing@example.com"
         And I follow the magic link from the email sent to "existing@example.com"
@@ -49,13 +49,13 @@ Feature: Customer magic link login
         When I follow the magic link "shop-valid-1"
         Then I should be logged in as "existing@example.com"
 
-    @ui
+    @ui @T38
     Scenario: Following an expired magic link fails
         Given an expired magic link token "shop-expired-1" exists for "existing@example.com"
         When I follow the magic link "shop-expired-1"
         Then I should see a magic link invalid-or-expired error
 
-    @ui
+    @ui @T37
     Scenario: Already-used magic link can no longer be used
         Given a used magic link token "shop-used-1" exists for "existing@example.com"
         When I follow the magic link "shop-used-1"

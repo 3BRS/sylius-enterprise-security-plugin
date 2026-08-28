@@ -8,7 +8,7 @@ Feature: Customer social login (OAuth)
         Given the store operates on a single channel in "United States"
         And there is a customer account "existing@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T29
     Scenario: First-time social login creates a new account and logs me in
         Given the "google" OAuth provider will return user "g-new-1" with email "new@example.com"
         When I click the "google" social login button
@@ -38,7 +38,7 @@ Feature: Customer social login (OAuth)
         Then I should be on the social link confirm page
         And an account linking code email should have been sent to "existing@example.com"
 
-    @ui
+    @ui @T30
     Scenario: Confirming with the correct code links the social account
         Given the "google" OAuth provider will return user "g-new-3" with email "existing@example.com"
         When I click the "google" social login button
@@ -46,7 +46,7 @@ Feature: Customer social login (OAuth)
         Then I should be logged in as "existing@example.com"
         And a social link should exist for "existing@example.com" with "google" and provider id "g-new-3"
 
-    @ui
+    @ui @T31
     Scenario: Confirming with the wrong code shows an error
         Given the "google" OAuth provider will return user "g-new-4" with email "existing@example.com"
         When I click the "google" social login button
@@ -61,7 +61,7 @@ Feature: Customer social login (OAuth)
         When I click the "google" link button on the social accounts page
         Then a social link should exist for "existing@example.com" with "google" and provider id "g-link-1"
 
-    @ui
+    @ui @T32
     Scenario: Customer unlinks a social account from the social accounts page
         Given the customer "existing@example.com" is already linked to "google" with id "g-unlink-1"
         And I am logged in as "existing@example.com"

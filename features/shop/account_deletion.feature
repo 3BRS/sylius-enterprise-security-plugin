@@ -9,7 +9,7 @@ Feature: Customer self-service account deletion
         And there is a customer account "delete-me@example.com" identified by "Password1!"
         And I am logged in as "delete-me@example.com"
 
-    @ui
+    @ui @T60
     Scenario: Customer requests account deletion via UI
         When I visit the account deletion page
         And I confirm account deletion with my password "Password1!"
@@ -42,7 +42,7 @@ Feature: Customer self-service account deletion
         And the customer "delete-me@example.com" should be disabled
         And an account deletion request email should have been sent to "delete-me@example.com"
 
-    @ui
+    @ui @T62
     Scenario: Anonymization runs after the grace period elapses
         Given the customer "delete-me@example.com" requested deletion 60 days ago with grace 30
         When the account deletion process-due command runs

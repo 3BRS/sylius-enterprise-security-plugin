@@ -8,19 +8,19 @@ Feature: Customer session management
         Given the store operates on a single channel in "United States"
         And there is a customer account "alice@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T52
     Scenario: Customer sees their current session in the list after logging in
         When I sign in with email "alice@example.com" and password "Password1!"
         And I visit my active sessions page
         Then I should see exactly 1 active session
         And I should see my current session marker
 
-    @ui
+    @ui @T57
     Scenario: Customer receives a login notification email on first login from a new device
         When I sign in with email "alice@example.com" and password "Password1!"
         Then a login notification email should have been sent to "alice@example.com"
 
-    @ui
+    @ui @T58
     Scenario: Customer does not receive a login notification email on a second login from the same device
         When I sign in with email "alice@example.com" and password "Password1!"
         And login notification emails are cleared again
@@ -28,7 +28,7 @@ Feature: Customer session management
         And I sign in with email "alice@example.com" and password "Password1!"
         Then no login notification email should have been sent to "alice@example.com"
 
-    @ui
+    @ui @T53 @T54
     Scenario: Customer revokes another session and is signed out from it on the next request
         Given the customer "alice@example.com" has another active session "other-shop-session"
         When I sign in with email "alice@example.com" and password "Password1!"
@@ -36,7 +36,7 @@ Feature: Customer session management
         And I revoke the other shop session "other-shop-session"
         Then the shop session "other-shop-session" should be revoked
 
-    @ui
+    @ui @T55
     Scenario: Customer revokes all other sessions at once and only the current one remains active
         Given the customer "alice@example.com" has another active session "other-shop-session-a"
         And the customer "alice@example.com" has another active session "other-shop-session-b"
