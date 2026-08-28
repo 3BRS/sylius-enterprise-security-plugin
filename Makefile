@@ -73,6 +73,12 @@ phpunit:
 behat:
 	./bin-docker/docker-bash bin/behat.sh
 
+# Inverts every assertion of absence in the Behat contexts and insists the suite
+# notices. Not part of `make tests`: it runs the whole suite several times, and the
+# thing it guards changes only when assertions are written.
+assertion-sweep:
+	./bin-docker/docker-bash -c "php bin/assertion_sweep.php $(ARGS)"
+
 ecs:
 	./bin-docker/docker-bash bin/ecs.sh
 
