@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -26,6 +27,12 @@ class SocialLoginContext implements Context
         private FakeOAuthStateInterface $fakeOAuthState,
         private SpySender $spySender,
     ) {
+    }
+
+    #[BeforeScenario]
+    public function resetSentEmails(): void
+    {
+        $this->spySender->reset();
     }
 
     /**
@@ -213,6 +220,25 @@ class SocialLoginContext implements Context
         Assert::isInstanceOf($user, ShopUserInterface::class);
 
         return $user;
+    }
+
+    /**
+     * The confirm-code scenarios below prove the code the form accepts, but not
+     * that one ever leaves for the customer: they read it straight out of the spy.
+     * This says an email really went out, and in the shape the form expects.
+     *
+     * @Then an account linking code email should have been sent to :email
+     */
+    public function anAccountLinkingCodeEmailShouldHaveBeenSentTo(string $email): void
+    {
+        $data = $this->spySender->getLastSentDataTo(Emails::OAUTH_LINK_CODE, $email);
+        Assert::notNull($data, sprintf(
+            'No account linking code was emailed to "%s" (sent: %s).',
+            $email,
+            $this->spySender->describeSentEmails(),
+        ));
+        Assert::keyExists($data, 'code', 'The account linking email carries no code.');
+        Assert::regex((string) $data['code'], '/^\\d{6}$/', 'The emailed account linking code is not a six-digit code.');
     }
 
     private function emailedLinkCode(): string

@@ -13,12 +13,21 @@ Feature: Customer magic link login
         When I request a magic link for "existing@example.com"
         Then I should see a magic link request confirmation
         And a magic link token should have been stored for "existing@example.com"
+        And a magic link email should have been sent to "existing@example.com"
+        And the magic link email to "existing@example.com" should expire in 5 minutes
 
     @ui
     Scenario: Requesting a magic link for an unknown email does not leak that fact
         When I request a magic link for "unknown@example.com"
         Then I should see a magic link request confirmation
         And no magic link token should have been stored for "unknown@example.com"
+        And no magic link email should have been sent to "unknown@example.com"
+
+    @ui
+    Scenario: The link in the email is the one that signs the customer in
+        When I request a magic link for "existing@example.com"
+        And I follow the magic link from the email sent to "existing@example.com"
+        Then I should be logged in as "existing@example.com"
 
     @ui
     Scenario: Following a valid magic link signs me in

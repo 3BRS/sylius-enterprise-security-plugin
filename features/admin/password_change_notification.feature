@@ -27,6 +27,7 @@ Feature: Admin user password change notification
         And I change their password to "NewBob1!Password"
         And I save my changes
         Then a password change notification email should have been sent to admin "bob@example.com"
+        And the password change notification to admin "bob@example.com" should warn that somebody else changed it
         And no password change notification email should have been sent to admin "alice@example.com"
 
     @ui
@@ -39,6 +40,7 @@ Feature: Admin user password change notification
         And I change their password to "NewAdmin1!Pass"
         And I save my changes
         Then a password change notification email should have been sent to admin "admin@example.com"
+        And the password change notification to admin "admin@example.com" should read as self-initiated
 
     @ui
     Scenario: Admin receives notification email after completing a forced password change

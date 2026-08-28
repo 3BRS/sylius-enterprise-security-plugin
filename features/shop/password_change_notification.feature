@@ -17,6 +17,7 @@ Feature: Customer password change notification
         And I change my password from "Password1!" to "Zt7#Marigold"
         Then my password should be changed successfully
         And a password change notification email should have been sent to "john@example.com"
+        And the password change notification to "john@example.com" should read as self-initiated
 
     @ui
     Scenario: Customer receives notification email after resetting their forgotten password
@@ -26,3 +27,4 @@ Feature: Customer password change notification
         And all password change notification emails are cleared
         When I reset my password using token "resetMe1234" to "Zt7#Marigold"
         Then a password change notification email should have been sent to "john@example.com"
+        And the password change notification to "john@example.com" should read as self-initiated

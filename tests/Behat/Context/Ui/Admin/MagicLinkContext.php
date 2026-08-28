@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserMagicLinkToken;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
 use Webmozart\Assert\Assert;
 
@@ -20,7 +23,14 @@ class MagicLinkContext implements Context
         protected UserRepositoryInterface $adminUserRepository,
         protected MagicLinkTokenGeneratorInterface $tokenGenerator,
         protected EntityManagerInterface $entityManager,
+        protected SpySender $spySender,
     ) {
+    }
+
+    #[BeforeScenario]
+    public function resetSentEmails(): void
+    {
+        $this->spySender->reset();
     }
 
     /**
@@ -146,6 +156,58 @@ class MagicLinkContext implements Context
 
         $user = $this->adminUserRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::notNull($user, sprintf('Administrator "%s" not found.', $email));
+
+        // Leaving the magic-link page says only that something redirected, and the
+        // row above was created by the Background — neither shows a session was
+        // opened. The dashboard is behind the firewall, so reaching it without
+        // being bounced to the sign-in page is what "signed in" means.
+        $this->session->visit('/admin/');
+
+        $dashboardUrl = $this->session->getCurrentUrl();
+        Assert::notContains(
+            $dashboardUrl,
+            '/admin/login',
+            sprintf('Following the magic link left no session — the dashboard bounced to "%s".', $dashboardUrl),
+        );
+        Assert::same(200, $this->session->getStatusCode(), 'The admin dashboard was not reachable after the magic link.');
+    }
+
+    /**
+     * @Then an admin magic link email should have been sent to :email
+     */
+    public function anAdminMagicLinkEmailShouldHaveBeenSentTo(string $email): void
+    {
+        Assert::true(
+            $this->spySender->hasSentEmail(Emails::MAGIC_LINK, $email),
+            sprintf('No magic link email was sent to "%s" (sent: %s).', $email, $this->spySender->describeSentEmails()),
+        );
+    }
+
+    /**
+     * @Then no admin magic link email should have been sent to :email
+     */
+    public function noAdminMagicLinkEmailShouldHaveBeenSentTo(string $email): void
+    {
+        Assert::false(
+            $this->spySender->hasSentEmail(Emails::MAGIC_LINK, $email),
+            sprintf('A magic link email was sent to "%s" although none was expected.', $email),
+        );
+    }
+
+    /**
+     * Storing a token and mailing a usable link are different things: the token
+     * assertions above still pass when the address in the email points at the
+     * shop route or carries the stored hash instead of the plain token.
+     *
+     * @When I follow the admin magic link from the email sent to :email
+     */
+    public function iFollowTheAdminMagicLinkFromTheEmailSentTo(string $email): void
+    {
+        $data = $this->spySender->getLastSentDataTo(Emails::MAGIC_LINK, $email);
+        Assert::notNull($data, sprintf('No magic link email was sent to "%s" (sent: %s).', $email, $this->spySender->describeSentEmails()));
+        Assert::keyExists($data, 'magicLinkUrl', 'The magic link email carries no sign-in address.');
+
+        $this->session->visit((string) $data['magicLinkUrl']);
     }
 
     protected function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void
