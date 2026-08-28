@@ -13,6 +13,9 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Lockout\LockableShopUserInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManagerInterface;
 use Webmozart\Assert\Assert;
 
@@ -26,6 +29,8 @@ class LockoutContext implements Context
         protected ShopUserLockoutManagerInterface $lockoutManager,
         protected SharedStorageInterface $sharedStorage,
         protected CacheItemPoolInterface $rateLimiterCachePool,
+        protected SettingsWriterInterface $settingsWriter,
+        protected SettingsProviderInterface $settingsProvider,
     ) {
     }
 
@@ -177,6 +182,53 @@ class LockoutContext implements Context
     {
         $url = (string) $this->session->getCurrentUrl();
         Assert::contains($url, '/login', sprintf('Expected to stay on the login page; got %s.', $url));
+    }
+
+    /**
+     * Combination K4 wants the two guards at several ratios, and the shipped
+     * configuration only offers one - lockout at five, the login rate limit at
+     * five, which is the ratio where they collide. These set the values the
+     * scenario is about rather than leaving them to the test application's YAML.
+     *
+     * @Given customer lockout trips after :count failed sign-ins
+     */
+    public function customerLockoutTripsAfterFailedSignIns(int $count): void
+    {
+        $this->writeSetting('account_lockout.max_attempts', $count);
+    }
+
+    /**
+     * @Given the customer login rate limit allows :count attempts per :interval
+     */
+    public function theCustomerLoginRateLimitAllowsAttemptsPer(int $count, string $interval): void
+    {
+        $this->writeSetting('rate_limit.login.enabled', true);
+        $this->writeSetting('rate_limit.login.limit', $count);
+        $this->writeSetting('rate_limit.login.interval', $interval);
+    }
+
+    /**
+     * Worded apart from the rate-limit suite's own step on purpose: that context and
+     * this one both answer for sign-in attempts, and Behat refuses a suite in which
+     * one step text is defined twice.
+     *
+     * @Then I should be told there have been too many requests
+     */
+    public function iShouldBeToldThereHaveBeenTooManyRequests(): void
+    {
+        $content = (string) $this->session->getPage()->getContent();
+
+        Assert::true(
+            str_contains($content, 'three_brs.rate_limit.too_many_requests') || str_contains($content, 'Too many requests'),
+            'The page says nothing about the rate limit.',
+        );
+    }
+
+    protected function writeSetting(string $path, mixed $value): void
+    {
+        $this->settingsWriter->set($path, SettingsScope::CUSTOMER, $value);
+        $this->settingsWriter->flush();
+        $this->settingsProvider->refresh();
     }
 
     protected function loadShopUser(string $email): LockableShopUserInterface
