@@ -280,6 +280,8 @@
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
 			<argument type="service" id="three_brs.rate_limiter.cache_pool"/>
+					<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 
 
