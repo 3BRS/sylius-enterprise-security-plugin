@@ -196,6 +196,8 @@
 			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="sylius.email_sender"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsWriter"/>
+			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.passkey"

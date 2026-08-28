@@ -14,6 +14,9 @@ use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserMagicLinkToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
+use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 use Webmozart\Assert\Assert;
 
 class MagicLinkContext implements Context
@@ -24,6 +27,8 @@ class MagicLinkContext implements Context
         protected MagicLinkTokenGeneratorInterface $tokenGenerator,
         protected EntityManagerInterface $entityManager,
         protected SpySender $spySender,
+        protected SettingsWriterInterface $settingsWriter,
+        protected SettingsProviderInterface $settingsProvider,
     ) {
     }
 
@@ -229,6 +234,51 @@ class MagicLinkContext implements Context
 
         Assert::notNull($token, sprintf('Magic link token "%s" no longer exists.', $plainToken));
         Assert::null($token->getUsedAt(), sprintf('Magic link token "%s" was consumed by a refused request.', $plainToken));
+    }
+
+    /**
+     * @Given magic link is disabled for customers
+     */
+    public function magicLinkIsDisabledForCustomers(): void
+    {
+        $this->switchMagicLink(SettingsScope::CUSTOMER, false);
+    }
+
+    /**
+     * Combination K17: a switch thrown for one scope must not answer for the other.
+     * Finding the customer page gone proves only that the switch works at all — the
+     * admin page still being there is what proves it was scoped.
+     *
+     * @Then the customer magic link page should be gone
+     */
+    public function theCustomerMagicLinkPageShouldBeGone(): void
+    {
+        $this->session->visit('/magic-link');
+
+        Assert::same(404, $this->session->getStatusCode(), sprintf(
+            'The customer magic link page answered %d after the customer switch was turned off.',
+            $this->session->getStatusCode(),
+        ));
+    }
+
+    /**
+     * @Then the admin magic link page should still be there
+     */
+    public function theAdminMagicLinkPageShouldStillBeThere(): void
+    {
+        $this->session->visit('/admin/magic-link');
+
+        Assert::same(200, $this->session->getStatusCode(), sprintf(
+            'The admin magic link page answered %d although only the customer switch was turned off.',
+            $this->session->getStatusCode(),
+        ));
+    }
+
+    protected function switchMagicLink(SettingsScope $scope, bool $enabled): void
+    {
+        $this->settingsWriter->set('magic_link.enabled', $scope, $enabled);
+        $this->settingsWriter->flush();
+        $this->settingsProvider->refresh();
     }
 
     protected function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void

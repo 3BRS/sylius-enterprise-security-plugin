@@ -28,6 +28,12 @@ Feature: Admin magic link login
         And I follow the admin magic link from the email sent to "admin@example.com"
         Then I should be logged in as admin "admin@example.com"
 
+    @ui @combination
+    Scenario: Switching magic link off for customers leaves the admin one alone
+        Given magic link is disabled for customers
+        Then the customer magic link page should be gone
+        And the admin magic link page should still be there
+
     @ui
     Scenario: Following a valid admin magic link signs me in
         Given a valid admin magic link token "admin-valid-1" exists for "admin@example.com"
