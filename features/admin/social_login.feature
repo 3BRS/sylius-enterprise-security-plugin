@@ -28,6 +28,7 @@ Feature: Admin social login (OAuth)
         Given the "google" OAuth provider will return admin user "g-admin-new-2" with email "admin@example.com"
         When I click the admin "google" social login button
         Then I should be on the admin social link confirm page
+        And an admin account linking code email should have been sent to "admin@example.com"
 
     @ui
     Scenario: Admin confirms with the correct code to create the link

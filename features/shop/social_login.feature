@@ -28,6 +28,7 @@ Feature: Customer social login (OAuth)
         Given the "google" OAuth provider will return user "g-new-2" with email "existing@example.com"
         When I click the "google" social login button
         Then I should be on the social link confirm page
+        And an account linking code email should have been sent to "existing@example.com"
 
     @ui
     Scenario: Confirming with the correct code links the social account

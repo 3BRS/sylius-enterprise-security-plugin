@@ -183,6 +183,7 @@
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="sylius.email_sender"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.magic_link"
@@ -191,6 +192,7 @@
 			<argument type="service" id="sylius.repository.admin_user"/>
 			<argument type="service" id="ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGenerator"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="sylius.email_sender"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.passkey"
@@ -354,6 +356,7 @@
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessor"/>
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
+			<argument type="service" id="sylius.email_sender"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.set_password"

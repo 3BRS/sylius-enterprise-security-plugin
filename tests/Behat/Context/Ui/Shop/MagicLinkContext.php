@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerMagicLinkToken;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkTokenGeneratorInterface;
 use Webmozart\Assert\Assert;
 
@@ -20,7 +23,14 @@ class MagicLinkContext implements Context
         protected CustomerRepositoryInterface $customerRepository,
         protected MagicLinkTokenGeneratorInterface $tokenGenerator,
         protected EntityManagerInterface $entityManager,
+        protected SpySender $spySender,
     ) {
+    }
+
+    #[BeforeScenario]
+    public function resetSentEmails(): void
+    {
+        $this->spySender->reset();
     }
 
     /**
@@ -166,6 +176,59 @@ class MagicLinkContext implements Context
             $this->session->getPage()->hasContent($email),
             sprintf('The dashboard does not show "%s", so the session belongs to somebody else.', $email),
         );
+    }
+
+    /**
+     * @Then a magic link email should have been sent to :email
+     */
+    public function aMagicLinkEmailShouldHaveBeenSentTo(string $email): void
+    {
+        Assert::true(
+            $this->spySender->hasSentEmail(Emails::MAGIC_LINK, $email),
+            sprintf('No magic link email was sent to "%s" (sent: %s).', $email, $this->spySender->describeSentEmails()),
+        );
+    }
+
+    /**
+     * @Then no magic link email should have been sent to :email
+     */
+    public function noMagicLinkEmailShouldHaveBeenSentTo(string $email): void
+    {
+        Assert::false(
+            $this->spySender->hasSentEmail(Emails::MAGIC_LINK, $email),
+            sprintf('A magic link email was sent to "%s" although none was expected.', $email),
+        );
+    }
+
+    /**
+     * Storing a token and mailing a usable link are different things: the token
+     * assertions above still pass when the address in the email points at the
+     * wrong route or carries the stored hash instead of the plain token.
+     *
+     * @When I follow the magic link from the email sent to :email
+     */
+    public function iFollowTheMagicLinkFromTheEmailSentTo(string $email): void
+    {
+        $data = $this->spySender->getLastSentDataTo(Emails::MAGIC_LINK, $email);
+        Assert::notNull($data, sprintf('No magic link email was sent to "%s" (sent: %s).', $email, $this->spySender->describeSentEmails()));
+        Assert::keyExists($data, 'magicLinkUrl', 'The magic link email carries no sign-in address.');
+
+        $this->session->visit((string) $data['magicLinkUrl']);
+    }
+
+    /**
+     * @Then the magic link email to :email should expire in :minutes minutes
+     */
+    public function theMagicLinkEmailToShouldExpireInMinutes(string $email, int $minutes): void
+    {
+        $data = $this->spySender->getLastSentDataTo(Emails::MAGIC_LINK, $email);
+        Assert::notNull($data, sprintf('No magic link email was sent to "%s".', $email));
+        Assert::keyExists($data, 'expirationMinutes', 'The magic link email states no expiration.');
+        Assert::same((int) $data['expirationMinutes'], $minutes, sprintf(
+            'The magic link email announces %d minutes, the configured lifetime is %d.',
+            (int) $data['expirationMinutes'],
+            $minutes,
+        ));
     }
 
     protected function createToken(string $email, string $plainToken, \DateTimeImmutable $expiresAt, ?\DateTimeImmutable $usedAt): void

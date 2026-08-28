@@ -15,6 +15,7 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 use Webmozart\Assert\Assert;
@@ -86,7 +87,7 @@ class SessionManagementContext implements Context
     public function aLoginNotificationEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::true(
-            $this->spySender->hasSentEmailToRecipient($email),
+            $this->spySender->hasSentEmail(Emails::LOGIN_NOTIFICATION, $email),
             sprintf('Expected login notification email for "%s", none was sent.', $email),
         );
     }
@@ -97,7 +98,7 @@ class SessionManagementContext implements Context
     public function noLoginNotificationEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::false(
-            $this->spySender->hasSentEmailToRecipient($email),
+            $this->spySender->hasSentEmail(Emails::LOGIN_NOTIFICATION, $email),
             sprintf('Expected no login notification email for "%s", but one was sent.', $email),
         );
     }
