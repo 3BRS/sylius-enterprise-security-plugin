@@ -14,6 +14,7 @@ use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\ForeignObjectProbeTrait;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
@@ -22,6 +23,7 @@ use Webmozart\Assert\Assert;
 
 class SessionManagementContext implements Context
 {
+    use ForeignObjectProbeTrait;
     use SecurePasswordTrait;
 
     public function __construct(
@@ -195,6 +197,45 @@ class SessionManagementContext implements Context
     {
         $url = (string) $this->session->getCurrentUrl();
         Assert::contains($url, '/login', sprintf('Expected to land on the shop login page, got "%s".', $url));
+    }
+
+    /**
+     * @When I try to revoke the session :sessionId that belongs to somebody else
+     */
+    public function iTryToRevokeTheSessionThatBelongsToSomebodyElse(string $sessionId): void
+    {
+        $record = $this->sessionRepository->findOneBySessionId($sessionId);
+        Assert::notNull($record, sprintf('Session "%s" not found.', $sessionId));
+
+        $this->postAtForeignId(
+            $this->router->generate('three_brs_shop_session_revoke', ['_locale' => 'en_US', 'id' => $record->getId()]),
+            'three-brs-shop-session-revoke-modal-',
+        );
+    }
+
+    /**
+     * @Then the revoke should have been refused as not found
+     */
+    public function theRevokeShouldHaveBeenRefusedAsNotFound(): void
+    {
+        $this->assertRefusedAsNotFound();
+    }
+
+    /**
+     * @Then the shop session :sessionId should still be active
+     */
+    public function theShopSessionShouldStillBeActive(string $sessionId): void
+    {
+        $this->entityManager->clear();
+
+        $record = $this->sessionRepository->findOneBySessionId($sessionId);
+        Assert::notNull($record, sprintf('Session "%s" not found.', $sessionId));
+        Assert::false($record->isRevoked(), sprintf('Session "%s" was revoked by somebody who does not own it.', $sessionId));
+    }
+
+    protected function getSession(): Session
+    {
+        return $this->session;
     }
 
     protected function findShopUser(string $email): ShopUserInterface
