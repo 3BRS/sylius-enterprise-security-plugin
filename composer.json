@@ -4,6 +4,17 @@
     "keywords": ["sylius", "sylius-plugin", "security", "2fa", "authentication", "password-policy", "gdpr"],
     "description": "Advanced security plugin for Sylius — 2FA, password policies, account protection, GDPR",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "3BRS",
+            "homepage": "https://www.3brs.com"
+        }
+    ],
+    "homepage": "https://github.com/3BRS/sylius-enterprise-security-plugin",
+    "support": {
+        "issues": "https://github.com/3BRS/sylius-enterprise-security-plugin/issues",
+        "source": "https://github.com/3BRS/sylius-enterprise-security-plugin"
+    },
     "require": {
         "php": "^8.3",
         "sylius/sylius": "^2.1",
