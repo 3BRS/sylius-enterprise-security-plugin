@@ -19,6 +19,9 @@ imports:
     - suites/shop_two_factor_recovery.yml
     - suites/admin_two_factor_recovery.yml
     - suites/shop_two_factor_trusted_device.yml
+    - suites/admin_two_factor_trusted_device.yml
+    - suites/shop_two_factor_enforcement.yml
+    - suites/admin_two_factor_enforcement.yml
     - suites/shop_social_login.yml
     - suites/admin_social_login.yml
     - suites/shop_magic_link.yml
