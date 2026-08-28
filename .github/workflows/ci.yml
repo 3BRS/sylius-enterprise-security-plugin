@@ -175,6 +175,14 @@ jobs:
             -   name: Symfony lint
                 run: php bin/console lint:container --env=test
 
+            -   name: Suite lint
+                env:
+                    DATABASE_URL: "mysql://root:pass_root@127.0.0.1:3306/sylius_test?serverVersion=8.0&charset=utf8mb4"
+                # A suite nobody imported is not an error to Behat, so a green Behat
+                # step says nothing about the scenarios it never loaded. Seconds, on a
+                # dry run.
+                run: php bin/suite_lint.php
+
             -   name: PHPUnit
                 env:
                     DATABASE_URL: "mysql://root:pass_root@127.0.0.1:3306/sylius_test?serverVersion=8.0&charset=utf8mb4"
