@@ -159,6 +159,12 @@ class PasskeyCeremonyContext implements Context
     {
         $status = $this->client->getResponse()->getStatusCode();
         Assert::same($status, 400, sprintf('Expected HTTP 400 from rejected passkey login, got %d.', $status));
+
+        // The status is what the sign-in button reads, not what decides who is
+        // signed in. A verify that answered 400 and still wrote the token would
+        // satisfy the line above and hand the account to whoever asked.
+        [$url] = $this->visitAccountDashboard();
+        Assert::contains($url, '/login', sprintf('The refused passkey still opened a session — the dashboard answered at "%s".', $url));
     }
 
     /**
@@ -166,13 +172,13 @@ class PasskeyCeremonyContext implements Context
      */
     public function iShouldBeLoggedInAs(string $email): void
     {
-        // A logged-in user reaches the dashboard; an anonymous user is redirected to /login.
-        $this->client->request('GET', $this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US']));
-        $finalUrl = (string) $this->client->getRequest()->getUri();
-        Assert::notContains($finalUrl, '/login', sprintf('Expected to be on the account dashboard, got "%s".', $finalUrl));
+        [$url, $content] = $this->visitAccountDashboard();
 
-        $shopUser = $this->findShopUser($email);
-        Assert::notNull($shopUser, sprintf('Shop user "%s" not found in DB.', $email));
+        Assert::notContains($url, '/login', sprintf('The passkey sign-in left no session — the dashboard bounced to "%s".', $url));
+        Assert::true(
+            str_contains($content, $email),
+            sprintf('The dashboard does not show "%s", so the session belongs to somebody else.', $email),
+        );
     }
 
     /**
@@ -190,17 +196,7 @@ class PasskeyCeremonyContext implements Context
      */
     public function thePasskeySignInShouldHaveSkippedTheSecondFactorFor(string $email): void
     {
-        $following = $this->client->isFollowingRedirects();
-        $this->client->followRedirects(true);
-
-        try {
-            $this->client->request('GET', $this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US']));
-        } finally {
-            $this->client->followRedirects($following);
-        }
-
-        $url = (string) $this->client->getRequest()->getUri();
-        $content = $this->client->getInternalResponse()->getContent();
+        [$url, $content] = $this->visitAccountDashboard();
 
         Assert::notContains($url, '/login', sprintf('The passkey sign-in left no session — the dashboard bounced to "%s".', $url));
         Assert::notContains($url, '/2fa', sprintf('A second factor was demanded — the dashboard bounced to "%s".', $url));
@@ -212,6 +208,32 @@ class PasskeyCeremonyContext implements Context
             str_contains($content, $email),
             sprintf('The dashboard does not show "%s", so the session belongs to somebody else.', $email),
         );
+    }
+
+    /**
+     * Asks for the account dashboard and reports where the answer came from.
+     *
+     * The redirect has to be followed. Without it `getRequest()` returns the
+     * request that was just sent, so the URI read back is the dashboard's own
+     * however the response came — an assertion built on it cannot fail.
+     *
+     * @return array{0: string, 1: string} final URI and the body behind it
+     */
+    protected function visitAccountDashboard(): array
+    {
+        $following = $this->client->isFollowingRedirects();
+        $this->client->followRedirects(true);
+
+        try {
+            $this->client->request('GET', $this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US']));
+        } finally {
+            $this->client->followRedirects($following);
+        }
+
+        return [
+            (string) $this->client->getRequest()->getUri(),
+            $this->client->getInternalResponse()->getContent(),
+        ];
     }
 
     protected function postJson(string $path, ?array $body): mixed
