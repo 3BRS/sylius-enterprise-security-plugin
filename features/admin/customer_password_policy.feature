@@ -33,6 +33,16 @@ Feature: Admin editing customer password policy
         When I change the password of customer "john@example.com" to "StrongPass1!"
         Then the customer should be saved successfully
 
+    @ui @combination
+    Scenario: The notice about a password an administrator set goes to the customer
+        # An account, not just a customer record: the Background's customer has no
+        # sign-in yet, and giving one a first password is a create rather than a
+        # change, which the notification listener deliberately does not announce.
+        Given there is a customer account "existing@example.com" identified by "Password1!"
+        When I change the password of customer "existing@example.com" to "Str0ng!Password"
+        Then the customer should be saved successfully
+        And the password change notice should have gone to "existing@example.com" and nobody else
+
     @ui
     Scenario: Admin can set a customer password with exactly the minimum required length
         When I change the password of customer "john@example.com" to "Passw0r!"

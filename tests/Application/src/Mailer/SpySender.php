@@ -65,6 +65,28 @@ class SpySender implements SenderInterface
     }
 
     /**
+     * Every address a given kind of email reached, in the order it went out.
+     * Asking "did it reach X" cannot see a copy that also reached somebody who
+     * should not have had one.
+     *
+     * @return list<string>
+     */
+    public function recipientsOf(string $code): array
+    {
+        $recipients = [];
+
+        foreach (self::$sentEmails as $email) {
+            if ($email['code'] === $code) {
+                foreach ($email['recipients'] as $recipient) {
+                    $recipients[] = $recipient;
+                }
+            }
+        }
+
+        return $recipients;
+    }
+
+    /**
      * Renders what actually went out, so a failing expectation says which email
      * was sent instead of merely that the expected one was not.
      */

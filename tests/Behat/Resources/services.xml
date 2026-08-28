@@ -25,6 +25,7 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\CustomerPasswordPolicyContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="sylius.email_sender"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.shop.password_history"
