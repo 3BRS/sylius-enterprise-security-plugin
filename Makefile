@@ -61,6 +61,7 @@ static-only:
 	@make composer-lint
 	@make symfony-lint
 	@make doctrine-lint
+	@make suite-lint
 	@make say-ok
 
 phpstan:
@@ -72,6 +73,11 @@ phpunit:
 
 behat:
 	./bin-docker/docker-bash bin/behat.sh
+
+# A dry run costs seconds and answers two questions Behat cannot ask itself: is every
+# scenario reached by some suite, and does any suite define one step twice.
+suite-lint:
+	./bin-docker/docker-bash -c "php bin/suite_lint.php"
 
 # Inverts every assertion of absence in the Behat contexts and insists the suite
 # notices. Not part of `make tests`: it runs the whole suite several times, and the
