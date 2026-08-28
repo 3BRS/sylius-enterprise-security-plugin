@@ -15,6 +15,16 @@ Feature: Customer two-factor authentication enforcement
         When I visit the account dashboard
         Then I should be redirected to the 2FA setup page
 
+    @ui @combination
+    Scenario: Enforcement still leads somewhere when password login is off
+        Given password login is disabled for customers
+        When I request a magic link for "john@example.com"
+        And I follow the magic link from the email sent to "john@example.com"
+        And I visit the account dashboard
+        Then I should be redirected to the 2FA setup page
+        When I visit the 2FA setup page
+        Then I should see the 2FA QR code
+
     @ui
     Scenario: Customer with 2FA enabled is not redirected
         Given the customer "john@example.com" already has 2FA enabled

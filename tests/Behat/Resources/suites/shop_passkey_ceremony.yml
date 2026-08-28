@@ -12,5 +12,8 @@ default:
                 - sylius.behat.context.setup.shop_security
                 - sylius.behat.context.transform.shared_storage
                 - three_brs.behat.context.ui.shop.passkey_ceremony
+                # Combination K2: a passkey signs in past the second factor.
+                - three_brs.behat.context.ui.shop.two_factor_login
+                - three_brs.behat.context.ui.shop.alternative_sign_in
             filters:
                 tags: "@shop&&@passkey_ceremony&&@ui"

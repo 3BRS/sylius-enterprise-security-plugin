@@ -23,6 +23,14 @@ Feature: Customer social login (OAuth)
         When I click the "google" social login button
         Then I should be logged in as "existing@example.com"
 
+    @ui @combination
+    Scenario: A locked customer still signs in with a linked social account
+        Given the customer "existing@example.com" is already linked to "google" with id "g-locked-1"
+        And the customer "existing@example.com" has been locked out
+        And the "google" OAuth provider will return user "g-locked-1" with email "existing@example.com"
+        When I click the "google" social login button
+        Then I should be logged in as "existing@example.com"
+
     @ui
     Scenario: Social login for an email that matches a local account triggers code confirmation
         Given the "google" OAuth provider will return user "g-new-2" with email "existing@example.com"

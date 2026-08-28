@@ -22,6 +22,15 @@ Feature: Customer passkey registration and login ceremony
         When I sign in to the shop with the passkey "iPhone"
         Then I should be logged in to the shop as "passkey-user@example.com"
 
+    @ui @combination
+    Scenario: A passkey does not ask a customer with 2FA for a second factor
+        Given the customer "passkey-user@example.com" has 2FA enabled with a known secret
+        And I am logged in to the shop as "passkey-user@example.com"
+        And I register a shop passkey labelled "Second Factor Free"
+        And I sign out of the shop
+        When I sign in to the shop with the passkey "Second Factor Free"
+        Then the passkey sign-in should have skipped the second factor for "passkey-user@example.com"
+
     @ui
     Scenario: Signing in with an unknown passkey is rejected
         When I attempt to sign in to the shop with an unknown passkey
