@@ -175,6 +175,45 @@ class PasskeyCeremonyContext implements Context
         Assert::notNull($shopUser, sprintf('Shop user "%s" not found in DB.', $email));
     }
 
+    /**
+     * The assertion above cannot tell a live session from a lost one: with
+     * redirects off, getRequest() is the request just sent, so the dashboard URI
+     * it reads never contains /login however the response came back. This one
+     * follows the redirect and reads where it landed.
+     *
+     * It also has to live in this context. `test.client` is declared share(false),
+     * so every constructor that asks for one gets its own KernelBrowser with its
+     * own cookie jar — the session the ceremony opened is only visible on the
+     * client the ceremony used.
+     *
+     * @Then the passkey sign-in should have skipped the second factor for :email
+     */
+    public function thePasskeySignInShouldHaveSkippedTheSecondFactorFor(string $email): void
+    {
+        $following = $this->client->isFollowingRedirects();
+        $this->client->followRedirects(true);
+
+        try {
+            $this->client->request('GET', $this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US']));
+        } finally {
+            $this->client->followRedirects($following);
+        }
+
+        $url = (string) $this->client->getRequest()->getUri();
+        $content = $this->client->getInternalResponse()->getContent();
+
+        Assert::notContains($url, '/login', sprintf('The passkey sign-in left no session — the dashboard bounced to "%s".', $url));
+        Assert::notContains($url, '/2fa', sprintf('A second factor was demanded — the dashboard bounced to "%s".', $url));
+        Assert::false(
+            str_contains($content, 'data-test-two-factor-challenge'),
+            'The dashboard answered with the second-factor challenge.',
+        );
+        Assert::true(
+            str_contains($content, $email),
+            sprintf('The dashboard does not show "%s", so the session belongs to somebody else.', $email),
+        );
+    }
+
     protected function postJson(string $path, ?array $body): mixed
     {
         $this->client->request(

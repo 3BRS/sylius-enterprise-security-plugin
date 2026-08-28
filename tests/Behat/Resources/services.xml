@@ -220,7 +220,6 @@
 		<service id="three_brs.behat.context.ui.shop.alternative_sign_in"
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\AlternativeSignInContext">
 			<argument type="service" id="behat.mink.default_session"/>
-			<argument type="service" id="Symfony\Component\BrowserKit\AbstractBrowser"/>
 			<argument type="service" id="router"/>
 			<argument type="service" id="sylius.repository.customer"/>
 			<argument type="service" id="ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager"/>
