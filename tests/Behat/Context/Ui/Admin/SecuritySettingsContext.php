@@ -209,9 +209,8 @@ class SecuritySettingsContext implements Context
      */
     public function theCustomerPasswordMinimumLengthShouldBe(int $length): void
     {
-        $this->settingsProvider->refresh();
         Assert::same(
-            $this->settingsProvider->getInt('password_policy.min_length', SettingsScope::CUSTOMER),
+            (int) $this->readSetting('password_policy.min_length', SettingsScope::CUSTOMER),
             $length,
         );
     }
@@ -233,17 +232,16 @@ class SecuritySettingsContext implements Context
      */
     public function theCustomerLoginRateLimitShouldBePerMinute(int $count): void
     {
-        $this->settingsProvider->refresh();
         Assert::true(
-            $this->settingsProvider->getBool('rate_limit.login.enabled', SettingsScope::CUSTOMER),
+            (bool) $this->readSetting('rate_limit.login.enabled', SettingsScope::CUSTOMER),
             'Customer login rate limit is not enabled in DB.',
         );
         Assert::same(
-            $this->settingsProvider->getInt('rate_limit.login.limit', SettingsScope::CUSTOMER),
+            (int) $this->readSetting('rate_limit.login.limit', SettingsScope::CUSTOMER),
             $count,
         );
         Assert::same(
-            $this->settingsProvider->getString('rate_limit.login.interval', SettingsScope::CUSTOMER),
+            (string) $this->readSetting('rate_limit.login.interval', SettingsScope::CUSTOMER),
             '1 minute',
         );
     }
@@ -253,11 +251,26 @@ class SecuritySettingsContext implements Context
      */
     public function theCustomerGoogleOAuthShouldBeDisabled(): void
     {
-        $this->settingsProvider->refresh();
         Assert::false(
-            $this->settingsProvider->getBool('oauth.google.enabled', SettingsScope::CUSTOMER),
+            (bool) $this->readSetting('oauth.google.enabled', SettingsScope::CUSTOMER),
             'Customer Google OAuth is still enabled in DB.',
         );
+    }
+
+    /**
+     * `SettingsProvider::refresh()` drops the provider's own array, but the reload
+     * still goes through the repository, and Doctrine hands back the entity already
+     * in its identity map. After a second save in one scenario that entity is the
+     * one read before the save, so the provider reports the previous value while the
+     * row on disk holds the new one. Clearing first is what makes a settings
+     * assertion mean anything more than once per scenario.
+     */
+    protected function readSetting(string $path, SettingsScope $scope): mixed
+    {
+        $this->entityManager->clear();
+        $this->settingsProvider->refresh();
+
+        return $this->settingsProvider->get($path, $scope);
     }
 
     protected function getSettingsForm(): NodeElement
