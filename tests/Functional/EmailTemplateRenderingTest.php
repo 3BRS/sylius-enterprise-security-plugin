@@ -15,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Kernel;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
+use Twig\Environment;
 use ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentInfo;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AccountDeletionEmailManager;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\AdminUserLoginNotificationEmailManager;
@@ -46,6 +47,8 @@ class EmailTemplateRenderingTest extends KernelTestCase
 
     protected UrlGeneratorInterface $router;
 
+    protected Environment $twig;
+
     protected static function getKernelClass(): string
     {
         return Kernel::class;
@@ -74,6 +77,10 @@ class EmailTemplateRenderingTest extends KernelTestCase
         /** @var UrlGeneratorInterface $router */
         $router = $container->get('router');
         $this->router = $router;
+
+        /** @var Environment $twig */
+        $twig = $container->get('twig');
+        $this->twig = $twig;
     }
 
     protected function tearDown(): void
@@ -93,7 +100,7 @@ class EmailTemplateRenderingTest extends KernelTestCase
 
         $rendered = $this->render(Emails::MAGIC_LINK, 'customer@example.com');
 
-        self::assertSame('Your sign-in link', $rendered->getSubject());
+        $this->assertSubjectIs('Your sign-in link', Emails::MAGIC_LINK, 'customer@example.com');
         self::assertStringContainsString('/magic-link/verify/plain-shop-token', $rendered->getBody());
         self::assertStringContainsString('expire in 5 minutes', $rendered->getBody());
         $this->assertFullyTranslated($rendered);
@@ -125,7 +132,7 @@ class EmailTemplateRenderingTest extends KernelTestCase
 
         $rendered = $this->render(Emails::LOGIN_NOTIFICATION, 'customer@example.com');
 
-        self::assertSame('New sign-in to your account', $rendered->getSubject());
+        $this->assertSubjectIs('New sign-in to your account', Emails::LOGIN_NOTIFICATION, 'customer@example.com');
         self::assertStringContainsString('2026-03-04 05:06:07', $rendered->getBody());
         self::assertStringContainsString('Firefox', $rendered->getBody());
         self::assertStringContainsString('Linux', $rendered->getBody());
@@ -165,7 +172,7 @@ class EmailTemplateRenderingTest extends KernelTestCase
 
         $rendered = $this->render(Emails::PASSWORD_CHANGED, 'customer@example.com');
 
-        self::assertSame('Your password has been changed', $rendered->getSubject());
+        $this->assertSubjectIs('Your password has been changed', Emails::PASSWORD_CHANGED, 'customer@example.com');
         self::assertStringNotContainsString('Secure My Account', $rendered->getBody());
         $this->assertFullyTranslated($rendered);
     }
@@ -198,7 +205,7 @@ class EmailTemplateRenderingTest extends KernelTestCase
 
         $rendered = $this->render(Emails::ACCOUNT_DELETION_REQUESTED, 'customer@example.com');
 
-        self::assertSame('Your account deletion request', $rendered->getSubject());
+        $this->assertSubjectIs('Your account deletion request', Emails::ACCOUNT_DELETION_REQUESTED, 'customer@example.com');
         self::assertStringContainsString('2026-04-05 06:07', $rendered->getBody());
         $this->assertFullyTranslated($rendered);
     }
@@ -210,7 +217,7 @@ class EmailTemplateRenderingTest extends KernelTestCase
 
         $rendered = $this->render(Emails::ACCOUNT_DELETION_COMPLETED, 'customer@example.com');
 
-        self::assertSame('Your account has been deleted', $rendered->getSubject());
+        $this->assertSubjectIs('Your account has been deleted', Emails::ACCOUNT_DELETION_COMPLETED, 'customer@example.com');
         self::assertStringContainsString('has been deleted as requested', $rendered->getBody());
         $this->assertFullyTranslated($rendered);
     }
@@ -222,13 +229,40 @@ class EmailTemplateRenderingTest extends KernelTestCase
 
         $rendered = $this->render(Emails::OAUTH_LINK_CODE, 'customer@example.com');
 
-        self::assertSame('Your account linking code', $rendered->getSubject());
+        $this->assertSubjectIs('Your account linking code', Emails::OAUTH_LINK_CODE, 'customer@example.com');
         self::assertStringContainsString('482913', $rendered->getBody());
         self::assertStringContainsString('expire in 15 minutes', $rendered->getBody());
         $this->assertFullyTranslated($rendered);
     }
 
     protected function render(string $code, string $recipient): RenderedEmail
+    {
+        return $this->renderer->render($this->emailProvider->getEmail($code), $this->payloadFor($code, $recipient));
+    }
+
+    /**
+     * Rendered without the adapter on purpose. sylius/mailer-bundle trims the
+     * subject only from 2.2 onwards; on 2.1, which this plugin still supports and
+     * which CI installs on the lowest dependency set, an indented
+     * `{% block subject %}` reaches the mail header with its leading spaces and
+     * its trailing newline. Asserting the block itself pins the template instead
+     * of whichever version of the bundle happens to be installed.
+     */
+    protected function assertSubjectIs(string $expected, string $code, string $recipient): void
+    {
+        $template = (string) $this->emailProvider->getEmail($code)->getTemplate();
+
+        self::assertSame(
+            $expected,
+            $this->twig->load($template)->renderBlock('subject', $this->payloadFor($code, $recipient)),
+            sprintf('The subject block of %s must render the subject and nothing else - keep it on one line.', $template),
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function payloadFor(string $code, string $recipient): array
     {
         $data = $this->sender->getLastSentDataTo($code, $recipient);
         self::assertNotNull($data, sprintf(
@@ -238,7 +272,7 @@ class EmailTemplateRenderingTest extends KernelTestCase
             $this->sender->describeSentEmails(),
         ));
 
-        return $this->renderer->render($this->emailProvider->getEmail($code), $data);
+        return $data;
     }
 
     /**
