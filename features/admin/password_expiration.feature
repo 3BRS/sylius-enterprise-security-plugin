@@ -20,6 +20,16 @@ Feature: Admin user password expiration
         When I try to open the admin dashboard
         Then I should not be on the admin force password change page
 
+    @ui @combination
+    Scenario: A forced change still refuses a password from the history
+        Given the administrator "admin@example.com" is forced to change their password
+        And the password "OldSylius1!" is in the history of administrator "admin@example.com"
+        And I am logged in as "admin@example.com" administrator
+        And I try to open the admin dashboard
+        When I submit the force password change form with current password "Sylius1!" and new password "OldSylius1!"
+        Then I should be notified that this password was recently used
+        And administrator "admin@example.com" should be forced to change their password on next login
+
     @ui
     Scenario: Administrator can force another administrator to change their password
         Given I am logged in as an administrator
