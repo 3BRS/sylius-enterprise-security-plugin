@@ -16,16 +16,20 @@ use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\SessionRecordFixtureTrait;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Command\ProcessDueAccountDeletionsCommand;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerDeletionRequest;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AccountDeletion\CustomerDueDeletionsProcessorInterface;
 use Webmozart\Assert\Assert;
 
 class AccountDeletionContext implements Context
 {
+    use SessionRecordFixtureTrait;
+
     public function __construct(
         protected Session $session,
         protected RouterInterface $router,
@@ -35,6 +39,7 @@ class AccountDeletionContext implements Context
         protected EntityManagerInterface $entityManager,
         protected SharedStorageInterface $sharedStorage,
         protected SpySender $spySender,
+        protected CustomerSessionRepositoryInterface $sessionRepository,
     ) {
     }
 
@@ -241,6 +246,44 @@ class AccountDeletionContext implements Context
                 $this->spySender->describeSentEmails(),
             ),
         );
+    }
+
+    /**
+     * @Given the customer :email is signed in on another device as session :sessionId
+     */
+    public function theCustomerIsSignedInOnAnotherDeviceAsSession(string $email, string $sessionId): void
+    {
+        $user = $this->loadCustomer($email)->getUser();
+        Assert::isInstanceOf($user, ShopUserInterface::class);
+
+        $this->recordSessionFor($user, $sessionId);
+    }
+
+    /**
+     * Combination K12: asking for deletion has to end the sessions the account is
+     * already signed in on. Disabling the account closes the front door, but a
+     * session already open is not the front door — it is a browser somewhere still
+     * holding the account, and the grace period is exactly when somebody would
+     * notice and object.
+     *
+     * @Then the session :sessionId should have been ended
+     */
+    public function theSessionShouldHaveBeenEnded(string $sessionId): void
+    {
+        Assert::true(
+            $this->findRecordedSession($sessionId)->isRevoked(),
+            sprintf('Session "%s" is still open after the account was asked to be deleted.', $sessionId),
+        );
+    }
+
+    protected function getEntityManager(): EntityManagerInterface
+    {
+        return $this->entityManager;
+    }
+
+    protected function getSessionRepository(): CustomerSessionRepositoryInterface
+    {
+        return $this->sessionRepository;
     }
 
     protected function loadCustomer(string $email): CustomerInterface

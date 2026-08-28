@@ -10,12 +10,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\SessionRecordFixtureTrait;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\StableTotpCodeTrait;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepositoryInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTrackerInterface;
 use Webmozart\Assert\Assert;
 
 class TwoFactorTrustedDeviceContext implements Context
 {
+    use SessionRecordFixtureTrait;
     use StableTotpCodeTrait;
 
     private ?string $knownSecret = null;
@@ -24,6 +28,8 @@ class TwoFactorTrustedDeviceContext implements Context
         private Session $session,
         private CustomerRepositoryInterface $customerRepository,
         private EntityManagerInterface $entityManager,
+        protected CustomerSessionRepositoryInterface $sessionRepository,
+        protected CustomerSessionTrackerInterface $sessionTracker,
     ) {
     }
 
@@ -78,6 +84,49 @@ class TwoFactorTrustedDeviceContext implements Context
         $user = $this->findShopUser($email);
         $user->bumpTrustedTokenVersion();
         $this->entityManager->flush();
+    }
+
+    /**
+     * @Given a session :sessionId is recorded for customer :email
+     */
+    public function aSessionIsRecordedForCustomer(string $sessionId, string $email): void
+    {
+        $this->recordSessionFor($this->findShopUser($email), $sessionId);
+    }
+
+    /**
+     * @When every session of customer :email is revoked
+     */
+    public function everySessionOfCustomerIsRevoked(string $email): void
+    {
+        $this->sessionTracker->revokeAll($this->findShopUser($email));
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Combination K14: "known device" means two unrelated things here — a browser
+     * scheb will not challenge again, and a row in the customer's session list.
+     * Clearing one must not clear the other, or revoking a trusted device would
+     * quietly sign the customer out of machines they never touched.
+     *
+     * @Then the recorded session :sessionId should still be open
+     */
+    public function theRecordedSessionShouldStillBeOpen(string $sessionId): void
+    {
+        Assert::false(
+            $this->findRecordedSession($sessionId)->isRevoked(),
+            sprintf('Session "%s" was closed by an action that only concerned trusted devices.', $sessionId),
+        );
+    }
+
+    protected function getEntityManager(): EntityManagerInterface
+    {
+        return $this->entityManager;
+    }
+
+    protected function getSessionRepository(): CustomerSessionRepositoryInterface
+    {
+        return $this->sessionRepository;
     }
 
     /**
