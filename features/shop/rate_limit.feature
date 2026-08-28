@@ -9,7 +9,7 @@ Feature: Customer rate limiting
         And the customer login rate limit is set to 2 requests per minute
         And there is a customer account "customer@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T49
     Scenario: Login is rejected after the rate limit is exceeded
         When I try to sign in with email "customer@example.com" and password "WrongPass1!"
         And I try to sign in with email "customer@example.com" and password "WrongPass1!"

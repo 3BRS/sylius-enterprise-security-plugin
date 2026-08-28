@@ -8,14 +8,14 @@ Feature: Customer password expiration
         Given the store operates on a single channel in "United States"
         And there is a customer account "john@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T10
     Scenario: Customer with expired password is redirected to change password page
         Given the customer "john@example.com" has an expired password
         And I am logged in as "john@example.com"
         When I try to open the account page
         Then I should be on the change password page
 
-    @ui
+    @ui @T11
     Scenario: Customer without expired password can access their account normally
         And I am logged in as "john@example.com"
         When I try to open the account page

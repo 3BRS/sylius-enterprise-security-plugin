@@ -31,6 +31,7 @@ Feature: Global password login switch (admin)
         And I open the customer edit page for "alice@example.com"
         Then the customer password field should be hidden
 
+    @T72
     Scenario: Enabling a guest customer's account creates it without a password
         Given the store also has customer "guest@example.com"
         And password login is disabled for customers

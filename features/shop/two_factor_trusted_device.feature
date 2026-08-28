@@ -8,7 +8,7 @@ Feature: Customer two-factor authentication trusted-device skip
         Given the store operates on a single channel in "United States"
         And there is a customer account "john@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T26
     Scenario: Customer marks device as trusted and skips 2FA on subsequent login
         Given the customer "john@example.com" has 2FA enabled with a known secret
         When I sign in with email "john@example.com" and password "Password1!"

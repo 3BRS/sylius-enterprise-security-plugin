@@ -7,7 +7,7 @@ Feature: Customer registration password policy
     Background:
         Given the store operates on a single channel in "United States"
 
-    @ui
+    @ui @T01
     Scenario: Customer cannot register with a password that is too short
         Given I want to register a new account
         When I specify the first name as "John"

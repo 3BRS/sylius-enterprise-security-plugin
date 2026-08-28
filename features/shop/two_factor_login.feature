@@ -21,7 +21,7 @@ Feature: Customer two-factor authentication login flow
         And I submit a valid TOTP challenge code
         Then I should be fully authenticated
 
-    @ui
+    @ui @T23
     Scenario: Customer submits an invalid code and stays on the challenge page
         Given the customer "john@example.com" has 2FA enabled with a known secret
         When I sign in with email "john@example.com" and password "Password1!"

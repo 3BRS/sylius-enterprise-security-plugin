@@ -277,6 +277,13 @@ apply to the admin panel. `rate_limit.customer` has a `register` limiter that
 Format: **precondition → configuration → steps → expected result.** Reset settings between
 sections so scenarios do not contaminate each other (§9.5).
 
+Anything already automated carries its number as a Behat tag — `@T14` sits on the
+scenario that covers T14 — so what is left for a person to click is what this list has
+and the suite does not. `bin/suite_lint.php` recomputes that on every run and refuses to
+pass while a number here is neither tagged nor named in its not-automated list, with the
+reason. Adding a row below therefore forces the question rather than leaving it to be
+noticed.
+
 ### 5.1 Password Policy (T01–T05)
 
 | ID | Test | Steps | → expect |

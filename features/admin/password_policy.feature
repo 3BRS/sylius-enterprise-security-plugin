@@ -39,7 +39,7 @@ Feature: Admin user password policy
         And I create an administrator with password "NoNumbers!!"
         Then I should be notified that the password requires a number
 
-    @ui
+    @ui @T03
     Scenario: Administrator cannot be created without a special character
         Given I want to create a new administrator
         When I specify its email as "admin@example.com"
@@ -47,7 +47,7 @@ Feature: Admin user password policy
         And I create an administrator with password "NoSpecialChar1"
         Then I should be notified that the password requires a special character
 
-    @ui
+    @ui @T04
     Scenario: Administrator can be created with a strong password
         Given I want to create a new administrator
         When I specify its email as "admin@example.com"

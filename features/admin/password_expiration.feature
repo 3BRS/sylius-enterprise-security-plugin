@@ -7,7 +7,7 @@ Feature: Admin user password expiration
     Background:
         Given there is an administrator "admin@example.com" identified by "Sylius1!"
 
-    @ui
+    @ui @T13
     Scenario: Administrator with forced password change is redirected after login
         Given the administrator "admin@example.com" is forced to change their password
         And I am logged in as "admin@example.com" administrator

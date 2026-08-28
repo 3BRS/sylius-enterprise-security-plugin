@@ -15,17 +15,20 @@ Feature: Admin panel can be restricted by IP whitelist
         And I open any admin page
         Then the admin response status should be 200
 
+    @T64
     Scenario: Admin from a globally allowed IP can reach the admin panel
         Given the admin IP whitelist is enabled with global CIDRs "127.0.0.1, 10.0.0.0/8"
         When I am logged in as "admin@example.com" administrator
         And I open any admin page
         Then the admin response status should be 200
 
+    @T65
     Scenario: Admin from a non-allowed IP is rejected with 403
         Given the admin IP whitelist is enabled with global CIDRs "203.0.113.0/24"
         When I open any admin page
         Then the admin response status should be 403
 
+    @T66
     Scenario: Per-admin whitelist grants access when the global list does not match
         Given the admin IP whitelist is enabled with global CIDRs "203.0.113.0/24"
         And administrator "admin@example.com" has per-admin IP whitelist enabled with CIDRs "127.0.0.1"

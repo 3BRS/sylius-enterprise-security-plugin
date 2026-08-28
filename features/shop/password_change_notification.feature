@@ -7,7 +7,7 @@ Feature: Customer password change notification
     Background:
         Given the store operates on a single channel in "United States"
 
-    @ui
+    @ui @T14
     Scenario: Customer receives notification email after changing their password
         Given there is a customer account "john@example.com" identified by "Password1!"
         And the customer "john@example.com" has the password "Password1!" set directly
@@ -19,7 +19,7 @@ Feature: Customer password change notification
         And a password change notification email should have been sent to "john@example.com"
         And the password change notification to "john@example.com" should read as self-initiated
 
-    @ui
+    @ui @T15
     Scenario: Customer receives notification email after resetting their forgotten password
         Given there is a customer account "john@example.com" identified by "Password1!"
         And the customer "john@example.com" has the password "Password1!" set directly

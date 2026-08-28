@@ -30,7 +30,7 @@ Feature: Admin user password change notification
         And the password change notification to admin "bob@example.com" should warn that somebody else changed it
         And no password change notification email should have been sent to admin "alice@example.com"
 
-    @ui
+    @ui @T17
     Scenario: Admin receives notification email when changing their own password
         Given there is an administrator "admin@example.com" identified by "Admin1!Pass"
         And the administrator "admin@example.com" has the password "Admin1!Pass" set directly

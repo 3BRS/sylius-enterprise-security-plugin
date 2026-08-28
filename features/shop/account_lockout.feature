@@ -8,7 +8,7 @@ Feature: Customer account lockout
         Given the store operates on a single channel in "United States"
         And there is a customer account "customer@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T45
     Scenario: Customer account is locked after the configured number of failed attempts
         When I try to sign in with email "customer@example.com" and password "WrongPass1!"
         And I try to sign in with email "customer@example.com" and password "WrongPass1!"
@@ -77,7 +77,7 @@ Feature: Customer account lockout
         Then customer "customer@example.com" should not be locked
         And I should be signed in to the shop as "customer@example.com"
 
-    @ui
+    @ui @T47
     Scenario: Customer can sign in after the lockout auto-unlock interval has elapsed
         When I try to sign in with email "customer@example.com" and password "WrongPass1!"
         And I try to sign in with email "customer@example.com" and password "WrongPass1!"
@@ -90,7 +90,7 @@ Feature: Customer account lockout
         Then I should be signed in to the shop as "customer@example.com"
         And customer "customer@example.com" should not be locked
 
-    @ui
+    @ui @T46
     Scenario: Admin manual unlock allows immediate sign-in
         Given customer "customer@example.com" is locked
         When the locked customer "customer@example.com" is unlocked by an administrator

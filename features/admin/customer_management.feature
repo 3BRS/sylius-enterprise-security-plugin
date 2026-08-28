@@ -9,17 +9,20 @@ Feature: Admin can manage customer security from the customer detail page
         And there is an administrator "admin@example.com" identified by "Password1!"
         And there is a customer account "alice@example.com" identified by "Password1!"
 
+    @T70
     Scenario: Admin sees the security section on the customer detail page
         When I am logged in as "admin@example.com" administrator
         And I open the customer detail page for "alice@example.com"
         Then I should see the customer security section
         And I should see the login history table
 
+    @T68
     Scenario: Admin forces a password reset
         When I am logged in as "admin@example.com" administrator
         And I force a password reset for customer "alice@example.com"
         Then customer "alice@example.com" should be required to change their password on next sign-in
 
+    @T69
     Scenario: Admin blocks a customer
         Given the customer "alice@example.com" has an active session from "198.51.100.50"
         When I am logged in as "admin@example.com" administrator
@@ -34,6 +37,7 @@ Feature: Admin can manage customer security from the customer detail page
         And I revoke all sessions for customer "alice@example.com"
         Then customer "alice@example.com" should have 0 active sessions
 
+    @T56
     Scenario: Admin revokes a single customer session
         Given the customer "alice@example.com" has an active session from "198.51.100.50"
         And the customer "alice@example.com" has an active session from "203.0.113.10"
