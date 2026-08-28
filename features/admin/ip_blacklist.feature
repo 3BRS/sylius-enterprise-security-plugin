@@ -30,6 +30,13 @@ Feature: Admin panel can be restricted by IP blacklist
         When I submit the admin sign-in form as "admin@example.com" with "Password1!"
         Then the admin response status should be 403
 
+    @combination
+    Scenario: The blacklist wins over a whitelist that allows the same address
+        Given the admin IP whitelist is enabled with global CIDRs "127.0.0.1/32"
+        And the admin IP blacklist is enabled with global CIDRs "127.0.0.1, 10.0.0.0/8"
+        When I open any admin page
+        Then the admin response status should be 403
+
     Scenario: Empty blacklist with feature enabled allows everything (fail-open)
         Given the admin IP blacklist is enabled with no global CIDRs
         When I am logged in as "admin@example.com" administrator

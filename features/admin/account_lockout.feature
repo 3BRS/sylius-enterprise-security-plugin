@@ -16,6 +16,19 @@ Feature: Admin account lockout
         Then admin "admin@example.com" should be locked
         And the failed attempt counter for admin "admin@example.com" should be 3
 
+    @ui @combination
+    Scenario: The lockout answers before the rate limit does
+        # Lockout trips at 3 for administrators, the login rate limit at 5, so the
+        # fourth attempt is inside the rate limit and outside the lockout. Whichever
+        # of the two answers, it must not answer for the other.
+        When I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        And I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        And I try to sign in to the admin panel with email "admin@example.com" and password "WrongPass1!"
+        Then admin "admin@example.com" should be locked
+        When I try to sign in to the admin panel with email "admin@example.com" and password "Password1!"
+        Then I should see the locked-account message
+        And I should not see the too-many-requests message
+
     @ui
     Scenario: Locked admin cannot sign in even with correct password
         Given admin "admin@example.com" is locked
