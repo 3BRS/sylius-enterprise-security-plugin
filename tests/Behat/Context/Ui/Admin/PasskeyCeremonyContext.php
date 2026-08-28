@@ -158,6 +158,12 @@ class PasskeyCeremonyContext implements Context
     {
         $status = $this->client->getResponse()->getStatusCode();
         Assert::same($status, 400, sprintf('Expected HTTP 400 from rejected passkey login, got %d.', $status));
+
+        // The status is what the sign-in button reads, not what decides who is
+        // signed in. A verify that answered 400 and still wrote the token would
+        // satisfy the line above and hand the panel to whoever asked.
+        [$url] = $this->visitAdminDashboard();
+        Assert::contains($url, '/login', sprintf('The refused passkey still opened a session — the dashboard answered at "%s".', $url));
     }
 
     /**
@@ -165,12 +171,38 @@ class PasskeyCeremonyContext implements Context
      */
     public function iShouldBeLoggedInAs(string $email): void
     {
-        $this->client->request('GET', $this->router->generate('sylius_admin_dashboard'));
-        $finalUrl = (string) $this->client->getRequest()->getUri();
-        Assert::notContains($finalUrl, '/login', sprintf('Expected to be on the admin dashboard, got "%s".', $finalUrl));
+        Assert::notNull($this->findAdminUser($email), sprintf('Administrator "%s" not found.', $email));
 
-        $adminUser = $this->findAdminUser($email);
-        Assert::notNull($adminUser);
+        [$url, $status] = $this->visitAdminDashboard();
+
+        Assert::notContains($url, '/login', sprintf('The passkey sign-in left no session — the dashboard bounced to "%s".', $url));
+        Assert::same(200, $status, sprintf('The admin dashboard answered %d after the passkey sign-in.', $status));
+    }
+
+    /**
+     * Asks for the admin dashboard and reports where the answer came from.
+     *
+     * The redirect has to be followed. Without it `getRequest()` returns the
+     * request that was just sent, so the URI read back is the dashboard's own
+     * however the response came — an assertion built on it cannot fail.
+     *
+     * @return array{0: string, 1: int} final URI and the status behind it
+     */
+    protected function visitAdminDashboard(): array
+    {
+        $following = $this->client->isFollowingRedirects();
+        $this->client->followRedirects(true);
+
+        try {
+            $this->client->request('GET', $this->router->generate('sylius_admin_dashboard'));
+        } finally {
+            $this->client->followRedirects($following);
+        }
+
+        return [
+            (string) $this->client->getRequest()->getUri(),
+            $this->client->getInternalResponse()->getStatusCode(),
+        ];
     }
 
     protected function postJson(string $path, ?array $body): mixed
