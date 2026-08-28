@@ -188,11 +188,25 @@ jobs:
     browser:
         # The matrix above runs the Behat suite on BrowserKit, which cannot execute
         # JavaScript, so the passkey ceremony the plugin ships is exercised nowhere in
-        # it. This leg runs the one suite that needs a real browser. It is deliberately
-        # a single configuration: it guards the shipped JavaScript, not the support
-        # matrix, and the rest of the suite already covers the versions.
-        name: "Behat (browser)"
+        # it. This job runs the one suite that needs a real browser.
+        #
+        # Two legs rather than one. The shipped JavaScript does not vary with the
+        # dependencies, but what it talks to does: a real browser sends attestation and
+        # assertion data of its own making, while the suites in the matrix above feed
+        # the server a fixture built to match the version in vendor. On one leg the
+        # oldest web-auth/webauthn-lib the plugin allows would never meet a browser at
+        # all — which is the version a consumer pinning to a floor actually runs.
+        #
+        # Splitting further would buy nothing: Sylius and PHP do not reach the
+        # ceremony, and --prefer-lowest already installs the floor of every constraint
+        # at once.
+        name: "Behat (browser, ${{ matrix.prefer }})"
         runs-on: ubuntu-latest
+
+        strategy:
+            fail-fast: false
+            matrix:
+                prefer: [ "dist", "lowest" ]
 
         env:
             DATABASE_URL: "mysql://root:pass_root@127.0.0.1:3306/sylius_test?serverVersion=8.0&charset=utf8mb4"
@@ -225,8 +239,8 @@ jobs:
             -   name: Install Yarn
                 run: npm install -g yarn
 
-            -   name: Install dependencies
-                run: composer update --prefer-dist --no-interaction --no-scripts
+            -   name: Install dependencies (prefer ${{ matrix.prefer }})
+                run: composer update --prefer-${{ matrix.prefer }} --no-interaction --no-scripts
 
             -   name: Run post-install scripts
                 run: composer run-script post-install-cmd --no-interaction
