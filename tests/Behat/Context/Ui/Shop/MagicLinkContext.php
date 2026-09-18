@@ -10,6 +10,7 @@ use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\MagicLinkRequestFormTrait;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerMagicLinkToken;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\Emails;
@@ -18,6 +19,8 @@ use Webmozart\Assert\Assert;
 
 class MagicLinkContext implements Context
 {
+    use MagicLinkRequestFormTrait;
+
     public function __construct(
         protected Session $session,
         protected CustomerRepositoryInterface $customerRepository,
@@ -38,16 +41,12 @@ class MagicLinkContext implements Context
      */
     public function iRequestAMagicLinkFor(string $email): void
     {
-        $this->session->visit('/magic-link');
+        $this->submitMagicLinkRequestForm($email);
+    }
 
-        $page = $this->session->getPage();
-        $input = $page->find('css', '#three_brs_magic_link_request_email');
-        Assert::notNull($input, 'Magic link email input not found.');
-        $input->setValue($email);
-
-        $submit = $page->find('css', '#three_brs_magic_link_request_submit');
-        Assert::notNull($submit, 'Magic link submit button not found.');
-        $submit->click();
+    protected function getSession(): Session
+    {
+        return $this->session;
     }
 
     /**

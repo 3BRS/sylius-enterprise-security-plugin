@@ -18,3 +18,26 @@ Feature: Customer rate limiting
         And I try to sign in with email "customer@example.com" and password "WrongPass1!"
         And I try to sign in with email "customer@example.com" and password "WrongPass1!"
         Then I should see the too-many-requests message
+
+    # The limits come from the test application's configuration, not from a step:
+    # customer.password_reset allows 3 requests an hour, customer.magic_link 3 per
+    # 15 minutes. Both are keyed on the client address, so the address typed into
+    # the form does not spread the budget. RateLimiterCacheHookContext empties the
+    # counters before each scenario.
+    @ui @T50
+    Scenario: Password reset requests are refused once the hourly limit is spent
+        When I ask for a password reset for "customer@example.com"
+        And I ask for a password reset for "customer@example.com"
+        And I ask for a password reset for "customer@example.com"
+        Then the request should not have been refused
+        When I ask for a password reset for "customer@example.com"
+        Then I should see the too-many-requests message
+
+    @ui @T51
+    Scenario: Magic link requests are refused once the quarter-hour limit is spent
+        When I ask for a magic link for "customer@example.com"
+        And I ask for a magic link for "customer@example.com"
+        And I ask for a magic link for "customer@example.com"
+        Then the request should not have been refused
+        When I ask for a magic link for "customer@example.com"
+        Then I should see the too-many-requests message
