@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin;
 
 use Sylius\Bundle\CoreBundle\Application\SyliusPluginTrait;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\DependencyInjection\Compiler\TwoFactorFirewallPass;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\DependencyInjection\ThreeBRSSyliusEnterpriseSecurityExtension;
 
 class ThreeBRSSyliusEnterpriseSecurityPlugin extends Bundle
@@ -25,5 +27,12 @@ class ThreeBRSSyliusEnterpriseSecurityPlugin extends Bundle
     public function getContainerExtension(): ThreeBRSSyliusEnterpriseSecurityExtension
     {
         return new ThreeBRSSyliusEnterpriseSecurityExtension();
+    }
+
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new TwoFactorFirewallPass());
     }
 }

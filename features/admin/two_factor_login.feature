@@ -36,3 +36,39 @@ Feature: Administrator two-factor authentication login flow
         And I submit an invalid admin TOTP challenge code
         Then I should be on the admin 2FA challenge page
         And I should see an admin 2FA authentication error
+
+    @ui
+    Scenario: Leaving the code page for another page ends the pending sign-in
+        Given my browser asks for HTML pages
+        And the administrator "admin@example.com" has 2FA enabled with a known secret
+        And I want to log in
+        When I specify the username as "admin@example.com"
+        And I specify the password as "Sylius1!"
+        And I log in
+        Then I should be on the admin 2FA challenge page
+        When I open the admin dashboard
+        Then I should be on the admin login page
+
+    @ui
+    Scenario: Opening the sign-in page ends the pending sign-in
+        Given my browser asks for HTML pages
+        And the administrator "admin@example.com" has 2FA enabled with a known secret
+        And I want to log in
+        When I specify the username as "admin@example.com"
+        And I specify the password as "Sylius1!"
+        And I log in
+        And I open the admin login page
+        And I open the admin dashboard
+        Then I should be on the admin login page
+
+    @ui
+    Scenario: A background request from the code page keeps the pending sign-in
+        Given my browser asks for HTML pages
+        And the administrator "admin@example.com" has 2FA enabled with a known secret
+        And I want to log in
+        When I specify the username as "admin@example.com"
+        And I specify the password as "Sylius1!"
+        And I log in
+        And the admin code page sends a background request to the admin dashboard
+        And I submit a valid admin TOTP challenge code
+        Then I should be fully authenticated as administrator

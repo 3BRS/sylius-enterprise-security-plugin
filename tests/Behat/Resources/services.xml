@@ -431,5 +431,17 @@
 			<argument type="service" id="router"/>
 			<argument type="service" id="sylius.behat.shared_storage"/>
 		</service>
+
+		<service id="three_brs.behat.context.ui.shop.pending_sign_in"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\PendingSignInContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="router"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.admin.pending_sign_in"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PendingSignInContext">
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="router"/>
+		</service>
 	</services>
 </container>
