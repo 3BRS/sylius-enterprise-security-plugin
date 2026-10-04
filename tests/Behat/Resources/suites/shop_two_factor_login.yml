@@ -14,5 +14,7 @@ default:
                 - sylius.behat.context.transform.shared_storage
                 - sylius.behat.context.ui.shop.login
                 - three_brs.behat.context.ui.shop.two_factor_login
+                - three_brs.behat.context.ui.shop.account_security_changes
+                - three_brs.behat.context.ui.shop.pending_sign_in
             filters:
                 tags: "@shop&&@two_factor_login&&@ui"

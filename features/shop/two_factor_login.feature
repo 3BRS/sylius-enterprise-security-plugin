@@ -28,3 +28,32 @@ Feature: Customer two-factor authentication login flow
         And I submit an invalid TOTP challenge code
         Then I should be on the 2FA challenge page
         And I should see a 2FA authentication error
+
+    @ui
+    Scenario: Leaving the code page for another page ends the pending sign-in
+        Given my browser asks for HTML pages
+        And the customer "john@example.com" has 2FA enabled with a known secret
+        When I sign in with email "john@example.com" and password "Password1!"
+        Then I should be on the 2FA challenge page
+        When I open the shop homepage
+        Then I should be on the shop homepage
+        When I open my account dashboard
+        Then I should be on the shop login page
+
+    @ui
+    Scenario: Opening the sign-in page ends the pending sign-in
+        Given my browser asks for HTML pages
+        And the customer "john@example.com" has 2FA enabled with a known secret
+        When I sign in with email "john@example.com" and password "Password1!"
+        And I open the shop login page
+        And I open my account dashboard
+        Then I should be on the shop login page
+
+    @ui
+    Scenario: A background request from the code page keeps the pending sign-in
+        Given my browser asks for HTML pages
+        And the customer "john@example.com" has 2FA enabled with a known secret
+        When I sign in with email "john@example.com" and password "Password1!"
+        And the code page sends a background request to the shop homepage
+        And I submit a valid TOTP challenge code
+        Then I should be fully authenticated

@@ -262,13 +262,6 @@ services:
         tags:
             - { name: 'controller.service_arguments' }
 
-    ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler.shop:
-        class: ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler
-        arguments:
-            $twoFactorAuthenticationRequiredHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
-            $defaultSuccessHandler: '@sylius.authentication.success_handler'
-        public: true
-
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorDisableController:
         arguments:
             $tokenStorage: '@security.token_storage'
