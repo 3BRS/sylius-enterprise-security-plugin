@@ -6,9 +6,12 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractOAuthInitiateController;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\CompletedSignInGuardTrait;
 
 class OAuthInitiateController extends AbstractOAuthInitiateController implements OAuthInitiateControllerInterface
 {
+    use CompletedSignInGuardTrait;
+
     public const STATE_SESSION_KEY = 'three_brs_oauth_state_admin';
 
     public const INTENT_SESSION_KEY = 'three_brs_oauth_intent_admin';

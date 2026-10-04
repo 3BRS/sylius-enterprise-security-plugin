@@ -6,6 +6,7 @@
   - existing linked account → straight log-in
   - email matches a local account → a **single-use, time-limited 6-digit code** is emailed to that address; entering it creates the link (prevents account takeover, and works even for accounts that have no password — e.g. ones created through another social provider). Only the code's SHA-256 hash is kept in the session; the bundle's shared `CodeChallengeValidator` enforces the expiry, a capped number of guesses (after which the code is burned) and a constant-time comparison, while the plugin controller handles delivery (generating + emailing the code, CSRF, re-send limits) and maps the outcome to a message
   - email is unknown → a new account is auto-registered and the social identity linked (admin auto-registration is gated by an email-domain whitelist; see below)
+- **Bypasses 2FA** — like passkey and magic link, the callback writes the authenticated token directly, so a user with `scheb/2fa` enabled is **not** challenged for the second factor after an OAuth sign-in. This is intentional: two-factor only guards plain email + password sign-in
 - **Multiple providers per user** — links live in dedicated entities (`three_brs_customer_social_account_link`, `three_brs_admin_user_social_account_link`)
 - **Enforces the account state** — a disabled account (blocked by an administrator, or with a pending [self-service deletion](account-deletion-gdpr.md)) is refused just as on the password form: the callback bounces to the login page and the social link it was about to create is not created. (An account *locked* by failed password attempts is **not** refused — passwordless sign-in stays available so a wrong-password guesser cannot lock a user out of their own social sign-in.)
 - **Link / unlink from the account page** — `LastAuthMethodGuard` refuses to unlink the last remaining sign-in method, so a user cannot lock themselves out. It counts what would still open a session: a password only while password login is on for the group, a passkey only while passkeys are on, and a link only to a provider that is currently enabled. A link left behind by a provider that has since been switched off does not hold the door open for the one being removed.
@@ -73,9 +74,8 @@ Callback URLs to register with the providers:
 
 ## Firewall
 
-The admin sign-in endpoints sit under the administration path and are therefore covered by
-whatever rule guards the panel, which the caller cannot satisfy before signing in. Open them
-in `config/packages/security.yaml`, above that rule:
+Open the sign-in endpoints of both groups in `config/packages/security.yaml`, above the rule
+that guards the administration panel:
 
 ```yaml
 security:
@@ -83,11 +83,24 @@ security:
         - { path: "%sylius.security.admin_regex%/oauth/[a-z_]+/start", role: PUBLIC_ACCESS }
         - { path: "%sylius.security.admin_regex%/oauth/[a-z_]+/callback", role: PUBLIC_ACCESS }
         - { path: "%sylius.security.admin_regex%/oauth/confirm-link", role: PUBLIC_ACCESS }
+        - { path: ^/oauth/[a-z_]+/start, role: PUBLIC_ACCESS }
+        - { path: ^/oauth/[a-z_]+/callback, role: PUBLIC_ACCESS }
+        - { path: ^/oauth/confirm-link, role: PUBLIC_ACCESS }
         # ... your remaining rules, including the admin catch-all, below these
 ```
 
-The storefront endpoints need no entry: Sylius guards only `/{_locale}/account` on the shop
-side, and these routes fall outside it.
+The admin endpoints sit under the administration path, whose rule the caller cannot satisfy
+before signing in. The shop endpoints need their entries once [two-factor authentication](two-factor-authentication.md)
+is on: while a sign-in waits for its code, scheb sends a request to a page without a
+`PUBLIC_ACCESS` rule back to the code page. The plugin ends the pending sign-in before that only
+for a page load ([Leaving the code page](two-factor-authentication.md#leaving-the-code-page)), and
+not at all on a shop firewall with its own `two_factor.authentication_required_handler`.
+
+A sign-in that waits for its two-factor code cannot link a provider to the account. Opening the
+start endpoint ends the pending sign-in like opening any other page, and the start endpoint then
+sends the signed-out user to the sign-in page; a request that keeps the pending sign-in is sent
+back to the code page. The callback does not attach the provider to a pending sign-in. A user
+signed in through a remember-me cookie links without signing in again.
 
 ## Google Cloud setup
 

@@ -12,10 +12,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractTwoFactorDisableController;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\CompletedSignInGuardTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepositoryInterface;
 
 class TwoFactorDisableController extends AbstractTwoFactorDisableController implements TwoFactorDisableControllerInterface
 {
+    use CompletedSignInGuardTrait;
+
     public const CSRF_TOKEN_ID = 'three_brs_shop_two_factor_disable';
 
     public function __construct(

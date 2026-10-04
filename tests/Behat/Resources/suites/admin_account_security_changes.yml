@@ -1,0 +1,21 @@
+default:
+    suites:
+        admin_account_security_changes:
+            contexts:
+                - sylius.behat.context.hook.doctrine_orm
+                - three_brs.behat.context.hook.security_settings
+                - three_brs.behat.context.hook.rate_limiter_cache
+                - sylius.behat.context.setup.channel
+                - sylius.behat.context.setup.currency
+                - sylius.behat.context.setup.geographical
+                - sylius.behat.context.setup.zone
+                - sylius.behat.context.setup.admin_user
+                - sylius.behat.context.setup.admin_security
+                - sylius.behat.context.transform.shared_storage
+                - three_brs.behat.context.ui.admin.account_security_changes
+                - three_brs.behat.context.ui.admin.social_login
+                - three_brs.behat.context.ui.admin.two_factor_login
+                - three_brs.behat.context.ui.admin.two_factor_setup
+                - three_brs.behat.context.ui.admin.two_factor_enforcement
+            filters:
+                tags: "@admin&&@account_security_changes&&@ui"
