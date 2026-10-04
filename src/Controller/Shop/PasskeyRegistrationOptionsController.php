@@ -9,11 +9,14 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractPasskeyRegistrationOptionsController;
 use ThreeBRS\EnterpriseSecurityBundle\Passkey\PasskeyWebauthnSerializerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\CompletedSignInGuardTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyRegistrationOptionsBuilderInterface;
 use Webauthn\PublicKeyCredentialCreationOptions;
 
 class PasskeyRegistrationOptionsController extends AbstractPasskeyRegistrationOptionsController implements PasskeyRegistrationOptionsControllerInterface
 {
+    use CompletedSignInGuardTrait;
+
     public function __construct(
         protected CustomerPasskeyRegistrationOptionsBuilderInterface $optionsBuilder,
         PasskeyWebauthnSerializerInterface $serializer,
