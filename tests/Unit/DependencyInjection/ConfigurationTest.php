@@ -16,6 +16,7 @@ use Symfony\Component\DependencyInjection\EnvVarProcessor;
 use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBag;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\DependencyInjection\Configuration;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\DependencyInjection\ThreeBRSSyliusEnterpriseSecurityExtension;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SecuritySettingsBounds;
 
 #[CoversClass(Configuration::class)]
 class ConfigurationTest extends TestCase
@@ -60,7 +61,47 @@ class ConfigurationTest extends TestCase
         $this->process(['session_management' => ['lifetime' => $lifetime]]);
     }
 
-    public function testTheSessionLifetimeAcceptsAnEnvironmentVariable(): void
+    /**
+     * @return iterable<string, array{string, int|null}>
+     */
+    public static function acceptedAutoUnlockAfterProvider(): iterable
+    {
+        foreach (['customer', 'admin'] as $group) {
+            yield $group . ': null' => [$group, null];
+            yield $group . ': seconds' => [$group, 900];
+            yield $group . ': the upper bound' => [$group, SecuritySettingsBounds::ACCOUNT_LOCKOUT_AUTO_UNLOCK_AFTER_MAX];
+        }
+    }
+
+    #[DataProvider('acceptedAutoUnlockAfterProvider')]
+    public function testAutoUnlockAfterAcceptsSecondsOrNull(string $group, ?int $autoUnlockAfter): void
+    {
+        $config = $this->process(['account_lockout' => [$group => ['auto_unlock_after' => $autoUnlockAfter]]]);
+
+        self::assertSame($autoUnlockAfter, $config['account_lockout'][$group]['auto_unlock_after']);
+    }
+
+    /**
+     * @return iterable<string, array{string, int|string}>
+     */
+    public static function refusedAutoUnlockAfterProvider(): iterable
+    {
+        foreach (['customer', 'admin'] as $group) {
+            yield $group . ': zero' => [$group, 0];
+            yield $group . ': above the upper bound' => [$group, SecuritySettingsBounds::ACCOUNT_LOCKOUT_AUTO_UNLOCK_AFTER_MAX + 1];
+            yield $group . ': duration string' => [$group, '15 minutes'];
+        }
+    }
+
+    #[DataProvider('refusedAutoUnlockAfterProvider')]
+    public function testAutoUnlockAfterRefusesAnythingButSecondsWithinTheBounds(string $group, int|string $autoUnlockAfter): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+
+        $this->process(['account_lockout' => [$group => ['auto_unlock_after' => $autoUnlockAfter]]]);
+    }
+
+    public function testTheNullableSecondsOptionsAcceptAnEnvironmentVariable(): void
     {
         $parameters = new EnvPlaceholderParameterBag();
         $container = new ContainerBuilder($parameters);
@@ -68,6 +109,10 @@ class ConfigurationTest extends TestCase
         // Resolved through the bag first, as merging the configuration does before this pass runs.
         $container->loadFromExtension('three_brs_sylius_enterprise_security', $parameters->resolveValue([
             'session_management' => ['lifetime' => '%env(int:SESSION_LIFETIME)%'],
+            'account_lockout' => [
+                'customer' => ['auto_unlock_after' => '%env(int:CUSTOMER_AUTO_UNLOCK_AFTER)%'],
+                'admin' => ['auto_unlock_after' => '%env(int:ADMIN_AUTO_UNLOCK_AFTER)%'],
+            ],
         ]));
 
         // FrameworkBundle registers the processor that gives `int:` its type.
