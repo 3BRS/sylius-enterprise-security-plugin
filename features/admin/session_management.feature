@@ -16,6 +16,15 @@ Feature: Admin session management
         And I should see my current admin session marker
 
     @ui
+    Scenario: Admin with two-factor authentication sees one session after entering the code
+        Given the administrator "admin@example.com" has 2FA enabled with a known secret
+        When I sign in to the admin panel with email "admin@example.com" and password "Password1!"
+        And I submit a valid admin TOTP challenge code
+        And I visit the admin active sessions page
+        Then I should see exactly 1 active admin session
+        And I should see my current admin session marker
+
+    @ui
     Scenario: Admin receives a login notification email on first login from a new device
         When I sign in to the admin panel with email "admin@example.com" and password "Password1!"
         Then a login notification email should have been sent to "admin@example.com"
@@ -48,6 +57,34 @@ Feature: Admin session management
 
     @ui
     Scenario: Admin is signed out when their current session is revoked externally
+        When I sign in to the admin panel with email "admin@example.com" and password "Password1!"
+        And the current admin session for "admin@example.com" is revoked externally
+        And I visit the admin active sessions page
+        Then I should be redirected to the admin login page
+
+    @ui
+    Scenario: Admin does not see a session that has expired but can still sign it out
+        Given the admin "admin@example.com" has another session "expired-admin-session" last active 2 days ago
+        When I sign in to the admin panel with email "admin@example.com" and password "Password1!"
+        And I visit the admin active sessions page
+        Then I should see exactly 1 active admin session
+        And I should see my current admin session marker
+        When I revoke all other admin sessions
+        Then the admin session "expired-admin-session" should be revoked
+
+    @ui
+    Scenario: Revoking all other admin sessions also revokes an expired one
+        Given the admin "admin@example.com" has another active session "other-admin-session"
+        And the admin "admin@example.com" has another session "expired-admin-session" last active 2 days ago
+        When I sign in to the admin panel with email "admin@example.com" and password "Password1!"
+        And I visit the admin active sessions page
+        And I revoke all other admin sessions
+        Then the admin session "other-admin-session" should be revoked
+        And the admin session "expired-admin-session" should be revoked
+
+    @ui
+    Scenario: A sign-in waiting for its two-factor code is signed out when its session is revoked
+        Given the administrator "admin@example.com" has 2FA enabled with a known secret
         When I sign in to the admin panel with email "admin@example.com" and password "Password1!"
         And the current admin session for "admin@example.com" is revoked externally
         And I visit the admin active sessions page

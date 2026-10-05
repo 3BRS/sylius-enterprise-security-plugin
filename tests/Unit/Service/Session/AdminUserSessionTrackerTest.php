@@ -154,9 +154,13 @@ class AdminUserSessionTrackerTest extends TestCase
         $current->setSessionId('sess-current');
         $other = new AdminUserSession();
         $other->setSessionId('sess-other');
+        $expired = new AdminUserSession();
+        $expired->setSessionId('sess-expired');
+        $expired->setLastActivityAt(new \DateTimeImmutable('2026-04-28 10:00:00'));
 
-        $repository = $this->createStub(AdminUserSessionRepositoryInterface::class);
-        $repository->method('findActiveForAdminUser')->willReturn([$current, $other]);
+        $repository = $this->createMock(AdminUserSessionRepositoryInterface::class);
+        $repository->expects(self::never())->method('findActiveForAdminUser');
+        $repository->method('findUnrevokedForAdminUser')->willReturn([$current, $other, $expired]);
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())->method('flush');
@@ -171,6 +175,92 @@ class AdminUserSessionTrackerTest extends TestCase
 
         self::assertNull($current->getRevokedAt());
         self::assertNotNull($other->getRevokedAt());
+        self::assertNotNull($expired->getRevokedAt());
+    }
+
+    public function testMoveSessionGivesTheSessionTheNewId(): void
+    {
+        $user = $this->createStub(AdminUserInterface::class);
+        $user->method('getId')->willReturn(7);
+        $session = new AdminUserSession();
+        $session->setAdminUser($user);
+        $session->setSessionId('previous-id');
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::once())->method('flush');
+
+        $this->makeMoveTracker($session, null, $em)->moveSession('previous-id', 'new-id', $user);
+
+        self::assertSame('new-id', $session->getSessionId());
+    }
+
+    public function testMoveSessionLeavesTheSessionOfAnotherUser(): void
+    {
+        $owner = $this->createStub(AdminUserInterface::class);
+        $owner->method('getId')->willReturn(7);
+        $session = new AdminUserSession();
+        $session->setAdminUser($owner);
+        $session->setSessionId('previous-id');
+        $otherUser = $this->createStub(AdminUserInterface::class);
+        $otherUser->method('getId')->willReturn(8);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('flush');
+
+        $this->makeMoveTracker($session, null, $em)->moveSession('previous-id', 'new-id', $otherUser);
+
+        self::assertSame('previous-id', $session->getSessionId());
+    }
+
+    public function testMoveSessionLeavesARevokedSession(): void
+    {
+        $user = $this->createStub(AdminUserInterface::class);
+        $user->method('getId')->willReturn(7);
+        $session = new AdminUserSession();
+        $session->setAdminUser($user);
+        $session->setSessionId('previous-id');
+        $session->setRevokedAt(new \DateTimeImmutable('2026-04-30 09:00:00'));
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('flush');
+
+        $this->makeMoveTracker($session, null, $em)->moveSession('previous-id', 'new-id', $user);
+
+        self::assertSame('previous-id', $session->getSessionId());
+    }
+
+    public function testMoveSessionKeepsTheSessionWhenTheNewIdIsRecordedAlready(): void
+    {
+        $user = $this->createStub(AdminUserInterface::class);
+        $user->method('getId')->willReturn(7);
+        $session = new AdminUserSession();
+        $session->setAdminUser($user);
+        $session->setSessionId('previous-id');
+        $recorded = new AdminUserSession();
+        $recorded->setSessionId('new-id');
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('flush');
+
+        $this->makeMoveTracker($session, $recorded, $em)->moveSession('previous-id', 'new-id', $user);
+
+        self::assertSame('previous-id', $session->getSessionId());
+    }
+
+    protected function makeMoveTracker(AdminUserSession $previous, ?AdminUserSession $recorded, EntityManagerInterface $em): AdminUserSessionTracker
+    {
+        $repository = $this->createStub(AdminUserSessionRepositoryInterface::class);
+        $repository->method('findOneBySessionId')->willReturnMap([
+            ['previous-id', $previous],
+            ['new-id', $recorded],
+        ]);
+
+        return new AdminUserSessionTracker(
+            $repository,
+            $em,
+            $this->createStub(GeoIpLookupInterface::class),
+            $this->fixedClock('2026-04-30 10:00:00'),
+        );
     }
 
     protected function fixedClock(string $datetime): ClockInterface

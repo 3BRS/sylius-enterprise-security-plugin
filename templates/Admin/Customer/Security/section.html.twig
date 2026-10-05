@@ -4,6 +4,7 @@
 {# Guest customers (no ShopUser row) have no security state to manage. #}
 {% if shopUser is not null %}
     {% set activeSessions = three_brs_customer_active_sessions(shopUser) %}
+    {% set activeSessionIds = activeSessions|map(session => session.id) %}
     {% set loginHistory = three_brs_customer_login_history(shopUser, 20) %}
     {% set isEnabled = shopUser.enabled %}
 {% set pendingDeletion = three_brs_customer_deletion_request(shopUser) %}
@@ -182,12 +183,12 @@
                                     {{ ua.browser ?: 'three_brs.ui.customer_security.unknown_device'|trans }}{% if ua.operatingSystem %} <span class="text-muted">({{ ua.operatingSystem }})</span>{% endif %}
                                 </td>
                                 <td>
-                                    {% if session.revoked %}
-                                        <span class="text-muted">
+                                    {% if session.id not in activeSessionIds %}
+                                        <span class="text-muted" data-test-three-brs-customer-security-session-status="offline">
                                             {{ 'three_brs.ui.customer_security.session_offline'|trans }}
                                         </span>
                                     {% else %}
-                                        <span class="text-success fw-semibold">
+                                        <span class="text-success fw-semibold" data-test-three-brs-customer-security-session-status="online">
                                             {{ 'three_brs.ui.customer_security.session_online'|trans }}
                                         </span>
                                     {% endif %}

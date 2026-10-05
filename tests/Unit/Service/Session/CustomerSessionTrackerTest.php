@@ -154,9 +154,13 @@ class CustomerSessionTrackerTest extends TestCase
         $current->setSessionId('sess-current');
         $other = new CustomerSession();
         $other->setSessionId('sess-other');
+        $expired = new CustomerSession();
+        $expired->setSessionId('sess-expired');
+        $expired->setLastActivityAt(new \DateTimeImmutable('2026-04-28 10:00:00'));
 
-        $repository = $this->createStub(CustomerSessionRepositoryInterface::class);
-        $repository->method('findActiveForShopUser')->willReturn([$current, $other]);
+        $repository = $this->createMock(CustomerSessionRepositoryInterface::class);
+        $repository->expects(self::never())->method('findActiveForShopUser');
+        $repository->method('findUnrevokedForShopUser')->willReturn([$current, $other, $expired]);
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())->method('flush');
@@ -171,17 +175,20 @@ class CustomerSessionTrackerTest extends TestCase
 
         self::assertNull($current->getRevokedAt());
         self::assertNotNull($other->getRevokedAt());
+        self::assertNotNull($expired->getRevokedAt());
     }
 
-    public function testRevokeAllRevokesEveryActiveSession(): void
+    public function testRevokeAllRevokesEverySessionIncludingExpiredOnes(): void
     {
         $a = new CustomerSession();
         $a->setSessionId('sess-a');
         $b = new CustomerSession();
         $b->setSessionId('sess-b');
+        $b->setLastActivityAt(new \DateTimeImmutable('2026-04-28 10:00:00'));
 
-        $repository = $this->createStub(CustomerSessionRepositoryInterface::class);
-        $repository->method('findActiveForShopUser')->willReturn([$a, $b]);
+        $repository = $this->createMock(CustomerSessionRepositoryInterface::class);
+        $repository->expects(self::never())->method('findActiveForShopUser');
+        $repository->method('findUnrevokedForShopUser')->willReturn([$a, $b]);
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())->method('flush');
@@ -196,6 +203,91 @@ class CustomerSessionTrackerTest extends TestCase
 
         self::assertEquals(new \DateTimeImmutable('2026-04-30 10:00:00'), $a->getRevokedAt());
         self::assertEquals(new \DateTimeImmutable('2026-04-30 10:00:00'), $b->getRevokedAt());
+    }
+
+    public function testMoveSessionGivesTheSessionTheNewId(): void
+    {
+        $user = $this->createStub(ShopUserInterface::class);
+        $user->method('getId')->willReturn(7);
+        $session = new CustomerSession();
+        $session->setShopUser($user);
+        $session->setSessionId('previous-id');
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::once())->method('flush');
+
+        $this->makeMoveTracker($session, null, $em)->moveSession('previous-id', 'new-id', $user);
+
+        self::assertSame('new-id', $session->getSessionId());
+    }
+
+    public function testMoveSessionLeavesTheSessionOfAnotherUser(): void
+    {
+        $owner = $this->createStub(ShopUserInterface::class);
+        $owner->method('getId')->willReturn(7);
+        $session = new CustomerSession();
+        $session->setShopUser($owner);
+        $session->setSessionId('previous-id');
+        $otherUser = $this->createStub(ShopUserInterface::class);
+        $otherUser->method('getId')->willReturn(8);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('flush');
+
+        $this->makeMoveTracker($session, null, $em)->moveSession('previous-id', 'new-id', $otherUser);
+
+        self::assertSame('previous-id', $session->getSessionId());
+    }
+
+    public function testMoveSessionLeavesARevokedSession(): void
+    {
+        $user = $this->createStub(ShopUserInterface::class);
+        $user->method('getId')->willReturn(7);
+        $session = new CustomerSession();
+        $session->setShopUser($user);
+        $session->setSessionId('previous-id');
+        $session->setRevokedAt(new \DateTimeImmutable('2026-04-30 09:00:00'));
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('flush');
+
+        $this->makeMoveTracker($session, null, $em)->moveSession('previous-id', 'new-id', $user);
+
+        self::assertSame('previous-id', $session->getSessionId());
+    }
+
+    public function testMoveSessionKeepsTheSessionWhenTheNewIdIsRecordedAlready(): void
+    {
+        $user = $this->createStub(ShopUserInterface::class);
+        $user->method('getId')->willReturn(7);
+        $session = new CustomerSession();
+        $session->setShopUser($user);
+        $session->setSessionId('previous-id');
+        $recorded = new CustomerSession();
+        $recorded->setSessionId('new-id');
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())->method('flush');
+
+        $this->makeMoveTracker($session, $recorded, $em)->moveSession('previous-id', 'new-id', $user);
+
+        self::assertSame('previous-id', $session->getSessionId());
+    }
+
+    protected function makeMoveTracker(CustomerSession $previous, ?CustomerSession $recorded, EntityManagerInterface $em): CustomerSessionTracker
+    {
+        $repository = $this->createStub(CustomerSessionRepositoryInterface::class);
+        $repository->method('findOneBySessionId')->willReturnMap([
+            ['previous-id', $previous],
+            ['new-id', $recorded],
+        ]);
+
+        return new CustomerSessionTracker(
+            $repository,
+            $em,
+            $this->createStub(GeoIpLookupInterface::class),
+            $this->fixedClock('2026-04-30 10:00:00'),
+        );
     }
 
     protected function fixedClock(string $datetime): ClockInterface

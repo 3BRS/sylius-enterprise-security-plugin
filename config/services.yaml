@@ -1033,6 +1033,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository:
         arguments:
             $registry: '@doctrine'
+            $sessionLifetime: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetime'
         tags:
             - { name: 'doctrine.repository_service' }
 
@@ -1042,6 +1043,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository:
         arguments:
             $registry: '@doctrine'
+            $sessionLifetime: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetime'
         tags:
             - { name: 'doctrine.repository_service' }
 
@@ -1065,6 +1067,14 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepositoryInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetime:
+        arguments:
+            $clock: '@clock'
+            $lifetime: '%three_brs.session_management.lifetime%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetimeInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetime
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker:
         arguments:
@@ -1742,6 +1752,13 @@ services:
             $sessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
             $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
             $deletionRequestRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
+        tags:
+            - { name: 'twig.extension' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\SessionRevocationExtension:
+        arguments:
+            $customerSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $adminUserSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
         tags:
             - { name: 'twig.extension' }
 

@@ -59,7 +59,7 @@ Most features ship **disabled by default** — enable and tune the ones you need
 | Magic Link Login | Passwordless email sign-in with single-use, hashed, time-limited tokens, anti-enumeration, timing-attack padding and rate limiting. As a passwordless method it bypasses 2FA (the second factor guards password login only). | [magic-link-login](docs/magic-link-login.md) |
 | Passkey Login (WebAuthn / FIDO2) | Passwordless passkeys (Touch ID / Windows Hello / Android lock / hardware keys), multiple labelled keys per user, built on `web-auth/webauthn-lib`. As a passwordless method it bypasses 2FA (the second factor guards password login only). | [passkey-login](docs/passkey-login.md) |
 | Account Lockout & Rate Limiting | Persistent per-user account lockout after N failed sign-ins (auto- or admin-unlock) plus ephemeral request rate limiting (login, password reset and magic link for both groups; registration for customers). | [account-lockout-rate-limiting](docs/account-lockout-rate-limiting.md) |
-| Session Management & Login Notifications | Active-session listing with manual revocation (single or all-other), plus optional email alerts on sign-in from a previously unseen device; pluggable GeoIP lookup. | [session-management-login-notifications](docs/session-management-login-notifications.md) |
+| Session Management & Login Notifications | Active-session listing that leaves out sessions idle longer than the session lifetime, with manual revocation (single or all-other), plus optional email alerts on sign-in from a previously unseen device; pluggable GeoIP lookup. | [session-management-login-notifications](docs/session-management-login-notifications.md) |
 | Centralized Security Settings UI | A single admin page (`/admin/security-settings`) to configure every feature at runtime — values persist in the database and apply on the next request, no YAML edits or redeploys. | [centralized-security-settings-ui](docs/centralized-security-settings-ui.md) |
 | Self-Service Account Deletion (GDPR) | Customer-driven erasure (GDPR right to be forgotten) with a configurable grace period, admin-side cancellation and a cron that anonymizes name / email / phone / address. | [account-deletion-gdpr](docs/account-deletion-gdpr.md) |
 | Admin IP Whitelist | Restrict admin-panel access to allowed IPs / CIDR ranges, with a team-wide global list plus optional per-admin lists. | [admin-ip-whitelist](docs/admin-ip-whitelist.md) |
@@ -111,6 +111,15 @@ This section is for **consuming** the plugin in your own Sylius project — you 
    three_brs_enterprise_security:
        resource: "@ThreeBRSSyliusEnterpriseSecurityPlugin/config/routes.yaml"
    ```
+
+   The storefront routes of the sign-in flows have no `/{_locale}` in their path, so they do not keep the locale the customer browses in: Sylius takes it from the browser's `Accept-Language` header, or the channel's default locale when none of the channel's locales matches. These routes are:
+
+   - the code page, its check path and the recovery-code page: `three_brs_shop_two_factor_challenge`, `three_brs_shop_two_factor_check`, `three_brs_shop_two_factor_recovery_challenge`
+   - OAuth start, callback and link confirmation: `three_brs_shop_oauth_initiate`, `three_brs_shop_oauth_callback`, `three_brs_shop_oauth_confirm_link`
+   - passkey: `three_brs_shop_passkey_register_options`, `three_brs_shop_passkey_register_verify`, `three_brs_shop_passkey_login_options`, `three_brs_shop_passkey_login_verify`
+   - magic link: `three_brs_shop_magic_link_request`, `three_brs_shop_magic_link_verify`
+
+   A shop with the locale in its URLs defines these routes again under the same names, below the import: copy their definitions from the plugin's `config/routes.yaml` and prefix each path with `/{_locale}`, with the `_locale` requirement the plugin's other storefront routes use. The `access_control` paths for these routes then need the prefix as well, and each OAuth provider needs the callback URL of every locale registered as a redirect URI.
 
 5. Add the relevant traits to your `ShopUser` and `AdminUser` entities. Include the traits for the features you enabled — `TwoFactorAuth*` (Two-Factor Authentication), `Lockable*` (Account Lockout) — and `PasswordExpiration*` whichever way you configure Password Expiration: *Force password reset* in [admin customer management](docs/admin-customer-management.md) has no on/off switch of its own, and the button is shown to administrators whether or not the feature is on. (Password Expiration also reads the account creation date via `getCreatedAt()` as its fallback for users who have never changed their password — Sylius's base `ShopUser` / `AdminUser` already expose it, so no extra wiring is needed here.) The full set:
 

@@ -15,5 +15,6 @@ default:
                 - sylius.behat.context.transform.shared_storage
                 - sylius.behat.context.ui.admin.login
                 - three_brs.behat.context.ui.admin.session_management
+                - three_brs.behat.context.ui.admin.two_factor_login
             filters:
                 tags: "@admin&&@session_management&&@ui"

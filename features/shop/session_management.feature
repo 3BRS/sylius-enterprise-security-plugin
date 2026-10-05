@@ -15,6 +15,15 @@ Feature: Customer session management
         Then I should see exactly 1 active session
         And I should see my current session marker
 
+    @ui
+    Scenario: Customer with two-factor authentication sees one session after entering the code
+        Given the customer "alice@example.com" has 2FA enabled with a known secret
+        When I sign in with email "alice@example.com" and password "Password1!"
+        And I submit a valid TOTP challenge code
+        And I visit my active sessions page
+        Then I should see exactly 1 active session
+        And I should see my current session marker
+
     @ui @T57
     Scenario: Customer receives a login notification email on first login from a new device
         When I sign in with email "alice@example.com" and password "Password1!"
@@ -66,3 +75,40 @@ Feature: Customer session management
         And the current shop session for "alice@example.com" is revoked externally
         And I visit my active sessions page
         Then I should be redirected to the shop login page
+
+    @ui
+    Scenario: Customer does not see a session that has expired but can still sign it out
+        Given the customer "alice@example.com" has another session "expired-shop-session" last active 2 days ago
+        When I sign in with email "alice@example.com" and password "Password1!"
+        And I visit my active sessions page
+        Then I should see exactly 1 active session
+        And I should see my current session marker
+        When I revoke all other shop sessions
+        Then the shop session "expired-shop-session" should be revoked
+
+    @ui
+    Scenario: Revoking all other sessions also revokes an expired one
+        Given the customer "alice@example.com" has another active session "other-shop-session"
+        And the customer "alice@example.com" has another session "expired-shop-session" last active 2 days ago
+        When I sign in with email "alice@example.com" and password "Password1!"
+        And I visit my active sessions page
+        And I revoke all other shop sessions
+        Then the shop session "other-shop-session" should be revoked
+        And the shop session "expired-shop-session" should be revoked
+
+    @ui
+    Scenario: A sign-in waiting for its two-factor code is signed out when its session is revoked
+        Given the customer "alice@example.com" has 2FA enabled with a known secret
+        When I sign in with email "alice@example.com" and password "Password1!"
+        And the current shop session for "alice@example.com" is revoked externally
+        And I visit my active sessions page
+        Then I should be redirected to the shop login page
+
+    @ui
+    Scenario: Customer who signs out and in again stays signed in
+        When I sign in with email "alice@example.com" and password "Password1!"
+        And I sign out from the shop
+        And I sign in with email "alice@example.com" and password "Password1!"
+        And I visit my active sessions page
+        Then I should see exactly 1 active session
+        And I should see my current session marker

@@ -11,6 +11,7 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSessionInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmailManagerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerNewDeviceDetectorInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler;
@@ -144,6 +145,49 @@ class CustomerSessionLoginHandlerTest extends TestCase
         $handler->handle($user, $this->makeRequest());
     }
 
+    public function testMovesTheSessionRecordedUnderThePreviousSessionIdBeforeTrackingIt(): void
+    {
+        $user = $this->createStub(ShopUserInterface::class);
+
+        $session = $this->createMock(SessionInterface::class);
+        $session->method('getId')->willReturn('the-session-id');
+        $session->expects(self::once())->method('get')->with(CustomerSessionLoginHandler::TRACKED_SESSION_ID_ATTRIBUTE)->willReturn('the-previous-session-id');
+        $session->expects(self::once())->method('set')->with(CustomerSessionLoginHandler::TRACKED_SESSION_ID_ATTRIBUTE, 'the-session-id');
+
+        $calls = [];
+        $tracker = $this->createMock(CustomerSessionTrackerInterface::class);
+        $tracker->expects(self::once())->method('moveSession')
+            ->with('the-previous-session-id', 'the-session-id', $user)
+            ->willReturnCallback(static function () use (&$calls): void {
+                $calls[] = 'moveSession';
+            });
+        $tracker->expects(self::once())->method('track')
+            ->willReturnCallback(function () use (&$calls): CustomerSessionInterface {
+                $calls[] = 'track';
+
+                return $this->createStub(CustomerSessionInterface::class);
+            });
+
+        $handler = $this->makeHandler($tracker, $this->createStub(CustomerLoginNotificationEmailManagerInterface::class), true, false);
+        $handler->handle($user, $this->makeRequest($session));
+
+        self::assertSame(['moveSession', 'track'], $calls);
+    }
+
+    public function testDoesNotMoveTheSessionWhenTheSessionIdIsUnchanged(): void
+    {
+        $session = $this->createMock(SessionInterface::class);
+        $session->method('getId')->willReturn('the-session-id');
+        $session->expects(self::once())->method('get')->with(CustomerSessionLoginHandler::TRACKED_SESSION_ID_ATTRIBUTE)->willReturn('the-session-id');
+
+        $tracker = $this->createMock(CustomerSessionTrackerInterface::class);
+        $tracker->expects(self::never())->method('moveSession');
+        $tracker->expects(self::once())->method('track');
+
+        $handler = $this->makeHandler($tracker, $this->createStub(CustomerLoginNotificationEmailManagerInterface::class), true, false);
+        $handler->handle($this->createStub(ShopUserInterface::class), $this->makeRequest($session));
+    }
+
     protected function makeHandler(
         CustomerSessionTrackerInterface $tracker,
         CustomerLoginNotificationEmailManagerInterface $emailManager,
@@ -174,10 +218,12 @@ class CustomerSessionLoginHandlerTest extends TestCase
         );
     }
 
-    protected function makeRequest(): Request
+    protected function makeRequest(?SessionInterface $session = null): Request
     {
-        $session = $this->createStub(SessionInterface::class);
-        $session->method('getId')->willReturn('the-session-id');
+        if ($session === null) {
+            $session = $this->createStub(SessionInterface::class);
+            $session->method('getId')->willReturn('the-session-id');
+        }
 
         $request = $this->createStub(Request::class);
         $request->headers = new HeaderBag(['User-Agent' => 'Mozilla/5.0']);

@@ -11,9 +11,25 @@ interface CustomerSessionRepositoryInterface
 {
     public function findOneBySessionId(string $sessionId): ?CustomerSessionInterface;
 
-    /** @return list<CustomerSessionInterface> */
+    /**
+     * Sessions that are neither revoked nor expired, most recent activity first.
+     *
+     * @return list<CustomerSessionInterface>
+     */
     public function findActiveForShopUser(ShopUserInterface $user): array;
 
+    /**
+     * Every session that has not been revoked, expired ones included. A session can still be
+     * signed in after it expired: when the configured lifetime is shorter than the session handler
+     * keeps sessions, or before PHP's session garbage collection removes it.
+     *
+     * @return list<CustomerSessionInterface>
+     */
+    public function findUnrevokedForShopUser(ShopUserInterface $user): array;
+
+    /**
+     * A session of the user that has not been revoked, expired or not.
+     */
     public function findActiveByIdForShopUser(int $id, ShopUserInterface $user): ?CustomerSessionInterface;
 
     /**

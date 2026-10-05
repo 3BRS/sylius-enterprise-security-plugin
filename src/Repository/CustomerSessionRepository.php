@@ -9,14 +9,17 @@ use Doctrine\Persistence\ManagerRegistry;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSession;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSessionInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetimeInterface;
 
 /**
  * @extends ServiceEntityRepository<CustomerSession>
  */
 class CustomerSessionRepository extends ServiceEntityRepository implements CustomerSessionRepositoryInterface
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        protected SessionLifetimeInterface $sessionLifetime,
+    ) {
         parent::__construct($registry, CustomerSession::class);
     }
 
@@ -36,8 +39,24 @@ class CustomerSessionRepository extends ServiceEntityRepository implements Custo
         $result = $this->createQueryBuilder('s')
             ->where('s.shopUser = :user')
             ->andWhere('s.revokedAt IS NULL')
+            ->andWhere('s.lastActivityAt > :activeSince')
             ->setParameter('user', $user)
+            ->setParameter('activeSince', $this->sessionLifetime->getActiveSince())
             ->orderBy('s.lastActivityAt', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
+
+        return $result;
+    }
+
+    public function findUnrevokedForShopUser(ShopUserInterface $user): array
+    {
+        /** @var list<CustomerSession> $result */
+        $result = $this->createQueryBuilder('s')
+            ->where('s.shopUser = :user')
+            ->andWhere('s.revokedAt IS NULL')
+            ->setParameter('user', $user)
             ->getQuery()
             ->getResult()
         ;

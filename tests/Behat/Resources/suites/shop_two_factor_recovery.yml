@@ -12,7 +12,7 @@ default:
                 - sylius.behat.context.setup.customer
                 - sylius.behat.context.setup.shop_security
                 - sylius.behat.context.transform.shared_storage
-                - sylius.behat.context.ui.shop.login
+                - three_brs.behat.context.ui.shop.session_management
                 - three_brs.behat.context.ui.shop.two_factor_recovery
             filters:
                 tags: "@shop&&@two_factor_recovery&&@ui"
