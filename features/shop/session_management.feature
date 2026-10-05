@@ -15,7 +15,7 @@ Feature: Customer session management
         Then I should see exactly 1 active session
         And I should see my current session marker
 
-    @ui
+    @ui @T82
     Scenario: Customer with two-factor authentication sees one session after entering the code
         Given the customer "alice@example.com" has 2FA enabled with a known secret
         When I sign in with email "alice@example.com" and password "Password1!"
@@ -76,7 +76,7 @@ Feature: Customer session management
         And I visit my active sessions page
         Then I should be redirected to the shop login page
 
-    @ui
+    @ui @T83
     Scenario: Customer does not see a session that has expired but can still sign it out
         Given the customer "alice@example.com" has another session "expired-shop-session" last active 2 days ago
         When I sign in with email "alice@example.com" and password "Password1!"
@@ -86,7 +86,7 @@ Feature: Customer session management
         When I revoke all other shop sessions
         Then the shop session "expired-shop-session" should be revoked
 
-    @ui
+    @ui @T83
     Scenario: Revoking all other sessions also revokes an expired one
         Given the customer "alice@example.com" has another active session "other-shop-session"
         And the customer "alice@example.com" has another session "expired-shop-session" last active 2 days ago

@@ -32,7 +32,7 @@ Feature: Customer two-factor authentication recovery-code fallback
         And I submit a valid recovery code
         Then the used recovery code should be marked consumed
 
-    @ui
+    @ui @T82
     Scenario: Customer who completes 2FA with a recovery code sees one session
         Given the customer "john@example.com" has 2FA enabled with recovery codes
         When I sign in with email "john@example.com" and password "Password1!"

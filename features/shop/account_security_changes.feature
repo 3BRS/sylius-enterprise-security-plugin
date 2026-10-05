@@ -8,7 +8,7 @@ Feature: Account security changes from a customer sign-in
         Given the store operates on a single channel in "United States"
         And there is a customer account "john@example.com" identified by "Password1!"
 
-    @ui
+    @ui @T76
     Scenario: A sign-in waiting for its two-factor code cannot link a social account
         Given the customer "john@example.com" has 2FA enabled with a known secret
         And the "google" OAuth provider will return user "g-pending-1" with email "john@example.com"

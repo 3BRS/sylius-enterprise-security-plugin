@@ -27,7 +27,7 @@ Feature: Administrator two-factor authentication login flow
         And I submit a valid admin TOTP challenge code
         Then I should be fully authenticated as administrator
 
-    @ui
+    @ui @T74
     Scenario: Administrator completes 2FA challenge with the code written as the code page shows it
         Given the administrator "admin@example.com" has 2FA enabled with a known secret
         And I want to log in
@@ -48,7 +48,7 @@ Feature: Administrator two-factor authentication login flow
         Then I should be on the admin 2FA challenge page
         And I should see an admin 2FA authentication error
 
-    @ui
+    @ui @T75
     Scenario: Leaving the code page for another page ends the pending sign-in
         Given my browser asks for HTML pages
         And the administrator "admin@example.com" has 2FA enabled with a known secret
@@ -60,7 +60,7 @@ Feature: Administrator two-factor authentication login flow
         When I open the admin dashboard
         Then I should be on the admin login page
 
-    @ui
+    @ui @T75
     Scenario: Opening the sign-in page ends the pending sign-in
         Given my browser asks for HTML pages
         And the administrator "admin@example.com" has 2FA enabled with a known secret

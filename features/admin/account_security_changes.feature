@@ -8,7 +8,7 @@ Feature: Account security changes from an administrator sign-in
         Given the store operates on a single channel in "United States"
         And there is an administrator "admin@example.com" identified by "Sylius1!"
 
-    @ui
+    @ui @T76
     Scenario: A sign-in waiting for its two-factor code cannot link a social account
         Given the administrator "admin@example.com" has 2FA enabled with a known secret
         And the "google" OAuth provider will return admin user "g-admin-pending-1" with email "admin@example.com"
