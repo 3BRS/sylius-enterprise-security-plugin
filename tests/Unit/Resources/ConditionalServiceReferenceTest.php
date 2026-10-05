@@ -29,6 +29,12 @@ class ConditionalServiceReferenceTest extends TestCase
             'security.authenticator.firewall_aware_remember_me_handler',
             'a firewall configuring remember_me',
         ];
+
+        // SchebTwoFactorExtension loads the TOTP provider only when it is switched on.
+        yield 'scheb TOTP authenticator' => [
+            'scheb_two_factor.security.totp_authenticator',
+            'scheb_two_factor.totp.enabled',
+        ];
     }
 
     #[DataProvider('conditionalServiceProvider')]

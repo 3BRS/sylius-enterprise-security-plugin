@@ -935,6 +935,14 @@ services:
         arguments:
             $decorated: '@.inner'
 
+    # Scheb defines the authenticator only with `scheb_two_factor.totp.enabled`; without it the
+    # decorator is dropped.
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\NormalizingTotpAuthenticator:
+        decorates: scheb_two_factor.security.totp_authenticator
+        decoration_on_invalid: ignore
+        arguments:
+            $inner: '@.inner'
+
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\ShopUserLockoutChecker:
         arguments:
             $lockoutManager: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Lockout\ShopUserLockoutManager'

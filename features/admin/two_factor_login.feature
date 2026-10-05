@@ -28,6 +28,16 @@ Feature: Administrator two-factor authentication login flow
         Then I should be fully authenticated as administrator
 
     @ui
+    Scenario: Administrator completes 2FA challenge with the code written as the code page shows it
+        Given the administrator "admin@example.com" has 2FA enabled with a known secret
+        And I want to log in
+        When I specify the username as "admin@example.com"
+        And I specify the password as "Sylius1!"
+        And I log in
+        And I submit a valid admin TOTP challenge code written with a dash
+        Then I should be fully authenticated as administrator
+
+    @ui
     Scenario: Administrator submits an invalid code and stays on the challenge page
         Given the administrator "admin@example.com" has 2FA enabled with a known secret
         And I want to log in

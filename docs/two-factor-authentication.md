@@ -4,6 +4,7 @@
 - QR code + manual secret setup, from the account page in the storefront and from the **Security** dropdown in the header of an
   administrator's own user edit page in the panel
 - Recovery codes — single-use backup codes generated at setup, regenerable from the manage view (invalidates all previous codes)
+- The code fields show an `XXX-XXX` mask that fills in as the user types (`totp_input.js`), and the code is sent as `123-456`. The setup form and scheb's TOTP authenticator, which the plugin decorates (`NormalizingTotpAuthenticator`), remove the dash before the check
 - Trusted device — opt-in cookie (scheb JWT) to skip 2FA on a known device; revocable per user by bumping the user's `trustedTokenVersion`
 - Leaving the code page ends the pending sign-in — a user who opens another page instead of entering the code gets that page signed out, instead of being sent back to the code page (see [Leaving the code page](#leaving-the-code-page))
 - Enforcement modes per user type: `disabled`, `allowed`, `enforced`. In `enforced` mode a user without 2FA is redirected to the setup page until they enable it
@@ -105,7 +106,9 @@ authentication. The plugin registers its services that depend on scheb's per-fir
 for the `shop` and `admin` firewalls only, each only when it has the block, so an application
 without two-factor authentication needs neither the blocks nor the `success_handler`. The plugin
 recognises the block by the authentication-required handler scheb creates for it: a firewall that
-sets its own `two_factor.authentication_required_handler` gets none of these services.
+sets its own `two_factor.authentication_required_handler` gets none of these services. Without
+`scheb_two_factor.totp.enabled` scheb defines no TOTP authenticator either, and the plugin leaves
+out its decorator.
 
 ## Leaving the code page
 
