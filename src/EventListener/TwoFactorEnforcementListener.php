@@ -22,6 +22,10 @@ class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterf
 
     protected const ADMIN_SETUP_ROUTE = 'three_brs_admin_two_factor_setup';
 
+    protected const FLASH_TYPE = 'warning';
+
+    protected const FLASH_MESSAGE = 'three_brs.two_factor.enforcement_required';
+
     protected const EXCLUDED_ROUTES = [
         'sylius_shop_login',
         'sylius_shop_login_check',
@@ -136,8 +140,14 @@ class TwoFactorEnforcementListener implements TwoFactorEnforcementListenerInterf
     protected function addFlash(Request $request): void
     {
         $session = $request->hasSession() ? $request->getSession() : null;
-        if ($session instanceof FlashBagAwareSessionInterface) {
-            $session->getFlashBag()->add('warning', 'three_brs.two_factor.enforcement_required');
+        if (!$session instanceof FlashBagAwareSessionInterface) {
+            return;
+        }
+
+        // Every request redirected before the setup page renders would add the warning again.
+        $flashBag = $session->getFlashBag();
+        if (!in_array(static::FLASH_MESSAGE, $flashBag->peek(static::FLASH_TYPE), true)) {
+            $flashBag->add(static::FLASH_TYPE, static::FLASH_MESSAGE);
         }
     }
 }

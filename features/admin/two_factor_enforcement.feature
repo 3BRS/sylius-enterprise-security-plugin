@@ -13,3 +13,9 @@ Feature: Admin two-factor authentication enforcement
         Given I am logged in as "admin@example.com" administrator
         When I visit the admin dashboard
         Then I should be redirected to the admin 2FA setup page
+
+    @ui
+    Scenario: Admin without 2FA sees the enforcement warning once on the setup page
+        Given I am logged in as "admin@example.com" administrator
+        When I open the admin dashboard and the order list before the setup page
+        Then I should be told once to set up two-factor authentication

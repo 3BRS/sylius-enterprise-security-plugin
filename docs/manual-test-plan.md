@@ -112,7 +112,7 @@ not just the missing menu entry. Full matrix in **§7**.
   equivalent).
 - "Trusted device" is a **cookie**. To test that the challenge reappears, use a private
   window or clear the cookie — otherwise you sail past 2FA and it looks like a hole.
-- The challenge template is shared between shop and admin and distinguishes them by
+- The challenge template set in `totp.template` picks the admin or the shop page by
   **route name** (`three_brs_admin_two_factor_challenge`), not by URL prefix. If the app
   changes its admin path, confirm the admin challenge still renders as admin.
 
