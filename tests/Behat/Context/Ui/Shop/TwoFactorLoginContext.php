@@ -51,6 +51,16 @@ class TwoFactorLoginContext implements Context
     }
 
     /**
+     * @When I submit a valid TOTP challenge code written with a dash
+     */
+    public function iSubmitAValidTotpChallengeCodeWrittenWithADash(): void
+    {
+        Assert::notNull($this->knownSecret, 'Known secret was not stored.');
+        $code = $this->generateStableTotpCode($this->knownSecret);
+        $this->submitChallengeForm(substr($code, 0, 3) . '-' . substr($code, 3));
+    }
+
+    /**
      * @When I submit an invalid TOTP challenge code
      */
     public function iSubmitAnInvalidTotpChallengeCode(): void
