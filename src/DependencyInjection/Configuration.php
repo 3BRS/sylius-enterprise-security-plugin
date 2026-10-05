@@ -295,6 +295,7 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('geoip_service')->defaultNull()->end()
+                        ->integerNode('lifetime')->defaultNull()->min(1)->beforeNormalization()->ifNull()->thenUnset()->end()->end()
                         ->arrayNode('customer')
                             ->addDefaultsIfNotSet()
                             ->children()

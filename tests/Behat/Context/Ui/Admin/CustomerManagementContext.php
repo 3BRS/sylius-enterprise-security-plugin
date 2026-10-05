@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
@@ -43,6 +44,22 @@ class CustomerManagementContext implements Context
         $session->setSessionId('behat-session-' . uniqid('', true));
         $session->setUserAgent('Mozilla/5.0 (Test)');
         $session->setIpAddress($ipAddress);
+
+        $this->entityManager->persist($session);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * @Given the customer :email has a session from :ipAddress last active :days days ago
+     */
+    public function theCustomerHasASessionFromLastActiveDaysAgo(string $email, string $ipAddress, int $days): void
+    {
+        $session = new CustomerSession();
+        $session->setShopUser($this->loadShopUser($email));
+        $session->setSessionId('behat-session-' . uniqid('', true));
+        $session->setUserAgent('Mozilla/5.0 (Test)');
+        $session->setIpAddress($ipAddress);
+        $session->setLastActivityAt(new \DateTimeImmutable(sprintf('-%d days', $days)));
 
         $this->entityManager->persist($session);
         $this->entityManager->flush();
@@ -158,6 +175,60 @@ class CustomerManagementContext implements Context
             $this->sessionRepository->findActiveForShopUser($shopUser),
             $count,
             sprintf('Customer "%s" active session count mismatch.', $email),
+        );
+    }
+
+    /**
+     * @Then every session of customer :email should be revoked
+     */
+    public function everySessionOfCustomerShouldBeRevoked(string $email): void
+    {
+        $this->entityManager->clear();
+        $sessions = $this->sessionRepository->findAllForShopUser($this->loadShopUser($email));
+        Assert::notEmpty($sessions, sprintf('Customer "%s" has no sessions.', $email));
+
+        foreach ($sessions as $session) {
+            Assert::true($session->isRevoked(), sprintf('The session from "%s" was not revoked.', (string) $session->getIpAddress()));
+        }
+    }
+
+    /**
+     * @Then I should see no active sessions of the customer
+     */
+    public function iShouldSeeNoActiveSessionsOfTheCustomer(): void
+    {
+        Assert::false(
+            $this->session->getPage()->has('css', '[data-test-three-brs-customer-security-active-sessions]'),
+            'The active sessions table is rendered.',
+        );
+    }
+
+    /**
+     * @Then I should not be offered to sign the customer out of all sessions
+     */
+    public function iShouldNotBeOfferedToSignTheCustomerOutOfAllSessions(): void
+    {
+        Assert::false(
+            $this->session->getPage()->has('css', '[data-test-three-brs-customer-security-revoke-all]'),
+            'The button that signs the customer out of all sessions is rendered.',
+        );
+    }
+
+    /**
+     * @Then the login history should show the session from :ipAddress as :status
+     */
+    public function theLoginHistoryShouldShowTheSessionFromAs(string $ipAddress, string $status): void
+    {
+        $rows = array_filter(
+            $this->session->getPage()->findAll('css', '[data-test-three-brs-customer-security-login-history] tbody tr'),
+            static fn (NodeElement $row): bool => str_contains($row->getText(), $ipAddress),
+        );
+        Assert::count($rows, 1, sprintf('Expected one login history row from "%s".', $ipAddress));
+
+        $row = array_values($rows)[0];
+        Assert::true(
+            $row->has('css', sprintf('[data-test-three-brs-customer-security-session-status="%s"]', $status)),
+            sprintf('The session from "%s" is not shown as %s.', $ipAddress, $status),
         );
     }
 

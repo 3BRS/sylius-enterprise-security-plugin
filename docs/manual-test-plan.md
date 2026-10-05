@@ -256,7 +256,7 @@ Scope `C` = customer/shop, `A` = admin.
 | 8 | Passkey (WebAuthn) | `passkey` | `enabled: false`; `rp_id`/`rp_name` `null` | C, A | yes | secure context + `rp_id` (§2.3) |
 | 9 | Account Lockout | `account_lockout` | `enabled: false`; C: 5 attempts, A: 3; `auto_unlock_after: null` | C, A | yes | locks you out (§2.7) |
 | 10 | Rate Limiting | `rate_limit` | all `false`; login 5/15 min, reset 3/1 h, register 5/1 h (C only), magic link 3/15 min | C, A | yes | state in cache (§2.6) |
-| 11 | Session Management | `session_management` | `enabled: false`; `geoip_service: null` | C, A | yes | no GeoIP service means no location shown |
+| 11 | Session Management | `session_management` | `enabled: false`; `geoip_service: null`; `lifetime: null` | C, A | yes | no GeoIP service means no location shown |
 | 12 | Login Notifications | `login_notifications` | `enabled: false` | C, A | yes | mail only from an *unknown* device |
 | 13 | Security Settings UI | — | always available at `/admin/security-settings` | — | — | one page per scope: 15 sections (C) / 16 (A) |
 | 14 | Account Deletion (GDPR) | `account_deletion` | `enabled: false`, 30 days | **C only** | yes | no schedule shipped (§2.9); irreversible |
@@ -428,7 +428,9 @@ for one another — compare T45 with T49.
 | T56 | Administrator revokes a customer's session | the customer is signed out |
 
 Traps: with `geoip_service: null` the location column stays empty — expected. The stored
-user agent is **truncated to 1024 characters** by the entity.
+user agent is **truncated to 1024 characters** by the entity. A session idle for longer than
+`session.gc_maxlifetime` + 60 s (or `lifetime` + 60 s when set) drops off the lists and shows as
+offline in the login history — expected; "revoke all" still revokes it.
 
 ### 5.12 Login Notifications (T57–T59)
 

@@ -5,6 +5,7 @@
 {% block title %}{{ 'three_brs.ui.session.menu_item'|trans }} | {{ parent() }}{% endblock %}
 
 {% block content %}
+    {% set hasOtherSessions = three_brs_has_other_unrevoked_sessions(app.user, app.session.id ?? '') %}
     <div class="container mb-auto">
         <div class="row my-4">
             {{ include('@ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/_account_breadcrumbs.html.twig', { active_label: 'three_brs.ui.session.title' }) }}
@@ -30,7 +31,7 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center gap-3 flex-wrap">
                         <h2 class="h5 mb-0">{{ 'three_brs.ui.session.your_sessions'|trans }}</h2>
-                        {% if rows|length > 1 %}
+                        {% if hasOtherSessions %}
                             <button type="button"
                                     class="btn btn-outline-danger"
                                     data-bs-toggle="modal"
@@ -88,7 +89,7 @@
         </div>
     </div>
 
-    {% if rows|length > 1 %}
+    {% if hasOtherSessions %}
         {{ shared.confirmation_modal(
             'three-brs-shop-session-revoke-others-modal',
             'three_brs.ui.session.revoke_others'|trans,

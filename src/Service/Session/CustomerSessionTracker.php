@@ -39,12 +39,23 @@ class CustomerSessionTracker extends AbstractSessionTracker implements CustomerS
         return $result;
     }
 
+    public function moveSession(string $previousSessionId, string $sessionId, ShopUserInterface $user): void
+    {
+        $session = $this->repository->findOneBySessionId($previousSessionId);
+        if ($session === null || $session->isRevoked() || $session->getShopUser()->getId() !== $user->getId() || $this->repository->findOneBySessionId($sessionId) !== null) {
+            return;
+        }
+
+        $session->setSessionId($sessionId);
+        $this->commit();
+    }
+
     public function revokeAll(ShopUserInterface $user): void
     {
         // Customer-specific bulk revoke — used when an admin blocks a customer
         // account or the customer triggers it from session management UI.
         $now = $this->clock->now();
-        foreach ($this->repository->findActiveForShopUser($user) as $session) {
+        foreach ($this->repository->findUnrevokedForShopUser($user) as $session) {
             $session->setRevokedAt($now);
         }
         $this->commit();
@@ -61,7 +72,7 @@ class CustomerSessionTracker extends AbstractSessionTracker implements CustomerS
             return [];
         }
 
-        return $this->repository->findActiveForShopUser($user);
+        return $this->repository->findUnrevokedForShopUser($user);
     }
 
     protected function createNewRecord(

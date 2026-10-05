@@ -16,6 +16,12 @@ interface CustomerSessionTrackerInterface
         ?string $ipAddress,
     ): CustomerSessionInterface;
 
+    /**
+     * Moves the session recorded under the previous ID to the new one, when it belongs to the user, has
+     * not been revoked and nothing is recorded under the new ID yet.
+     */
+    public function moveSession(string $previousSessionId, string $sessionId, ShopUserInterface $user): void;
+
     public function touch(string $sessionId): void;
 
     public function revoke(CustomerSessionInterface $session): void;
@@ -23,8 +29,8 @@ interface CustomerSessionTrackerInterface
     public function revokeOthers(string $currentSessionId, ShopUserInterface $user): void;
 
     /**
-     * Revoke every active session of the user — used by the admin "remote logout"
-     * action where no current session is being preserved.
+     * Revoke every session of the user that has not been revoked, expired ones included — used
+     * by the admin "remote logout" action where no current session is being preserved.
      */
     public function revokeAll(ShopUserInterface $user): void;
 }

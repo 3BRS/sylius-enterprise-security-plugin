@@ -15,14 +15,16 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\CustomerLoginNotificationEmai
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ScopedFeatureCheckerInterface;
 
 /**
- * Tracks the active session row + emits a new-device email after a customer
- * successfully signs in. Invoked from `CustomerSessionLoginListener` after the
- * standard password `LoginSuccessEvent`, and directly from
- * `OAuthCallbackController` whose manual `tokenStorage->setToken()` bypasses
- * the firewall event dispatcher.
+ * Records the session and sends the new-device email after a customer signs in. Called from
+ * `CustomerSessionLoginListener` on every `LoginSuccessEvent` (with two-factor authentication after the
+ * password and again after the authenticator code), and directly from the controllers that sign in
+ * through `tokenStorage->setToken()` outside the firewall: OAuth callback, OAuth link confirmation,
+ * passkey and magic link.
  */
 class CustomerSessionLoginHandler implements CustomerSessionLoginHandlerInterface
 {
+    public const TRACKED_SESSION_ID_ATTRIBUTE = '_three_brs_customer_tracked_session_id';
+
     public function __construct(
         protected CustomerSessionTrackerInterface $tracker,
         protected CustomerNewDeviceDetectorInterface $newDeviceDetector,
@@ -49,7 +51,15 @@ class CustomerSessionLoginHandler implements CustomerSessionLoginHandlerInterfac
         if ($this->sessionManagement->isEnabled(SettingsScope::CUSTOMER)) {
             $sessionId = $this->extractSessionId($request);
             if ($sessionId !== null) {
+                $session = $request->getSession();
+                // When a sign-in gives the session a new ID, the session recorded under the
+                // previous ID moves to it.
+                $trackedSessionId = $session->get(static::TRACKED_SESSION_ID_ATTRIBUTE);
+                if (is_string($trackedSessionId) && $trackedSessionId !== $sessionId) {
+                    $this->tracker->moveSession($trackedSessionId, $sessionId, $user);
+                }
                 $this->tracker->track($user, $sessionId, $userAgent, $ipAddress);
+                $session->set(static::TRACKED_SESSION_ID_ATTRIBUTE, $sessionId);
             }
         }
 

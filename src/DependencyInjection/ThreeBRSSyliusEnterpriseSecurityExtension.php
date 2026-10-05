@@ -117,6 +117,7 @@ class ThreeBRSSyliusEnterpriseSecurityExtension extends Extension implements Pre
     {
         $container->setParameter('three_brs.session_management.customer.enabled', (bool) $config['customer']['enabled']);
         $container->setParameter('three_brs.session_management.admin.enabled', (bool) $config['admin']['enabled']);
+        $container->setParameter('three_brs.session_management.lifetime', $config['lifetime']);
 
         $geoipService = $config['geoip_service'];
         if ($geoipService !== null && $geoipService !== '') {

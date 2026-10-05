@@ -10,5 +10,6 @@ default:
                 - sylius.behat.context.transform.shared_storage
                 - sylius.behat.context.ui.admin.login
                 - three_brs.behat.context.ui.admin.two_factor_recovery
+                - three_brs.behat.context.ui.admin.session_management
             filters:
                 tags: "@admin&&@two_factor_recovery&&@ui"

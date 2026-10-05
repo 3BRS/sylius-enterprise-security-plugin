@@ -39,6 +39,17 @@ class AdminUserSessionTracker extends AbstractSessionTracker implements AdminUse
         return $result;
     }
 
+    public function moveSession(string $previousSessionId, string $sessionId, AdminUserInterface $user): void
+    {
+        $session = $this->repository->findOneBySessionId($previousSessionId);
+        if ($session === null || $session->isRevoked() || $session->getAdminUser()->getId() !== $user->getId() || $this->repository->findOneBySessionId($sessionId) !== null) {
+            return;
+        }
+
+        $session->setSessionId($sessionId);
+        $this->commit();
+    }
+
     protected function findOneBySessionId(string $sessionId): ?SessionRecordInterface
     {
         return $this->repository->findOneBySessionId($sessionId);
@@ -50,7 +61,7 @@ class AdminUserSessionTracker extends AbstractSessionTracker implements AdminUse
             return [];
         }
 
-        return $this->repository->findActiveForAdminUser($user);
+        return $this->repository->findUnrevokedForAdminUser($user);
     }
 
     protected function createNewRecord(
