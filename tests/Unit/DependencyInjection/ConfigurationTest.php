@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\DependencyInjection;
 
+use Composer\InstalledVersions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -103,6 +104,11 @@ class ConfigurationTest extends TestCase
 
     public function testTheNullableSecondsOptionsAcceptAnEnvironmentVariable(): void
     {
+        $version = (string) InstalledVersions::getVersion('symfony/config');
+        if (version_compare($version, '6.4.42', '<') || (version_compare($version, '7.0', '>=') && version_compare($version, '7.4.9', '<'))) {
+            self::markTestSkipped('symfony/config before 6.4.42 and 7.4.9 checks min() against the 0 it puts in place of an integer environment variable.');
+        }
+
         $parameters = new EnvPlaceholderParameterBag();
         $container = new ContainerBuilder($parameters);
         $container->registerExtension(new ThreeBRSSyliusEnterpriseSecurityExtension());

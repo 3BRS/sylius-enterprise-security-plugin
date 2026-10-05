@@ -247,6 +247,11 @@ jobs:
             -   name: Install Yarn
                 run: npm install -g yarn
 
+            # Sylius 2.3 needs Node 22 and a test application of its own; the matrix above
+            # runs 2.1 and 2.2 as well.
+            -   name: Require Sylius version
+                run: composer require "sylius/sylius:2.2.*" --no-interaction --no-update --no-scripts
+
             -   name: Install dependencies (prefer ${{ matrix.prefer }})
                 run: composer update --prefer-${{ matrix.prefer }} --no-interaction --no-scripts
 
