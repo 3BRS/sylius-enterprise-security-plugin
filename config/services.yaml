@@ -427,6 +427,7 @@ services:
             $logger: '@logger'
             $stateCookieSigner: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSigner'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $eventDispatcher: '@event_dispatcher'
             $userProvider: '@security.user.provider.concrete.sylius_shop_user_provider'
             $userChecker: '@sylius.user_checker.enabled'
         tags:
@@ -446,6 +447,7 @@ services:
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $eventDispatcher: '@event_dispatcher'
             $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
@@ -692,6 +694,7 @@ services:
             $router: '@router'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $eventDispatcher: '@event_dispatcher'
             $enabled: '%three_brs.passkey.customer.enabled%'
             $userChecker: '@sylius.user_checker.enabled'
         tags:
@@ -842,6 +845,7 @@ services:
             $clock: '@clock'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $eventDispatcher: '@event_dispatcher'
             $enabled: '%three_brs.magic_link.customer.enabled%'
             $userChecker: '@sylius.user_checker.enabled'
         tags:

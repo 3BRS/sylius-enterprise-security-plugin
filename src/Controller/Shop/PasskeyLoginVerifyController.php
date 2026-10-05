@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
 
 use Psr\Log\LoggerInterface;
+use Sylius\Bundle\UserBundle\Event\UserEvent;
+use Sylius\Bundle\UserBundle\UserEvents;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractPasskeyLoginVerifyController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifierInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandlerInterface;
@@ -25,6 +28,7 @@ class PasskeyLoginVerifyController extends AbstractPasskeyLoginVerifyController 
         protected CustomerSessionLoginHandlerInterface $sessionLoginHandler,
         bool $enabled,
         UserCheckerInterface $userChecker,
+        protected EventDispatcherInterface $eventDispatcher,
     ) {
         parent::__construct(
             $verifier,
@@ -55,6 +59,7 @@ class PasskeyLoginVerifyController extends AbstractPasskeyLoginVerifyController 
     {
         if ($user instanceof ShopUserInterface) {
             $this->sessionLoginHandler->handle($user, $request);
+            $this->eventDispatcher->dispatch(new UserEvent($user), UserEvents::SECURITY_IMPLICIT_LOGIN);
         }
     }
 }

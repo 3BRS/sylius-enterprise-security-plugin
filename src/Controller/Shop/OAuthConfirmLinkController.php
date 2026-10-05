@@ -6,6 +6,8 @@ namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
 
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
+use Sylius\Bundle\UserBundle\Event\UserEvent;
+use Sylius\Bundle\UserBundle\UserEvents;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -13,6 +15,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Challenge\CodeChallengeValidatorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthLinkCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
@@ -41,6 +44,7 @@ class OAuthConfirmLinkController extends AbstractOAuthLinkCodeConfirmLinkControl
         Environment $twig,
         LoggerInterface $logger,
         UserCheckerInterface $userChecker,
+        protected EventDispatcherInterface $eventDispatcher,
     ) {
         parent::__construct($codeGenerator, $codeEmailManager, $clock, $csrfTokenManager, $challengeValidator, $tokenStorage, $router, $twig, $logger, $userChecker);
     }
@@ -109,6 +113,7 @@ class OAuthConfirmLinkController extends AbstractOAuthLinkCodeConfirmLinkControl
     {
         if ($user instanceof ShopUserInterface) {
             $this->sessionLoginHandler->handle($user, $request);
+            $this->eventDispatcher->dispatch(new UserEvent($user), UserEvents::SECURITY_IMPLICIT_LOGIN);
         }
     }
 }

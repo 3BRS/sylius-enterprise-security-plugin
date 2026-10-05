@@ -6,7 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
@@ -132,6 +134,98 @@ class ShopSocialLoginHandlerTest extends TestCase
         self::assertSame($shopUser, $persisted[2]->getShopUser());
     }
 
+    public function testRegisterAndLinkCreatesTheAccountOnTheGuestCustomer(): void
+    {
+        $customer = $this->createMock(CustomerInterface::class);
+        $customer->method('getUser')->willReturn(null);
+        $customer->method('getFirstName')->willReturn('Jane');
+        $customer->method('getLastName')->willReturn(null);
+        $customer->expects($this->never())->method('setEmail');
+        $customer->expects($this->never())->method('setFirstName');
+        $customer->expects($this->once())->method('setLastName')->with('Doe');
+
+        $customerRepository = $this->createMock(CustomerRepositoryInterface::class);
+        $customerRepository->expects($this->once())
+            ->method('findOneBy')
+            ->with(['emailCanonical' => 'guest@example.com'])
+            ->willReturn($customer);
+
+        $customerFactory = $this->createMock(FactoryInterface::class);
+        $customerFactory->expects($this->never())->method('createNew');
+
+        $shopUser = $this->createMock(ShopUserInterface::class);
+        $shopUser->expects($this->once())->method('setCustomer')->with($customer);
+        $shopUser->expects($this->once())->method('setEnabled')->with(true);
+
+        $shopUserFactory = $this->createStub(FactoryInterface::class);
+        $shopUserFactory->method('createNew')->willReturn($shopUser);
+
+        $handler = $this->handler(
+            customerRepository: $customerRepository,
+            customerFactory: $customerFactory,
+            shopUserFactory: $shopUserFactory,
+        );
+
+        $result = $handler->registerAndLink(new OAuthUserInfo('google', 'g-guest', 'Guest@Example.com', 'John', 'Doe', true));
+
+        self::assertSame($shopUser, $result);
+    }
+
+    public function testRegisterAndLinkRefusesAGuestCustomerWhoseEmailTheProviderDidNotVerify(): void
+    {
+        $customer = $this->createStub(CustomerInterface::class);
+        $customer->method('getUser')->willReturn(null);
+
+        $customerRepository = $this->createStub(CustomerRepositoryInterface::class);
+        $customerRepository->method('findOneBy')->willReturn($customer);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('flush');
+
+        $handler = $this->handler(customerRepository: $customerRepository, entityManager: $entityManager);
+
+        $this->expectException(\LogicException::class);
+        $handler->registerAndLink(new OAuthUserInfo('microsoft', 'm-guest', 'guest@example.com'));
+    }
+
+    /**
+     * @return iterable<string, array{CustomerInterface|null, bool|null, bool}>
+     */
+    public static function autoRegistrationProvider(): iterable
+    {
+        yield 'unknown email, verification not stated' => [null, null, true];
+        yield 'guest customer, email verified' => [self::guestCustomer(), true, true];
+        yield 'guest customer, verification not stated' => [self::guestCustomer(), null, false];
+    }
+
+    #[DataProvider('autoRegistrationProvider')]
+    public function testAutoRegistrationTakesOverAGuestCustomerOnlyWithAVerifiedEmail(?CustomerInterface $customer, ?bool $emailVerified, bool $allowed): void
+    {
+        $customerRepository = $this->createStub(CustomerRepositoryInterface::class);
+        $customerRepository->method('findOneBy')->willReturn($customer);
+
+        $handler = $this->handler(customerRepository: $customerRepository);
+
+        self::assertSame($allowed, $handler->canAutoRegister(new OAuthUserInfo('microsoft', 'm-1', 'guest@example.com', null, null, $emailVerified)));
+    }
+
+    public function testRegisterAndLinkRefusesACustomerThatAlreadyHasAnAccount(): void
+    {
+        $customer = $this->createStub(CustomerInterface::class);
+        $customer->method('getUser')->willReturn($this->createStub(ShopUserInterface::class));
+
+        $customerRepository = $this->createStub(CustomerRepositoryInterface::class);
+        $customerRepository->method('findOneBy')->willReturn($customer);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('flush');
+
+        $handler = $this->handler(customerRepository: $customerRepository, entityManager: $entityManager);
+
+        $this->expectException(\LogicException::class);
+        $handler->registerAndLink(new OAuthUserInfo('google', 'g-taken', 'taken@example.com'));
+    }
+
     public function testRegisterAndLinkThrowsWhenEmailIsNull(): void
     {
         $handler = $this->handler();
@@ -203,6 +297,14 @@ class ShopSocialLoginHandlerTest extends TestCase
         $handler = $this->handler(linkRepository: $linkRepository, entityManager: $entityManager);
 
         $handler->touchLastUsed($user, new OAuthUserInfo('google', 'g-1', 'x@y.com'));
+    }
+
+    protected static function guestCustomer(): CustomerInterface
+    {
+        $customer = new Customer();
+        $customer->setEmail('guest@example.com');
+
+        return $customer;
     }
 
     protected function handler(

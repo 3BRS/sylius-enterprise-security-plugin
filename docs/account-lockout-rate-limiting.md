@@ -30,8 +30,9 @@ The account-deletion request posts the customer's current password, so it presen
 
 When the limit is exceeded a form post is redirected back to the form it came from, with a
 `three_brs.rate_limit.too_many_requests` error flash. A request that arrives as JSON — the checkout's inline sign-in posts that
-way — is answered with HTTP 429 and `{"error": "three_brs.rate_limit.too_many_requests"}` instead, so the JavaScript that sent
-it can read the outcome rather than follow a redirect it never asked for.
+way — or that JavaScript sends with the `X-Requested-With: XMLHttpRequest` header is answered with HTTP 429 and
+`{"error": "three_brs.rate_limit.too_many_requests"}` instead, so the JavaScript that sent it can read the outcome rather than
+follow a redirect it never asked for.
 
 > **Admin manual unlock:** clicking *Unlock* on a locked account clears the DB lockout state and the login rate-limit counter for that user, so they can sign in immediately.
 

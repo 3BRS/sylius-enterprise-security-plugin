@@ -7,6 +7,8 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Unit\Controller\Shop;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Sylius\Bundle\UserBundle\Event\UserEvent;
+use Sylius\Bundle\UserBundle\UserEvents;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +18,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Exception\DisabledException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop\PasskeyLoginVerifyController;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionResult;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyAssertionVerifierInterface;
@@ -67,6 +70,38 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         $payload = (array) json_decode((string) $response->getContent(), true);
         self::assertTrue($payload['ok']);
         self::assertSame('/account/dashboard', $payload['redirect']);
+    }
+
+    public function testDispatchesTheImplicitLoginEventSoSyliusAssignsTheCart(): void
+    {
+        $shopUser = $this->buildShopUser();
+
+        $verifier = $this->createStub(CustomerPasskeyAssertionVerifierInterface::class);
+        $verifier->method('verify')->willReturn(new CustomerPasskeyAssertionResult($shopUser));
+
+        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $eventDispatcher->expects(self::once())
+            ->method('dispatch')
+            ->with(
+                self::callback(static fn (object $event): bool => $event instanceof UserEvent && $event->getUser() === $shopUser),
+                UserEvents::SECURITY_IMPLICIT_LOGIN,
+            )
+            ->willReturnArgument(0);
+
+        $router = $this->createStub(RouterInterface::class);
+        $router->method('generate')->willReturn('/account/dashboard');
+
+        $controller = $this->createController(
+            verifier: $verifier,
+            tokenStorage: $this->createStub(TokenStorageInterface::class),
+            router: $router,
+            enabled: true,
+            eventDispatcher: $eventDispatcher,
+        );
+
+        $response = $controller($this->buildRequest());
+
+        self::assertSame(200, $response->getStatusCode());
     }
 
     public function testReturnsBadRequestWhenCredentialPayloadMissing(): void
@@ -135,6 +170,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
         RouterInterface $router,
         bool $enabled,
         ?UserCheckerInterface $userChecker = null,
+        ?EventDispatcherInterface $eventDispatcher = null,
     ): PasskeyLoginVerifyController {
         return new PasskeyLoginVerifyController(
             verifier: $verifier,
@@ -142,6 +178,7 @@ class PasskeyLoginVerifyControllerTest extends TestCase
             router: $router,
             logger: $this->createStub(LoggerInterface::class),
             sessionLoginHandler: $this->createStub(CustomerSessionLoginHandlerInterface::class),
+            eventDispatcher: $eventDispatcher ?? $this->createStub(EventDispatcherInterface::class),
             enabled: $enabled,
             userChecker: $userChecker ?? $this->createStub(UserCheckerInterface::class),
         );

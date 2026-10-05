@@ -61,7 +61,19 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
         // verified email). Preserves the historical default where any verified
         // OAuth signup was accepted. Admins who want to restrict customer
         // auto-registration (e.g. to reduce bot signups) can populate the list.
-        return $this->autoRegistrationPolicy->canAutoRegister($info, $domains === [] ? null : $domains);
+        if (!$this->autoRegistrationPolicy->canAutoRegister($info, $domains === [] ? null : $domains)) {
+            return false;
+        }
+
+        // The account takes over the guest customer's orders, so the provider has to have verified the email.
+        return $info->isEmailVerified() === true || $this->findGuestCustomer((string) $info->getEmail()) === null;
+    }
+
+    protected function findGuestCustomer(string $email): ?CustomerInterface
+    {
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
+
+        return $customer instanceof CustomerInterface && $customer->getUser() === null ? $customer : null;
     }
 
     /** @return list<string> */
@@ -90,11 +102,24 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
             throw new \LogicException('Cannot register a shop user without an email address from the OAuth provider.');
         }
 
-        /** @var CustomerInterface $customer */
-        $customer = $this->customerFactory->createNew();
-        $customer->setEmail($email);
-        $customer->setFirstName($info->getFirstName());
-        $customer->setLastName($info->getLastName());
+        // A customer who ordered as a guest exists without an account; the account is created on it.
+        $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
+        if (!$customer instanceof CustomerInterface) {
+            /** @var CustomerInterface $customer */
+            $customer = $this->customerFactory->createNew();
+            $customer->setEmail($email);
+        } elseif ($customer->getUser() !== null) {
+            throw new \LogicException('Cannot register a shop user for a customer that already has an account.');
+        } elseif ($info->isEmailVerified() !== true) {
+            throw new \LogicException('Cannot register a shop user for a guest customer whose email the provider has not verified.');
+        }
+
+        if (in_array($customer->getFirstName(), [null, ''], true)) {
+            $customer->setFirstName($info->getFirstName());
+        }
+        if (in_array($customer->getLastName(), [null, ''], true)) {
+            $customer->setLastName($info->getLastName());
+        }
 
         /** @var ShopUserInterface $shopUser */
         $shopUser = $this->shopUserFactory->createNew();

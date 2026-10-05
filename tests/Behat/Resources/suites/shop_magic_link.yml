@@ -19,5 +19,8 @@ default:
                 # password form only.
                 - three_brs.behat.context.ui.shop.two_factor_login
                 - three_brs.behat.context.ui.shop.alternative_sign_in
+                # A guest cart taken over by the magic-link sign-in.
+                - sylius.behat.context.setup.product
+                - three_brs.behat.context.ui.shop.guest_cart
             filters:
                 tags: "@shop&&@magic_link&&@ui"

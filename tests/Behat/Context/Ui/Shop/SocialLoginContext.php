@@ -10,6 +10,7 @@ use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Mailer\SpySender;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthStateInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerSocialAccountLink;
@@ -20,12 +21,13 @@ use Webmozart\Assert\Assert;
 class SocialLoginContext implements Context
 {
     public function __construct(
-        private Session $session,
-        private CustomerRepositoryInterface $customerRepository,
-        private CustomerSocialAccountLinkRepositoryInterface $linkRepository,
-        private EntityManagerInterface $entityManager,
-        private FakeOAuthStateInterface $fakeOAuthState,
-        private SpySender $spySender,
+        protected Session $session,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected CustomerSocialAccountLinkRepositoryInterface $linkRepository,
+        protected EntityManagerInterface $entityManager,
+        protected FakeOAuthStateInterface $fakeOAuthState,
+        protected SpySender $spySender,
+        protected TranslatorInterface $translator,
     ) {
     }
 
@@ -41,6 +43,14 @@ class SocialLoginContext implements Context
     public function theOAuthProviderWillReturnUser(string $provider, string $providerUserId, string $email): void
     {
         $this->fakeOAuthState->seedUserInfo($provider, $providerUserId, $email, 'Social', 'User');
+    }
+
+    /**
+     * @Given the :provider OAuth provider will return user :providerUserId with verified email :email
+     */
+    public function theOAuthProviderWillReturnUserWithVerifiedEmail(string $provider, string $providerUserId, string $email): void
+    {
+        $this->fakeOAuthState->seedUserInfo($provider, $providerUserId, $email, 'Social', 'User', true);
     }
 
     /**
@@ -199,6 +209,17 @@ class SocialLoginContext implements Context
     }
 
     /**
+     * @Then I should be told that signing up through the provider is not allowed
+     */
+    public function iShouldBeToldThatSigningUpThroughTheProviderIsNotAllowed(): void
+    {
+        Assert::contains(
+            $this->session->getPage()->getText(),
+            $this->translator->trans('three_brs.ui.social_login.auto_register_refused', [], 'flashes'),
+        );
+    }
+
+    /**
      * @Then I should see a social-login error
      */
     public function iShouldSeeASocialLoginError(): void
@@ -210,7 +231,7 @@ class SocialLoginContext implements Context
         );
     }
 
-    private function findShopUser(string $email): ShopUserInterface
+    protected function findShopUser(string $email): ShopUserInterface
     {
         $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
         Assert::notNull($customer, sprintf('Customer "%s" not found.', $email));
@@ -241,7 +262,7 @@ class SocialLoginContext implements Context
         Assert::regex((string) $data['code'], '/^\\d{6}$/', 'The emailed account linking code is not a six-digit code.');
     }
 
-    private function emailedLinkCode(): string
+    protected function emailedLinkCode(): string
     {
         $data = $this->spySender->getLastSentData(Emails::OAUTH_LINK_CODE);
         Assert::keyExists($data, 'code', 'No account-linking code was emailed.');
@@ -249,7 +270,7 @@ class SocialLoginContext implements Context
         return (string) $data['code'];
     }
 
-    private function submitConfirmCode(string $code): void
+    protected function submitConfirmCode(string $code): void
     {
         $page = $this->session->getPage();
         $input = $page->find('css', '[data-test-three-brs-social-confirm-code]');

@@ -11,6 +11,7 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\BrowserKit\AbstractBrowser;
+use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Routing\RouterInterface;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\Passkey\FakeAuthenticator;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerPasskeyCredentialRepositoryInterface;
@@ -40,6 +41,14 @@ class PasskeyCeremonyContext implements Context
     {
         FakeAuthenticator::reset();
         $this->credentialsByLabel = [];
+    }
+
+    /**
+     * Lets another context hand a cookie to the kernel browser this context drives.
+     */
+    public function setCookie(Cookie $cookie): void
+    {
+        $this->client->getCookieJar()->set($cookie);
     }
 
     /**
