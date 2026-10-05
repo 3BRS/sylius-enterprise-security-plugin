@@ -10,6 +10,8 @@ use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -223,6 +225,30 @@ class TwoFactorEnforcementListenerTest extends TestCase
 
         self::assertNotNull($event->getResponse());
         self::assertSame('/admin/two-factor/setup', $event->getResponse()->getTargetUrl());
+    }
+
+    public function testAddsTheEnforcementWarningOnlyOnceUntilItIsShown(): void
+    {
+        $checker = $this->createStub(TwoFactorEnforcementCheckerInterface::class);
+        $checker->method('shouldEnforceForAdminUser')->willReturn(true);
+
+        $router = $this->createStub(RouterInterface::class);
+        $router->method('generate')->willReturn('/admin/two-factor/setup');
+
+        $listener = $this->createListener(
+            $this->tokenStorageWithUser($this->createStub(TestAdminUserForEnforcement::class)),
+            $checker,
+            $router,
+        );
+
+        $session = new Session(new MockArraySessionStorage());
+        foreach (['/admin/', '/admin/orders/'] as $path) {
+            $event = $this->createEvent('some_route', $path);
+            $event->getRequest()->setSession($session);
+            $listener->onKernelRequest($event);
+        }
+
+        self::assertSame(['three_brs.two_factor.enforcement_required'], $session->getFlashBag()->get('warning'));
     }
 
     public function testDoesNotRedirectAdminUserWhenNotEnforced(): void

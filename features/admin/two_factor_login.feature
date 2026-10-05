@@ -15,6 +15,7 @@ Feature: Administrator two-factor authentication login flow
         And I specify the password as "Sylius1!"
         And I log in
         Then I should be on the admin 2FA challenge page
+        And the admin 2FA challenge page should use the administration layout
 
     @ui
     Scenario: Administrator completes 2FA challenge with a valid TOTP code

@@ -59,6 +59,11 @@ unset it falls back to `@SchebTwoFactor/Authentication/form.html.twig`, a bare f
 the Sylius layout with no link to the recovery-code challenge — so the recovery codes
 issued during setup could not be used to sign in.
 
+`TwoFactor/challenge.html.twig` only picks the page for the firewall by the challenge route:
+`Admin/TwoFactor/challenge.html.twig` in the admin layout and `Shop/TwoFactor/challenge.html.twig`
+in the shop layout. To change the storefront code page, override only the shop one in
+`templates/bundles/ThreeBRSSyliusEnterpriseSecurityPlugin/Shop/TwoFactor/challenge.html.twig`.
+
 On the **shop firewall**, replace Sylius' default `form_login.success_handler` (`sylius.authentication.success_handler`) with the plugin's 2FA-aware wrapper. The default Sylius handler returns a `JsonResponse` on XHR and redirects straight to the target path without checking for a `TwoFactorTokenInterface`, which produces a broken UX during 2FA challenges:
 
 ```yaml

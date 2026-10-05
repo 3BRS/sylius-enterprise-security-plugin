@@ -59,6 +59,20 @@ class TwoFactorLoginContext implements Context
     }
 
     /**
+     * @Then the admin 2FA challenge page should use the administration layout
+     */
+    public function theAdminTwoFactorChallengePageShouldUseTheAdministrationLayout(): void
+    {
+        $page = $this->session->getPage();
+        Assert::notNull($page->find('css', 'link[href*="/build/admin/"]'), 'The challenge page does not load the admin stylesheet.');
+        Assert::null($page->find('css', 'link[href*="/build/shop/"]'), 'The challenge page loads the shop stylesheet.');
+
+        $recoveryLink = $page->find('css', '[data-test-two-factor-use-recovery-code]');
+        Assert::notNull($recoveryLink, 'The challenge page has no recovery-code link.');
+        Assert::same(parse_url((string) $recoveryLink->getAttribute('href'), PHP_URL_PATH), '/admin/2fa/recovery');
+    }
+
+    /**
      * @Then I should be on the admin 2FA challenge page
      */
     public function iShouldBeOnTheTwoFactorChallengePage(): void

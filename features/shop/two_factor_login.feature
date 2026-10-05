@@ -13,6 +13,7 @@ Feature: Customer two-factor authentication login flow
         Given the customer "john@example.com" has 2FA enabled with a known secret
         When I sign in with email "john@example.com" and password "Password1!"
         Then I should be on the 2FA challenge page
+        And the 2FA challenge page should use the storefront layout
 
     @ui
     Scenario: Customer completes 2FA challenge with a valid TOTP code
