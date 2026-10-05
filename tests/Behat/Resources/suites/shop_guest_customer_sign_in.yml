@@ -1,6 +1,6 @@
 default:
     suites:
-        shop_magic_link:
+        shop_guest_customer_sign_in:
             contexts:
                 - sylius.behat.context.hook.doctrine_orm
                 - three_brs.behat.context.hook.security_settings
@@ -11,16 +11,12 @@ default:
                 - sylius.behat.context.setup.zone
                 - sylius.behat.context.setup.customer
                 - sylius.behat.context.setup.shop_security
-                - sylius.behat.context.transform.shared_storage
-                - sylius.behat.context.ui.shop.login
-                - three_brs.behat.context.ui.shop.magic_link
-                # Combinations K1 and K5 from docs/manual-test-plan.md: a magic link
-                # meets the second factor and the lockout, both of which guard the
-                # password form only.
-                - three_brs.behat.context.ui.shop.two_factor_login
-                - three_brs.behat.context.ui.shop.alternative_sign_in
-                # A guest cart taken over by the magic-link sign-in.
                 - sylius.behat.context.setup.product
+                - sylius.behat.context.setup.order
+                - sylius.behat.context.transform.customer
+                - sylius.behat.context.transform.shared_storage
+                - three_brs.behat.context.ui.shop.social_login
+                - three_brs.behat.context.ui.shop.passkey_ceremony
                 - three_brs.behat.context.ui.shop.guest_cart
             filters:
-                tags: "@shop&&@magic_link&&@ui"
+                tags: "@shop&&@guest_customer_sign_in&&@ui"

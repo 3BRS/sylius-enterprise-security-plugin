@@ -30,4 +30,4 @@ three_brs:
         session_revoked: 'The selected session has been signed out.'
     ui:
         social_login:
-            auto_register_refused: 'Self-registration through this 3rd-party OAuth provider is not allowed. Please contact an administrator.'
+            auto_register_refused: 'An account cannot be created through this 3rd-party OAuth provider for this email address. Create it another way, or contact an administrator.'

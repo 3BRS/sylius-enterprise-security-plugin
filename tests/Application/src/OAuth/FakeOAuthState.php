@@ -18,6 +18,7 @@ class FakeOAuthState implements FakeOAuthStateInterface
         ?string $email,
         ?string $firstName = null,
         ?string $lastName = null,
+        ?bool $emailVerified = null,
     ): void {
         self::$userInfoByProvider[$provider] = new OAuthUserInfo(
             $provider,
@@ -25,6 +26,7 @@ class FakeOAuthState implements FakeOAuthStateInterface
             $email,
             $firstName,
             $lastName,
+            $emailVerified,
         );
     }
 

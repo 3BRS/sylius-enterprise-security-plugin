@@ -168,6 +168,7 @@
 			<argument type="service" id="doctrine.orm.entity_manager"/>
 			<argument type="service" id="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState"/>
 			<argument type="service" id="sylius.email_sender"/>
+			<argument type="service" id="translator"/>
 		</service>
 
 		<service id="three_brs.behat.context.ui.admin.social_login"
@@ -442,6 +443,22 @@
 				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin\PendingSignInContext">
 			<argument type="service" id="behat.mink.default_session"/>
 			<argument type="service" id="router"/>
+		</service>
+
+		<service id="three_brs.behat.context.ui.shop.guest_cart"
+				 class="Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop\GuestCartContext">
+			<argument type="service" id="sylius.repository.order"/>
+			<argument type="service" id="sylius.repository.customer"/>
+			<argument type="service" id="doctrine.orm.entity_manager"/>
+			<argument type="service" id="sylius.behat.shared_storage"/>
+			<argument type="service" id="sylius.factory.order"/>
+			<argument type="service" id="sylius.factory.order_item"/>
+			<argument type="service" id="sylius.modifier.order_item_quantity"/>
+			<argument type="service" id="sylius.order_processing.order_processor"/>
+			<argument type="service" id="session.factory"/>
+			<argument type="service" id="behat.mink.default_session"/>
+			<argument type="service" id="sylius.repository.channel"/>
+			<argument type="service" id="sylius.repository.product_variant"/>
 		</service>
 	</services>
 </container>

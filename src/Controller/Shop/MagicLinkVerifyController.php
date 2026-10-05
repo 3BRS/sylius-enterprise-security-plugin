@@ -8,6 +8,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorTokenInterface;
+use Sylius\Bundle\UserBundle\Event\UserEvent;
+use Sylius\Bundle\UserBundle\UserEvents;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -15,6 +17,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractMagicLinkVerifyController;
 use ThreeBRS\EnterpriseSecurityBundle\MagicLink\MagicLinkRecordInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerMagicLinkTokenInterface;
@@ -33,6 +36,7 @@ class MagicLinkVerifyController extends AbstractMagicLinkVerifyController implem
         protected CustomerSessionLoginHandlerInterface $sessionLoginHandler,
         bool $enabled,
         UserCheckerInterface $userChecker,
+        protected EventDispatcherInterface $eventDispatcher,
     ) {
         parent::__construct(
             $verifier,
@@ -88,6 +92,7 @@ class MagicLinkVerifyController extends AbstractMagicLinkVerifyController implem
     {
         if ($user instanceof ShopUserInterface) {
             $this->sessionLoginHandler->handle($user, $request);
+            $this->eventDispatcher->dispatch(new UserEvent($user), UserEvents::SECURITY_IMPLICIT_LOGIN);
         }
     }
 }
