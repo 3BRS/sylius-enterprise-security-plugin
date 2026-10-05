@@ -15,7 +15,7 @@ Feature: Admin session management
         Then I should see exactly 1 active admin session
         And I should see my current admin session marker
 
-    @ui
+    @ui @T82
     Scenario: Admin with two-factor authentication sees one session after entering the code
         Given the administrator "admin@example.com" has 2FA enabled with a known secret
         When I sign in to the admin panel with email "admin@example.com" and password "Password1!"
@@ -62,7 +62,7 @@ Feature: Admin session management
         And I visit the admin active sessions page
         Then I should be redirected to the admin login page
 
-    @ui
+    @ui @T83
     Scenario: Admin does not see a session that has expired but can still sign it out
         Given the admin "admin@example.com" has another session "expired-admin-session" last active 2 days ago
         When I sign in to the admin panel with email "admin@example.com" and password "Password1!"
@@ -72,7 +72,7 @@ Feature: Admin session management
         When I revoke all other admin sessions
         Then the admin session "expired-admin-session" should be revoked
 
-    @ui
+    @ui @T83
     Scenario: Revoking all other admin sessions also revokes an expired one
         Given the admin "admin@example.com" has another active session "other-admin-session"
         And the admin "admin@example.com" has another session "expired-admin-session" last active 2 days ago

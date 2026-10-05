@@ -22,7 +22,7 @@ Feature: Customer two-factor authentication login flow
         And I submit a valid TOTP challenge code
         Then I should be fully authenticated
 
-    @ui
+    @ui @T74
     Scenario: Customer completes 2FA challenge with the code written as the code page shows it
         Given the customer "john@example.com" has 2FA enabled with a known secret
         When I sign in with email "john@example.com" and password "Password1!"
@@ -37,7 +37,7 @@ Feature: Customer two-factor authentication login flow
         Then I should be on the 2FA challenge page
         And I should see a 2FA authentication error
 
-    @ui
+    @ui @T75
     Scenario: Leaving the code page for another page ends the pending sign-in
         Given my browser asks for HTML pages
         And the customer "john@example.com" has 2FA enabled with a known secret
@@ -48,7 +48,7 @@ Feature: Customer two-factor authentication login flow
         When I open my account dashboard
         Then I should be on the shop login page
 
-    @ui
+    @ui @T75
     Scenario: Opening the sign-in page ends the pending sign-in
         Given my browser asks for HTML pages
         And the customer "john@example.com" has 2FA enabled with a known secret

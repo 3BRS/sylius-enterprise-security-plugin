@@ -40,7 +40,7 @@ Feature: Administrator two-factor authentication recovery-code fallback
         And I submit a valid admin recovery code
         Then the used admin recovery code should be marked consumed
 
-    @ui
+    @ui @T82
     Scenario: Administrator who completes 2FA with a recovery code sees one session
         Given the administrator "admin@example.com" has 2FA enabled with recovery codes
         And I want to log in

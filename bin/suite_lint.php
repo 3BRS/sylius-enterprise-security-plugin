@@ -20,7 +20,7 @@ declare(strict_types=1);
  * feature files on disk.
  *
  * It also holds the manual test plan and the suite to each other: §5 of
- * docs/manual-test-plan.md numbers 73 scenarios T01-T73, and each has to be either
+ * docs/manual-test-plan.md numbers 84 scenarios T01-T84, and each has to be either
  * claimed by a scenario tagged @Tnn or named below as one nothing automates, with the
  * reason. Coverage counted by reading is a number that stops being true the day after
  * somebody writes it down; this one is recomputed every run.

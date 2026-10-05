@@ -61,7 +61,7 @@ Feature: Customer magic link login
         When I follow the magic link "shop-used-1"
         Then I should see a magic link invalid-or-expired error
 
-    @ui
+    @ui @T80
     Scenario: Signing in through a magic link takes over the guest cart
         Given the store has a product "PHP T-Shirt"
         And I have a guest cart with this product
