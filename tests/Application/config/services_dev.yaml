@@ -6,7 +6,7 @@ services:
     Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\OAuth\FakeOAuthState:
         public: true
         calls:
-            # Google reports the email as verified, Apple and Microsoft report nothing — as the real providers do.
+            # The Google provider reports the email as verified; the Apple and Microsoft providers report nothing.
             - [seedUserInfo, ['google', 'dev-google-123', 'dev.google@example.com', 'Dev', 'Google', true]]
             - [seedUserInfo, ['apple', 'dev-apple-123', 'dev.apple@example.com', 'Dev', 'Apple']]
             - [seedUserInfo, ['microsoft', 'dev-microsoft-123', 'dev.microsoft@example.com', 'Dev', 'Microsoft']]
