@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -76,6 +78,30 @@ class RateLimitListenerTest extends TestCase
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $response->getStatusCode());
     }
 
+    public function testAnswersAThrottledFormLoginSentByJavaScriptWithA429(): void
+    {
+        $guard = $this->createStub(RateLimitGuardInterface::class);
+        $guard->method('consume')->willThrowException(new TooManyRequestsHttpException(60));
+
+        $request = Request::create(
+            '/en_US/login-check',
+            'POST',
+            ['_username' => 'buyer@example.com'],
+            server: ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'],
+        );
+        $request->attributes->set('_route', 'sylius_shop_login_check');
+        $session = new Session(new MockArraySessionStorage());
+        $request->setSession($session);
+        $event = new RequestEvent($this->createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST);
+
+        $this->makeListener($guard)->onKernelRequest($event);
+
+        $response = $event->getResponse();
+        self::assertInstanceOf(JsonResponse::class, $response);
+        self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $response->getStatusCode());
+        self::assertSame([], $session->getFlashBag()->peekAll(), 'The JSON answer left a flash for the next page.');
+    }
+
     public function testStillRedirectsAThrottledFormLogin(): void
     {
         $guard = $this->createStub(RateLimitGuardInterface::class);
@@ -83,11 +109,14 @@ class RateLimitListenerTest extends TestCase
 
         $request = Request::create('/en_US/login-check', 'POST', ['_username' => 'buyer@example.com']);
         $request->attributes->set('_route', 'sylius_shop_login_check');
+        $session = new Session(new MockArraySessionStorage());
+        $request->setSession($session);
         $event = new RequestEvent($this->createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST);
 
         $this->makeListener($guard)->onKernelRequest($event);
 
         self::assertInstanceOf(RedirectResponse::class, $event->getResponse());
+        self::assertSame(['three_brs.rate_limit.too_many_requests'], $session->getFlashBag()->get('error'));
     }
 
     public function testSurvivesAMalformedJsonBody(): void

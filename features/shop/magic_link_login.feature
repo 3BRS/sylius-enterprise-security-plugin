@@ -60,3 +60,11 @@ Feature: Customer magic link login
         Given a used magic link token "shop-used-1" exists for "existing@example.com"
         When I follow the magic link "shop-used-1"
         Then I should see a magic link invalid-or-expired error
+
+    @ui @T80
+    Scenario: Signing in through a magic link takes over the guest cart
+        Given the store has a product "PHP T-Shirt"
+        And I have a guest cart with this product
+        When I request a magic link for "existing@example.com"
+        And I follow the magic link from the email sent to "existing@example.com"
+        Then my cart should belong to "existing@example.com"

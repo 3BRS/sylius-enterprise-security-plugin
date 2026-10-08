@@ -74,12 +74,15 @@ class RateLimitListener implements RateLimitListenerInterface
         try {
             $this->guard->consume($request, $group, $action, $userIdentifier);
         } catch (TooManyRequestsHttpException) {
+            $response = $this->buildThrottledResponse($request, $fallbackRoute);
+
+            // The JSON answer carries the message itself; a flash would wait for the next page.
             $session = $request->hasSession() ? $request->getSession() : null;
-            if ($session !== null && method_exists($session, 'getFlashBag')) {
+            if ($response instanceof RedirectResponse && $session !== null && method_exists($session, 'getFlashBag')) {
                 $session->getFlashBag()->add('error', 'three_brs.rate_limit.too_many_requests');
             }
 
-            $event->setResponse($this->buildThrottledResponse($request, $fallbackRoute));
+            $event->setResponse($response);
         }
     }
 
@@ -90,7 +93,7 @@ class RateLimitListener implements RateLimitListenerInterface
      */
     protected function buildThrottledResponse(Request $request, string $fallbackRoute): Response
     {
-        if ($request->getContentTypeFormat() === 'json') {
+        if ($request->getContentTypeFormat() === 'json' || $request->isXmlHttpRequest()) {
             return new JsonResponse(
                 ['error' => 'three_brs.rate_limit.too_many_requests'],
                 Response::HTTP_TOO_MANY_REQUESTS,

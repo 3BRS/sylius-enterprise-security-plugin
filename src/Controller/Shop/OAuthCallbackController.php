@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Shop;
 
 use Psr\Log\LoggerInterface;
+use Sylius\Bundle\UserBundle\Event\UserEvent;
+use Sylius\Bundle\UserBundle\UserEvents;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,15 +16,19 @@ use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractOAuthCallbackController;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSignerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\CompletedSignInGuardTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandlerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\ShopSocialLoginHandlerInterface;
 
 class OAuthCallbackController extends AbstractOAuthCallbackController implements OAuthCallbackControllerInterface
 {
+    use CompletedSignInGuardTrait;
+
     public const CONFIRM_PENDING_SESSION_KEY = 'three_brs_oauth_pending_customer';
 
     /**
@@ -39,6 +45,7 @@ class OAuthCallbackController extends AbstractOAuthCallbackController implements
         protected CustomerSessionLoginHandlerInterface $sessionLoginHandler,
         protected UserProviderInterface $userProvider,
         UserCheckerInterface $userChecker,
+        protected EventDispatcherInterface $eventDispatcher,
     ) {
         parent::__construct($registry, $router, $tokenStorage, $security, $logger, $stateCookieSigner, $userChecker);
     }
@@ -155,6 +162,7 @@ class OAuthCallbackController extends AbstractOAuthCallbackController implements
     {
         if ($user instanceof ShopUserInterface) {
             $this->sessionLoginHandler->handle($user, $request);
+            $this->eventDispatcher->dispatch(new UserEvent($user), UserEvents::SECURITY_IMPLICIT_LOGIN);
         }
     }
 }

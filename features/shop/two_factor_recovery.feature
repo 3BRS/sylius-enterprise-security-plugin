@@ -31,3 +31,13 @@ Feature: Customer two-factor authentication recovery-code fallback
         And I visit the recovery code challenge page
         And I submit a valid recovery code
         Then the used recovery code should be marked consumed
+
+    @ui @T82
+    Scenario: Customer who completes 2FA with a recovery code sees one session
+        Given the customer "john@example.com" has 2FA enabled with recovery codes
+        When I sign in with email "john@example.com" and password "Password1!"
+        And I visit the recovery code challenge page
+        And I submit a valid recovery code
+        And I visit my active sessions page
+        Then I should see exactly 1 active session
+        And I should see my current session marker

@@ -18,11 +18,14 @@ use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractOAuthCallbackController
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthProviderRegistryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\OAuthUserInfoInterface;
 use ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSignerInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\CompletedSignInGuardTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\AdminSocialLoginHandlerInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\AdminUserSessionLoginHandlerInterface;
 
 class OAuthCallbackController extends AbstractOAuthCallbackController implements OAuthCallbackControllerInterface
 {
+    use CompletedSignInGuardTrait;
+
     public const CONFIRM_PENDING_SESSION_KEY = 'three_brs_oauth_pending_admin';
 
     /**

@@ -24,6 +24,9 @@ imports:
     - suites/admin_two_factor_enforcement.yml
     - suites/shop_social_login.yml
     - suites/admin_social_login.yml
+    - suites/shop_account_security_changes.yml
+    - suites/admin_account_security_changes.yml
+    - suites/shop_guest_customer_sign_in.yml
     - suites/shop_magic_link.yml
     - suites/admin_magic_link.yml
     - suites/shop_passkey.yml

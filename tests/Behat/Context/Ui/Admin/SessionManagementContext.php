@@ -138,6 +138,19 @@ class SessionManagementContext implements Context
     }
 
     /**
+     * @Given the admin :email has another session :sessionId last active :days days ago
+     */
+    public function theAdminHasAnotherSessionLastActiveDaysAgo(string $email, string $sessionId, int $days): void
+    {
+        $this->theAdminHasAnotherActiveSession($email, $sessionId);
+
+        $record = $this->sessionRepository->findOneBySessionId($sessionId);
+        Assert::notNull($record, sprintf('Session "%s" not found.', $sessionId));
+        $record->setLastActivityAt(new DateTimeImmutable(sprintf('-%d days', $days)));
+        $this->entityManager->flush();
+    }
+
+    /**
      * @When I revoke the other admin session :sessionId
      */
     public function iRevokeTheOtherAdminSession(string $sessionId): void

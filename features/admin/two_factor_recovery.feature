@@ -39,3 +39,16 @@ Feature: Administrator two-factor authentication recovery-code fallback
         And I visit the admin recovery code challenge page
         And I submit a valid admin recovery code
         Then the used admin recovery code should be marked consumed
+
+    @ui @T82
+    Scenario: Administrator who completes 2FA with a recovery code sees one session
+        Given the administrator "admin@example.com" has 2FA enabled with recovery codes
+        And I want to log in
+        When I specify the username as "admin@example.com"
+        And I specify the password as "Sylius1!"
+        And I log in
+        And I visit the admin recovery code challenge page
+        And I submit a valid admin recovery code
+        And I visit the admin active sessions page
+        Then I should see exactly 1 active admin session
+        And I should see my current admin session marker

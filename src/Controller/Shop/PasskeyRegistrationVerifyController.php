@@ -10,10 +10,13 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractPasskeyRegistrationVerifyController;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\CompletedSignInGuardTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Passkey\CustomerPasskeyRegistrationVerifierInterface;
 
 class PasskeyRegistrationVerifyController extends AbstractPasskeyRegistrationVerifyController implements PasskeyRegistrationVerifyControllerInterface
 {
+    use CompletedSignInGuardTrait;
+
     public function __construct(
         protected CustomerPasskeyRegistrationVerifierInterface $verifier,
         protected EntityManagerInterface $entityManager,

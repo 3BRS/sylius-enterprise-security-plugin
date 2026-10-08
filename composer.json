@@ -18,7 +18,7 @@
     "require": {
         "php": "^8.3",
         "sylius/sylius": "^2.1",
-        "3brs/enterprise-security-bundle": "~2.3.0",
+        "3brs/enterprise-security-bundle": "dev-SLS-166 as 2.4.0",
         "scheb/2fa-bundle": "^7.13",
         "scheb/2fa-totp": "^7.13",
         "spomky-labs/otphp": "^11.4",
@@ -37,7 +37,7 @@
     "require-dev": {
         "behat/behat": "^v3.19.0",
         "dmore/behat-chrome-extension": "^1.4",
-        "dmore/chrome-mink-driver": "^2.9.3",
+        "dmore/chrome-mink-driver": ">=2.9.3 <2.11",
         "friends-of-behat/mink": "^1.11",
         "friends-of-behat/mink-browserkit-driver": "^v1.6.2",
         "friends-of-behat/mink-debug-extension": "^v2.1.0",

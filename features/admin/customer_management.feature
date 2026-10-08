@@ -44,3 +44,23 @@ Feature: Admin can manage customer security from the customer detail page
         When I am logged in as "admin@example.com" administrator
         And I revoke the first active session for customer "alice@example.com"
         Then customer "alice@example.com" should have 1 active session
+
+    @T84
+    Scenario: An expired customer session is shown only in the login history, as offline
+        Given the customer "alice@example.com" has a session from "198.51.100.50" last active 2 days ago
+        When I am logged in as "admin@example.com" administrator
+        And I open the customer detail page for "alice@example.com"
+        Then I should see no active sessions of the customer
+        And I should not be offered to sign the customer out of all sessions
+        And the login history should show the session from "198.51.100.50" as offline
+
+    @T84
+    Scenario: Admin revoking all customer sessions also revokes an expired one
+        Given the customer "alice@example.com" has an active session from "198.51.100.50"
+        And the customer "alice@example.com" has a session from "203.0.113.10" last active 2 days ago
+        When I am logged in as "admin@example.com" administrator
+        And I open the customer detail page for "alice@example.com"
+        Then the login history should show the session from "198.51.100.50" as online
+        And the login history should show the session from "203.0.113.10" as offline
+        When I revoke all sessions for customer "alice@example.com"
+        Then every session of customer "alice@example.com" should be revoked

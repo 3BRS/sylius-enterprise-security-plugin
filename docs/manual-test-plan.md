@@ -18,7 +18,7 @@ look broken.
 - **§2 is the trap list.** Read it before enabling anything. Most "it doesn't work"
   reports against this plugin resolve to something in there.
 - **§4** is the complete feature table with defaults.
-- **§5** holds scenarios `T01`–`T73`, each independently runnable.
+- **§5** holds scenarios `T01`–`T84`, each independently runnable.
 - **§6** covers combinations, where genuine bugs tend to hide.
 - **§9** is how to get back in after locking yourself out. You will lock yourself out.
 
@@ -112,7 +112,7 @@ not just the missing menu entry. Full matrix in **§7**.
   equivalent).
 - "Trusted device" is a **cookie**. To test that the challenge reappears, use a private
   window or clear the cookie — otherwise you sail past 2FA and it looks like a hole.
-- The challenge template is shared between shop and admin and distinguishes them by
+- The challenge template set in `totp.template` picks the admin or the shop page by
   **route name** (`three_brs_admin_two_factor_challenge`), not by URL prefix. If the app
   changes its admin path, confirm the admin challenge still renders as admin.
 
@@ -256,7 +256,7 @@ Scope `C` = customer/shop, `A` = admin.
 | 8 | Passkey (WebAuthn) | `passkey` | `enabled: false`; `rp_id`/`rp_name` `null` | C, A | yes | secure context + `rp_id` (§2.3) |
 | 9 | Account Lockout | `account_lockout` | `enabled: false`; C: 5 attempts, A: 3; `auto_unlock_after: null` | C, A | yes | locks you out (§2.7) |
 | 10 | Rate Limiting | `rate_limit` | all `false`; login 5/15 min, reset 3/1 h, register 5/1 h (C only), magic link 3/15 min | C, A | yes | state in cache (§2.6) |
-| 11 | Session Management | `session_management` | `enabled: false`; `geoip_service: null` | C, A | yes | no GeoIP service means no location shown |
+| 11 | Session Management | `session_management` | `enabled: false`; `geoip_service: null`; `lifetime: null` | C, A | yes | no GeoIP service means no location shown |
 | 12 | Login Notifications | `login_notifications` | `enabled: false` | C, A | yes | mail only from an *unknown* device |
 | 13 | Security Settings UI | — | always available at `/admin/security-settings` | — | — | one page per scope: 15 sections (C) / 16 (A) |
 | 14 | Account Deletion (GDPR) | `account_deletion` | `enabled: false`, 30 days | **C only** | yes | no schedule shipped (§2.9); irreversible |
@@ -335,7 +335,7 @@ Enable for both scopes; check the mail catcher after each.
 Trap: the IP in the email will be the proxy/bridge address unless the app trusts proxies
 (§2.8).
 
-### 5.5 Two-Factor Authentication (T18–T27)
+### 5.5 Two-Factor Authentication (T18–T27, T74–T75)
 
 | ID | Test | → expect |
 |---|---|---|
@@ -349,11 +349,13 @@ Trap: the IP in the email will be the proxy/bridge address unless the app trusts
 | T25 | Regenerate recovery codes | previously issued codes stop working |
 | T26 | Trusted device enabled | second login from the same browser skips the challenge |
 | T27 | Same, in a private window | challenge reappears |
+| T74 | Type the code on the code page | the field shows an `XXX-XXX` mask that fills in as you type; the code is accepted with the dash |
+| T75 | On the code page, open another page or the sign-in page instead of entering the code | that page opens signed out; the code page does not come back |
 
 Run the whole set twice — once for the shop (`/account/two-factor/setup`) and once for the
 admin (`/admin/two-factor/setup`). They are separate scopes with separate tables.
 
-### 5.6 OAuth Social Login (T28–T34)
+### 5.6 OAuth Social Login (T28–T34, T76–T79)
 
 | ID | Test | → expect |
 |---|---|---|
@@ -364,10 +366,14 @@ admin (`/admin/two-factor/setup`). They are separate scopes with separate tables
 | T32 | Unlinking | `/account/social-accounts` → unlink, association gone |
 | T33 | Admin with `auto_register_allowed_email_domains: []` | an unknown identity at the admin login is **refused** (self-registration off) |
 | T34 | Domain added to the list | registration succeeds |
+| T76 | 2FA on; sign in with the password, then open `/oauth/{provider}/start?intent=link` instead of entering the code | no link is created; the sign-in is not completed |
+| T77 | Google, for the email of a customer who ordered as a guest | the account is created on that customer; the guest orders are listed in it |
+| T78 | Apple or Microsoft, for the email of a guest customer | refused with the auto-registration message; no account is created |
+| T79 | Add a product to the cart as a guest, then sign in through a linked provider | the cart stays; checkout does not ask for the email again |
 
 T33/T34 is the pair worth care: an empty list is the safe default and is easy to get wrong.
 
-### 5.7 Magic Link (T35–T39)
+### 5.7 Magic Link (T35–T39, T80)
 
 | ID | Test | → expect |
 |---|---|---|
@@ -376,11 +382,12 @@ T33/T34 is the pair worth care: an empty list is the safe default and is easy to
 | T37 | Click the same link again | refused (single-use) |
 | T38 | After expiry | set 60 s, wait, click → refused |
 | T39 | Unknown email address | **identical response and comparable timing** to a known address (anti-enumeration + timing padding) |
+| T80 | Add a product to the cart as a guest, then open the link in the same browser | the cart stays; checkout does not ask for the email again |
 
 T39 is the security substance of the feature — measure it, do not assume. A different
 message, or a clearly different response time, is a finding.
 
-### 5.8 Passkey (T40–T44)
+### 5.8 Passkey (T40–T44, T81)
 
 Set up §2.3 first.
 
@@ -391,6 +398,7 @@ Set up §2.3 first.
 | T42 | Multiple passkeys | both listed, both work |
 | T43 | Delete one | gone from the list; signing in with it fails |
 | T44 | Another user's passkey | customer A's key must never sign in customer B |
+| T81 | Add a product to the cart as a guest, then sign in with a passkey | the cart stays; checkout does not ask for the email again |
 
 Repeat for the admin scope at `/admin/account/passkey`.
 
@@ -417,7 +425,7 @@ The distinction that matters: rate limiting is **ephemeral (cache) and per IP/id
 lockout is **persistent (database) and per account**. Verify they are not being confused
 for one another — compare T45 with T49.
 
-### 5.11 Session Management (T52–T56)
+### 5.11 Session Management (T52–T56, T82–T83)
 
 | ID | Test | → expect |
 |---|---|---|
@@ -426,9 +434,13 @@ for one another — compare T45 with T49.
 | T54 | Revoke one | the other browser is signed out; the current one continues |
 | T55 | Revoke all others | only the current session remains |
 | T56 | Administrator revokes a customer's session | the customer is signed out |
+| T82 | Sign in with 2FA, once with the authenticator code and once with a recovery code | one entry per sign-in |
+| T83 | `session_management.lifetime: 60` in YAML; sign in from a second browser and leave it idle for over two minutes | its session drops off the list; *Sign out other sessions* is still offered and signs that browser out |
 
 Traps: with `geoip_service: null` the location column stays empty — expected. The stored
-user agent is **truncated to 1024 characters** by the entity.
+user agent is **truncated to 1024 characters** by the entity. A session idle for longer than
+`session.gc_maxlifetime` + 60 s (or `lifetime` + 60 s when set) drops off the lists and shows as
+offline in the login history — expected; "revoke all" still revokes it.
 
 ### 5.12 Login Notifications (T57–T59)
 
@@ -460,7 +472,7 @@ user agent is **truncated to 1024 characters** by the entity.
 | T66 | Per-administrator list | the per-admin list is an **additional allowance, never a narrowing**: the global list is consulted first and a global match admits the administrator regardless of their own list. To exercise the per-admin path, the address must be **absent** from the global list and **present** in the administrator's own |
 | T67 | Address on both lists | **refused** — the blacklist wins |
 
-### 5.15 Admin Customer Management (T68–T70)
+### 5.15 Admin Customer Management (T68–T70, T84)
 
 The Security section on the Sylius customer detail page.
 
@@ -469,6 +481,7 @@ The Security section on the Sylius customer detail page.
 | T68 | Force password reset | the customer must change their password at next login |
 | T69 | Block / unblock | a blocked customer cannot sign in; unblocking restores access |
 | T70 | Session and login-history tables | show real data |
+| T84 | A customer session idle for longer than the session lifetime | missing from *Active sessions*, *Offline* in the login history; *Sign out from all devices* is offered only while an active session remains, and revokes the idle one too |
 
 ### 5.16 Password Login disabled (T71–T73)
 

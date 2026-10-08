@@ -20,12 +20,15 @@ use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\QrCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TotpSecretGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthShopUserInterface;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\CompletedSignInGuardTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerRecoveryCode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\TwoFactorVerifyType;
 use Twig\Environment;
 
 class TwoFactorSetupController extends AbstractTwoFactorSetupController implements TwoFactorSetupControllerInterface
 {
+    use CompletedSignInGuardTrait;
+
     public const SESSION_PENDING_SECRET = 'three_brs_shop_two_factor_pending_secret';
 
     public const SESSION_PLAIN_RECOVERY_CODES = 'three_brs_shop_two_factor_plain_recovery_codes';

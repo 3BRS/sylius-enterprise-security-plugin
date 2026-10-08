@@ -51,11 +51,35 @@ class TwoFactorLoginContext implements Context
     }
 
     /**
+     * @When I submit a valid TOTP challenge code written with a dash
+     */
+    public function iSubmitAValidTotpChallengeCodeWrittenWithADash(): void
+    {
+        Assert::notNull($this->knownSecret, 'Known secret was not stored.');
+        $code = $this->generateStableTotpCode($this->knownSecret);
+        $this->submitChallengeForm(substr($code, 0, 3) . '-' . substr($code, 3));
+    }
+
+    /**
      * @When I submit an invalid TOTP challenge code
      */
     public function iSubmitAnInvalidTotpChallengeCode(): void
     {
         $this->submitChallengeForm('000000');
+    }
+
+    /**
+     * @Then the 2FA challenge page should use the storefront layout
+     */
+    public function theTwoFactorChallengePageShouldUseTheStorefrontLayout(): void
+    {
+        $page = $this->session->getPage();
+        Assert::notNull($page->find('css', 'link[href*="/build/shop/"]'), 'The challenge page does not load the shop stylesheet.');
+        Assert::null($page->find('css', 'link[href*="/build/admin/"]'), 'The challenge page loads the admin stylesheet.');
+
+        $recoveryLink = $page->find('css', '[data-test-two-factor-use-recovery-code]');
+        Assert::notNull($recoveryLink, 'The challenge page has no recovery-code link.');
+        Assert::same(parse_url((string) $recoveryLink->getAttribute('href'), PHP_URL_PATH), '/2fa/recovery');
     }
 
     /**

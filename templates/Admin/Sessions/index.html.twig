@@ -7,6 +7,7 @@
 {% block title %}{{ parent() }} | {{ 'three_brs.ui.session.admin_title'|trans }}{% endblock %}
 
 {% block body %}
+    {% set hasOtherSessions = three_brs_has_other_unrevoked_sessions(app.user, app.session.id ?? '') %}
     {% include '@SyliusAdmin/shared/crud/common/sidebar.html.twig' %}
 
     <div class="page-wrapper">
@@ -26,7 +27,7 @@
                         <div>
                             {{ header.h1('three_brs.ui.session.admin_title'|trans) }}
                         </div>
-                        {% if rows|length > 1 %}
+                        {% if hasOtherSessions %}
                             <button type="button"
                                     class="btn btn-outline-danger"
                                     data-bs-toggle="modal"
@@ -110,7 +111,7 @@
         </div>
     </div>
 
-    {% if rows|length > 1 %}
+    {% if hasOtherSessions %}
         {{ shared.confirmation_modal(
             'three-brs-admin-session-revoke-others-modal',
             'three_brs.ui.session.revoke_others'|trans,

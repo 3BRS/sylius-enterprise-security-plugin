@@ -14,6 +14,7 @@ interface FakeOAuthStateInterface
         ?string $email,
         ?string $firstName = null,
         ?string $lastName = null,
+        ?bool $emailVerified = null,
     ): void;
 
     public function getUserInfo(string $provider): ?OAuthUserInfoInterface;

@@ -262,13 +262,6 @@ services:
         tags:
             - { name: 'controller.service_arguments' }
 
-    ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler.shop:
-        class: ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler
-        arguments:
-            $twoFactorAuthenticationRequiredHandler: '@security.authentication.authentication_required_handler.two_factor.shop'
-            $defaultSuccessHandler: '@sylius.authentication.success_handler'
-        public: true
-
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin\TwoFactorDisableController:
         arguments:
             $tokenStorage: '@security.token_storage'
@@ -434,6 +427,7 @@ services:
             $logger: '@logger'
             $stateCookieSigner: '@ThreeBRS\EnterpriseSecurityBundle\OAuth\StateCookieSigner'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $eventDispatcher: '@event_dispatcher'
             $userProvider: '@security.user.provider.concrete.sylius_shop_user_provider'
             $userChecker: '@sylius.user_checker.enabled'
         tags:
@@ -453,6 +447,7 @@ services:
             $linkRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSocialAccountLinkRepository'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $eventDispatcher: '@event_dispatcher'
             $userChecker: '@sylius.user_checker.enabled'
         tags:
             - { name: 'controller.service_arguments' }
@@ -699,6 +694,7 @@ services:
             $router: '@router'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $eventDispatcher: '@event_dispatcher'
             $enabled: '%three_brs.passkey.customer.enabled%'
             $userChecker: '@sylius.user_checker.enabled'
         tags:
@@ -849,6 +845,7 @@ services:
             $clock: '@clock'
             $logger: '@logger'
             $sessionLoginHandler: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionLoginHandler'
+            $eventDispatcher: '@event_dispatcher'
             $enabled: '%three_brs.magic_link.customer.enabled%'
             $userChecker: '@sylius.user_checker.enabled'
         tags:
@@ -937,6 +934,14 @@ services:
         decorates: sylius.admin_user_provider.email_or_name_based
         arguments:
             $decorated: '@.inner'
+
+    # Scheb defines the authenticator only with `scheb_two_factor.totp.enabled`; without it the
+    # decorator is dropped.
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\NormalizingTotpAuthenticator:
+        decorates: scheb_two_factor.security.totp_authenticator
+        decoration_on_invalid: ignore
+        arguments:
+            $inner: '@.inner'
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Security\ShopUserLockoutChecker:
         arguments:
@@ -1036,6 +1041,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository:
         arguments:
             $registry: '@doctrine'
+            $sessionLifetime: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetime'
         tags:
             - { name: 'doctrine.repository_service' }
 
@@ -1045,6 +1051,7 @@ services:
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository:
         arguments:
             $registry: '@doctrine'
+            $sessionLifetime: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetime'
         tags:
             - { name: 'doctrine.repository_service' }
 
@@ -1068,6 +1075,14 @@ services:
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepositoryInterface:
         alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserKnownDeviceRepository
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetime:
+        arguments:
+            $clock: '@clock'
+            $lifetime: '%three_brs.session_management.lifetime%'
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetimeInterface:
+        alias: ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\SessionLifetime
 
     ThreeBRS\SyliusEnterpriseSecurityPlugin\Service\Session\CustomerSessionTracker:
         arguments:
@@ -1745,6 +1760,13 @@ services:
             $sessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
             $userAgentParser: '@ThreeBRS\EnterpriseSecurityBundle\Session\UserAgentParser'
             $deletionRequestRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerDeletionRequestRepository'
+        tags:
+            - { name: 'twig.extension' }
+
+    ThreeBRS\SyliusEnterpriseSecurityPlugin\Twig\SessionRevocationExtension:
+        arguments:
+            $customerSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerSessionRepository'
+            $adminUserSessionRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserSessionRepository'
         tags:
             - { name: 'twig.extension' }
 
