@@ -6,17 +6,28 @@ Notable changes to `3brs/sylius-enterprise-security-plugin`. Follows
 ## [1.1.0] - 2026-10-05
 
 ### Security
-- **A sign-in that waits for its two-factor code can no longer link an OAuth account.** It could
-  link a provider account and from then on sign in through it without the code. Bundle 2.4.0
-  refuses it in its abstract controllers, together with adding a passkey and managing two-factor
-  authentication, and refuses a sign-in restored from a remember-me cookie as well. The plugin's
-  controllers let the remember-me sign-in through (`CompletedSignInGuardTrait`), so a user the
-  cookie signed in does not have to sign in again. The plugin already passes `Security` to both
-  OAuth initiate controllers, so the check covers the shop and the admin. The OAuth guide lists
-  `PUBLIC_ACCESS` for the storefront OAuth routes as well — with customer 2FA on, scheb sends a
-  request to a page without such a rule back to the code page while a sign-in waits for its code —
-  and states that an OAuth sign-in skips the second factor on purpose. See
+- **Linking an OAuth account, adding a passkey and managing two-factor authentication need a full
+  sign-in.** Bundle 2.4.0 closes this in its abstract controllers: a sign-in that waited for its
+  two-factor code could link a provider account and from then on sign in through it without the
+  code, and a sign-in restored from a remember-me cookie could add a passkey or a provider account,
+  switch 2FA off or take new recovery codes. The plugin already passes `Security` to both OAuth
+  initiate controllers, so the check covers the shop and the admin. A sign-in restored from a
+  remember-me cookie is sent to the sign-in page, and the two-factor pages bring the user back
+  after signing in; the passkey registration answers `403`, which
+  `passkey.js` now turns into "Sign in again to add a passkey." from the new
+  `data-reauthenticate-message` attribute of the register button instead of the generic error. The
+  OAuth guide lists `PUBLIC_ACCESS` for the storefront OAuth routes as well — with customer 2FA on,
+  scheb sends a request to a page without such a rule back to the code page while a sign-in waits
+  for its code — and states that an OAuth sign-in skips the second factor on purpose. See
   [UPGRADE.md](UPGRADE.md#100--110).
+- **Switching two-factor authentication off and regenerating recovery codes ask for a code.** The
+  CSRF token was enough, so anyone holding the signed-in session switched 2FA off in one click, or
+  took a fresh set of recovery codes that confirmed the disable just as well. Both forms on the shop
+  and admin manage page now carry a `_code` field that takes the current authenticator code or an
+  unused recovery code. The recovery code is only checked, not used up: the action deletes or
+  replaces all of them. The submitted codes are counted per account across both actions, 5 attempts
+  per 15 minutes, the default of the bundle's `two_factor_code` limit. A refused code flashes
+  `three_brs.two_factor.confirmation_code_invalid` and returns to the manage page.
 
 ### Added
 - **Leaving the code page ends the pending sign-in.** Scheb kept a sign-in that waited for its code
@@ -41,9 +52,12 @@ Notable changes to `3brs/sylius-enterprise-security-plugin`. Follows
 
 ### Changed
 - **`3brs/enterprise-security-bundle` is pinned to `~2.4.0`.**
-- **Constructors of four controllers and two repositories gained arguments**, each added after the
+- **Constructors of eight controllers and two repositories gained arguments**, each added after the
   existing ones — see [UPGRADE.md](UPGRADE.md#100--110) if you extend them or define their services
-  yourself:
+  yourself: `Controller\{Shop,Admin}\TwoFactorDisableController` (`$recoveryGenerator`,
+  `$totpAuthenticator`, `$rateLimitGuard`),
+  `Controller\{Shop,Admin}\TwoFactorRegenerateRecoveryCodesController` (`$totpAuthenticator`,
+  `$rateLimitGuard`),
   `Controller\Shop\{PasskeyLoginVerify,OAuthCallback,OAuthConfirmLink,MagicLinkVerify}Controller`
   (`$eventDispatcher`) and `Repository\{CustomerSession,AdminUserSession}Repository`
   (`$sessionLifetime`).

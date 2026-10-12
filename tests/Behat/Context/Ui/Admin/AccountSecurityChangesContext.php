@@ -78,12 +78,11 @@ class AccountSecurityChangesContext implements Context
     }
 
     /**
-     * @Then the admin passkey registration should not be refused
+     * @Then the admin passkey registration should be refused
      */
-    public function theAdminPasskeyRegistrationShouldNotBeRefused(): void
+    public function theAdminPasskeyRegistrationShouldBeRefused(): void
     {
-        // The empty payload gets past the access check and fails on the missing credential.
-        Assert::same($this->session->getStatusCode(), Response::HTTP_BAD_REQUEST);
+        Assert::same($this->session->getStatusCode(), Response::HTTP_FORBIDDEN);
     }
 
     /**
@@ -93,6 +92,22 @@ class AccountSecurityChangesContext implements Context
     {
         Assert::same($this->session->getStatusCode(), Response::HTTP_OK);
         Assert::contains($this->session->getPage()->getContent(), '"challenge"');
+    }
+
+    /**
+     * @When I try to disable admin two-factor authentication
+     */
+    public function iTryToDisableAdminTwoFactorAuthentication(): void
+    {
+        $this->post($this->router->generate('three_brs_admin_two_factor_disable'));
+    }
+
+    /**
+     * @When I try to regenerate my admin recovery codes
+     */
+    public function iTryToRegenerateMyAdminRecoveryCodes(): void
+    {
+        $this->post($this->router->generate('three_brs_admin_two_factor_regenerate_recovery_codes'));
     }
 
     /**
@@ -119,6 +134,11 @@ class AccountSecurityChangesContext implements Context
             $page->checkField('_remember_me');
         }
         $page->pressButton('Login');
+    }
+
+    protected function post(string $url): void
+    {
+        $this->getDriver()->getClient()->request('POST', $url);
     }
 
     protected function postJson(string $url, string $content = ''): void

@@ -35,18 +35,40 @@
                             {{ 'three_brs.ui.two_factor.enabled_notice'|trans }}
                         </div>
 
-                        <div class="d-flex flex-column flex-md-row gap-2">
+                        <p class="mb-2">{{ 'three_brs.ui.two_factor.confirmation_code_help'|trans }}</p>
+
+                        <div class="d-flex flex-column gap-3">
                             {% if recovery_codes_enabled %}
-                                <form method="POST" action="{{ path('three_brs_admin_two_factor_regenerate_recovery_codes') }}">
+                                <form method="POST" action="{{ path('three_brs_admin_two_factor_regenerate_recovery_codes') }}" class="d-flex flex-column flex-md-row gap-2">
                                     <input type="hidden" name="_csrf_token" value="{{ regenerate_csrf_token }}">
+                                    <div class="col-12 col-md-4">
+                                        <input type="text"
+                                               name="_code"
+                                               class="form-control"
+                                               required
+                                               autocomplete="one-time-code"
+                                               placeholder="{{ 'three_brs.ui.two_factor.confirmation_code'|trans }}"
+                                               aria-label="{{ 'three_brs.ui.two_factor.confirmation_code'|trans }}"
+                                               data-test-two-factor-regenerate-code>
+                                    </div>
                                     <button type="submit" class="btn btn-secondary" data-test-two-factor-regenerate-recovery-codes>
                                         {{ 'three_brs.ui.two_factor.regenerate_recovery_codes'|trans }}
                                     </button>
                                 </form>
                             {% endif %}
 
-                            <form method="POST" action="{{ path('three_brs_admin_two_factor_disable') }}">
+                            <form method="POST" action="{{ path('three_brs_admin_two_factor_disable') }}" class="d-flex flex-column flex-md-row gap-2">
                                 <input type="hidden" name="_csrf_token" value="{{ disable_csrf_token }}">
+                                <div class="col-12 col-md-4">
+                                    <input type="text"
+                                           name="_code"
+                                           class="form-control"
+                                           required
+                                           autocomplete="one-time-code"
+                                           placeholder="{{ 'three_brs.ui.two_factor.confirmation_code'|trans }}"
+                                           aria-label="{{ 'three_brs.ui.two_factor.confirmation_code'|trans }}"
+                                           data-test-two-factor-disable-code>
+                                </div>
                                 <button type="submit" class="btn btn-danger" data-test-two-factor-disable>
                                     {{ 'three_brs.ui.two_factor.disable'|trans }}
                                 </button>

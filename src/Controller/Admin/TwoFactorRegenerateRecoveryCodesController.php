@@ -5,23 +5,25 @@ declare(strict_types=1);
 namespace ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\Admin;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Totp\TotpAuthenticatorInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Controller\AbstractTwoFactorRegenerateRecoveryCodesController;
+use ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuardInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\CompletedSignInGuardTrait;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\TwoFactorPageTargetPathTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepositoryInterface;
 
 class TwoFactorRegenerateRecoveryCodesController extends AbstractTwoFactorRegenerateRecoveryCodesController implements TwoFactorRegenerateRecoveryCodesControllerInterface
 {
-    use CompletedSignInGuardTrait;
+    use TwoFactorPageTargetPathTrait;
 
     public const CSRF_TOKEN_ID = 'three_brs_admin_two_factor_regenerate';
 
@@ -33,6 +35,8 @@ class TwoFactorRegenerateRecoveryCodesController extends AbstractTwoFactorRegene
         CsrfTokenManagerInterface $csrfTokenManager,
         RouterInterface $router,
         protected SettingsProviderInterface $settings,
+        ?TotpAuthenticatorInterface $totpAuthenticator,
+        RateLimitGuardInterface $rateLimitGuard,
     ) {
         // Recovery-codes toggle and count are read at runtime via the overridden
         // getters below — the constructor parameters on the bundle parent are
@@ -45,6 +49,8 @@ class TwoFactorRegenerateRecoveryCodesController extends AbstractTwoFactorRegene
             $router,
             false,
             0,
+            $totpAuthenticator,
+            $rateLimitGuard,
         );
     }
 
@@ -104,5 +110,32 @@ class TwoFactorRegenerateRecoveryCodesController extends AbstractTwoFactorRegene
     protected function getRecoveryCodesDisplayUrl(): string
     {
         return $this->router->generate('three_brs_admin_two_factor_recovery_codes');
+    }
+
+    protected function verifyRecoveryCode(UserInterface $user, string $code): bool
+    {
+        \assert($user instanceof AdminUserInterface);
+
+        return $this->recoveryCodeRepository->findUnusedByAdminUserAndHash($user, $this->recoveryGenerator->hash($code)) !== null;
+    }
+
+    protected function getRateLimitGroup(): string
+    {
+        return 'admin';
+    }
+
+    protected function getRedirectAfterRefusedCodeUrl(): string
+    {
+        return $this->getTwoFactorPageUrl();
+    }
+
+    protected function getFirewallName(): string
+    {
+        return 'admin';
+    }
+
+    protected function getTwoFactorPageUrl(): string
+    {
+        return $this->router->generate('three_brs_admin_two_factor_setup');
     }
 }

@@ -78,12 +78,11 @@ class AccountSecurityChangesContext implements Context
     }
 
     /**
-     * @Then the passkey registration should not be refused
+     * @Then the passkey registration should be refused
      */
-    public function thePasskeyRegistrationShouldNotBeRefused(): void
+    public function thePasskeyRegistrationShouldBeRefused(): void
     {
-        // The empty payload gets past the access check and fails on the missing credential.
-        Assert::same($this->session->getStatusCode(), Response::HTTP_BAD_REQUEST);
+        Assert::same($this->session->getStatusCode(), Response::HTTP_FORBIDDEN);
     }
 
     /**
@@ -93,6 +92,22 @@ class AccountSecurityChangesContext implements Context
     {
         Assert::same($this->session->getStatusCode(), Response::HTTP_OK);
         Assert::contains($this->session->getPage()->getContent(), '"challenge"');
+    }
+
+    /**
+     * @When I try to disable two-factor authentication
+     */
+    public function iTryToDisableTwoFactorAuthentication(): void
+    {
+        $this->post($this->router->generate('three_brs_shop_two_factor_disable', ['_locale' => 'en_US']));
+    }
+
+    /**
+     * @When I try to regenerate my recovery codes
+     */
+    public function iTryToRegenerateMyRecoveryCodes(): void
+    {
+        $this->post($this->router->generate('three_brs_shop_two_factor_regenerate_recovery_codes', ['_locale' => 'en_US']));
     }
 
     /**
@@ -119,6 +134,11 @@ class AccountSecurityChangesContext implements Context
             $page->checkField('_remember_me');
         }
         $page->pressButton('Login');
+    }
+
+    protected function post(string $url): void
+    {
+        $this->getDriver()->getClient()->request('POST', $url);
     }
 
     protected function postJson(string $url, string $content = ''): void

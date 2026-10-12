@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Service\StableTotpCodeTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
@@ -21,12 +23,15 @@ class TwoFactorSetupContext implements Context
 {
     use StableTotpCodeTrait;
 
+    protected ?string $secret = null;
+
     public function __construct(
-        private Session $session,
-        private UserRepositoryInterface $adminUserRepository,
-        private EntityManagerInterface $entityManager,
-        private AdminUserRecoveryCodeRepositoryInterface $recoveryCodeRepository,
-        private RecoveryCodeGeneratorInterface $recoveryGenerator,
+        protected Session $session,
+        protected UserRepositoryInterface $adminUserRepository,
+        protected EntityManagerInterface $entityManager,
+        protected AdminUserRecoveryCodeRepositoryInterface $recoveryCodeRepository,
+        protected RecoveryCodeGeneratorInterface $recoveryGenerator,
+        protected TranslatorInterface $translator,
     ) {
     }
 
@@ -36,7 +41,8 @@ class TwoFactorSetupContext implements Context
     public function theAdministratorAlreadyHasTwoFactorEnabled(string $email): void
     {
         $user = $this->findAdminUser($email);
-        $user->setTotpSecret(TOTP::generate()->getSecret());
+        $this->secret = TOTP::generate()->getSecret();
+        $user->setTotpSecret($this->secret);
         $user->setTwoFactorEnabled(true);
         $this->entityManager->flush();
     }
@@ -47,7 +53,8 @@ class TwoFactorSetupContext implements Context
     public function theAdministratorAlreadyHasTwoFactorEnabledWithRecoveryCodes(string $email): void
     {
         $user = $this->findAdminUser($email);
-        $user->setTotpSecret(TOTP::generate()->getSecret());
+        $this->secret = TOTP::generate()->getSecret();
+        $user->setTotpSecret($this->secret);
         $user->setTwoFactorEnabled(true);
 
         foreach (['AAAAA-11111', 'BBBBB-22222'] as $plain) {
@@ -87,23 +94,71 @@ class TwoFactorSetupContext implements Context
     }
 
     /**
-     * @When I press the admin 2FA disable button
+     * @When I disable admin 2FA confirming with the current authenticator code
      */
-    public function iPressTheTwoFactorDisableButton(): void
+    public function iDisableAdminTwoFactorConfirmingWithTheCurrentAuthenticatorCode(): void
     {
-        $button = $this->session->getPage()->find('css', '[data-test-two-factor-disable]');
-        Assert::notNull($button, 'Disable button not present on page.');
-        $button->click();
+        $this->submitConfirmedForm('disable', $this->currentCode());
     }
 
     /**
-     * @When I press the admin regenerate recovery codes button
+     * @When I disable admin 2FA confirming with the current authenticator code written with a dash
      */
-    public function iPressTheRegenerateRecoveryCodesButton(): void
+    public function iDisableAdminTwoFactorConfirmingWithTheCurrentAuthenticatorCodeWrittenWithADash(): void
     {
-        $button = $this->session->getPage()->find('css', '[data-test-two-factor-regenerate-recovery-codes]');
-        Assert::notNull($button, 'Regenerate recovery codes button not present on page.');
-        $button->click();
+        $code = $this->currentCode();
+        $this->submitConfirmedForm('disable', substr($code, 0, 3) . '-' . substr($code, 3));
+    }
+
+    /**
+     * @When I disable admin 2FA confirming with the recovery code :code
+     * @When I try to disable admin 2FA with the code :code
+     */
+    public function iDisableAdminTwoFactorWithTheCode(string $code): void
+    {
+        $this->submitConfirmedForm('disable', $code);
+    }
+
+    /**
+     * @When I try to disable admin 2FA with the code :code :count times
+     */
+    public function iTryToDisableAdminTwoFactorWithTheCodeRepeatedly(string $code, int $count): void
+    {
+        for ($attempt = 0; $attempt < $count; ++$attempt) {
+            $this->submitConfirmedForm('disable', $code);
+        }
+    }
+
+    /**
+     * @When I regenerate admin recovery codes confirming with the current authenticator code
+     */
+    public function iRegenerateAdminRecoveryCodesConfirmingWithTheCurrentAuthenticatorCode(): void
+    {
+        $this->submitConfirmedForm('regenerate', $this->currentCode());
+    }
+
+    /**
+     * @When I try to regenerate admin recovery codes with the code :code
+     */
+    public function iTryToRegenerateAdminRecoveryCodesWithTheCode(string $code): void
+    {
+        $this->submitConfirmedForm('regenerate', $code);
+    }
+
+    /**
+     * @Then I should be told the admin two-factor code is invalid
+     */
+    public function iShouldBeToldTheAdminTwoFactorCodeIsInvalid(): void
+    {
+        $this->assertFlashShownOnce('three_brs.two_factor.confirmation_code_invalid');
+    }
+
+    /**
+     * @Then I should be told to try the admin two-factor code again later
+     */
+    public function iShouldBeToldToTryTheAdminTwoFactorCodeAgainLater(): void
+    {
+        $this->assertFlashShownOnce('three_brs.rate_limit.too_many_requests');
     }
 
     /**
@@ -211,7 +266,7 @@ class TwoFactorSetupContext implements Context
         );
     }
 
-    private function findAdminUser(string $email): AdminUserInterface&TwoFactorAuthAdminUserInterface
+    protected function findAdminUser(string $email): AdminUserInterface&TwoFactorAuthAdminUserInterface
     {
         $user = $this->adminUserRepository->findOneByEmail($email);
         Assert::notNull($user, sprintf('Administrator "%s" not found.', $email));
@@ -221,7 +276,7 @@ class TwoFactorSetupContext implements Context
         return $user;
     }
 
-    private function readSecretFromPage(): string
+    protected function readSecretFromPage(): string
     {
         $element = $this->session->getPage()->find('css', '[data-test-two-factor-secret]');
         Assert::notNull($element, 'Secret element not present on page.');
@@ -229,7 +284,37 @@ class TwoFactorSetupContext implements Context
         return trim($element->getText());
     }
 
-    private function submitSetupForm(string $code): void
+    protected function currentCode(): string
+    {
+        Assert::notNull($this->secret, 'No TOTP secret was set up in this scenario.');
+
+        return $this->generateStableTotpCode($this->secret);
+    }
+
+    protected function submitConfirmedForm(string $action, string $code): void
+    {
+        $page = $this->session->getPage();
+        $field = $page->find('css', sprintf('[data-test-two-factor-%s-code]', $action));
+        Assert::notNull($field, sprintf('The %s code field is not on the page (URL "%s").', $action, $this->session->getCurrentUrl()));
+        $field->setValue($code);
+
+        $button = $page->find('css', $action === 'disable' ? '[data-test-two-factor-disable]' : '[data-test-two-factor-regenerate-recovery-codes]');
+        Assert::notNull($button, sprintf('The %s button is not on the page.', $action));
+        $button->click();
+    }
+
+    protected function assertFlashShownOnce(string $message): void
+    {
+        $text = $this->translator->trans($message, [], 'flashes');
+        $flashes = array_filter(
+            $this->session->getPage()->findAll('css', '[data-test-sylius-flash-message]'),
+            static fn (NodeElement $flash): bool => str_contains($flash->getText(), $text),
+        );
+
+        Assert::count($flashes, 1, sprintf('Expected the flash "%s" %%d time(s) on "%s", found it %%d times.', $text, $this->session->getCurrentUrl()));
+    }
+
+    protected function submitSetupForm(string $code): void
     {
         $page = $this->session->getPage();
         $page->fillField('three_brs_two_factor_verify[code]', $code);

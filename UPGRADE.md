@@ -38,6 +38,21 @@
    `ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAwareAuthenticationSuccessHandler.shop`.
 
 4. **Update the templates you override.**
+   - `Shop/TwoFactor/manage.html.twig`, `Admin/TwoFactor/manage.html.twig` — add a `_code` field to
+     both the disable and the regenerate form. Without it every attempt is refused with
+     `three_brs.two_factor.confirmation_code_invalid`:
+
+     ```twig
+     <input type="text" name="_code" class="form-control" required autocomplete="one-time-code"
+            placeholder="{{ 'three_brs.ui.two_factor.confirmation_code'|trans }}">
+     ```
+
+     Leave `data-totp-code` off: the field takes a recovery code as well, and `totp_input.js` cuts a
+     field that carries the attribute down to six digits.
+   - `Shop/Passkey/index.html.twig`, `Admin/Passkey/index.html.twig` — add
+     `data-reauthenticate-message="{{ 'three_brs.ui.passkey.registration_reauthenticate'|trans }}"` to
+     the register button, next to `data-error-message`. Without it a user signed in through a
+     remember-me cookie gets the generic error when the registration answers `403`.
    - `Admin/TwoFactor/{setup,manage,recovery_codes}.html.twig` — include
      `@SyliusAdmin/shared/crud/common/content/flashes.html.twig` below the page header, as the
      plugin's templates now do.
@@ -57,6 +72,10 @@
    its service yourself, add the new constructor arguments, which come after the existing ones, and
    pass them on to `parent::__construct()`; the plugin's `config/services.yaml` shows the services
    they take:
+   - `Controller\{Shop,Admin}\TwoFactorDisableController` — `$recoveryGenerator`,
+     `$totpAuthenticator`, `$rateLimitGuard`.
+   - `Controller\{Shop,Admin}\TwoFactorRegenerateRecoveryCodesController` — `$totpAuthenticator`,
+     `$rateLimitGuard`.
    - `Controller\Shop\{PasskeyLoginVerify,OAuthCallback,OAuthConfirmLink,MagicLinkVerify}Controller`
      — `$eventDispatcher`.
    - `Repository\{CustomerSession,AdminUserSession}Repository` — `$sessionLifetime`.
@@ -86,9 +105,13 @@
            lifetime: 86400
    ```
 
-7. **Update one translation** if you serve other locales than English:
-   `three_brs.ui.social_login.auto_register_refused` in the `flashes` domain changed its text.
+7. **Update the translations** if you serve other locales than English:
+   `three_brs.ui.two_factor.confirmation_code`, `three_brs.ui.two_factor.confirmation_code_help` and
+   `three_brs.ui.passkey.registration_reauthenticate` in the `messages` domain are new,
+   `three_brs.two_factor.confirmation_code_invalid` in `flashes` is new as well (its English wording
+   ships with the bundle), and `three_brs.ui.social_login.auto_register_refused` in `flashes` changed
+   its text.
 
-8. **Install the bundled assets again** with `bin/console assets:install`. `totp_input.js`
-   changed, and a copy installed earlier shows no mask and still removes the dash from the code when
-   the form is sent.
+8. **Install the bundled assets again** with `bin/console assets:install`. With a copy installed
+   earlier, `totp_input.js` shows no mask and still removes the dash from the code when the form is
+   sent, and `passkey.js` shows the generic error instead of asking to sign in again.

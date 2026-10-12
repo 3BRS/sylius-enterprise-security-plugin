@@ -26,3 +26,11 @@ Feature: Passkey ceremonies through the browser
         And I sign out in the browser
         When I sign in to the shop in the browser with a passkey
         Then I should be signed in to the shop in the browser as "passkey-browser@example.com"
+
+    @javascript
+    Scenario: A customer signed in through a remember-me cookie is told to sign in again
+        Given the customer "passkey-browser@example.com" can sign in with the password "Pass1Word!"
+        And I sign in to the shop in the browser as "passkey-browser@example.com" with password "Pass1Word!" and stay signed in
+        And the browser session cookie expires
+        When I try to register a passkey labelled "Virtual Touch ID" in the browser
+        Then the browser should tell me to sign in again

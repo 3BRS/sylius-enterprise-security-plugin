@@ -18,7 +18,7 @@ look broken.
 - **§2 is the trap list.** Read it before enabling anything. Most "it doesn't work"
   reports against this plugin resolve to something in there.
 - **§4** is the complete feature table with defaults.
-- **§5** holds scenarios `T01`–`T84`, each independently runnable.
+- **§5** holds scenarios `T01`–`T86`, each independently runnable.
 - **§6** covers combinations, where genuine bugs tend to hide.
 - **§9** is how to get back in after locking yourself out. You will lock yourself out.
 
@@ -108,8 +108,9 @@ not just the missing menu entry. Full matrix in **§7**.
 - No phone? The QR encodes an `otpauth://` URI containing `secret=`; compute codes from
   it directly (`oathtool --totp -b <SECRET>`).
 - **Recovery codes are single-use.** A code failing the second time is correct behaviour,
-  not a bug. Regenerate at `/admin/two-factor/recovery-codes/regenerate` (or the shop
-  equivalent).
+  not a bug. Regenerate them on the 2FA page (`/admin/two-factor/setup` or
+  `/{_locale}/account/two-factor/setup`) with *Regenerate recovery codes*; it asks for the
+  current authenticator code or an unused recovery code.
 - "Trusted device" is a **cookie**. To test that the challenge reappears, use a private
   window or clear the cookie — otherwise you sail past 2FA and it looks like a hole.
 - The challenge template set in `totp.template` picks the admin or the shop page by
@@ -255,7 +256,7 @@ Scope `C` = customer/shop, `A` = admin.
 | 7 | Magic Link | `magic_link` | `enabled: false`, 300 s | C, A | yes | single-use + expiry; bypasses 2FA |
 | 8 | Passkey (WebAuthn) | `passkey` | `enabled: false`; `rp_id`/`rp_name` `null` | C, A | yes | secure context + `rp_id` (§2.3) |
 | 9 | Account Lockout | `account_lockout` | `enabled: false`; C: 5 attempts, A: 3; `auto_unlock_after: null` | C, A | yes | locks you out (§2.7) |
-| 10 | Rate Limiting | `rate_limit` | all `false`; login 5/15 min, reset 3/1 h, register 5/1 h (C only), magic link 3/15 min | C, A | yes | state in cache (§2.6) |
+| 10 | Rate Limiting | `rate_limit` | all `false`; login 5/15 min, reset 3/1 h, register 5/1 h (C only), magic link 3/15 min; two-factor code 5/15 min, always on, no setting | C, A | yes | state in cache (§2.6) |
 | 11 | Session Management | `session_management` | `enabled: false`; `geoip_service: null`; `lifetime: null` | C, A | yes | no GeoIP service means no location shown |
 | 12 | Login Notifications | `login_notifications` | `enabled: false` | C, A | yes | mail only from an *unknown* device |
 | 13 | Security Settings UI | — | always available at `/admin/security-settings` | — | — | one page per scope: 15 sections (C) / 16 (A) |
@@ -335,7 +336,7 @@ Enable for both scopes; check the mail catcher after each.
 Trap: the IP in the email will be the proxy/bridge address unless the app trusts proxies
 (§2.8).
 
-### 5.5 Two-Factor Authentication (T18–T27, T74–T75)
+### 5.5 Two-Factor Authentication (T18–T27, T74–T75, T85)
 
 | ID | Test | → expect |
 |---|---|---|
@@ -351,6 +352,7 @@ Trap: the IP in the email will be the proxy/bridge address unless the app trusts
 | T27 | Same, in a private window | challenge reappears |
 | T74 | Type the code on the code page | the field shows an `XXX-XXX` mask that fills in as you type; the code is accepted with the dash |
 | T75 | On the code page, open another page or the sign-in page instead of entering the code | that page opens signed out; the code page does not come back |
+| T85 | Disable 2FA or regenerate recovery codes | asks for the authenticator code or an unused recovery code; a wrong code is refused and nothing changes |
 
 Run the whole set twice — once for the shop (`/account/two-factor/setup`) and once for the
 admin (`/admin/two-factor/setup`). They are separate scopes with separate tables.
@@ -413,13 +415,14 @@ Repeat for the admin scope at `/admin/account/passkey`.
 | T47 | `auto_unlock_after` | set 60 s; unlocks itself after a minute |
 | T48 | `auto_unlock_after: null` | stays locked until an administrator intervenes |
 
-### 5.10 Rate Limiting (T49–T51)
+### 5.10 Rate Limiting (T49–T51, T86)
 
 | ID | Test | → expect |
 |---|---|---|
 | T49 | Login limiter | after `limit` attempts, refused **regardless of password correctness** |
 | T50 | Password-reset limiter | refused after 3 requests in an hour |
 | T51 | Magic-link limiter | refused after 3 requests in 15 minutes |
+| T86 | Two-factor code limiter | after 5 wrong codes in 15 minutes even the right code is refused |
 
 The distinction that matters: rate limiting is **ephemeral (cache) and per IP/identity**;
 lockout is **persistent (database) and per account**. Verify they are not being confused
@@ -518,6 +521,7 @@ This is where real bugs hide: features pass individually and fail in pairs.
 | K15 | Feature disabled at runtime + direct URL | 404 (§7) |
 | K16 | Customer A vs. customer B | no feature may leak data between accounts (T08, T44, T54) |
 | K17 | Customer scope ON + admin scope OFF | for every dual-scope feature, confirm disabling one scope leaves the other untouched |
+| K18 | Remember-me sign-in (delete the session cookie, keep the remember-me cookie) + account security changes | linking a provider and the 2FA setup, disable and regenerate send you to the sign-in page, and after signing in the 2FA ones bring you back to the 2FA page; adding a passkey says "Sign in again to add a passkey." |
 
 Work through K17 systematically across all dual-scope features — it is the most common
 place for configuration to bleed between scopes.

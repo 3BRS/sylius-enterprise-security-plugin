@@ -20,14 +20,14 @@ use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\QrCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TotpSecretGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthAdminUserInterface;
-use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\CompletedSignInGuardTrait;
+use ThreeBRS\SyliusEnterpriseSecurityPlugin\Controller\TwoFactorPageTargetPathTrait;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserRecoveryCode;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Form\Type\TwoFactorVerifyType;
 use Twig\Environment;
 
 class TwoFactorSetupController extends AbstractTwoFactorSetupController implements TwoFactorSetupControllerInterface
 {
-    use CompletedSignInGuardTrait;
+    use TwoFactorPageTargetPathTrait;
 
     public const SESSION_PENDING_SECRET = 'three_brs_admin_two_factor_pending_secret';
 
@@ -155,5 +155,15 @@ class TwoFactorSetupController extends AbstractTwoFactorSetupController implemen
     protected function getRegenerateCsrfTokenId(): string
     {
         return TwoFactorRegenerateRecoveryCodesController::CSRF_TOKEN_ID;
+    }
+
+    protected function getFirewallName(): string
+    {
+        return 'admin';
+    }
+
+    protected function getTwoFactorPageUrl(): string
+    {
+        return $this->router->generate('three_brs_admin_two_factor_setup');
     }
 }

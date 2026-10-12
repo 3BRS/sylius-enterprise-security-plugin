@@ -96,11 +96,12 @@ is on: while a sign-in waits for its code, scheb sends a request to a page witho
 for a page load ([Leaving the code page](two-factor-authentication.md#leaving-the-code-page)), and
 not at all on a shop firewall with its own `two_factor.authentication_required_handler`.
 
-A sign-in that waits for its two-factor code cannot link a provider to the account. Opening the
-start endpoint ends the pending sign-in like opening any other page, and the start endpoint then
-sends the signed-out user to the sign-in page; a request that keeps the pending sign-in is sent
-back to the code page. The callback does not attach the provider to a pending sign-in. A user
-signed in through a remember-me cookie links without signing in again.
+Linking a provider to the signed-in account requires a full sign-in. The start endpoint sends a
+user signed in through a remember-me cookie to the sign-in page first. A sign-in that waits for its
+two-factor code cannot link either: opening the start endpoint ends the pending sign-in like
+opening any other page, and the start endpoint then sends the signed-out user to the sign-in page;
+a request that keeps the pending sign-in is sent back to the code page. The callback does not
+attach the provider to a sign-in that is not full.
 
 ## Google Cloud setup
 

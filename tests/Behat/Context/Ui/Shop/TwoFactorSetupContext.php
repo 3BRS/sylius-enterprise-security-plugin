@@ -15,18 +15,22 @@ use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\CustomerRecoveryCode;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorAuthShopUserInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepositoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 
 class TwoFactorSetupContext implements Context
 {
     use StableTotpCodeTrait;
 
+    protected ?string $secret = null;
+
     public function __construct(
-        private Session $session,
-        private CustomerRepositoryInterface $customerRepository,
-        private EntityManagerInterface $entityManager,
-        private CustomerRecoveryCodeRepositoryInterface $recoveryCodeRepository,
-        private RecoveryCodeGeneratorInterface $recoveryGenerator,
+        protected Session $session,
+        protected CustomerRepositoryInterface $customerRepository,
+        protected EntityManagerInterface $entityManager,
+        protected CustomerRecoveryCodeRepositoryInterface $recoveryCodeRepository,
+        protected RecoveryCodeGeneratorInterface $recoveryGenerator,
+        protected TranslatorInterface $translator,
     ) {
     }
 
@@ -36,7 +40,8 @@ class TwoFactorSetupContext implements Context
     public function theCustomerAlreadyHasTwoFactorEnabled(string $email): void
     {
         $user = $this->findShopUser($email);
-        $user->setTotpSecret(TOTP::generate()->getSecret());
+        $this->secret = TOTP::generate()->getSecret();
+        $user->setTotpSecret($this->secret);
         $user->setTwoFactorEnabled(true);
         $this->entityManager->flush();
     }
@@ -47,7 +52,8 @@ class TwoFactorSetupContext implements Context
     public function theCustomerAlreadyHasTwoFactorEnabledWithRecoveryCodes(string $email): void
     {
         $user = $this->findShopUser($email);
-        $user->setTotpSecret(TOTP::generate()->getSecret());
+        $this->secret = TOTP::generate()->getSecret();
+        $user->setTotpSecret($this->secret);
         $user->setTwoFactorEnabled(true);
 
         foreach (['AAAAA-11111', 'BBBBB-22222'] as $plain) {
@@ -87,25 +93,71 @@ class TwoFactorSetupContext implements Context
     }
 
     /**
-     * @When I press the 2FA disable button
+     * @When I disable 2FA confirming with the current authenticator code
      */
-    public function iPressTheTwoFactorDisableButton(): void
+    public function iDisableTwoFactorConfirmingWithTheCurrentAuthenticatorCode(): void
     {
-        $page = $this->session->getPage();
-        $button = $page->find('css', '[data-test-two-factor-disable]');
-        Assert::notNull($button, 'Disable button not present on page.');
-        $button->click();
+        $this->submitConfirmedForm('disable', $this->currentCode());
     }
 
     /**
-     * @When I press the regenerate recovery codes button
+     * @When I disable 2FA confirming with the current authenticator code written with a dash
      */
-    public function iPressTheRegenerateRecoveryCodesButton(): void
+    public function iDisableTwoFactorConfirmingWithTheCurrentAuthenticatorCodeWrittenWithADash(): void
     {
-        $page = $this->session->getPage();
-        $button = $page->find('css', '[data-test-two-factor-regenerate-recovery-codes]');
-        Assert::notNull($button, 'Regenerate recovery codes button not present on page.');
-        $button->click();
+        $code = $this->currentCode();
+        $this->submitConfirmedForm('disable', substr($code, 0, 3) . '-' . substr($code, 3));
+    }
+
+    /**
+     * @When I disable 2FA confirming with the recovery code :code
+     * @When I try to disable 2FA with the code :code
+     */
+    public function iDisableTwoFactorWithTheCode(string $code): void
+    {
+        $this->submitConfirmedForm('disable', $code);
+    }
+
+    /**
+     * @When I try to disable 2FA with the code :code :count times
+     */
+    public function iTryToDisableTwoFactorWithTheCodeRepeatedly(string $code, int $count): void
+    {
+        for ($attempt = 0; $attempt < $count; ++$attempt) {
+            $this->submitConfirmedForm('disable', $code);
+        }
+    }
+
+    /**
+     * @When I regenerate recovery codes confirming with the current authenticator code
+     */
+    public function iRegenerateRecoveryCodesConfirmingWithTheCurrentAuthenticatorCode(): void
+    {
+        $this->submitConfirmedForm('regenerate', $this->currentCode());
+    }
+
+    /**
+     * @When I try to regenerate recovery codes with the code :code
+     */
+    public function iTryToRegenerateRecoveryCodesWithTheCode(string $code): void
+    {
+        $this->submitConfirmedForm('regenerate', $code);
+    }
+
+    /**
+     * @Then I should be told the two-factor code is invalid
+     */
+    public function iShouldBeToldTheTwoFactorCodeIsInvalid(): void
+    {
+        $this->assertFlash('three_brs.two_factor.confirmation_code_invalid');
+    }
+
+    /**
+     * @Then I should be told to try again later
+     */
+    public function iShouldBeToldToTryAgainLater(): void
+    {
+        $this->assertFlash('three_brs.rate_limit.too_many_requests');
     }
 
     /**
@@ -214,7 +266,7 @@ class TwoFactorSetupContext implements Context
         );
     }
 
-    private function findShopUser(string $email): ShopUserInterface&TwoFactorAuthShopUserInterface
+    protected function findShopUser(string $email): ShopUserInterface&TwoFactorAuthShopUserInterface
     {
         $customer = $this->customerRepository->findOneBy(['email' => $email]);
         Assert::notNull($customer, sprintf('Customer "%s" not found.', $email));
@@ -227,7 +279,7 @@ class TwoFactorSetupContext implements Context
         return $user;
     }
 
-    private function readSecretFromPage(): string
+    protected function readSecretFromPage(): string
     {
         $element = $this->session->getPage()->find('css', '[data-test-two-factor-secret]');
         Assert::notNull($element, 'Secret element not present on page.');
@@ -235,7 +287,34 @@ class TwoFactorSetupContext implements Context
         return trim($element->getText());
     }
 
-    private function submitSetupForm(string $code): void
+    protected function currentCode(): string
+    {
+        Assert::notNull($this->secret, 'No TOTP secret was set up in this scenario.');
+
+        return $this->generateStableTotpCode($this->secret);
+    }
+
+    protected function submitConfirmedForm(string $action, string $code): void
+    {
+        $page = $this->session->getPage();
+        $field = $page->find('css', sprintf('[data-test-two-factor-%s-code]', $action));
+        Assert::notNull($field, sprintf('The %s code field is not on the page (URL "%s").', $action, $this->session->getCurrentUrl()));
+        $field->setValue($code);
+
+        $button = $page->find('css', $action === 'disable' ? '[data-test-two-factor-disable]' : '[data-test-two-factor-regenerate-recovery-codes]');
+        Assert::notNull($button, sprintf('The %s button is not on the page.', $action));
+        $button->click();
+    }
+
+    protected function assertFlash(string $message): void
+    {
+        Assert::contains(
+            $this->session->getPage()->getText(),
+            $this->translator->trans($message, [], 'flashes'),
+        );
+    }
+
+    protected function submitSetupForm(string $code): void
     {
         $page = $this->session->getPage();
         $page->fillField('three_brs_two_factor_verify[code]', $code);

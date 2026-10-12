@@ -4,6 +4,8 @@
 - QR code + manual secret setup, from the account page in the storefront and from the **Security** dropdown in the header of an
   administrator's own user edit page in the panel
 - Recovery codes — single-use backup codes generated at setup, regenerable from the manage view (invalidates all previous codes)
+- Switching 2FA off and regenerating recovery codes ask for the current authenticator code or an unused recovery code, limited to 5 attempts per 15 minutes per account (see [Account lockout & rate limiting](account-lockout-rate-limiting.md))
+- Setup, switching off and regenerating recovery codes need a full sign-in: a user signed in through a remember-me cookie is sent to the sign-in page first and returns to the two-factor page after signing in
 - The code fields show an `XXX-XXX` mask that fills in as the user types (`totp_input.js`), and the code is sent as `123-456`. The setup form and scheb's TOTP authenticator, which the plugin decorates (`NormalizingTotpAuthenticator`), remove the dash before the check
 - Trusted device — opt-in cookie (scheb JWT) to skip 2FA on a known device; revocable per user by bumping the user's `trustedTokenVersion`
 - Leaving the code page ends the pending sign-in — a user who opens another page instead of entering the code gets that page signed out, instead of being sent back to the code page (see [Leaving the code page](#leaving-the-code-page))
