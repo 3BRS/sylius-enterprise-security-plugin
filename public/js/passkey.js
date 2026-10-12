@@ -122,6 +122,16 @@
         return error;
     }
 
+    function registrationRejection(response, message) {
+        var error = new Error(message);
+        if (response.status === 403) {
+            // Adding a passkey needs a full sign-in; one restored from a remember-me cookie is refused.
+            error.messageAttribute = 'data-reauthenticate-message';
+        }
+
+        return error;
+    }
+
     async function registerPasskey(button) {
         var optionsUrl = button.getAttribute('data-options-url');
         var verifyUrl = button.getAttribute('data-verify-url');
@@ -133,7 +143,7 @@
         try {
             var optionsResponse = await postJson(optionsUrl, '');
             if (!optionsResponse.ok) {
-                throw new Error('Failed to fetch registration options');
+                throw registrationRejection(optionsResponse, 'Failed to fetch registration options');
             }
             var options = decodeOptionsForCreate(await optionsResponse.json());
 
@@ -147,7 +157,7 @@
                 credential: encodeAttestationCredential(credential)
             }));
             if (!verifyResponse.ok) {
-                throw new Error('Server rejected the registration');
+                throw registrationRejection(verifyResponse, 'Server rejected the registration');
             }
 
             window.location.href = listUrl;

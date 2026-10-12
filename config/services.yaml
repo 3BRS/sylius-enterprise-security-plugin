@@ -222,6 +222,9 @@ services:
             $recoveryCodeRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\CustomerRecoveryCodeRepository'
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
+            $recoveryGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator'
+            $totpAuthenticator: '@?scheb_two_factor.security.totp_authenticator'
+            $rateLimitGuard: '@ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuard'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -234,6 +237,8 @@ services:
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
             $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+            $totpAuthenticator: '@?scheb_two_factor.security.totp_authenticator'
+            $rateLimitGuard: '@ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuard'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -269,6 +274,9 @@ services:
             $recoveryCodeRepository: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Repository\AdminUserRecoveryCodeRepository'
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
+            $recoveryGenerator: '@ThreeBRS\EnterpriseSecurityBundle\TwoFactor\RecoveryCodeGenerator'
+            $totpAuthenticator: '@?scheb_two_factor.security.totp_authenticator'
+            $rateLimitGuard: '@ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuard'
         tags:
             - { name: 'controller.service_arguments' }
 
@@ -281,6 +289,8 @@ services:
             $csrfTokenManager: '@security.csrf.token_manager'
             $router: '@router'
             $settings: '@ThreeBRS\SyliusEnterpriseSecurityPlugin\Settings\SettingsProvider'
+            $totpAuthenticator: '@?scheb_two_factor.security.totp_authenticator'
+            $rateLimitGuard: '@ThreeBRS\EnterpriseSecurityBundle\RateLimit\RateLimitGuard'
         tags:
             - { name: 'controller.service_arguments' }
 

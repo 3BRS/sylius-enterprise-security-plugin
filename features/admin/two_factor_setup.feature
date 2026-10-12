@@ -43,7 +43,7 @@ Feature: Administrator two-factor authentication setup
         Given the administrator "admin@example.com" already has 2FA enabled with recovery codes
         And I am logged in as "admin@example.com" administrator
         When I visit the admin 2FA setup page
-        And I press the admin 2FA disable button
+        And I disable admin 2FA confirming with the current authenticator code
         Then admin 2FA should not be enabled for "admin@example.com"
         And the administrator should have no recovery codes
 
@@ -52,7 +52,54 @@ Feature: Administrator two-factor authentication setup
         Given the administrator "admin@example.com" already has 2FA enabled with recovery codes
         And I am logged in as "admin@example.com" administrator
         When I visit the admin 2FA setup page
-        And I press the admin regenerate recovery codes button
+        And I regenerate admin recovery codes confirming with the current authenticator code
         Then I should be on the admin 2FA recovery codes page
         And I should see 8 admin recovery codes
         And none of the previous admin recovery codes should work for "admin@example.com"
+
+    @ui
+    Scenario: Administrator disables 2FA with the authenticator code written with a dash
+        Given the administrator "admin@example.com" already has 2FA enabled with recovery codes
+        And I am logged in as "admin@example.com" administrator
+        When I visit the admin 2FA setup page
+        And I disable admin 2FA confirming with the current authenticator code written with a dash
+        Then admin 2FA should not be enabled for "admin@example.com"
+
+    @ui
+    Scenario: Administrator disables 2FA with a recovery code
+        Given the administrator "admin@example.com" already has 2FA enabled with recovery codes
+        And I am logged in as "admin@example.com" administrator
+        When I visit the admin 2FA setup page
+        And I disable admin 2FA confirming with the recovery code "AAAAA-11111"
+        Then admin 2FA should not be enabled for "admin@example.com"
+        And the administrator should have no recovery codes
+
+    @ui @T85
+    Scenario: A wrong code leaves administrator 2FA enabled
+        Given the administrator "admin@example.com" already has 2FA enabled with recovery codes
+        And I am logged in as "admin@example.com" administrator
+        When I visit the admin 2FA setup page
+        And I try to disable admin 2FA with the code "000000"
+        Then I should be told the admin two-factor code is invalid
+        And I should see the admin 2FA disable button
+        And admin 2FA should be enabled for "admin@example.com"
+
+    @ui
+    Scenario: A wrong code does not regenerate administrator recovery codes
+        Given the administrator "admin@example.com" already has 2FA enabled with recovery codes
+        And I am logged in as "admin@example.com" administrator
+        When I visit the admin 2FA setup page
+        And I try to regenerate admin recovery codes with the code "000000"
+        Then I should be told the admin two-factor code is invalid
+        And I should see the admin 2FA disable button
+
+    @ui @T86
+    Scenario: Administrator code attempts are limited to five per fifteen minutes
+        Given the administrator "admin@example.com" already has 2FA enabled
+        And I am logged in as "admin@example.com" administrator
+        When I visit the admin 2FA setup page
+        And I try to disable admin 2FA with the code "000000" 5 times
+        And I disable admin 2FA confirming with the current authenticator code
+        Then I should be told to try the admin two-factor code again later
+        And I should see the admin 2FA disable button
+        And admin 2FA should be enabled for "admin@example.com"

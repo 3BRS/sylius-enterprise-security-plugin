@@ -25,8 +25,11 @@ Throttled endpoints:
 | Register | ✓ | — *(admin has no self-registration)* |
 | Magic link | ✓ | ✓ |
 | Account deletion request | ✓ | — *(customer-scope feature)* |
+| Two-factor code confirmation | ✓ | ✓ |
 
 The account-deletion request posts the customer's current password, so it presents the same brute-force surface as a password reset and draws on that same counter rather than one of its own — `rate_limit.customer.password_reset` governs both.
+
+Switching [two-factor authentication](two-factor-authentication.md) off and regenerating recovery codes both ask for the current authenticator code or an unused recovery code. The submitted codes are counted per account across both actions, 5 attempts per 15 minutes. This limit is always on and has no setting. A refused or throttled code sends the user back to the two-factor management page with an error flash.
 
 When the limit is exceeded a form post is redirected back to the form it came from, with a
 `three_brs.rate_limit.too_many_requests` error flash. A request that arrives as JSON — the checkout's inline sign-in posts that

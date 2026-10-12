@@ -14,6 +14,7 @@ use ReflectionProperty;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use RuntimeException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 
 /**
@@ -41,6 +42,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         protected UserPasswordHasherInterface $userPasswordHasher,
         protected ObjectRepository $shopUserRepository,
         protected EntityManagerInterface $entityManager,
+        protected TranslatorInterface $translator,
     ) {
     }
 
@@ -99,6 +101,29 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
      */
     public function iSignInToTheShopInTheBrowser(string $email, string $password): void
     {
+        $this->signInToTheShopInTheBrowser($email, $password, false);
+    }
+
+    /**
+     * @When I sign in to the shop in the browser as :email with password :password and stay signed in
+     */
+    public function iSignInToTheShopInTheBrowserAndStaySignedIn(string $email, string $password): void
+    {
+        $this->signInToTheShopInTheBrowser($email, $password, true);
+    }
+
+    /**
+     * Leaves only the remember-me cookie to sign the browser in on its next request.
+     *
+     * @When the browser session cookie expires
+     */
+    public function theBrowserSessionCookieExpires(): void
+    {
+        $this->getSession()->setCookie((string) ini_get('session.name'), null);
+    }
+
+    protected function signInToTheShopInTheBrowser(string $email, string $password, bool $rememberMe): void
+    {
         $session = $this->getSession();
         $session->visit($this->locatePath('/en_US/login'));
 
@@ -126,6 +151,12 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
 
         $identifierField->setValue($email);
         $passwordField->setValue($password);
+
+        if ($rememberMe) {
+            $session->executeScript(
+                "document.querySelector('form input[name=\"_remember_me\"]').checked = true;",
+            );
+        }
 
         $session->executeScript(
             "document.querySelector('form input[type=\"password\"]').form.submit();",
@@ -156,6 +187,34 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
      */
     public function iRegisterAPasskeyInTheBrowser(string $label): void
     {
+        $this->startPasskeyRegistrationInTheBrowser($label);
+
+        $this->waitForPasskeyToAppear($label);
+    }
+
+    /**
+     * @When I try to register a passkey labelled :label in the browser
+     */
+    public function iTryToRegisterAPasskeyInTheBrowser(string $label): void
+    {
+        $this->startPasskeyRegistrationInTheBrowser($label);
+
+        $this->getSession()->wait(15000, '(window.__threeBrsAlerts || []).length > 0');
+    }
+
+    /**
+     * @Then the browser should tell me to sign in again
+     */
+    public function theBrowserShouldTellMeToSignInAgain(): void
+    {
+        Assert::same(
+            $this->capturedBrowserAlerts(),
+            $this->translator->trans('three_brs.ui.passkey.registration_reauthenticate'),
+        );
+    }
+
+    protected function startPasskeyRegistrationInTheBrowser(string $label): void
+    {
         $session = $this->getSession();
         $session->visit($this->locatePath('/en_US/account/passkey'));
         $this->waitForDocumentReady();
@@ -183,8 +242,6 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         $input->setValue($label);
         $this->captureBrowserAlerts();
         $session->executeScript("document.querySelector('#three_brs_passkey_register_button').click();");
-
-        $this->waitForPasskeyToAppear($label);
     }
 
     /**
