@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
@@ -29,17 +32,13 @@ class PasskeyContext implements Context
     ) {
     }
 
-    /**
-     * @When I visit the passkey management page
-     */
+    #[When('I visit the passkey management page')]
     public function iVisitThePasskeyManagementPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_shop_passkey_index', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @Given a passkey :credentialId labelled :label exists for :email
-     */
+    #[Given('a passkey :credentialId labelled :label exists for :email')]
     public function aPasskeyExistsFor(string $credentialId, string $label, string $email): void
     {
         $shopUser = $this->findShopUser($email);
@@ -64,9 +63,7 @@ class PasskeyContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Then I should see no registered passkeys
-     */
+    #[Then('I should see no registered passkeys')]
     public function iShouldSeeNoRegisteredPasskeys(): void
     {
         $page = $this->session->getPage();
@@ -74,9 +71,7 @@ class PasskeyContext implements Context
         Assert::null($list, 'Expected no passkey list to be rendered.');
     }
 
-    /**
-     * @Then I should see a passkey labelled :label
-     */
+    #[Then('I should see a passkey labelled :label')]
     public function iShouldSeeAPasskeyLabelled(string $label): void
     {
         $page = $this->session->getPage();
@@ -84,9 +79,7 @@ class PasskeyContext implements Context
         Assert::contains($content, $label, sprintf('Expected passkey label "%s" on the page.', $label));
     }
 
-    /**
-     * @When I remove the passkey :credentialId
-     */
+    #[When('I remove the passkey :credentialId')]
     public function iRemoveThePasskey(string $credentialId): void
     {
         $stored = $this->credentialRepository->findOneByCredentialId($credentialId);
@@ -99,9 +92,7 @@ class PasskeyContext implements Context
         $button->click();
     }
 
-    /**
-     * @Then I should not see a passkey labelled :label
-     */
+    #[Then('I should not see a passkey labelled :label')]
     public function iShouldNotSeeAPasskeyLabelled(string $label): void
     {
         $content = (string) $this->session->getPage()->getContent();
@@ -113,9 +104,8 @@ class PasskeyContext implements Context
      * account's own CSRF token — the page never offers such a button, so nothing
      * short of the request itself can show whether the controller checks who owns
      * the credential or only that the id exists.
-     *
-     * @When I try to remove the passkey :credentialId that belongs to somebody else
      */
+    #[When('I try to remove the passkey :credentialId that belongs to somebody else')]
     public function iTryToRemoveThePasskeyThatBelongsToSomebodyElse(string $credentialId): void
     {
         $stored = $this->credentialRepository->findOneByCredentialId($credentialId);
@@ -127,9 +117,7 @@ class PasskeyContext implements Context
         );
     }
 
-    /**
-     * @Then the passkey :credentialId should still exist
-     */
+    #[Then('the passkey :credentialId should still exist')]
     public function thePasskeyShouldStillExist(string $credentialId): void
     {
         $this->entityManager->clear();
@@ -140,9 +128,7 @@ class PasskeyContext implements Context
         );
     }
 
-    /**
-     * @Then the request should have been refused as not found
-     */
+    #[Then('the request should have been refused as not found')]
     public function theRequestShouldHaveBeenRefusedAsNotFound(): void
     {
         $this->assertRefusedAsNotFound();

@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
@@ -26,17 +29,13 @@ class PasskeyContext implements Context
     ) {
     }
 
-    /**
-     * @When I visit the admin passkey management page
-     */
+    #[When('I visit the admin passkey management page')]
     public function iVisitTheAdminPasskeyManagementPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_admin_passkey_index'));
     }
 
-    /**
-     * @Given an admin passkey :credentialId labelled :label exists for :email
-     */
+    #[Given('an admin passkey :credentialId labelled :label exists for :email')]
     public function anAdminPasskeyExistsFor(string $credentialId, string $label, string $email): void
     {
         $adminUser = $this->findAdminUser($email);
@@ -61,9 +60,7 @@ class PasskeyContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Then I should see no registered admin passkeys
-     */
+    #[Then('I should see no registered admin passkeys')]
     public function iShouldSeeNoRegisteredAdminPasskeys(): void
     {
         $page = $this->session->getPage();
@@ -71,9 +68,7 @@ class PasskeyContext implements Context
         Assert::null($list, 'Expected no passkey list to be rendered.');
     }
 
-    /**
-     * @Then I should see an admin passkey labelled :label
-     */
+    #[Then('I should see an admin passkey labelled :label')]
     public function iShouldSeeAnAdminPasskeyLabelled(string $label): void
     {
         $page = $this->session->getPage();
@@ -81,9 +76,7 @@ class PasskeyContext implements Context
         Assert::contains($content, $label, sprintf('Expected passkey label "%s" on the page.', $label));
     }
 
-    /**
-     * @When I remove the admin passkey :credentialId
-     */
+    #[When('I remove the admin passkey :credentialId')]
     public function iRemoveTheAdminPasskey(string $credentialId): void
     {
         $stored = $this->credentialRepository->findOneByCredentialId($credentialId);

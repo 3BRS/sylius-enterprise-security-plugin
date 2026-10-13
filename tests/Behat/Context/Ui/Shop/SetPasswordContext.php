@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Bundle\CoreBundle\Fixture\Factory\ExampleFactoryInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -28,9 +31,7 @@ class SetPasswordContext implements Context
     ) {
     }
 
-    /**
-     * @Given there is a passwordless customer account :email
-     */
+    #[Given('there is a passwordless customer account :email')]
     public function thereIsAPasswordlessCustomerAccount(string $email): void
     {
         /** @var ShopUserInterface $user */
@@ -47,25 +48,19 @@ class SetPasswordContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I visit the set password page
-     */
+    #[When('I visit the set password page')]
     public function iVisitTheSetPasswordPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_shop_set_password', ['_locale' => 'en_US'], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
-    /**
-     * @When I visit my account dashboard
-     */
+    #[When('I visit my account dashboard')]
     public function iVisitMyAccountDashboard(): void
     {
         $this->session->visit($this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US'], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
-    /**
-     * @When I set my new password to :password
-     */
+    #[When('I set my new password to :password')]
     public function iSetMyNewPasswordTo(string $password): void
     {
         $page = $this->session->getPage();
@@ -77,9 +72,7 @@ class SetPasswordContext implements Context
         $form->find('css', 'button[type="submit"]')?->click();
     }
 
-    /**
-     * @Then my password should be set successfully
-     */
+    #[Then('my password should be set successfully')]
     public function myPasswordShouldBeSetSuccessfully(): void
     {
         Assert::true(
@@ -88,9 +81,7 @@ class SetPasswordContext implements Context
         );
     }
 
-    /**
-     * @Then the customer :email should be able to sign in with password :password
-     */
+    #[Then('the customer :email should be able to sign in with password :password')]
     public function theCustomerShouldBeAbleToSignInWithPassword(string $email, string $password): void
     {
         $user = $this->findShopUser($email);
@@ -103,9 +94,7 @@ class SetPasswordContext implements Context
         );
     }
 
-    /**
-     * @Then I should be offered to set a new password
-     */
+    #[Then('I should be offered to set a new password')]
     public function iShouldBeOfferedToSetANewPassword(): void
     {
         Assert::true(

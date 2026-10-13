@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -32,9 +35,7 @@ class CustomerManagementContext implements Context
     ) {
     }
 
-    /**
-     * @Given the customer :email has an active session from :ipAddress
-     */
+    #[Given('the customer :email has an active session from :ipAddress')]
     public function theCustomerHasActiveSessionFrom(string $email, string $ipAddress): void
     {
         $shopUser = $this->loadShopUser($email);
@@ -49,9 +50,7 @@ class CustomerManagementContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given the customer :email has a session from :ipAddress last active :days days ago
-     */
+    #[Given('the customer :email has a session from :ipAddress last active :days days ago')]
     public function theCustomerHasASessionFromLastActiveDaysAgo(string $email, string $ipAddress, int $days): void
     {
         $session = new CustomerSession();
@@ -65,9 +64,7 @@ class CustomerManagementContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I open the customer detail page for :email
-     */
+    #[When('I open the customer detail page for :email')]
     public function iOpenTheCustomerDetailPageFor(string $email): void
     {
         $customer = $this->loadCustomer($email);
@@ -78,36 +75,28 @@ class CustomerManagementContext implements Context
         ));
     }
 
-    /**
-     * @When I force a password reset for customer :email
-     */
+    #[When('I force a password reset for customer :email')]
     public function iForcePasswordResetFor(string $email): void
     {
         $this->iOpenTheCustomerDetailPageFor($email);
         $this->submitConfirmationModal('three-brs-customer-modal-force-reset');
     }
 
-    /**
-     * @When I block customer :email from the admin panel
-     */
+    #[When('I block customer :email from the admin panel')]
     public function iBlockCustomerFromTheAdminPanel(string $email): void
     {
         $this->iOpenTheCustomerDetailPageFor($email);
         $this->submitConfirmationModal('three-brs-customer-modal-block');
     }
 
-    /**
-     * @When I revoke all sessions for customer :email
-     */
+    #[When('I revoke all sessions for customer :email')]
     public function iRevokeAllSessionsFor(string $email): void
     {
         $this->iOpenTheCustomerDetailPageFor($email);
         $this->submitConfirmationModal('three-brs-customer-modal-revoke-all');
     }
 
-    /**
-     * @When I revoke the first active session for customer :email
-     */
+    #[When('I revoke the first active session for customer :email')]
     public function iRevokeFirstSessionFor(string $email): void
     {
         $this->iOpenTheCustomerDetailPageFor($email);
@@ -134,9 +123,7 @@ class CustomerManagementContext implements Context
         $button->click();
     }
 
-    /**
-     * @Then customer :email should be required to change their password on next sign-in
-     */
+    #[Then('customer :email should be required to change their password on next sign-in')]
     public function customerShouldBeRequiredToChangePassword(string $email): void
     {
         $this->entityManager->clear();
@@ -149,9 +136,7 @@ class CustomerManagementContext implements Context
         );
     }
 
-    /**
-     * @Then customer :email should be blocked
-     */
+    #[Then('customer :email should be blocked')]
     public function customerShouldBeBlocked(string $email): void
     {
         $this->entityManager->clear();
@@ -163,9 +148,7 @@ class CustomerManagementContext implements Context
         );
     }
 
-    /**
-     * @Then customer :email should have :count active session(s)
-     */
+    #[Then('customer :email should have :count active session(s)')]
     public function customerShouldHaveActiveSessions(string $email, int $count): void
     {
         $this->entityManager->clear();
@@ -178,9 +161,7 @@ class CustomerManagementContext implements Context
         );
     }
 
-    /**
-     * @Then every session of customer :email should be revoked
-     */
+    #[Then('every session of customer :email should be revoked')]
     public function everySessionOfCustomerShouldBeRevoked(string $email): void
     {
         $this->entityManager->clear();
@@ -192,9 +173,7 @@ class CustomerManagementContext implements Context
         }
     }
 
-    /**
-     * @Then I should see no active sessions of the customer
-     */
+    #[Then('I should see no active sessions of the customer')]
     public function iShouldSeeNoActiveSessionsOfTheCustomer(): void
     {
         Assert::false(
@@ -203,9 +182,7 @@ class CustomerManagementContext implements Context
         );
     }
 
-    /**
-     * @Then I should not be offered to sign the customer out of all sessions
-     */
+    #[Then('I should not be offered to sign the customer out of all sessions')]
     public function iShouldNotBeOfferedToSignTheCustomerOutOfAllSessions(): void
     {
         Assert::false(
@@ -214,9 +191,7 @@ class CustomerManagementContext implements Context
         );
     }
 
-    /**
-     * @Then the login history should show the session from :ipAddress as :status
-     */
+    #[Then('the login history should show the session from :ipAddress as :status')]
     public function theLoginHistoryShouldShowTheSessionFromAs(string $ipAddress, string $status): void
     {
         $rows = array_filter(
@@ -232,9 +207,7 @@ class CustomerManagementContext implements Context
         );
     }
 
-    /**
-     * @Then I should see the customer security section
-     */
+    #[Then('I should see the customer security section')]
     public function iShouldSeeTheCustomerSecuritySection(): void
     {
         Assert::true(
@@ -243,9 +216,7 @@ class CustomerManagementContext implements Context
         );
     }
 
-    /**
-     * @Then I should see the login history table
-     */
+    #[Then('I should see the login history table')]
     public function iShouldSeeTheLoginHistoryTable(): void
     {
         Assert::true(

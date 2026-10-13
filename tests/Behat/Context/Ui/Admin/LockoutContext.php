@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
@@ -34,9 +37,7 @@ class LockoutContext implements Context
     ) {
     }
 
-    /**
-     * @When I try to sign in to the admin panel with email :email and password :password
-     */
+    #[When('I try to sign in to the admin panel with email :email and password :password')]
     public function iTryToSignInToAdmin(string $email, string $password): void
     {
         $this->session->visit($this->router->generate('sylius_admin_login'));
@@ -46,17 +47,13 @@ class LockoutContext implements Context
         $page->pressButton('Login');
     }
 
-    /**
-     * @When I sign in to the admin panel with email :email and password :password
-     */
+    #[When('I sign in to the admin panel with email :email and password :password')]
     public function iSignInToAdmin(string $email, string $password): void
     {
         $this->iTryToSignInToAdmin($email, $password);
     }
 
-    /**
-     * @Given admin :email is locked
-     */
+    #[Given('admin :email is locked')]
     public function adminIsLocked(string $email): void
     {
         $user = $this->loadAdminUser($email);
@@ -67,9 +64,7 @@ class LockoutContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given admin :email was locked but the lockout has already expired
-     */
+    #[Given('admin :email was locked but the lockout has already expired')]
     public function adminLockoutExpired(string $email): void
     {
         $user = $this->loadAdminUser($email);
@@ -81,7 +76,6 @@ class LockoutContext implements Context
     }
 
     /**
-     * @When the lockout time for admin :email has elapsed
      *
      * Simulates the `auto_unlock_after` interval passing by rewinding
      * `lockedAt` / `lockoutUntil` into the past AND clearing the rate
@@ -90,6 +84,7 @@ class LockoutContext implements Context
      * resets both. Lets a scenario chain "real failed attempts → wait
      * → real sign-in" without waiting the configured 15 / 30 min.
      */
+    #[When('the lockout time for admin :email has elapsed')]
     public function adminLockoutHasElapsed(string $email): void
     {
         $user = $this->loadAdminUser($email);
@@ -105,9 +100,7 @@ class LockoutContext implements Context
         $this->rateLimiterCachePool->clear();
     }
 
-    /**
-     * @Then admin :email should be locked
-     */
+    #[Then('admin :email should be locked')]
     public function adminShouldBeLocked(string $email): void
     {
         $user = $this->loadAdminUser($email);
@@ -116,9 +109,7 @@ class LockoutContext implements Context
         Assert::notNull($user->getLockedAt());
     }
 
-    /**
-     * @Then admin :email should not be locked
-     */
+    #[Then('admin :email should not be locked')]
     public function adminShouldNotBeLocked(string $email): void
     {
         $user = $this->loadAdminUser($email);
@@ -127,9 +118,7 @@ class LockoutContext implements Context
         Assert::null($user->getLockedAt());
     }
 
-    /**
-     * @Then the failed attempt counter for admin :email should be :count
-     */
+    #[Then('the failed attempt counter for admin :email should be :count')]
     public function adminFailedAttemptsShouldBe(string $email, int $count): void
     {
         $user = $this->loadAdminUser($email);
@@ -138,34 +127,26 @@ class LockoutContext implements Context
         Assert::same($user->getFailedLoginAttempts(), $count);
     }
 
-    /**
-     * @When I visit the locked customers page
-     */
+    #[When('I visit the locked customers page')]
     public function iVisitLockedCustomersPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_admin_locked_customers'));
     }
 
-    /**
-     * @When I visit the locked admins page
-     */
+    #[When('I visit the locked admins page')]
     public function iVisitLockedAdminsPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_admin_locked_admins'));
     }
 
-    /**
-     * @Then I should see no locked customers
-     */
+    #[Then('I should see no locked customers')]
     public function iShouldSeeNoLockedCustomers(): void
     {
         $content = (string) $this->session->getPage()->getContent();
         Assert::contains($content, 'No customers are currently locked');
     }
 
-    /**
-     * @When I unlock the locked customer :email
-     */
+    #[When('I unlock the locked customer :email')]
     public function iUnlockTheLockedCustomer(string $email): void
     {
         $user = $this->loadShopUser($email);
@@ -176,9 +157,7 @@ class LockoutContext implements Context
         $form->find('css', 'button[type="submit"]')?->click();
     }
 
-    /**
-     * @When I unlock the locked admin :email
-     */
+    #[When('I unlock the locked admin :email')]
     public function iUnlockTheLockedAdmin(string $email): void
     {
         $user = $this->loadAdminUser($email);
@@ -189,9 +168,7 @@ class LockoutContext implements Context
         $form->find('css', 'button[type="submit"]')?->click();
     }
 
-    /**
-     * @Given customer :email is locked
-     */
+    #[Given('customer :email is locked')]
     public function customerIsLocked(string $email): void
     {
         $user = $this->loadShopUser($email);
@@ -203,9 +180,7 @@ class LockoutContext implements Context
     }
 
 
-    /**
-     * @Then customer :email should not be locked
-     */
+    #[Then('customer :email should not be locked')]
     public function customerShouldNotBeLocked(string $email): void
     {
         $user = $this->loadShopUser($email);
@@ -215,31 +190,27 @@ class LockoutContext implements Context
     }
 
     /**
-     * @Then I should see the locked-account message
      *
      * Sylius/Symfony renders a generic "Invalid credentials" message for all
      * authentication failures (locked account, wrong password, …) so an
      * attacker cannot infer which case applies. We assert that the user did
      * not get past the login page.
      */
+    #[Then('I should see the locked-account message')]
     public function iShouldSeeTheLockedAccountMessage(): void
     {
         $url = (string) $this->session->getCurrentUrl();
         Assert::contains($url, '/login', sprintf('Expected to stay on the login page; got %s.', $url));
     }
 
-    /**
-     * @Then I should be signed in to the admin panel as :email
-     */
+    #[Then('I should be signed in to the admin panel as :email')]
     public function iShouldBeSignedInToAdminAs(string $email): void
     {
         $url = $this->session->getCurrentUrl();
         Assert::notContains($url, '/admin/login', sprintf('Expected to be off the admin login page after sign-in, got "%s".', $url));
     }
 
-    /**
-     * @Then I should not see the too-many-requests message
-     */
+    #[Then('I should not see the too-many-requests message')]
     public function iShouldNotSeeTooManyRequests(): void
     {
         $content = (string) $this->session->getPage()->getContent();
@@ -248,12 +219,12 @@ class LockoutContext implements Context
     }
 
     /**
-     * @When the locked admin :email is unlocked by another administrator
      *
      * Calls the lockout manager directly to simulate another admin clicking
      * "Unlock" in /admin/locked-admins — same code path, avoids needing a
      * second admin session in the scenario.
      */
+    #[When('the locked admin :email is unlocked by another administrator')]
     public function adminIsUnlockedByAnotherAdministrator(string $email): void
     {
         $this->lockoutManager->unlock($this->loadAdminUser($email));

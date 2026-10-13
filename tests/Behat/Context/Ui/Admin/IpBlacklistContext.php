@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Step\Given;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsWriterInterface;
 
@@ -15,9 +16,7 @@ class IpBlacklistContext implements Context
     ) {
     }
 
-    /**
-     * @Given the admin IP blacklist is enabled with global CIDRs :cidrs
-     */
+    #[Given('the admin IP blacklist is enabled with global CIDRs :cidrs')]
     public function adminIpBlacklistIsEnabledWithGlobalCidrs(string $cidrs): void
     {
         $list = $this->splitCidrs($cidrs);
@@ -28,9 +27,7 @@ class IpBlacklistContext implements Context
         $this->settingsWriter->flush();
     }
 
-    /**
-     * @Given the admin IP blacklist is enabled with no global CIDRs
-     */
+    #[Given('the admin IP blacklist is enabled with no global CIDRs')]
     public function adminIpBlacklistIsEnabledWithNoGlobalCidrs(): void
     {
         $this->settingsWriter->setMany(SettingsScope::ADMIN, [
@@ -40,9 +37,7 @@ class IpBlacklistContext implements Context
         $this->settingsWriter->flush();
     }
 
-    /**
-     * @Given the admin IP blacklist is disabled
-     */
+    #[Given('the admin IP blacklist is disabled')]
     public function adminIpBlacklistIsDisabled(): void
     {
         $this->settingsWriter->setMany(SettingsScope::ADMIN, [

@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -27,9 +30,7 @@ class TwoFactorLoginContext implements Context
     ) {
     }
 
-    /**
-     * @Given the customer :email has 2FA enabled with a known secret
-     */
+    #[Given('the customer :email has 2FA enabled with a known secret')]
     public function theCustomerHasTwoFactorEnabledWithKnownSecret(string $email): void
     {
         $this->knownSecret = TOTP::generate()->getSecret();
@@ -40,9 +41,7 @@ class TwoFactorLoginContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I submit a valid TOTP challenge code
-     */
+    #[When('I submit a valid TOTP challenge code')]
     public function iSubmitAValidTotpChallengeCode(): void
     {
         Assert::notNull($this->knownSecret, 'Known secret was not stored.');
@@ -50,9 +49,7 @@ class TwoFactorLoginContext implements Context
         $this->submitChallengeForm($code);
     }
 
-    /**
-     * @When I submit a valid TOTP challenge code written with a dash
-     */
+    #[When('I submit a valid TOTP challenge code written with a dash')]
     public function iSubmitAValidTotpChallengeCodeWrittenWithADash(): void
     {
         Assert::notNull($this->knownSecret, 'Known secret was not stored.');
@@ -60,17 +57,13 @@ class TwoFactorLoginContext implements Context
         $this->submitChallengeForm(substr($code, 0, 3) . '-' . substr($code, 3));
     }
 
-    /**
-     * @When I submit an invalid TOTP challenge code
-     */
+    #[When('I submit an invalid TOTP challenge code')]
     public function iSubmitAnInvalidTotpChallengeCode(): void
     {
         $this->submitChallengeForm('000000');
     }
 
-    /**
-     * @Then the 2FA challenge page should use the storefront layout
-     */
+    #[Then('the 2FA challenge page should use the storefront layout')]
     public function theTwoFactorChallengePageShouldUseTheStorefrontLayout(): void
     {
         $page = $this->session->getPage();
@@ -82,9 +75,7 @@ class TwoFactorLoginContext implements Context
         Assert::same(parse_url((string) $recoveryLink->getAttribute('href'), PHP_URL_PATH), '/2fa/recovery');
     }
 
-    /**
-     * @Then I should be on the 2FA challenge page
-     */
+    #[Then('I should be on the 2FA challenge page')]
     public function iShouldBeOnTheTwoFactorChallengePage(): void
     {
         $page = $this->session->getPage();
@@ -97,17 +88,13 @@ class TwoFactorLoginContext implements Context
         }
     }
 
-    /**
-     * @Then I should see a 2FA authentication error
-     */
+    #[Then('I should see a 2FA authentication error')]
     public function iShouldSeeAnAuthenticationError(): void
     {
         Assert::notNull($this->session->getPage()->find('css', '[data-test-two-factor-error]'));
     }
 
-    /**
-     * @Then I should be fully authenticated
-     */
+    #[Then('I should be fully authenticated')]
     public function iShouldBeFullyAuthenticated(): void
     {
         $url = $this->session->getCurrentUrl();

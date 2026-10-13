@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
@@ -30,9 +33,7 @@ class IpWhitelistContext implements Context
     ) {
     }
 
-    /**
-     * @Given the admin IP whitelist is enabled with global CIDRs :cidrs
-     */
+    #[Given('the admin IP whitelist is enabled with global CIDRs :cidrs')]
     public function adminIpWhitelistIsEnabledWithGlobalCidrs(string $cidrs): void
     {
         $list = $this->splitCidrs($cidrs);
@@ -43,9 +44,7 @@ class IpWhitelistContext implements Context
         $this->settingsWriter->flush();
     }
 
-    /**
-     * @Given the admin IP whitelist is enabled with no global CIDRs
-     */
+    #[Given('the admin IP whitelist is enabled with no global CIDRs')]
     public function adminIpWhitelistIsEnabledWithNoGlobalCidrs(): void
     {
         $this->settingsWriter->setMany(SettingsScope::ADMIN, [
@@ -55,9 +54,7 @@ class IpWhitelistContext implements Context
         $this->settingsWriter->flush();
     }
 
-    /**
-     * @Given the admin IP whitelist is disabled
-     */
+    #[Given('the admin IP whitelist is disabled')]
     public function adminIpWhitelistIsDisabled(): void
     {
         $this->settingsWriter->setMany(SettingsScope::ADMIN, [
@@ -67,33 +64,25 @@ class IpWhitelistContext implements Context
         $this->settingsWriter->flush();
     }
 
-    /**
-     * @Given administrator :email has per-admin IP whitelist enabled with CIDRs :cidrs
-     */
+    #[Given('administrator :email has per-admin IP whitelist enabled with CIDRs :cidrs')]
     public function adminHasPerAdminWhitelistEnabled(string $email, string $cidrs): void
     {
         $this->upsertPerAdmin($email, true, $this->splitCidrs($cidrs));
     }
 
-    /**
-     * @Given administrator :email has per-admin IP whitelist disabled with CIDRs :cidrs
-     */
+    #[Given('administrator :email has per-admin IP whitelist disabled with CIDRs :cidrs')]
     public function adminHasPerAdminWhitelistDisabled(string $email, string $cidrs): void
     {
         $this->upsertPerAdmin($email, false, $this->splitCidrs($cidrs));
     }
 
-    /**
-     * @When I open the IP whitelist admins page
-     */
+    #[When('I open the IP whitelist admins page')]
     public function iOpenTheIpWhitelistAdminsPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_admin_ip_whitelist_admins', [], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
-    /**
-     * @When I open the IP whitelist edit page for :email
-     */
+    #[When('I open the IP whitelist edit page for :email')]
     public function iOpenTheIpWhitelistEditPageFor(string $email): void
     {
         $admin = $this->loadAdmin($email);
@@ -113,9 +102,8 @@ class IpWhitelistContext implements Context
      * Below the firewall this same request is handled by the authenticator, which
      * answers a redirect — not a 403 — whether the credentials pass or the CSRF token
      * is missing, so the status alone tells the two arrangements apart.
-     *
-     * @When I submit the admin sign-in form as :email with :password
      */
+    #[When('I submit the admin sign-in form as :email with :password')]
     public function iSubmitTheAdminSignInForm(string $email, string $password): void
     {
         $driver = $this->session->getDriver();
@@ -134,25 +122,19 @@ class IpWhitelistContext implements Context
         );
     }
 
-    /**
-     * @When I open any admin page
-     */
+    #[When('I open any admin page')]
     public function iOpenAnyAdminPage(): void
     {
         $this->session->visit($this->router->generate('sylius_admin_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
-    /**
-     * @Then the admin response status should be :code
-     */
+    #[Then('the admin response status should be :code')]
     public function adminResponseStatusShouldBe(int $code): void
     {
         Assert::same($this->session->getStatusCode(), $code);
     }
 
-    /**
-     * @Then I should see the IP whitelist admins list
-     */
+    #[Then('I should see the IP whitelist admins list')]
     public function iShouldSeeTheIpWhitelistAdminsList(): void
     {
         Assert::true(
@@ -161,9 +143,7 @@ class IpWhitelistContext implements Context
         );
     }
 
-    /**
-     * @Then administrator :email should have the IP whitelist :state
-     */
+    #[Then('administrator :email should have the IP whitelist :state')]
     public function administratorShouldHaveTheIpWhitelist(string $email, string $state): void
     {
         $admin = $this->loadAdmin($email);

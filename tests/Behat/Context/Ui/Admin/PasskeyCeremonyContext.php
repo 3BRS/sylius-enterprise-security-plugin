@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Hook\BeforeScenario;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
@@ -36,35 +39,27 @@ class PasskeyCeremonyContext implements Context
     ) {
     }
 
-    /**
-     * @BeforeScenario
-     */
+    #[BeforeScenario]
     public function resetFakeAuthenticator(BeforeScenarioScope $scope): void
     {
         FakeAuthenticator::reset();
         $this->credentialsByLabel = [];
     }
 
-    /**
-     * @When I am logged in to the admin as :email
-     */
+    #[When('I am logged in to the admin as :email')]
     public function iAmLoggedInAs(string $email): void
     {
         $adminUser = $this->findAdminUser($email);
         $this->kernelBrowser()->loginUser($adminUser, self::FIREWALL_NAME);
     }
 
-    /**
-     * @When I sign out of the admin
-     */
+    #[When('I sign out of the admin')]
     public function iSignOut(): void
     {
         $this->client->restart();
     }
 
-    /**
-     * @When I register an admin passkey labelled :label
-     */
+    #[When('I register an admin passkey labelled :label')]
     public function iRegisterAnAdminPasskey(string $label): void
     {
         $options = $this->postJson($this->router->generate('three_brs_admin_passkey_register_options'), null);
@@ -90,9 +85,7 @@ class PasskeyCeremonyContext implements Context
         $this->credentialsByLabel[$label] = (string) $registrationResponse['id'];
     }
 
-    /**
-     * @Then an admin passkey labelled :label should be stored for :email
-     */
+    #[Then('an admin passkey labelled :label should be stored for :email')]
     public function anAdminPasskeyShouldBeStoredFor(string $label, string $email): void
     {
         $this->entityManager->clear();
@@ -103,9 +96,7 @@ class PasskeyCeremonyContext implements Context
         Assert::notEmpty($matching, sprintf('No passkey labelled "%s" stored for "%s".', $label, $email));
     }
 
-    /**
-     * @When I sign in to the admin with the passkey :label
-     */
+    #[When('I sign in to the admin with the passkey :label')]
     public function iSignInWithTheAdminPasskey(string $label): void
     {
         $credentialId = $this->credentialsByLabel[$label] ?? null;
@@ -129,9 +120,7 @@ class PasskeyCeremonyContext implements Context
         ));
     }
 
-    /**
-     * @When I attempt to sign in to the admin with an unknown passkey
-     */
+    #[When('I attempt to sign in to the admin with an unknown passkey')]
     public function iAttemptToSignInWithAnUnknownPasskey(): void
     {
         $options = $this->postJson($this->router->generate('three_brs_admin_passkey_login_options'), null);
@@ -151,9 +140,7 @@ class PasskeyCeremonyContext implements Context
         );
     }
 
-    /**
-     * @Then the last admin passkey login should have failed
-     */
+    #[Then('the last admin passkey login should have failed')]
     public function theLastPasskeyLoginShouldHaveFailed(): void
     {
         $status = $this->client->getResponse()->getStatusCode();
@@ -166,9 +153,7 @@ class PasskeyCeremonyContext implements Context
         Assert::contains($url, '/login', sprintf('The refused passkey still opened a session — the dashboard answered at "%s".', $url));
     }
 
-    /**
-     * @Then I should be logged in to the admin as :email
-     */
+    #[Then('I should be logged in to the admin as :email')]
     public function iShouldBeLoggedInAs(string $email): void
     {
         Assert::notNull($this->findAdminUser($email), sprintf('Administrator "%s" not found.', $email));

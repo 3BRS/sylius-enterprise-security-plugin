@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
@@ -24,9 +27,7 @@ class PasswordExpirationContext implements Context
     ) {
     }
 
-    /**
-     * @Given the administrator :email is forced to change their password
-     */
+    #[Given('the administrator :email is forced to change their password')]
     public function theAdministratorIsForcedToChangeTheirPassword(string $email): void
     {
         $adminUser = $this->adminUserRepository->findOneByEmail($email);
@@ -37,17 +38,13 @@ class PasswordExpirationContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I try to open the admin dashboard
-     */
+    #[When('I try to open the admin dashboard')]
     public function iTryToOpenTheAdminDashboard(): void
     {
         $this->session->visit('/admin/');
     }
 
-    /**
-     * @Then I should be on the admin force password change page
-     */
+    #[Then('I should be on the admin force password change page')]
     public function iShouldBeOnTheAdminForcePasswordChangePage(): void
     {
         Assert::true(
@@ -56,9 +53,7 @@ class PasswordExpirationContext implements Context
         );
     }
 
-    /**
-     * @Then I should not be on the admin force password change page
-     */
+    #[Then('I should not be on the admin force password change page')]
     public function iShouldNotBeOnTheAdminForcePasswordChangePage(): void
     {
         Assert::false(
@@ -67,9 +62,7 @@ class PasswordExpirationContext implements Context
         );
     }
 
-    /**
-     * @When I want to edit administrator :email
-     */
+    #[When('I want to edit administrator :email')]
     public function iWantToEditAdministrator(string $email): void
     {
         $adminUser = $this->adminUserRepository->findOneByEmail($email);
@@ -78,25 +71,19 @@ class PasswordExpirationContext implements Context
         $this->session->visit($this->router->generate('sylius_admin_admin_user_update', ['id' => $adminUser->getId()]));
     }
 
-    /**
-     * @When I check the force password change checkbox
-     */
+    #[When('I check the force password change checkbox')]
     public function iCheckTheForcePasswordChangeCheckbox(): void
     {
         $this->session->getPage()->find('css', '#sylius_admin_admin_user_forcePasswordChange')?->check();
     }
 
-    /**
-     * @When I save my changes
-     */
+    #[When('I save my changes')]
     public function iSaveMyChanges(): void
     {
         $this->session->getPage()->find('css', '[data-test-update-changes-button]')?->click();
     }
 
-    /**
-     * @Then administrator :email should be forced to change their password on next login
-     */
+    #[Then('administrator :email should be forced to change their password on next login')]
     public function administratorShouldBeForcedToChangePasswordOnNextLogin(string $email): void
     {
         $this->entityManager->clear();
@@ -109,9 +96,7 @@ class PasswordExpirationContext implements Context
         );
     }
 
-    /**
-     * @When I submit the force password change form with current password :currentPassword and new password :newPassword
-     */
+    #[When('I submit the force password change form with current password :currentPassword and new password :newPassword')]
     public function iSubmitTheForcePasswordChangeForm(string $currentPassword, string $newPassword): void
     {
         $actualCurrentPassword = $currentPassword === $this->sharedStorage->get('scenario_setup_password')
@@ -125,9 +110,7 @@ class PasswordExpirationContext implements Context
         $page->find('css', 'form button[type="submit"]')?->click();
     }
 
-    /**
-     * @Then administrator :email should not be forced to change their password anymore
-     */
+    #[Then('administrator :email should not be forced to change their password anymore')]
     public function administratorShouldNotBeForcedToChangePasswordAnymore(string $email): void
     {
         $this->entityManager->clear();

@@ -9,6 +9,8 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
 use Doctrine\ORM\EntityManagerInterface;
 use FriendsOfBehat\SymfonyExtension\Context\Environment\InitializedSymfonyExtensionEnvironment;
 use Sylius\Behat\Service\SharedStorageInterface;
@@ -74,9 +76,8 @@ class GuestCartContext implements Context
      * visitor builds that way is an order in the `cart` state whose ID the session holds per
      * channel; this puts one into a fresh session. The session cookie goes to the Mink browser and,
      * in a suite with the passkey ceremony, to the kernel browser that context drives.
-     *
-     * @Given I have a guest cart with this product
      */
+    #[Given('I have a guest cart with this product')]
     public function iHaveAGuestCartWithThisProduct(): void
     {
         // Reloaded: a kernel browser request reboots the kernel and detaches what the setup created.
@@ -116,9 +117,7 @@ class GuestCartContext implements Context
         $driver->getClient()->getCookieJar()->set($cookie);
     }
 
-    /**
-     * @Then my cart should belong to :email
-     */
+    #[Then('my cart should belong to :email')]
     public function myCartShouldBelongTo(string $email): void
     {
         $this->entityManager->clear();
@@ -132,9 +131,7 @@ class GuestCartContext implements Context
         Assert::false($cart->isCreatedByGuest(), 'The cart is still marked as created by a guest, so checkout would ask for an email.');
     }
 
-    /**
-     * @Then the guest customer :email should still have no account
-     */
+    #[Then('the guest customer :email should still have no account')]
     public function theGuestCustomerShouldStillHaveNoAccount(string $email): void
     {
         $this->entityManager->clear();
@@ -144,9 +141,7 @@ class GuestCartContext implements Context
         Assert::null($customers[0]->getUser(), sprintf('An account was created on the guest customer "%s".', $email));
     }
 
-    /**
-     * @Then the account of :email should keep the order :number
-     */
+    #[Then('the account of :email should keep the order :number')]
     public function theAccountShouldKeepTheOrder(string $email, string $number): void
     {
         $this->entityManager->clear();

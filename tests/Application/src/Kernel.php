@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin;
 
-use PSS\SymfonyMockerContainer\DependencyInjection\MockerContainer;
 use Sylius\Bundle\CoreBundle\SyliusCoreBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
@@ -73,20 +72,6 @@ final class Kernel extends BaseKernel
         }
     }
 
-    protected function getContainerBaseClass(): string
-    {
-        if ($this->isTestEnvironment() && class_exists(MockerContainer::class)) {
-            return MockerContainer::class;
-        }
-
-        return parent::getContainerBaseClass();
-    }
-
-    private function isTestEnvironment(): bool
-    {
-        return str_starts_with($this->getEnvironment(), 'test');
-    }
-
     private function loadContainerConfiguration(
         LoaderInterface $loader,
         string          $confDir,
@@ -141,9 +126,13 @@ final class Kernel extends BaseKernel
             yield $symfonyConfigDir;
         }
 
-        $symfonyVersionPlusConfigDir = $this->getProjectDir() . '/config/symfony/' . BaseKernel::MAJOR_VERSION . '+';
-        if (is_dir($symfonyVersionPlusConfigDir)) {
-            yield $symfonyVersionPlusConfigDir;
+        // config/symfony/<major>+ applies to that major and every later one
+        $symfonyVersionPlusConfigDirs = glob($this->getProjectDir() . '/config/symfony/*+', \GLOB_ONLYDIR) ?: [];
+        natsort($symfonyVersionPlusConfigDirs);
+        foreach ($symfonyVersionPlusConfigDirs as $symfonyVersionPlusConfigDir) {
+            if ((int) basename($symfonyVersionPlusConfigDir) <= BaseKernel::MAJOR_VERSION) {
+                yield $symfonyVersionPlusConfigDir;
+            }
         }
     }
 }

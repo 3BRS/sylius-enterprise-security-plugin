@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
@@ -27,17 +30,13 @@ class PasswordLoginContext implements Context
     ) {
     }
 
-    /**
-     * @Given password login is disabled for customers
-     */
+    #[Given('password login is disabled for customers')]
     public function passwordLoginIsDisabledForCustomers(): void
     {
         $this->setCustomerPasswordLogin(false);
     }
 
-    /**
-     * @When I attempt to sign in with email :email and password :password
-     */
+    #[When('I attempt to sign in with email :email and password :password')]
     public function iAttemptToSignIn(string $email, string $password): void
     {
         $this->session->visit($this->router->generate('sylius_shop_login', ['_locale' => 'en_US']));
@@ -50,25 +49,20 @@ class PasswordLoginContext implements Context
      * it while the switch is on and then flip the switch before submitting, which exercises the
      * authentication-layer backstop (CustomerPasswordLoginCheckListener) with a genuine,
      * CSRF-valid POST instead of merely proving the template hid the form.
-     *
-     * @When I submit the shop login form with email :email and password :password
      */
+    #[When('I submit the shop login form with email :email and password :password')]
     public function iSubmitTheShopLoginForm(string $email, string $password): void
     {
         $this->fillAndSubmitLoginForm($email, $password);
     }
 
-    /**
-     * @When I visit the shop login page
-     */
+    #[When('I visit the shop login page')]
     public function iVisitTheShopLoginPage(): void
     {
         $this->session->visit($this->router->generate('sylius_shop_login', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @When I visit the shop registration page
-     */
+    #[When('I visit the shop registration page')]
     public function iVisitTheShopRegistrationPage(): void
     {
         $this->session->visit($this->router->generate('sylius_shop_register', ['_locale' => 'en_US']));
@@ -78,9 +72,8 @@ class PasswordLoginContext implements Context
      * A crafted POST straight to the register endpoint — bypassing the hidden
      * form — to prove the server-side `RegistrationBlockListener` backstop, not
      * just the template gating.
-     *
-     * @When I submit a registration request
      */
+    #[When('I submit a registration request')]
     public function iSubmitARegistrationRequest(): void
     {
         $driver = $this->session->getDriver();
@@ -89,9 +82,7 @@ class PasswordLoginContext implements Context
         $driver->getClient()->request('POST', $this->router->generate('sylius_shop_register', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @Then I should be signed in to the shop
-     */
+    #[Then('I should be signed in to the shop')]
     public function iShouldBeSignedIn(): void
     {
         Assert::notContains(
@@ -101,9 +92,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then I should not be signed in to the shop
-     */
+    #[Then('I should not be signed in to the shop')]
     public function iShouldNotBeSignedIn(): void
     {
         Assert::contains(
@@ -113,9 +102,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then I should see the password-login-disabled notice
-     */
+    #[Then('I should see the password-login-disabled notice')]
     public function iShouldSeeTheDisabledNotice(): void
     {
         Assert::notNull(
@@ -124,9 +111,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then the password login form should be hidden
-     */
+    #[Then('the password login form should be hidden')]
     public function thePasswordLoginFormShouldBeHidden(): void
     {
         Assert::null(
@@ -135,9 +120,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then the forgot-password link should be hidden
-     */
+    #[Then('the forgot-password link should be hidden')]
     public function theForgotPasswordLinkShouldBeHidden(): void
     {
         Assert::null(
@@ -146,9 +129,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then I should be redirected to the shop login page
-     */
+    #[Then('I should be redirected to the shop login page')]
     public function iShouldBeRedirectedToTheLoginPage(): void
     {
         Assert::contains(
@@ -158,9 +139,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then I should see the registration-disabled error
-     */
+    #[Then('I should see the registration-disabled error')]
     public function iShouldSeeTheRegistrationDisabledError(): void
     {
         Assert::contains(
@@ -170,17 +149,13 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @When I visit my account dashboard
-     */
+    #[When('I visit my account dashboard')]
     public function iVisitMyAccountDashboard(): void
     {
         $this->session->visit($this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @Then the change-password entry should be hidden from my account
-     */
+    #[Then('the change-password entry should be hidden from my account')]
     public function theChangePasswordEntryShouldBeHidden(): void
     {
         $page = $this->session->getPage();

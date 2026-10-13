@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -23,19 +26,17 @@ class RateLimitContext implements Context
     }
 
     /**
-     * @Given the admin login rate limit is set to :limit requests per minute
      *
      * Marker step — actual limits come from `three_brs_sylius_enterprise_security_plugin.yaml`
      * in the test app. The step exists so the scenario reads naturally.
      */
+    #[Given('the admin login rate limit is set to :limit requests per minute')]
     public function adminLoginRateLimitIsSet(int $limit): void
     {
         Assert::greaterThan($limit, 0);
     }
 
-    /**
-     * @When I try to sign in to the admin panel with email :email and password :password
-     */
+    #[When('I try to sign in to the admin panel with email :email and password :password')]
     public function iTryToSignIn(string $email, string $password): void
     {
         $this->session->visit($this->router->generate('sylius_admin_login'));
@@ -45,9 +46,7 @@ class RateLimitContext implements Context
         $page->pressButton('Login');
     }
 
-    /**
-     * @Then I should see the too-many-requests message
-     */
+    #[Then('I should see the too-many-requests message')]
     public function iShouldSeeTooManyRequestsMessage(): void
     {
         $statusCode = $this->session->getStatusCode();

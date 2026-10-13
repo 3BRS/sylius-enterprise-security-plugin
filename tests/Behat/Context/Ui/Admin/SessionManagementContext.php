@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Context\Ui\Admin\Helper\SecurePasswordTrait;
@@ -43,9 +46,7 @@ class SessionManagementContext implements Context
         $this->spySender->reset();
     }
 
-    /**
-     * @When I sign in to the admin panel with email :email and password :password
-     */
+    #[When('I sign in to the admin panel with email :email and password :password')]
     public function iSignInToTheAdminPanel(string $email, string $password): void
     {
         $this->session->visit($this->router->generate('sylius_admin_login'));
@@ -55,9 +56,7 @@ class SessionManagementContext implements Context
         $page->pressButton('Login');
     }
 
-    /**
-     * @Then a login notification email should have been sent to :email
-     */
+    #[Then('a login notification email should have been sent to :email')]
     public function aLoginNotificationEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::true(
@@ -66,9 +65,7 @@ class SessionManagementContext implements Context
         );
     }
 
-    /**
-     * @Then no login notification email should have been sent to :email
-     */
+    #[Then('no login notification email should have been sent to :email')]
     public function noLoginNotificationEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::false(
@@ -77,33 +74,25 @@ class SessionManagementContext implements Context
         );
     }
 
-    /**
-     * @When login notification emails are cleared again
-     */
+    #[When('login notification emails are cleared again')]
     public function loginNotificationEmailsAreClearedAgain(): void
     {
         $this->spySender->reset();
     }
 
-    /**
-     * @When I sign out from the admin panel
-     */
+    #[When('I sign out from the admin panel')]
     public function iSignOutFromTheAdminPanel(): void
     {
         $this->session->visit($this->router->generate('sylius_admin_logout'));
     }
 
-    /**
-     * @When I visit the admin active sessions page
-     */
+    #[When('I visit the admin active sessions page')]
     public function iVisitTheAdminActiveSessionsPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_admin_sessions'));
     }
 
-    /**
-     * @Then I should see exactly :count active admin session(s)
-     */
+    #[Then('I should see exactly :count active admin session(s)')]
     public function iShouldSeeExactlyActiveAdminSessions(int $count): void
     {
         $page = $this->session->getPage();
@@ -111,9 +100,7 @@ class SessionManagementContext implements Context
         Assert::count($items, $count, sprintf('Expected %d active admin sessions, got %d.', $count, count($items)));
     }
 
-    /**
-     * @Then I should see my current admin session marker
-     */
+    #[Then('I should see my current admin session marker')]
     public function iShouldSeeMyCurrentAdminSessionMarker(): void
     {
         $page = $this->session->getPage();
@@ -121,9 +108,7 @@ class SessionManagementContext implements Context
         Assert::notNull($marker, 'Expected current admin session marker to be visible.');
     }
 
-    /**
-     * @Given the admin :email has another active session :sessionId
-     */
+    #[Given('the admin :email has another active session :sessionId')]
     public function theAdminHasAnotherActiveSession(string $email, string $sessionId): void
     {
         $user = $this->findAdminUser($email);
@@ -137,9 +122,7 @@ class SessionManagementContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given the admin :email has another session :sessionId last active :days days ago
-     */
+    #[Given('the admin :email has another session :sessionId last active :days days ago')]
     public function theAdminHasAnotherSessionLastActiveDaysAgo(string $email, string $sessionId, int $days): void
     {
         $this->theAdminHasAnotherActiveSession($email, $sessionId);
@@ -150,9 +133,7 @@ class SessionManagementContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I revoke the other admin session :sessionId
-     */
+    #[When('I revoke the other admin session :sessionId')]
     public function iRevokeTheOtherAdminSession(string $sessionId): void
     {
         $record = $this->sessionRepository->findOneBySessionId($sessionId);
@@ -165,9 +146,7 @@ class SessionManagementContext implements Context
         $button->click();
     }
 
-    /**
-     * @When I revoke all other admin sessions
-     */
+    #[When('I revoke all other admin sessions')]
     public function iRevokeAllOtherAdminSessions(): void
     {
         $page = $this->session->getPage();
@@ -176,9 +155,7 @@ class SessionManagementContext implements Context
         $button->click();
     }
 
-    /**
-     * @Then the admin session :sessionId should be revoked
-     */
+    #[Then('the admin session :sessionId should be revoked')]
     public function theAdminSessionShouldBeRevoked(string $sessionId): void
     {
         $this->entityManager->clear();
@@ -187,9 +164,7 @@ class SessionManagementContext implements Context
         Assert::true($record->isRevoked(), sprintf('Admin session "%s" was not revoked.', $sessionId));
     }
 
-    /**
-     * @When the current admin session for :email is revoked externally
-     */
+    #[When('the current admin session for :email is revoked externally')]
     public function theCurrentAdminSessionForIsRevokedExternally(string $email): void
     {
         $user = $this->findAdminUser($email);
@@ -203,9 +178,7 @@ class SessionManagementContext implements Context
         $this->entityManager->clear();
     }
 
-    /**
-     * @Then I should be redirected to the admin login page
-     */
+    #[Then('I should be redirected to the admin login page')]
     public function iShouldBeRedirectedToTheAdminLoginPage(): void
     {
         $url = (string) $this->session->getCurrentUrl();

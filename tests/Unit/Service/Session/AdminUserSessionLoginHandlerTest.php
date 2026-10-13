@@ -8,7 +8,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
-use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserSessionInterface;
@@ -225,11 +224,8 @@ class AdminUserSessionLoginHandlerTest extends TestCase
             $session->method('getId')->willReturn('the-session-id');
         }
 
-        $request = $this->createStub(Request::class);
-        $request->headers = new HeaderBag(['User-Agent' => 'Mozilla/5.0']);
-        $request->method('getClientIp')->willReturn('127.0.0.1');
-        $request->method('hasSession')->willReturn(true);
-        $request->method('getSession')->willReturn($session);
+        $request = new Request(server: ['HTTP_USER_AGENT' => 'Mozilla/5.0', 'REMOTE_ADDR' => '127.0.0.1']);
+        $request->setSession($session);
 
         return $request;
     }

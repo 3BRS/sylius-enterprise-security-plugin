@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorMode;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsScope;
@@ -21,41 +25,31 @@ class TwoFactorEnforcementContext implements Context
     ) {
     }
 
-    /**
-     * @BeforeScenario
-     */
+    #[BeforeScenario]
     public function resetEnforcement(): void
     {
         $this->setMode(TwoFactorMode::ALLOWED);
     }
 
-    /**
-     * @Given 2FA enforcement is enabled for customers
-     */
+    #[Given('2FA enforcement is enabled for customers')]
     public function enforcementIsEnabledForCustomers(): void
     {
         $this->setMode(TwoFactorMode::ENFORCED);
     }
 
-    /**
-     * @When I visit the account dashboard
-     */
+    #[When('I visit the account dashboard')]
     public function iVisitTheAccountDashboard(): void
     {
         $this->session->visit('/en_US/account/dashboard');
     }
 
-    /**
-     * @Then I should be redirected to the 2FA setup page
-     */
+    #[Then('I should be redirected to the 2FA setup page')]
     public function iShouldBeRedirectedToTheSetupPage(): void
     {
         Assert::contains($this->session->getCurrentUrl(), '/account/two-factor/setup');
     }
 
-    /**
-     * @Then I should remain on the account dashboard
-     */
+    #[Then('I should remain on the account dashboard')]
     public function iShouldRemainOnTheAccountDashboard(): void
     {
         Assert::contains($this->session->getCurrentUrl(), '/account/dashboard');

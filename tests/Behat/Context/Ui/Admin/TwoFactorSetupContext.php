@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\AdminUserInterface;
@@ -35,9 +38,7 @@ class TwoFactorSetupContext implements Context
     ) {
     }
 
-    /**
-     * @Given the administrator :email already has 2FA enabled
-     */
+    #[Given('the administrator :email already has 2FA enabled')]
     public function theAdministratorAlreadyHasTwoFactorEnabled(string $email): void
     {
         $user = $this->findAdminUser($email);
@@ -47,9 +48,7 @@ class TwoFactorSetupContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given the administrator :email already has 2FA enabled with recovery codes
-     */
+    #[Given('the administrator :email already has 2FA enabled with recovery codes')]
     public function theAdministratorAlreadyHasTwoFactorEnabledWithRecoveryCodes(string $email): void
     {
         $user = $this->findAdminUser($email);
@@ -67,17 +66,13 @@ class TwoFactorSetupContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I visit the admin 2FA setup page
-     */
+    #[When('I visit the admin 2FA setup page')]
     public function iVisitTheTwoFactorSetupPage(): void
     {
         $this->session->visit('/admin/two-factor/setup');
     }
 
-    /**
-     * @When I submit a valid admin TOTP code
-     */
+    #[When('I submit a valid admin TOTP code')]
     public function iSubmitAValidTotpCode(): void
     {
         $secret = $this->readSecretFromPage();
@@ -85,43 +80,33 @@ class TwoFactorSetupContext implements Context
         $this->submitSetupForm($code);
     }
 
-    /**
-     * @When I submit an invalid admin TOTP code
-     */
+    #[When('I submit an invalid admin TOTP code')]
     public function iSubmitAnInvalidTotpCode(): void
     {
         $this->submitSetupForm('000000');
     }
 
-    /**
-     * @When I disable admin 2FA confirming with the current authenticator code
-     */
+    #[When('I disable admin 2FA confirming with the current authenticator code')]
     public function iDisableAdminTwoFactorConfirmingWithTheCurrentAuthenticatorCode(): void
     {
         $this->submitConfirmedForm('disable', $this->currentCode());
     }
 
-    /**
-     * @When I disable admin 2FA confirming with the current authenticator code written with a dash
-     */
+    #[When('I disable admin 2FA confirming with the current authenticator code written with a dash')]
     public function iDisableAdminTwoFactorConfirmingWithTheCurrentAuthenticatorCodeWrittenWithADash(): void
     {
         $code = $this->currentCode();
         $this->submitConfirmedForm('disable', substr($code, 0, 3) . '-' . substr($code, 3));
     }
 
-    /**
-     * @When I disable admin 2FA confirming with the recovery code :code
-     * @When I try to disable admin 2FA with the code :code
-     */
+    #[When('I disable admin 2FA confirming with the recovery code :code')]
+    #[When('I try to disable admin 2FA with the code :code')]
     public function iDisableAdminTwoFactorWithTheCode(string $code): void
     {
         $this->submitConfirmedForm('disable', $code);
     }
 
-    /**
-     * @When I try to disable admin 2FA with the code :code :count times
-     */
+    #[When('I try to disable admin 2FA with the code :code :count times')]
     public function iTryToDisableAdminTwoFactorWithTheCodeRepeatedly(string $code, int $count): void
     {
         for ($attempt = 0; $attempt < $count; ++$attempt) {
@@ -129,41 +114,31 @@ class TwoFactorSetupContext implements Context
         }
     }
 
-    /**
-     * @When I regenerate admin recovery codes confirming with the current authenticator code
-     */
+    #[When('I regenerate admin recovery codes confirming with the current authenticator code')]
     public function iRegenerateAdminRecoveryCodesConfirmingWithTheCurrentAuthenticatorCode(): void
     {
         $this->submitConfirmedForm('regenerate', $this->currentCode());
     }
 
-    /**
-     * @When I try to regenerate admin recovery codes with the code :code
-     */
+    #[When('I try to regenerate admin recovery codes with the code :code')]
     public function iTryToRegenerateAdminRecoveryCodesWithTheCode(string $code): void
     {
         $this->submitConfirmedForm('regenerate', $code);
     }
 
-    /**
-     * @Then I should be told the admin two-factor code is invalid
-     */
+    #[Then('I should be told the admin two-factor code is invalid')]
     public function iShouldBeToldTheAdminTwoFactorCodeIsInvalid(): void
     {
         $this->assertFlashShownOnce('three_brs.two_factor.confirmation_code_invalid');
     }
 
-    /**
-     * @Then I should be told to try the admin two-factor code again later
-     */
+    #[Then('I should be told to try the admin two-factor code again later')]
     public function iShouldBeToldToTryTheAdminTwoFactorCodeAgainLater(): void
     {
         $this->assertFlashShownOnce('three_brs.rate_limit.too_many_requests');
     }
 
-    /**
-     * @Then none of the previous admin recovery codes should work for :email
-     */
+    #[Then('none of the previous admin recovery codes should work for :email')]
     public function noneOfThePreviousRecoveryCodesShouldWorkFor(string $email): void
     {
         $this->entityManager->clear();
@@ -178,33 +153,25 @@ class TwoFactorSetupContext implements Context
         }
     }
 
-    /**
-     * @Then I should see the admin 2FA QR code
-     */
+    #[Then('I should see the admin 2FA QR code')]
     public function iShouldSeeTheTwoFactorQrCode(): void
     {
         Assert::notNull($this->session->getPage()->find('css', '[data-test-two-factor-qr]'));
     }
 
-    /**
-     * @Then I should see the admin TOTP secret
-     */
+    #[Then('I should see the admin TOTP secret')]
     public function iShouldSeeTheTotpSecret(): void
     {
         Assert::notEmpty($this->readSecretFromPage());
     }
 
-    /**
-     * @Then I should see the admin 2FA disable button
-     */
+    #[Then('I should see the admin 2FA disable button')]
     public function iShouldSeeTheTwoFactorDisableButton(): void
     {
         Assert::notNull($this->session->getPage()->find('css', '[data-test-two-factor-disable]'));
     }
 
-    /**
-     * @Then I should be on the admin 2FA recovery codes page
-     */
+    #[Then('I should be on the admin 2FA recovery codes page')]
     public function iShouldBeOnTheRecoveryCodesPage(): void
     {
         Assert::true(
@@ -213,18 +180,14 @@ class TwoFactorSetupContext implements Context
         );
     }
 
-    /**
-     * @Then I should see :count admin recovery codes
-     */
+    #[Then('I should see :count admin recovery codes')]
     public function iShouldSeeRecoveryCodes(int $count): void
     {
         $codes = $this->session->getPage()->findAll('css', '[data-test-recovery-code]');
         Assert::count($codes, $count);
     }
 
-    /**
-     * @Then admin 2FA should be enabled for :email
-     */
+    #[Then('admin 2FA should be enabled for :email')]
     public function twoFactorShouldBeEnabledFor(string $email): void
     {
         $this->entityManager->clear();
@@ -233,9 +196,7 @@ class TwoFactorSetupContext implements Context
         Assert::notNull($user->getTotpSecret());
     }
 
-    /**
-     * @Then admin 2FA should not be enabled for :email
-     */
+    #[Then('admin 2FA should not be enabled for :email')]
     public function twoFactorShouldNotBeEnabledFor(string $email): void
     {
         $this->entityManager->clear();
@@ -243,9 +204,7 @@ class TwoFactorSetupContext implements Context
         Assert::false($user->isTwoFactorEnabled());
     }
 
-    /**
-     * @Then I should remain on the admin 2FA setup page
-     */
+    #[Then('I should remain on the admin 2FA setup page')]
     public function iShouldRemainOnTheSetupPage(): void
     {
         Assert::true(
@@ -254,9 +213,7 @@ class TwoFactorSetupContext implements Context
         );
     }
 
-    /**
-     * @Then the administrator should have no recovery codes
-     */
+    #[Then('the administrator should have no recovery codes')]
     public function theAdministratorShouldHaveNoRecoveryCodes(): void
     {
         $user = $this->findAdminUser('admin@example.com');

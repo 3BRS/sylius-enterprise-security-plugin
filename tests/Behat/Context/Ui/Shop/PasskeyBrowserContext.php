@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\RawMinkContext;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use DMore\ChromeDriver\ChromeDriver;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectRepository;
@@ -46,9 +49,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
     ) {
     }
 
-    /**
-     * @Given a virtual authenticator is attached to the browser
-     */
+    #[Given('a virtual authenticator is attached to the browser')]
     public function aVirtualAuthenticatorIsAttached(): void
     {
         // The page target only exists once something has been visited.
@@ -82,9 +83,8 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
      * The browser authenticates against the database, so the credential has to be a
      * hash this application accepts - set here rather than relying on how a fixture
      * step happened to store it.
-     *
-     * @Given the customer :email can sign in with the password :password
      */
+    #[Given('the customer :email can sign in with the password :password')]
     public function theCustomerCanSignInWith(string $email, string $password): void
     {
         $user = $this->shopUserRepository->findOneBy(['usernameCanonical' => strtolower($email)]);
@@ -96,17 +96,13 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         Assert::true($this->credentialsAreValid($email, $password), 'The password did not take.');
     }
 
-    /**
-     * @When I sign in to the shop in the browser as :email with password :password
-     */
+    #[When('I sign in to the shop in the browser as :email with password :password')]
     public function iSignInToTheShopInTheBrowser(string $email, string $password): void
     {
         $this->signInToTheShopInTheBrowser($email, $password, false);
     }
 
-    /**
-     * @When I sign in to the shop in the browser as :email with password :password and stay signed in
-     */
+    #[When('I sign in to the shop in the browser as :email with password :password and stay signed in')]
     public function iSignInToTheShopInTheBrowserAndStaySignedIn(string $email, string $password): void
     {
         $this->signInToTheShopInTheBrowser($email, $password, true);
@@ -114,9 +110,8 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
 
     /**
      * Leaves only the remember-me cookie to sign the browser in on its next request.
-     *
-     * @When the browser session cookie expires
      */
+    #[When('the browser session cookie expires')]
     public function theBrowserSessionCookieExpires(): void
     {
         $this->getSession()->setCookie((string) ini_get('session.name'), null);
@@ -182,9 +177,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         }
     }
 
-    /**
-     * @When I register a passkey labelled :label in the browser
-     */
+    #[When('I register a passkey labelled :label in the browser')]
     public function iRegisterAPasskeyInTheBrowser(string $label): void
     {
         $this->startPasskeyRegistrationInTheBrowser($label);
@@ -192,9 +185,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         $this->waitForPasskeyToAppear($label);
     }
 
-    /**
-     * @When I try to register a passkey labelled :label in the browser
-     */
+    #[When('I try to register a passkey labelled :label in the browser')]
     public function iTryToRegisterAPasskeyInTheBrowser(string $label): void
     {
         $this->startPasskeyRegistrationInTheBrowser($label);
@@ -202,9 +193,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         $this->getSession()->wait(15000, '(window.__threeBrsAlerts || []).length > 0');
     }
 
-    /**
-     * @Then the browser should tell me to sign in again
-     */
+    #[Then('the browser should tell me to sign in again')]
     public function theBrowserShouldTellMeToSignInAgain(): void
     {
         Assert::same(
@@ -244,9 +233,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         $session->executeScript("document.querySelector('#three_brs_passkey_register_button').click();");
     }
 
-    /**
-     * @Then the browser should list a passkey labelled :label
-     */
+    #[Then('the browser should list a passkey labelled :label')]
     public function theBrowserShouldListAPasskey(string $label): void
     {
         $list = $this->getSession()->getPage()->find('css', '[data-test-three-brs-passkey-list]');
@@ -262,9 +249,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         );
     }
 
-    /**
-     * @When I sign out in the browser
-     */
+    #[When('I sign out in the browser')]
     public function iSignOutInTheBrowser(): void
     {
         $session = $this->getSession();
@@ -285,9 +270,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         }
     }
 
-    /**
-     * @When I sign in to the shop in the browser with a passkey
-     */
+    #[When('I sign in to the shop in the browser with a passkey')]
     public function iSignInToTheShopInTheBrowserWithAPasskey(): void
     {
         $session = $this->getSession();
@@ -317,9 +300,7 @@ class PasskeyBrowserContext extends RawMinkContext implements Context
         }
     }
 
-    /**
-     * @Then I should be signed in to the shop in the browser as :email
-     */
+    #[Then('I should be signed in to the shop in the browser as :email')]
     public function iShouldBeSignedInToTheShopInTheBrowser(string $email): void
     {
         $session = $this->getSession();

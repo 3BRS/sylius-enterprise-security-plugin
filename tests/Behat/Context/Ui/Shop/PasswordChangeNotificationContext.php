@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
@@ -35,9 +38,7 @@ class PasswordChangeNotificationContext implements Context
         $this->spySender->reset();
     }
 
-    /**
-     * @Given the customer :email has the password :password set directly
-     */
+    #[Given('the customer :email has the password :password set directly')]
     public function theCustomerHasThePasswordSetDirectly(string $email, string $password): void
     {
         $customer = $this->customerRepository->findOneBy(['email' => $email]);
@@ -51,17 +52,13 @@ class PasswordChangeNotificationContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given all password change notification emails are cleared
-     */
+    #[Given('all password change notification emails are cleared')]
     public function allPasswordChangeNotificationEmailsAreCleared(): void
     {
         $this->spySender->reset();
     }
 
-    /**
-     * @Then a password change notification email should have been sent to :email
-     */
+    #[Then('a password change notification email should have been sent to :email')]
     public function aPasswordChangeNotificationEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::true(
@@ -70,9 +67,7 @@ class PasswordChangeNotificationContext implements Context
         );
     }
 
-    /**
-     * @Given a password reset token :token has been issued to :email
-     */
+    #[Given('a password reset token :token has been issued to :email')]
     public function aPasswordResetTokenHasBeenIssuedTo(string $token, string $email): void
     {
         $user = $this->shopUserRepository->findOneByEmail($email);
@@ -83,9 +78,7 @@ class PasswordChangeNotificationContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I reset my password using token :token to :newPassword
-     */
+    #[When('I reset my password using token :token to :newPassword')]
     public function iResetMyPasswordUsingTokenTo(string $token, string $newPassword): void
     {
         $this->session->visit($this->router->generate('sylius_shop_password_reset', ['_locale' => 'en_US', 'token' => $token]));
@@ -100,9 +93,8 @@ class PasswordChangeNotificationContext implements Context
      * The template only prints the "somebody else did this" warning and the reset
      * link when `initiatedByUser` is false, so the flag decides whether the email
      * is a receipt or an alarm — and nothing else in the suite reads it.
-     *
-     * @Then the password change notification to :email should read as self-initiated
      */
+    #[Then('the password change notification to :email should read as self-initiated')]
     public function thePasswordChangeNotificationToShouldReadAsSelfInitiated(string $email): void
     {
         Assert::false($this->somebodyElseChangedThePasswordOf($email), sprintf(
@@ -111,9 +103,7 @@ class PasswordChangeNotificationContext implements Context
         ));
     }
 
-    /**
-     * @Then the password change notification to :email should warn that somebody else changed it
-     */
+    #[Then('the password change notification to :email should warn that somebody else changed it')]
     public function thePasswordChangeNotificationToShouldWarnThatSomebodyElseChangedIt(string $email): void
     {
         Assert::true($this->somebodyElseChangedThePasswordOf($email), sprintf(

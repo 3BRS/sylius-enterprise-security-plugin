@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -27,9 +30,7 @@ class AccountDeletionContext implements Context
     ) {
     }
 
-    /**
-     * @Given the customer :email requested deletion :daysAgo days ago with grace :graceDays
-     */
+    #[Given('the customer :email requested deletion :daysAgo days ago with grace :graceDays')]
     public function theCustomerRequestedDeletionDaysAgoWithGrace(string $email, int $daysAgo, int $graceDays): void
     {
         $customer = $this->loadCustomer($email);
@@ -50,17 +51,13 @@ class AccountDeletionContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I open the account deletions admin page
-     */
+    #[When('I open the account deletions admin page')]
     public function iOpenTheAccountDeletionsAdminPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_admin_account_deletions', [], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
-    /**
-     * @Then I should see :email in the pending deletions list
-     */
+    #[Then('I should see :email in the pending deletions list')]
     public function iShouldSeeInThePendingDeletionsList(string $email): void
     {
         Assert::true(
@@ -69,9 +66,7 @@ class AccountDeletionContext implements Context
         );
     }
 
-    /**
-     * @When I cancel the deletion request for :email
-     */
+    #[When('I cancel the deletion request for :email')]
     public function iCancelTheDeletionRequestFor(string $email): void
     {
         $customer = $this->loadCustomer($email);
@@ -84,9 +79,7 @@ class AccountDeletionContext implements Context
         $form->find('css', 'button[type="submit"]')?->click();
     }
 
-    /**
-     * @Then no deletion request should be pending for :email
-     */
+    #[Then('no deletion request should be pending for :email')]
     public function noDeletionRequestShouldBePendingFor(string $email): void
     {
         $this->entityManager->clear();
@@ -98,9 +91,7 @@ class AccountDeletionContext implements Context
         );
     }
 
-    /**
-     * @Then the customer :email should be enabled
-     */
+    #[Then('the customer :email should be enabled')]
     public function theCustomerShouldBeEnabled(string $email): void
     {
         $this->entityManager->clear();

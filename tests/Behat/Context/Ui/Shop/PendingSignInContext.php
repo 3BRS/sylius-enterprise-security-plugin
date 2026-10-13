@@ -8,6 +8,9 @@ use Behat\Behat\Context\Context;
 use Behat\Hook\AfterScenario;
 use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\Routing\RouterInterface;
 use Webmozart\Assert\Assert;
@@ -27,9 +30,8 @@ class PendingSignInContext implements Context
      * The kernel browser sends no Accept header unless told to, and the pending sign-in is ended
      * only by page loads, which a browser marks with `Accept: text/html`. Set on the client, the
      * header also goes with submitted forms and followed redirects.
-     *
-     * @Given my browser asks for HTML pages
      */
+    #[Given('my browser asks for HTML pages')]
     public function myBrowserAsksForHtmlPages(): void
     {
         $client = $this->getClient();
@@ -52,33 +54,25 @@ class PendingSignInContext implements Context
         $this->serverParametersBeforeScenario = null;
     }
 
-    /**
-     * @When I open the shop homepage
-     */
+    #[When('I open the shop homepage')]
     public function iOpenTheShopHomepage(): void
     {
         $this->session->visit($this->router->generate('sylius_shop_homepage', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @When I open the shop login page
-     */
+    #[When('I open the shop login page')]
     public function iOpenTheShopLoginPage(): void
     {
         $this->session->visit($this->router->generate('sylius_shop_login', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @When I open my account dashboard
-     */
+    #[When('I open my account dashboard')]
     public function iOpenMyAccountDashboard(): void
     {
         $this->session->visit($this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @When the code page sends a background request to the shop homepage
-     */
+    #[When('the code page sends a background request to the shop homepage')]
     public function theCodePageSendsABackgroundRequestToTheShopHomepage(): void
     {
         $this->getClient()->request(
@@ -88,9 +82,7 @@ class PendingSignInContext implements Context
         );
     }
 
-    /**
-     * @Then I should be on the shop homepage
-     */
+    #[Then('I should be on the shop homepage')]
     public function iShouldBeOnTheShopHomepage(): void
     {
         $url = $this->session->getCurrentUrl();

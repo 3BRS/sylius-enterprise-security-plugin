@@ -3,6 +3,24 @@
 Notable changes to `3brs/sylius-enterprise-security-plugin`. Follows
 [Keep a Changelog](https://keepachangelog.com/) and [SemVer](https://semver.org/).
 
+## [1.2.0] - 2026-10-12
+
+### Added
+- **Sylius 2.3 and Symfony 8.** The plugin requires `3brs/enterprise-security-bundle` 2.5.0, which
+  allows Symfony 8 and `scheb/2fa-*` 8 and gives its validation constraints named arguments, the only
+  way Symfony 8 passes their options. scheb 8 needs PHP 8.4 and Composer installs it there with
+  Symfony 7.4 as well as with Symfony 8. See [UPGRADE.md](UPGRADE.md#110--120).
+
+### Changed
+- **The lockout checkers take the token Symfony 8 passes to `checkPostAuth()`.**
+  `ShopUserLockoutChecker::checkPostAuth()` and `AdminUserLockoutChecker::checkPostAuth()` accept an
+  optional `?TokenInterface $token`, the argument Symfony 8 added to
+  `UserCheckerInterface::checkPostAuth()`. A subclass that overrides the method needs it too.
+
+### Requirements
+
+PHP 8.3+ (8.4+ with Symfony 8), Sylius 2.1, 2.2 or 2.3, Symfony 6.4, 7.4 or 8.
+
 ## [1.1.0] - 2026-10-05
 
 ### Security
@@ -193,5 +211,6 @@ First stable release. Sixteen security features for Sylius, each with its own gu
 
 PHP 8.3+, Sylius 2.1 or 2.2, Symfony 6.4 or 7.4.
 
+[1.2.0]: https://github.com/3BRS/sylius-enterprise-security-plugin/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/3BRS/sylius-enterprise-security-plugin/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/3BRS/sylius-enterprise-security-plugin/releases/tag/v1.0.0

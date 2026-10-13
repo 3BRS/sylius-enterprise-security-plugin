@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
@@ -37,25 +40,19 @@ class SocialLoginContext implements Context
         $this->spySender->reset();
     }
 
-    /**
-     * @Given the :provider OAuth provider will return user :providerUserId with email :email
-     */
+    #[Given('the :provider OAuth provider will return user :providerUserId with email :email')]
     public function theOAuthProviderWillReturnUser(string $provider, string $providerUserId, string $email): void
     {
         $this->fakeOAuthState->seedUserInfo($provider, $providerUserId, $email, 'Social', 'User');
     }
 
-    /**
-     * @Given the :provider OAuth provider will return user :providerUserId with verified email :email
-     */
+    #[Given('the :provider OAuth provider will return user :providerUserId with verified email :email')]
     public function theOAuthProviderWillReturnUserWithVerifiedEmail(string $provider, string $providerUserId, string $email): void
     {
         $this->fakeOAuthState->seedUserInfo($provider, $providerUserId, $email, 'Social', 'User', true);
     }
 
-    /**
-     * @Given the customer :email is already linked to :provider with id :providerUserId
-     */
+    #[Given('the customer :email is already linked to :provider with id :providerUserId')]
     public function theCustomerIsAlreadyLinkedTo(string $email, string $provider, string $providerUserId): void
     {
         $user = $this->findShopUser($email);
@@ -70,9 +67,7 @@ class SocialLoginContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I click the :provider social login button
-     */
+    #[When('I click the :provider social login button')]
     public function iClickTheSocialLoginButton(string $provider): void
     {
         $this->session->visit('/en_US/login');
@@ -81,26 +76,20 @@ class SocialLoginContext implements Context
         $button->click();
     }
 
-    /**
-     * @When I confirm the social link with the emailed code
-     */
+    #[When('I confirm the social link with the emailed code')]
     public function iConfirmTheSocialLinkWithTheEmailedCode(): void
     {
         $this->submitConfirmCode($this->emailedLinkCode());
     }
 
-    /**
-     * @When I confirm the social link with an incorrect code
-     */
+    #[When('I confirm the social link with an incorrect code')]
     public function iConfirmTheSocialLinkWithAnIncorrectCode(): void
     {
         $real = $this->emailedLinkCode();
         $this->submitConfirmCode(str_pad((string) (((int) $real + 1) % 1000000), 6, '0', STR_PAD_LEFT));
     }
 
-    /**
-     * @Given the customer :email has no usable password
-     */
+    #[Given('the customer :email has no usable password')]
     public function theCustomerHasNoUsablePassword(string $email): void
     {
         $user = $this->findShopUser($email);
@@ -108,9 +97,7 @@ class SocialLoginContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I click the :provider link button on the social accounts page
-     */
+    #[When('I click the :provider link button on the social accounts page')]
     public function iClickTheLinkButtonOnTheSocialAccountsPage(string $provider): void
     {
         $this->session->visit('/en_US/account/social-accounts');
@@ -119,9 +106,7 @@ class SocialLoginContext implements Context
         $button->click();
     }
 
-    /**
-     * @When I unlink my :provider social account
-     */
+    #[When('I unlink my :provider social account')]
     public function iUnlinkMySocialAccount(string $provider): void
     {
         $this->session->visit('/en_US/account/social-accounts');
@@ -131,9 +116,7 @@ class SocialLoginContext implements Context
         $button->click();
     }
 
-    /**
-     * @Then the customer :email should not be linked to :provider
-     */
+    #[Then('the customer :email should not be linked to :provider')]
     public function theCustomerShouldNotBeLinkedTo(string $email, string $provider): void
     {
         $this->entityManager->clear();
@@ -142,9 +125,7 @@ class SocialLoginContext implements Context
         Assert::null($link, sprintf('Expected no "%s" link for "%s", but found one.', $provider, $email));
     }
 
-    /**
-     * @Then the customer :email should still be linked to :provider
-     */
+    #[Then('the customer :email should still be linked to :provider')]
     public function theCustomerShouldStillBeLinkedTo(string $email, string $provider): void
     {
         $this->entityManager->clear();
@@ -153,18 +134,14 @@ class SocialLoginContext implements Context
         Assert::notNull($link, sprintf('Expected "%s" link for "%s" to still exist.', $provider, $email));
     }
 
-    /**
-     * @Then I should be on the social link confirm page
-     */
+    #[Then('I should be on the social link confirm page')]
     public function iShouldBeOnTheSocialLinkConfirmPage(): void
     {
         $url = $this->session->getCurrentUrl();
         Assert::contains($url, '/oauth/confirm-link', sprintf('Expected confirm-link URL, got "%s".', $url));
     }
 
-    /**
-     * @Then I should be logged in as :email
-     */
+    #[Then('I should be logged in as :email')]
     public function iShouldBeLoggedInAs(string $email): void
     {
         $url = $this->session->getCurrentUrl();
@@ -187,9 +164,7 @@ class SocialLoginContext implements Context
         Assert::notNull($customer, sprintf('Customer "%s" not found after social login.', $email));
     }
 
-    /**
-     * @Then a social link should exist for :email with :provider and provider id :providerUserId
-     */
+    #[Then('a social link should exist for :email with :provider and provider id :providerUserId')]
     public function aSocialLinkShouldExistFor(string $email, string $provider, string $providerUserId): void
     {
         $this->entityManager->clear();
@@ -198,9 +173,7 @@ class SocialLoginContext implements Context
         Assert::same($link->getEmail(), $email);
     }
 
-    /**
-     * @Then the customer :email should exist
-     */
+    #[Then('the customer :email should exist')]
     public function theCustomerShouldExist(string $email): void
     {
         $this->entityManager->clear();
@@ -208,9 +181,7 @@ class SocialLoginContext implements Context
         Assert::notNull($customer, sprintf('Customer "%s" was not created.', $email));
     }
 
-    /**
-     * @Then I should be told that signing up through the provider is not allowed
-     */
+    #[Then('I should be told that signing up through the provider is not allowed')]
     public function iShouldBeToldThatSigningUpThroughTheProviderIsNotAllowed(): void
     {
         Assert::contains(
@@ -219,9 +190,7 @@ class SocialLoginContext implements Context
         );
     }
 
-    /**
-     * @Then I should see a social-login error
-     */
+    #[Then('I should see a social-login error')]
     public function iShouldSeeASocialLoginError(): void
     {
         $page = $this->session->getPage();
@@ -247,9 +216,8 @@ class SocialLoginContext implements Context
      * The confirm-code scenarios below prove the code the form accepts, but not
      * that one ever leaves for the customer: they read it straight out of the spy.
      * This says an email really went out, and in the shape the form expects.
-     *
-     * @Then an account linking code email should have been sent to :email
      */
+    #[Then('an account linking code email should have been sent to :email')]
     public function anAccountLinkingCodeEmailShouldHaveBeenSentTo(string $email): void
     {
         $data = $this->spySender->getLastSentDataTo(Emails::OAUTH_LINK_CODE, $email);

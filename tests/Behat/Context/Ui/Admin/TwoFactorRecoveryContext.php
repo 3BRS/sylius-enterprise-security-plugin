@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\AdminUserInterface;
@@ -32,9 +35,7 @@ class TwoFactorRecoveryContext implements Context
     ) {
     }
 
-    /**
-     * @Given the administrator :email has 2FA enabled with recovery codes
-     */
+    #[Given('the administrator :email has 2FA enabled with recovery codes')]
     public function theAdministratorHasTwoFactorEnabledWithRecoveryCodes(string $email): void
     {
         $user = $this->findAdminUser($email);
@@ -52,17 +53,13 @@ class TwoFactorRecoveryContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I visit the admin recovery code challenge page
-     */
+    #[When('I visit the admin recovery code challenge page')]
     public function iVisitTheRecoveryChallengePage(): void
     {
         $this->session->visit('http://localhost:8080/admin/2fa/recovery');
     }
 
-    /**
-     * @When I submit a valid admin recovery code
-     */
+    #[When('I submit a valid admin recovery code')]
     public function iSubmitAValidRecoveryCode(): void
     {
         Assert::notEmpty($this->plainRecoveryCodes, 'No recovery codes prepared.');
@@ -70,17 +67,13 @@ class TwoFactorRecoveryContext implements Context
         $this->submitRecoveryForm($this->lastUsedCode);
     }
 
-    /**
-     * @When I submit an invalid admin recovery code
-     */
+    #[When('I submit an invalid admin recovery code')]
     public function iSubmitAnInvalidRecoveryCode(): void
     {
         $this->submitRecoveryForm('ZZZZZ-99999');
     }
 
-    /**
-     * @Then I should see an admin recovery code error
-     */
+    #[Then('I should see an admin recovery code error')]
     public function iShouldSeeARecoveryCodeError(): void
     {
         Assert::notNull(
@@ -89,9 +82,7 @@ class TwoFactorRecoveryContext implements Context
         );
     }
 
-    /**
-     * @Then I should be fully authenticated as administrator
-     */
+    #[Then('I should be fully authenticated as administrator')]
     public function iShouldBeFullyAuthenticatedAsAdmin(): void
     {
         $url = $this->session->getCurrentUrl();
@@ -113,9 +104,7 @@ class TwoFactorRecoveryContext implements Context
         }
     }
 
-    /**
-     * @Then the used admin recovery code should be marked consumed
-     */
+    #[Then('the used admin recovery code should be marked consumed')]
     public function theUsedRecoveryCodeShouldBeMarkedConsumed(): void
     {
         Assert::notNull($this->lastUsedCode, 'No recovery code was used in this scenario.');

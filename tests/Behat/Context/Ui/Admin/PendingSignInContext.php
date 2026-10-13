@@ -8,6 +8,8 @@ use Behat\Behat\Context\Context;
 use Behat\Hook\AfterScenario;
 use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\When;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\Routing\RouterInterface;
 use Webmozart\Assert\Assert;
@@ -27,9 +29,8 @@ class PendingSignInContext implements Context
      * The kernel browser sends no Accept header unless told to, and the pending sign-in is ended
      * only by page loads, which a browser marks with `Accept: text/html`. Set on the client, the
      * header also goes with submitted forms and followed redirects.
-     *
-     * @Given my browser asks for HTML pages
      */
+    #[Given('my browser asks for HTML pages')]
     public function myBrowserAsksForHtmlPages(): void
     {
         $client = $this->getClient();
@@ -52,25 +53,19 @@ class PendingSignInContext implements Context
         $this->serverParametersBeforeScenario = null;
     }
 
-    /**
-     * @When I open the admin dashboard
-     */
+    #[When('I open the admin dashboard')]
     public function iOpenTheAdminDashboard(): void
     {
         $this->session->visit($this->router->generate('sylius_admin_dashboard'));
     }
 
-    /**
-     * @When I open the admin login page
-     */
+    #[When('I open the admin login page')]
     public function iOpenTheAdminLoginPage(): void
     {
         $this->session->visit($this->router->generate('sylius_admin_login'));
     }
 
-    /**
-     * @When the admin code page sends a background request to the admin dashboard
-     */
+    #[When('the admin code page sends a background request to the admin dashboard')]
     public function theAdminCodePageSendsABackgroundRequestToTheAdminDashboard(): void
     {
         $this->getClient()->request(
