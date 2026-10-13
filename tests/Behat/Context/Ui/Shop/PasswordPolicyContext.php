@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Webmozart\Assert\Assert;
 
 class PasswordPolicyContext implements Context
@@ -15,20 +18,16 @@ class PasswordPolicyContext implements Context
     ) {
     }
 
-    /**
-     * @Given the store requires uppercase letters in customer passwords
-     * @Given the store requires lowercase letters in customer passwords
-     * @Given the store requires numbers in customer passwords
-     * @Given the store requires special characters in customer passwords
-     */
+    #[Given('the store requires uppercase letters in customer passwords')]
+    #[Given('the store requires lowercase letters in customer passwords')]
+    #[Given('the store requires numbers in customer passwords')]
+    #[Given('the store requires special characters in customer passwords')]
     public function theStoreRequiresPasswordPolicy(): void
     {
         // Policy is pre-configured in test app config — this step is documentation only
     }
 
-    /**
-     * @When I register with password :password
-     */
+    #[When('I register with password :password')]
     public function iRegisterWithPassword(string $password): void
     {
         $page = $this->session->getPage();
@@ -37,49 +36,37 @@ class PasswordPolicyContext implements Context
         $page->find('css', '[data-test-button="register-button"]')?->press();
     }
 
-    /**
-     * @Then I should be notified that the password is too short
-     */
+    #[Then('I should be notified that the password is too short')]
     public function iShouldBeNotifiedThatThePasswordIsTooShort(): void
     {
         $this->assertValidationError('Password must be at least');
     }
 
-    /**
-     * @Then I should be notified that the password requires an uppercase letter
-     */
+    #[Then('I should be notified that the password requires an uppercase letter')]
     public function iShouldBeNotifiedThatThePasswordRequiresAnUppercaseLetter(): void
     {
         $this->assertValidationError('Password must contain at least one uppercase letter');
     }
 
-    /**
-     * @Then I should be notified that the password requires a number
-     */
+    #[Then('I should be notified that the password requires a number')]
     public function iShouldBeNotifiedThatThePasswordRequiresANumber(): void
     {
         $this->assertValidationError('Password must contain at least one number');
     }
 
-    /**
-     * @Then I should be notified that the password requires a special character
-     */
+    #[Then('I should be notified that the password requires a special character')]
     public function iShouldBeNotifiedThatThePasswordRequiresASpecialCharacter(): void
     {
         $this->assertValidationError('Password must contain at least one special character');
     }
 
-    /**
-     * @Then I should be notified that the password must be at least :limit characters
-     */
+    #[Then('I should be notified that the password must be at least :limit characters')]
     public function iShouldBeNotifiedThatThePasswordMustBeAtLeastCharacters(int $limit): void
     {
         $this->assertValidationError(sprintf('at least %d characters', $limit));
     }
 
-    /**
-     * @Then the Sylius built-in minimum password length error should not appear
-     */
+    #[Then('the Sylius built-in minimum password length error should not appear')]
     public function theSyliusBuiltInMinimumPasswordLengthErrorShouldNotAppear(): void
     {
         Assert::false(
@@ -88,9 +75,7 @@ class PasswordPolicyContext implements Context
         );
     }
 
-    /**
-     * @Then I should be registered successfully
-     */
+    #[Then('I should be registered successfully')]
     public function iShouldBeRegisteredSuccessfully(): void
     {
         // Ruling out one message let a password that broke three other rules count as

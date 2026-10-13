@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Context\Ui\Admin\Helper\SecurePasswordTrait;
 use Sylius\Behat\Service\SharedStorageInterface;
@@ -44,25 +47,19 @@ class PasswordLoginContext implements Context
     ) {
     }
 
-    /**
-     * @Given password login is disabled for admins
-     */
+    #[Given('password login is disabled for admins')]
     public function passwordLoginIsDisabledForAdmins(): void
     {
         $this->setPasswordLogin(SettingsScope::ADMIN, false);
     }
 
-    /**
-     * @Given password login is disabled for customers
-     */
+    #[Given('password login is disabled for customers')]
     public function passwordLoginIsDisabledForCustomers(): void
     {
         $this->setPasswordLogin(SettingsScope::CUSTOMER, false);
     }
 
-    /**
-     * @When I open the admin user edit page for :email
-     */
+    #[When('I open the admin user edit page for :email')]
     public function iOpenTheAdminUserEditPage(string $email): void
     {
         $admin = $this->adminUserRepository->findOneByEmail($email);
@@ -75,9 +72,7 @@ class PasswordLoginContext implements Context
         ));
     }
 
-    /**
-     * @When I open the customer edit page for :email
-     */
+    #[When('I open the customer edit page for :email')]
     public function iOpenTheCustomerEditPage(string $email): void
     {
         $customer = $this->customerRepository->findOneBy(['emailCanonical' => strtolower($email)]);
@@ -90,9 +85,7 @@ class PasswordLoginContext implements Context
         ));
     }
 
-    /**
-     * @Then the admin-user password field should be visible
-     */
+    #[Then('the admin-user password field should be visible')]
     public function theAdminPasswordFieldShouldBeVisible(): void
     {
         Assert::notNull(
@@ -101,9 +94,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then the admin-user password field should be hidden
-     */
+    #[Then('the admin-user password field should be hidden')]
     public function theAdminPasswordFieldShouldBeHidden(): void
     {
         Assert::null(
@@ -112,9 +103,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then the customer password field should be visible
-     */
+    #[Then('the customer password field should be visible')]
     public function theCustomerPasswordFieldShouldBeVisible(): void
     {
         Assert::notNull(
@@ -123,9 +112,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then the customer password field should be hidden
-     */
+    #[Then('the customer password field should be hidden')]
     public function theCustomerPasswordFieldShouldBeHidden(): void
     {
         Assert::null(
@@ -134,9 +121,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @When I enable the account of customer :email
-     */
+    #[When('I enable the account of customer :email')]
     public function iEnableTheAccountOfCustomer(string $email): void
     {
         $this->iOpenTheCustomerEditPage($email);
@@ -149,9 +134,8 @@ class PasswordLoginContext implements Context
      * Submits the customer form with an email that already belongs to somebody else, so the save is
      * refused and the form comes back — the render on which Sylius has already swapped the nested
      * user form for its own type, which is where the password field would otherwise reappear.
-     *
-     * @When I try to enable the account of customer :email using the email of :takenEmail
      */
+    #[When('I try to enable the account of customer :email using the email of :takenEmail')]
     public function iTryToEnableTheAccountOfCustomerUsingATakenEmail(string $email, string $takenEmail): void
     {
         $this->iOpenTheCustomerEditPage($email);
@@ -163,9 +147,7 @@ class PasswordLoginContext implements Context
         $this->submitForm('sylius_admin_customer');
     }
 
-    /**
-     * @Then the customer form should come back with an error
-     */
+    #[Then('the customer form should come back with an error')]
     public function theCustomerFormShouldComeBackWithAnError(): void
     {
         $page = $this->session->getPage();
@@ -180,9 +162,7 @@ class PasswordLoginContext implements Context
         );
     }
 
-    /**
-     * @Then customer :email should have an account without a password
-     */
+    #[Then('customer :email should have an account without a password')]
     public function customerShouldHaveAnAccountWithoutAPassword(string $email): void
     {
         // The account was created by the request the browser made, in its own entity manager.
@@ -197,9 +177,7 @@ class PasswordLoginContext implements Context
         Assert::null($user->getPassword(), 'Expected the account to be stored without a password.');
     }
 
-    /**
-     * @When I create an administrator :email
-     */
+    #[When('I create an administrator :email')]
     public function iCreateAnAdministrator(string $email): void
     {
         $this->session->visit($this->router->generate(
@@ -219,9 +197,7 @@ class PasswordLoginContext implements Context
         $this->submitForm('sylius_admin_admin_user');
     }
 
-    /**
-     * @Then administrator :email should exist without a password
-     */
+    #[Then('administrator :email should exist without a password')]
     public function administratorShouldExistWithoutAPassword(string $email): void
     {
         $this->entityManager->clear();
@@ -231,9 +207,7 @@ class PasswordLoginContext implements Context
         Assert::null($admin->getPassword(), 'Expected the administrator to be stored without a password.');
     }
 
-    /**
-     * @When I visit the admin login page
-     */
+    #[When('I visit the admin login page')]
     public function iVisitTheAdminLoginPage(): void
     {
         $this->session->visit($this->router->generate('sylius_admin_login'));
@@ -245,9 +219,8 @@ class PasswordLoginContext implements Context
      * load it while the switch is on and then flip the switch before submitting, which
      * exercises the authentication-layer backstop (AdminUserPasswordLoginCheckListener) with a
      * genuine, CSRF-valid POST instead of merely proving the template hid the form.
-     *
-     * @When I submit the admin login form with email :email and password :password
      */
+    #[When('I submit the admin login form with email :email and password :password')]
     public function iSubmitTheAdminLoginForm(string $email, string $password): void
     {
         $page = $this->session->getPage();
@@ -265,9 +238,7 @@ class PasswordLoginContext implements Context
         $form->submit();
     }
 
-    /**
-     * @Then I should not be signed in to the admin panel
-     */
+    #[Then('I should not be signed in to the admin panel')]
     public function iShouldNotBeSignedInToTheAdminPanel(): void
     {
         Assert::contains(

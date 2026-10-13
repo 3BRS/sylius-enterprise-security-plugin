@@ -32,7 +32,7 @@
 /.github export-ignore
 
 # Tests
-/behat.yml.dist export-ignore
+/behat.dist.php export-ignore
 /features export-ignore
 /phpunit.xml.dist export-ignore
 /tests export-ignore

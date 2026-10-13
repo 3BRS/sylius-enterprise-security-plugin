@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Sylius\Behat\Context\Ui\Admin\Helper\SecurePasswordTrait;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,9 +29,7 @@ class AccountSecurityChangesContext implements Context
     ) {
     }
 
-    /**
-     * @Given I am signed in to the admin through a remember-me cookie as :email with password :password
-     */
+    #[Given('I am signed in to the admin through a remember-me cookie as :email with password :password')]
     public function iAmSignedInThroughARememberMeCookie(string $email, string $password): void
     {
         $this->submitLoginForm($email, $password, true);
@@ -42,17 +43,13 @@ class AccountSecurityChangesContext implements Context
         $this->session->setCookie((string) ini_get('session.name'), null);
     }
 
-    /**
-     * @When I sign in to the admin with email :email and password :password
-     */
+    #[When('I sign in to the admin with email :email and password :password')]
     public function iSignInToTheAdmin(string $email, string $password): void
     {
         $this->submitLoginForm($email, $password, false);
     }
 
-    /**
-     * @When I start linking my admin :provider account
-     */
+    #[When('I start linking my admin :provider account')]
     public function iStartLinkingMyAdminAccount(string $provider): void
     {
         $this->session->visit($this->router->generate('three_brs_admin_oauth_initiate', [
@@ -61,58 +58,44 @@ class AccountSecurityChangesContext implements Context
         ]));
     }
 
-    /**
-     * @When I request admin passkey registration options
-     */
+    #[When('I request admin passkey registration options')]
     public function iRequestAdminPasskeyRegistrationOptions(): void
     {
         $this->postJson($this->router->generate('three_brs_admin_passkey_register_options'));
     }
 
-    /**
-     * @When I submit an admin passkey registration
-     */
+    #[When('I submit an admin passkey registration')]
     public function iSubmitAnAdminPasskeyRegistration(): void
     {
         $this->postJson($this->router->generate('three_brs_admin_passkey_register_verify'), '{}');
     }
 
-    /**
-     * @Then the admin passkey registration should be refused
-     */
+    #[Then('the admin passkey registration should be refused')]
     public function theAdminPasskeyRegistrationShouldBeRefused(): void
     {
         Assert::same($this->session->getStatusCode(), Response::HTTP_FORBIDDEN);
     }
 
-    /**
-     * @Then the admin passkey registration options should be issued
-     */
+    #[Then('the admin passkey registration options should be issued')]
     public function theAdminPasskeyRegistrationOptionsShouldBeIssued(): void
     {
         Assert::same($this->session->getStatusCode(), Response::HTTP_OK);
         Assert::contains($this->session->getPage()->getContent(), '"challenge"');
     }
 
-    /**
-     * @When I try to disable admin two-factor authentication
-     */
+    #[When('I try to disable admin two-factor authentication')]
     public function iTryToDisableAdminTwoFactorAuthentication(): void
     {
         $this->post($this->router->generate('three_brs_admin_two_factor_disable'));
     }
 
-    /**
-     * @When I try to regenerate my admin recovery codes
-     */
+    #[When('I try to regenerate my admin recovery codes')]
     public function iTryToRegenerateMyAdminRecoveryCodes(): void
     {
         $this->post($this->router->generate('three_brs_admin_two_factor_regenerate_recovery_codes'));
     }
 
-    /**
-     * @Then I should be on the admin login page
-     */
+    #[Then('I should be on the admin login page')]
     public function iShouldBeOnTheAdminLoginPage(): void
     {
         $url = $this->session->getCurrentUrl();

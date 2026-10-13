@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Sylius\Behat\Context\Ui\Admin\Helper\SecurePasswordTrait;
 use Sylius\Behat\Service\SharedStorageInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,9 +29,7 @@ class AccountSecurityChangesContext implements Context
     ) {
     }
 
-    /**
-     * @Given I am signed in to the shop through a remember-me cookie as :email with password :password
-     */
+    #[Given('I am signed in to the shop through a remember-me cookie as :email with password :password')]
     public function iAmSignedInThroughARememberMeCookie(string $email, string $password): void
     {
         $this->submitLoginForm($email, $password, true);
@@ -42,17 +43,13 @@ class AccountSecurityChangesContext implements Context
         $this->session->setCookie((string) ini_get('session.name'), null);
     }
 
-    /**
-     * @When I sign in to the shop with email :email and password :password
-     */
+    #[When('I sign in to the shop with email :email and password :password')]
     public function iSignInToTheShop(string $email, string $password): void
     {
         $this->submitLoginForm($email, $password, false);
     }
 
-    /**
-     * @When I start linking my :provider account
-     */
+    #[When('I start linking my :provider account')]
     public function iStartLinkingMyAccount(string $provider): void
     {
         $this->session->visit($this->router->generate('three_brs_shop_oauth_initiate', [
@@ -61,58 +58,44 @@ class AccountSecurityChangesContext implements Context
         ]));
     }
 
-    /**
-     * @When I request passkey registration options
-     */
+    #[When('I request passkey registration options')]
     public function iRequestPasskeyRegistrationOptions(): void
     {
         $this->postJson($this->router->generate('three_brs_shop_passkey_register_options'));
     }
 
-    /**
-     * @When I submit a passkey registration
-     */
+    #[When('I submit a passkey registration')]
     public function iSubmitAPasskeyRegistration(): void
     {
         $this->postJson($this->router->generate('three_brs_shop_passkey_register_verify'), '{}');
     }
 
-    /**
-     * @Then the passkey registration should be refused
-     */
+    #[Then('the passkey registration should be refused')]
     public function thePasskeyRegistrationShouldBeRefused(): void
     {
         Assert::same($this->session->getStatusCode(), Response::HTTP_FORBIDDEN);
     }
 
-    /**
-     * @Then the passkey registration options should be issued
-     */
+    #[Then('the passkey registration options should be issued')]
     public function thePasskeyRegistrationOptionsShouldBeIssued(): void
     {
         Assert::same($this->session->getStatusCode(), Response::HTTP_OK);
         Assert::contains($this->session->getPage()->getContent(), '"challenge"');
     }
 
-    /**
-     * @When I try to disable two-factor authentication
-     */
+    #[When('I try to disable two-factor authentication')]
     public function iTryToDisableTwoFactorAuthentication(): void
     {
         $this->post($this->router->generate('three_brs_shop_two_factor_disable', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @When I try to regenerate my recovery codes
-     */
+    #[When('I try to regenerate my recovery codes')]
     public function iTryToRegenerateMyRecoveryCodes(): void
     {
         $this->post($this->router->generate('three_brs_shop_two_factor_regenerate_recovery_codes', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @Then I should be on the shop login page
-     */
+    #[Then('I should be on the shop login page')]
     public function iShouldBeOnTheShopLoginPage(): void
     {
         $url = $this->session->getCurrentUrl();

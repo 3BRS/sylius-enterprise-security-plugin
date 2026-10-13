@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Hook;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
@@ -22,7 +23,7 @@ class RateLimiterCacheHookContext implements Context
     ) {
     }
 
-    /** @BeforeScenario */
+    #[BeforeScenario]
     public function clearRateLimiterCache(): void
     {
         $this->rateLimiterCachePool->clear();

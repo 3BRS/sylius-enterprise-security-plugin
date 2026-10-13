@@ -6,6 +6,8 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Webmozart\Assert\Assert;
 
 class ChangePasswordPolicyContext implements Context
@@ -15,9 +17,7 @@ class ChangePasswordPolicyContext implements Context
     ) {
     }
 
-    /**
-     * @When I change my password from :currentPassword to :newPassword
-     */
+    #[When('I change my password from :currentPassword to :newPassword')]
     public function iChangeMyPasswordFromTo(string $currentPassword, string $newPassword): void
     {
         $page = $this->session->getPage();
@@ -39,49 +39,37 @@ class ChangePasswordPolicyContext implements Context
         $submit->press();
     }
 
-    /**
-     * @Then I should be notified that the new password is too short
-     */
+    #[Then('I should be notified that the new password is too short')]
     public function iShouldBeNotifiedThatTheNewPasswordIsTooShort(): void
     {
         $this->assertValidationError('Password must be at least');
     }
 
-    /**
-     * @Then I should be notified that the new password requires an uppercase letter
-     */
+    #[Then('I should be notified that the new password requires an uppercase letter')]
     public function iShouldBeNotifiedThatTheNewPasswordRequiresAnUppercaseLetter(): void
     {
         $this->assertValidationError('Password must contain at least one uppercase letter');
     }
 
-    /**
-     * @Then I should be notified that the new password requires a number
-     */
+    #[Then('I should be notified that the new password requires a number')]
     public function iShouldBeNotifiedThatTheNewPasswordRequiresANumber(): void
     {
         $this->assertValidationError('Password must contain at least one number');
     }
 
-    /**
-     * @Then I should be notified that the new password requires a special character
-     */
+    #[Then('I should be notified that the new password requires a special character')]
     public function iShouldBeNotifiedThatTheNewPasswordRequiresASpecialCharacter(): void
     {
         $this->assertValidationError('Password must contain at least one special character');
     }
 
-    /**
-     * @Then I should be notified that the new password must be at least :limit characters
-     */
+    #[Then('I should be notified that the new password must be at least :limit characters')]
     public function iShouldBeNotifiedThatTheNewPasswordMustBeAtLeastCharacters(int $limit): void
     {
         $this->assertValidationError(sprintf('at least %d characters', $limit));
     }
 
-    /**
-     * @Then the Sylius built-in minimum password length error should not appear
-     */
+    #[Then('the Sylius built-in minimum password length error should not appear')]
     public function theSyliusBuiltInMinimumPasswordLengthErrorShouldNotAppear(): void
     {
         Assert::false(
@@ -90,9 +78,7 @@ class ChangePasswordPolicyContext implements Context
         );
     }
 
-    /**
-     * @Then my password should be changed successfully
-     */
+    #[Then('my password should be changed successfully')]
     public function myPasswordShouldBeChangedSuccessfully(): void
     {
         // Ruling out one message let a password that broke three other rules count as

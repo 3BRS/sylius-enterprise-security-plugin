@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\AdminUserInterface;
@@ -27,9 +30,7 @@ class TwoFactorLoginContext implements Context
     ) {
     }
 
-    /**
-     * @Given the administrator :email has 2FA enabled with a known secret
-     */
+    #[Given('the administrator :email has 2FA enabled with a known secret')]
     public function theAdministratorHasTwoFactorEnabledWithKnownSecret(string $email): void
     {
         $this->knownSecret = TOTP::generate()->getSecret();
@@ -40,9 +41,7 @@ class TwoFactorLoginContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I submit a valid admin TOTP challenge code
-     */
+    #[When('I submit a valid admin TOTP challenge code')]
     public function iSubmitAValidTotpChallengeCode(): void
     {
         Assert::notNull($this->knownSecret, 'Known secret was not stored.');
@@ -50,9 +49,7 @@ class TwoFactorLoginContext implements Context
         $this->submitChallengeForm($code);
     }
 
-    /**
-     * @When I submit a valid admin TOTP challenge code written with a dash
-     */
+    #[When('I submit a valid admin TOTP challenge code written with a dash')]
     public function iSubmitAValidAdminTotpChallengeCodeWrittenWithADash(): void
     {
         Assert::notNull($this->knownSecret, 'Known secret was not stored.');
@@ -60,17 +57,13 @@ class TwoFactorLoginContext implements Context
         $this->submitChallengeForm(substr($code, 0, 3) . '-' . substr($code, 3));
     }
 
-    /**
-     * @When I submit an invalid admin TOTP challenge code
-     */
+    #[When('I submit an invalid admin TOTP challenge code')]
     public function iSubmitAnInvalidTotpChallengeCode(): void
     {
         $this->submitChallengeForm('000000');
     }
 
-    /**
-     * @Then the admin 2FA challenge page should use the administration layout
-     */
+    #[Then('the admin 2FA challenge page should use the administration layout')]
     public function theAdminTwoFactorChallengePageShouldUseTheAdministrationLayout(): void
     {
         $page = $this->session->getPage();
@@ -82,9 +75,7 @@ class TwoFactorLoginContext implements Context
         Assert::same(parse_url((string) $recoveryLink->getAttribute('href'), PHP_URL_PATH), '/admin/2fa/recovery');
     }
 
-    /**
-     * @Then I should be on the admin 2FA challenge page
-     */
+    #[Then('I should be on the admin 2FA challenge page')]
     public function iShouldBeOnTheTwoFactorChallengePage(): void
     {
         $page = $this->session->getPage();
@@ -97,17 +88,13 @@ class TwoFactorLoginContext implements Context
         }
     }
 
-    /**
-     * @Then I should see an admin 2FA authentication error
-     */
+    #[Then('I should see an admin 2FA authentication error')]
     public function iShouldSeeAnAuthenticationError(): void
     {
         Assert::notNull($this->session->getPage()->find('css', '[data-test-two-factor-error]'));
     }
 
-    /**
-     * @Then I should be fully authenticated as administrator
-     */
+    #[Then('I should be fully authenticated as administrator')]
     public function iShouldBeFullyAuthenticatedAsAdmin(): void
     {
         $url = $this->session->getCurrentUrl();

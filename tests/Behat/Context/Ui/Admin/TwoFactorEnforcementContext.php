@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Behat\Mink\Driver\BrowserKitDriver;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use ThreeBRS\EnterpriseSecurityBundle\TwoFactor\TwoFactorMode;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
@@ -25,33 +29,25 @@ class TwoFactorEnforcementContext implements Context
     ) {
     }
 
-    /**
-     * @BeforeScenario
-     */
+    #[BeforeScenario]
     public function resetEnforcement(): void
     {
         $this->setMode(TwoFactorMode::ALLOWED);
     }
 
-    /**
-     * @Given 2FA enforcement is enabled for admins
-     */
+    #[Given('2FA enforcement is enabled for admins')]
     public function enforcementIsEnabledForAdmins(): void
     {
         $this->setMode(TwoFactorMode::ENFORCED);
     }
 
-    /**
-     * @When I visit the admin dashboard
-     */
+    #[When('I visit the admin dashboard')]
     public function iVisitTheAdminDashboard(): void
     {
         $this->session->visit('/admin/');
     }
 
-    /**
-     * @Then I should be redirected to the admin 2FA setup page
-     */
+    #[Then('I should be redirected to the admin 2FA setup page')]
     public function iShouldBeRedirectedToTheSetupPage(): void
     {
         Assert::contains($this->session->getCurrentUrl(), '/admin/two-factor/setup');
@@ -60,9 +56,8 @@ class TwoFactorEnforcementContext implements Context
     /**
      * Each blocked page answers with a redirect to the setup page; the redirects are not followed,
      * so the setup page opens only after both.
-     *
-     * @When I open the admin dashboard and the order list before the setup page
      */
+    #[When('I open the admin dashboard and the order list before the setup page')]
     public function iOpenTheAdminDashboardAndTheOrderListBeforeTheSetupPage(): void
     {
         $driver = $this->session->getDriver();
@@ -82,9 +77,7 @@ class TwoFactorEnforcementContext implements Context
         $this->session->visit('/admin/two-factor/setup');
     }
 
-    /**
-     * @Then I should be told once to set up two-factor authentication
-     */
+    #[Then('I should be told once to set up two-factor authentication')]
     public function iShouldBeToldOnceToSetUpTwoFactorAuthentication(): void
     {
         $text = $this->translator->trans('three_brs.two_factor.enforcement_required', [], 'flashes');

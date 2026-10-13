@@ -6,6 +6,8 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\AdminUserPasswordHistory;
@@ -20,9 +22,7 @@ class PasswordHistoryContext implements Context
     ) {
     }
 
-    /**
-     * @Given the password :password is in the history of administrator :email
-     */
+    #[Given('the password :password is in the history of administrator :email')]
     public function thePasswordIsInTheHistoryOfAdministrator(string $password, string $email): void
     {
         $adminUser = $this->adminUserRepository->findOneByEmail($email);
@@ -36,9 +36,7 @@ class PasswordHistoryContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Then I should be notified that this password was recently used
-     */
+    #[Then('I should be notified that this password was recently used')]
     public function iShouldBeNotifiedThatThisPasswordWasRecentlyUsed(): void
     {
         Assert::true(

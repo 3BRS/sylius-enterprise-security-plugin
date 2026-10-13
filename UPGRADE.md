@@ -1,5 +1,24 @@
 # Upgrade
 
+## 1.1.0 → 1.2.0
+
+1. **`3brs/enterprise-security-bundle` 2.5.0 comes with the plugin.** Nothing in your wiring changes.
+   On PHP 8.4 Composer also moves `scheb/2fa-*` to 8, with Symfony 7.4 too — see the bundle's
+   [UPGRADE.md](https://github.com/3BRS/enterprise-security-bundle/blob/main/UPGRADE.md#240--250)
+   for the two scheb changes that can reach your own code.
+
+2. **If you extend `ShopUserLockoutChecker` or `AdminUserLockoutChecker` and override
+   `checkPostAuth()`**, add the optional token parameter the parent method now declares:
+
+   ```php
+   public function checkPostAuth(UserInterface $user, ?TokenInterface $token = null): void
+   ```
+
+3. **On Symfony 8 with api-platform 4.3.x, set `framework.property_info.with_constructor_extractor` to
+   `false`.** Symfony 8 turns the option on by default, and on api-platform 4.3.x the extractor then
+   resolves relation properties to `object` instead of the related class that nested IRIs are built
+   from — see [Troubleshooting](README.md#unable-to-generate-an-iri-for-the-item-of-type--on-api-responses).
+
 ## 1.0.0 → 1.1.0
 
 1. **With two-factor authentication on for customers, open the storefront OAuth routes.** While a

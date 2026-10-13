@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
@@ -34,9 +37,7 @@ class LockoutContext implements Context
     ) {
     }
 
-    /**
-     * @When I try to sign in with email :email and password :password
-     */
+    #[When('I try to sign in with email :email and password :password')]
     public function iTryToSignInWithEmailAndPassword(string $email, string $password): void
     {
         $this->session->visit($this->router->generate('sylius_shop_login', ['_locale' => 'en_US']));
@@ -47,17 +48,13 @@ class LockoutContext implements Context
         $page->pressButton('Login');
     }
 
-    /**
-     * @When I sign in with email :email and password :password
-     */
+    #[When('I sign in with email :email and password :password')]
     public function iSignInWithEmailAndPassword(string $email, string $password): void
     {
         $this->iTryToSignInWithEmailAndPassword($email, $password);
     }
 
-    /**
-     * @Given customer :email is locked
-     */
+    #[Given('customer :email is locked')]
     public function customerIsLocked(string $email): void
     {
         $user = $this->loadShopUser($email);
@@ -68,9 +65,7 @@ class LockoutContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given customer :email was locked but the lockout has already expired
-     */
+    #[Given('customer :email was locked but the lockout has already expired')]
     public function customerLockoutExpired(string $email): void
     {
         $user = $this->loadShopUser($email);
@@ -82,7 +77,6 @@ class LockoutContext implements Context
     }
 
     /**
-     * @When the lockout time for customer :email has elapsed
      *
      * Simulates the `auto_unlock_after` interval passing by rewinding
      * `lockedAt` / `lockoutUntil` into the past AND clearing the rate
@@ -91,6 +85,7 @@ class LockoutContext implements Context
      * resets both. Lets a scenario chain "real failed attempts → wait
      * → real sign-in" without waiting the configured 15 / 30 min.
      */
+    #[When('the lockout time for customer :email has elapsed')]
     public function customerLockoutHasElapsed(string $email): void
     {
         $user = $this->loadShopUser($email);
@@ -107,20 +102,18 @@ class LockoutContext implements Context
     }
 
     /**
-     * @When the locked customer :email is unlocked by an administrator
      *
      * Calls the lockout manager directly to simulate the admin clicking
      * "Unlock" in /admin/locked-customers — same code path, no need to
      * pull admin contexts into a shop suite.
      */
+    #[When('the locked customer :email is unlocked by an administrator')]
     public function customerIsUnlockedByAdministrator(string $email): void
     {
         $this->lockoutManager->unlock($this->loadShopUser($email));
     }
 
-    /**
-     * @Then I should not see the too-many-requests message
-     */
+    #[Then('I should not see the too-many-requests message')]
     public function iShouldNotSeeTooManyRequests(): void
     {
         $content = (string) $this->session->getPage()->getContent();
@@ -128,18 +121,14 @@ class LockoutContext implements Context
         Assert::notContains($content, 'Too many requests', 'Unexpected rate-limit error.');
     }
 
-    /**
-     * @Then I should be signed in to the shop as :email
-     */
+    #[Then('I should be signed in to the shop as :email')]
     public function iShouldBeSignedInAs(string $email): void
     {
         $url = $this->session->getCurrentUrl();
         Assert::notContains($url, '/login', sprintf('Expected to be off the login page after sign-in, got "%s".', $url));
     }
 
-    /**
-     * @Then customer :email should be locked
-     */
+    #[Then('customer :email should be locked')]
     public function customerShouldBeLocked(string $email): void
     {
         $user = $this->loadShopUser($email);
@@ -148,9 +137,7 @@ class LockoutContext implements Context
         Assert::notNull($user->getLockedAt(), sprintf('Expected customer %s to be locked.', $email));
     }
 
-    /**
-     * @Then the failed attempt counter for customer :email should be :count
-     */
+    #[Then('the failed attempt counter for customer :email should be :count')]
     public function customerFailedAttemptsShouldBe(string $email, int $count): void
     {
         $user = $this->loadShopUser($email);
@@ -159,9 +146,7 @@ class LockoutContext implements Context
         Assert::same($user->getFailedLoginAttempts(), $count);
     }
 
-    /**
-     * @Then customer :email should not be locked
-     */
+    #[Then('customer :email should not be locked')]
     public function customerShouldNotBeLocked(string $email): void
     {
         $user = $this->loadShopUser($email);
@@ -171,13 +156,13 @@ class LockoutContext implements Context
     }
 
     /**
-     * @Then I should see the locked-account message
      *
      * Sylius/Symfony renders a generic "Invalid credentials" message for all
      * authentication failures (locked account, wrong password, …) so an
      * attacker cannot infer which case applies. We assert that the user did
      * not get past the login page.
      */
+    #[Then('I should see the locked-account message')]
     public function iShouldSeeTheLockedAccountMessage(): void
     {
         $url = (string) $this->session->getCurrentUrl();
@@ -189,17 +174,14 @@ class LockoutContext implements Context
      * configuration only offers one - lockout at five, the login rate limit at
      * five, which is the ratio where they collide. These set the values the
      * scenario is about rather than leaving them to the test application's YAML.
-     *
-     * @Given customer lockout trips after :count failed sign-ins
      */
+    #[Given('customer lockout trips after :count failed sign-ins')]
     public function customerLockoutTripsAfterFailedSignIns(int $count): void
     {
         $this->writeSetting('account_lockout.max_attempts', $count);
     }
 
-    /**
-     * @Given the customer login rate limit allows :count attempts per :interval
-     */
+    #[Given('the customer login rate limit allows :count attempts per :interval')]
     public function theCustomerLoginRateLimitAllowsAttemptsPer(int $count, string $interval): void
     {
         $this->writeSetting('rate_limit.login.enabled', true);
@@ -211,9 +193,8 @@ class LockoutContext implements Context
      * Worded apart from the rate-limit suite's own step on purpose: that context and
      * this one both answer for sign-in attempts, and Behat refuses a suite in which
      * one step text is defined twice.
-     *
-     * @Then I should be told there have been too many requests
      */
+    #[Then('I should be told there have been too many requests')]
     public function iShouldBeToldThereHaveBeenTooManyRequests(): void
     {
         $content = (string) $this->session->getPage()->getContent();

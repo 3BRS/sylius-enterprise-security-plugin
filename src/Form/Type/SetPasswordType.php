@@ -33,8 +33,8 @@ class SetPasswordType extends AbstractType implements SetPasswordTypeInterface
             ],
             'invalid_message' => 'sylius.user.plainPassword.mismatch',
             'constraints' => [
-                new NotBlank(['message' => 'sylius.user.plainPassword.not_blank']),
-                new PasswordPolicy(['policyGroup' => 'customer']),
+                new NotBlank(message: 'sylius.user.plainPassword.not_blank'),
+                new PasswordPolicy(policyGroup: 'customer'),
             ],
         ]);
     }

@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\AdminUserInterface;
@@ -27,9 +30,7 @@ class TwoFactorTrustedDeviceContext implements Context
     ) {
     }
 
-    /**
-     * @Given the administrator :email has 2FA enabled with a known secret
-     */
+    #[Given('the administrator :email has 2FA enabled with a known secret')]
     public function theAdministratorHasTwoFactorEnabledWithKnownSecret(string $email): void
     {
         $this->knownSecret = TOTP::generate()->getSecret();
@@ -40,9 +41,7 @@ class TwoFactorTrustedDeviceContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I submit a valid admin TOTP challenge code trusting this device
-     */
+    #[When('I submit a valid admin TOTP challenge code trusting this device')]
     public function iSubmitAValidTotpChallengeCodeTrustingThisDevice(): void
     {
         Assert::notNull($this->knownSecret, 'Known secret was not stored.');
@@ -62,17 +61,13 @@ class TwoFactorTrustedDeviceContext implements Context
         $button->click();
     }
 
-    /**
-     * @When I sign out from the admin panel
-     */
+    #[When('I sign out from the admin panel')]
     public function iSignOutFromTheAdminPanel(): void
     {
         $this->session->visit('http://localhost:8080/admin/logout');
     }
 
-    /**
-     * @When the administrator :email revokes all trusted devices
-     */
+    #[When('the administrator :email revokes all trusted devices')]
     public function theAdministratorRevokesAllTrustedDevices(string $email): void
     {
         $user = $this->findAdminUser($email);
@@ -80,9 +75,7 @@ class TwoFactorTrustedDeviceContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Then I should be on the admin 2FA challenge page
-     */
+    #[Then('I should be on the admin 2FA challenge page')]
     public function iShouldBeOnTheTwoFactorChallengePage(): void
     {
         $page = $this->session->getPage();
@@ -95,9 +88,7 @@ class TwoFactorTrustedDeviceContext implements Context
         }
     }
 
-    /**
-     * @Then I should be fully authenticated as administrator
-     */
+    #[Then('I should be fully authenticated as administrator')]
     public function iShouldBeFullyAuthenticatedAsAdmin(): void
     {
         $url = $this->session->getCurrentUrl();

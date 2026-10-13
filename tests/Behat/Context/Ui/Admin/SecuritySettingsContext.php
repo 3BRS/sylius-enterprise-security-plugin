@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
@@ -50,9 +53,8 @@ class SecuritySettingsContext implements Context
      * and the hook empties the table before each scenario — so a feature the YAML
      * enables reads as enabled before anything is clicked. Writing the row first is
      * what makes "the administrator turned it on" observable.
-     *
-     * @Given customer passkey is switched off
      */
+    #[Given('customer passkey is switched off')]
     public function customerPasskeyIsSwitchedOff(): void
     {
         $this->settingsWriter->setMany(SettingsScope::CUSTOMER, ['passkey.enabled' => false]);
@@ -65,17 +67,13 @@ class SecuritySettingsContext implements Context
         );
     }
 
-    /**
-     * @When I open the security settings page
-     */
+    #[When('I open the security settings page')]
     public function iOpenTheSecuritySettingsPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_admin_security_settings_index', [], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
-    /**
-     * @When I switch to the :scope scope
-     */
+    #[When('I switch to the :scope scope')]
     public function iSwitchToTheScope(string $scope): void
     {
         $this->session->visit($this->router->generate(
@@ -85,9 +83,7 @@ class SecuritySettingsContext implements Context
         ));
     }
 
-    /**
-     * @When I change the customer minimum password length to :length
-     */
+    #[When('I change the customer minimum password length to :length')]
     public function iChangeTheCustomerMinimumPasswordLengthTo(int $length): void
     {
         $this->iSwitchToTheScope('customer');
@@ -100,9 +96,7 @@ class SecuritySettingsContext implements Context
         $this->submit();
     }
 
-    /**
-     * @When I enable customer passkey
-     */
+    #[When('I enable customer passkey')]
     public function iEnableCustomerPasskey(): void
     {
         $this->iSwitchToTheScope('customer');
@@ -115,9 +109,7 @@ class SecuritySettingsContext implements Context
         $this->submit();
     }
 
-    /**
-     * @When I tighten customer login rate limit to :count per minute
-     */
+    #[When('I tighten customer login rate limit to :count per minute')]
     public function iTightenCustomerLoginRateLimitToPerMinute(int $count): void
     {
         $this->iSwitchToTheScope('customer');
@@ -136,9 +128,7 @@ class SecuritySettingsContext implements Context
         $this->submit();
     }
 
-    /**
-     * @When I disable customer Google OAuth
-     */
+    #[When('I disable customer Google OAuth')]
     public function iDisableCustomerGoogleOAuth(): void
     {
         $this->iSwitchToTheScope('customer');
@@ -151,9 +141,7 @@ class SecuritySettingsContext implements Context
         $this->submit();
     }
 
-    /**
-     * @When I enable customer account lockout with max attempts :count
-     */
+    #[When('I enable customer account lockout with max attempts :count')]
     public function iEnableCustomerAccountLockoutWithMaxAttempts(int $count): void
     {
         $this->iSwitchToTheScope('customer');
@@ -167,9 +155,7 @@ class SecuritySettingsContext implements Context
         $this->submit();
     }
 
-    /**
-     * @When customer :email attempts :count failed sign-ins
-     */
+    #[When('customer :email attempts :count failed sign-ins')]
     public function customerAttemptsFailedSignIns(string $email, int $count): void
     {
         $loginUrl = $this->router->generate('sylius_shop_login', ['_locale' => 'en_US'], UrlGeneratorInterface::ABSOLUTE_URL);
@@ -182,9 +168,7 @@ class SecuritySettingsContext implements Context
         }
     }
 
-    /**
-     * @Then I should see the security settings configuration page
-     */
+    #[Then('I should see the security settings configuration page')]
     public function iShouldSeeTheSecuritySettingsConfigurationPage(): void
     {
         Assert::true(
@@ -193,9 +177,7 @@ class SecuritySettingsContext implements Context
         );
     }
 
-    /**
-     * @Then I should see the :sectionLabel section
-     */
+    #[Then('I should see the :sectionLabel section')]
     public function iShouldSeeTheSection(string $sectionLabel): void
     {
         Assert::true(
@@ -204,9 +186,7 @@ class SecuritySettingsContext implements Context
         );
     }
 
-    /**
-     * @Then the customer password minimum length should be :length
-     */
+    #[Then('the customer password minimum length should be :length')]
     public function theCustomerPasswordMinimumLengthShouldBe(int $length): void
     {
         Assert::same(
@@ -215,9 +195,7 @@ class SecuritySettingsContext implements Context
         );
     }
 
-    /**
-     * @Then the customer passkey feature should be enabled
-     */
+    #[Then('the customer passkey feature should be enabled')]
     public function theCustomerPasskeyFeatureShouldBeEnabled(): void
     {
         Assert::same(
@@ -227,9 +205,7 @@ class SecuritySettingsContext implements Context
         );
     }
 
-    /**
-     * @Then the customer login rate limit should be :count per minute
-     */
+    #[Then('the customer login rate limit should be :count per minute')]
     public function theCustomerLoginRateLimitShouldBePerMinute(int $count): void
     {
         Assert::true(
@@ -246,9 +222,7 @@ class SecuritySettingsContext implements Context
         );
     }
 
-    /**
-     * @Then the customer Google OAuth should be disabled
-     */
+    #[Then('the customer Google OAuth should be disabled')]
     public function theCustomerGoogleOAuthShouldBeDisabled(): void
     {
         Assert::false(

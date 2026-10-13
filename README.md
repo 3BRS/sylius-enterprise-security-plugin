@@ -68,6 +68,14 @@ Most features ship **disabled by default** — enable and tune the ones you need
 | Password Login | Global per-group (customer / admin) switch — **on by default** — for classic email + password sign-in and registration. Turn it off for a group and its login / registration forms are hidden (including the checkout inline sign-in), its forgotten-password pages are closed, the admin panel creates that group's accounts without a password, everyone must use a magic link, passkey or social login, and that group's password expiration / force-change pause too. | [password-login](docs/password-login.md) |
 
 
+## Requirements
+
+| Package | Version                      |
+|---------|------------------------------|
+| PHP     | ^8.3 (^8.4 with Symfony 8)   |
+| Sylius  | ^2.1                         |
+| Symfony | ^6.4 \|\| ^7.4 \|\| ^8.0     |
+
 ## Installation
 
 This section is for **consuming** the plugin in your own Sylius project — you register the bundle/plugin and wire the config yourself. If you instead want to **work on the plugin itself**, skip to **Development** below: its bundled test application already has the bundle, plugin and routes registered, so you don't repeat these steps.
@@ -265,7 +273,7 @@ framework:
         with_constructor_extractor: false
 ```
 
-On api-platform `4.3.x` this extractor runs before Doctrine's and resolves relation properties such as `Image::$owner` to a bare `object` (from their `@var object|null` PHPDoc), hiding the concrete related class that API Platform needs to build nested IRIs like `/shop/products/{code}/images/{id}`. Turning it off lets the Doctrine extractor resolve the concrete class again. `false` is also Symfony's current default for this setting, so this only makes it explicit (and silences the related Symfony 7.3 deprecation); the Symfony recipe ships it pre-enabled, which is why you may need to flip it.
+On api-platform `4.3.x` this extractor runs before Doctrine's and resolves relation properties such as `Image::$owner` to a bare `object` (from their `@var object|null` PHPDoc), hiding the concrete related class that API Platform needs to build nested IRIs like `/shop/products/{code}/images/{id}`. Turning it off lets the Doctrine extractor resolve the concrete class again. Symfony 7.4 defaults to `false`, so there this only makes it explicit (and silences the related deprecation); Symfony 8 and the Symfony recipe turn it on, which is why you may need to flip it. Symfony 6.4 has no such option, so leave it out there.
 
 ## Development
 

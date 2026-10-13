@@ -6,6 +6,8 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Webmozart\Assert\Assert;
 
 class PasswordPolicyContext implements Context
@@ -15,9 +17,7 @@ class PasswordPolicyContext implements Context
     ) {
     }
 
-    /**
-     * @When I create an administrator with password :password
-     */
+    #[When('I create an administrator with password :password')]
     public function iCreateAnAdministratorWithPassword(string $password): void
     {
         $page = $this->session->getPage();
@@ -25,9 +25,7 @@ class PasswordPolicyContext implements Context
         $page->pressButton('Create');
     }
 
-    /**
-     * @When I change the administrator password to :password
-     */
+    #[When('I change the administrator password to :password')]
     public function iChangeTheAdministratorPasswordTo(string $password): void
     {
         $page = $this->session->getPage();
@@ -35,49 +33,37 @@ class PasswordPolicyContext implements Context
         $page->find('css', '[data-test-update-changes-button]')?->click();
     }
 
-    /**
-     * @Then I should be notified that the password is too short
-     */
+    #[Then('I should be notified that the password is too short')]
     public function iShouldBeNotifiedThatThePasswordIsTooShort(): void
     {
         $this->assertValidationError('Password must be at least');
     }
 
-    /**
-     * @Then I should be notified that the password requires an uppercase letter
-     */
+    #[Then('I should be notified that the password requires an uppercase letter')]
     public function iShouldBeNotifiedThatThePasswordRequiresAnUppercaseLetter(): void
     {
         $this->assertValidationError('Password must contain at least one uppercase letter');
     }
 
-    /**
-     * @Then I should be notified that the password requires a lowercase letter
-     */
+    #[Then('I should be notified that the password requires a lowercase letter')]
     public function iShouldBeNotifiedThatThePasswordRequiresALowercaseLetter(): void
     {
         $this->assertValidationError('Password must contain at least one lowercase letter');
     }
 
-    /**
-     * @Then I should be notified that the password requires a number
-     */
+    #[Then('I should be notified that the password requires a number')]
     public function iShouldBeNotifiedThatThePasswordRequiresANumber(): void
     {
         $this->assertValidationError('Password must contain at least one number');
     }
 
-    /**
-     * @Then I should be notified that the password requires a special character
-     */
+    #[Then('I should be notified that the password requires a special character')]
     public function iShouldBeNotifiedThatThePasswordRequiresASpecialCharacter(): void
     {
         $this->assertValidationError('Password must contain at least one special character');
     }
 
-    /**
-     * @Then the administrator should be saved successfully
-     */
+    #[Then('the administrator should be saved successfully')]
     public function theAdministratorShouldBeSavedSuccessfully(): void
     {
         Assert::false(

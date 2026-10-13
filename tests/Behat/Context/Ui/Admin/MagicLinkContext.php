@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
@@ -38,9 +41,7 @@ class MagicLinkContext implements Context
         $this->spySender->reset();
     }
 
-    /**
-     * @When I request an admin magic link for :email
-     */
+    #[When('I request an admin magic link for :email')]
     public function iRequestAnAdminMagicLinkFor(string $email): void
     {
         $this->session->visit('/admin/magic-link');
@@ -55,50 +56,38 @@ class MagicLinkContext implements Context
         $submit->click();
     }
 
-    /**
-     * @Given a valid admin magic link token :plainToken exists for :email
-     */
+    #[Given('a valid admin magic link token :plainToken exists for :email')]
     public function aValidAdminMagicLinkTokenExistsFor(string $plainToken, string $email): void
     {
         $this->createToken($email, $plainToken, new \DateTimeImmutable('+5 minutes'), null);
     }
 
-    /**
-     * @Given an expired admin magic link token :plainToken exists for :email
-     */
+    #[Given('an expired admin magic link token :plainToken exists for :email')]
     public function anExpiredAdminMagicLinkTokenExistsFor(string $plainToken, string $email): void
     {
         $this->createToken($email, $plainToken, new \DateTimeImmutable('-5 minutes'), null);
     }
 
-    /**
-     * @Given a used admin magic link token :plainToken exists for :email
-     */
+    #[Given('a used admin magic link token :plainToken exists for :email')]
     public function aUsedAdminMagicLinkTokenExistsFor(string $plainToken, string $email): void
     {
         $this->createToken($email, $plainToken, new \DateTimeImmutable('+5 minutes'), new \DateTimeImmutable('-1 minute'));
     }
 
-    /**
-     * @When I follow the admin magic link :plainToken
-     */
+    #[When('I follow the admin magic link :plainToken')]
     public function iFollowTheAdminMagicLink(string $plainToken): void
     {
         $this->session->visit('/admin/magic-link/verify/' . $plainToken);
     }
 
-    /**
-     * @Then I should see an admin magic link request confirmation
-     */
+    #[Then('I should see an admin magic link request confirmation')]
     public function iShouldSeeAnAdminMagicLinkRequestConfirmation(): void
     {
         $url = $this->session->getCurrentUrl();
         Assert::contains($url, '/admin/magic-link', sprintf('Expected to stay on admin magic link page, got "%s".', $url));
     }
 
-    /**
-     * @Then an admin magic link token should have been stored for :email
-     */
+    #[Then('an admin magic link token should have been stored for :email')]
     public function anAdminMagicLinkTokenShouldHaveBeenStoredFor(string $email): void
     {
         $this->entityManager->clear();
@@ -107,9 +96,7 @@ class MagicLinkContext implements Context
         Assert::greaterThan($count, 0, sprintf('No admin magic link token stored for "%s".', $email));
     }
 
-    /**
-     * @Then no admin magic link token should have been stored for :email
-     */
+    #[Then('no admin magic link token should have been stored for :email')]
     public function noAdminMagicLinkTokenShouldHaveBeenStoredFor(string $email): void
     {
         $this->entityManager->clear();
@@ -121,9 +108,7 @@ class MagicLinkContext implements Context
         Assert::same($count, 0, sprintf('Unexpected admin magic link token stored for "%s".', $email));
     }
 
-    /**
-     * @Given :count admin magic link tokens have recently been issued for :email
-     */
+    #[Given(':count admin magic link tokens have recently been issued for :email')]
     public function adminMagicLinkTokensHaveRecentlyBeenIssuedFor(int $count, string $email): void
     {
         for ($i = 0; $i < $count; $i++) {
@@ -131,9 +116,7 @@ class MagicLinkContext implements Context
         }
     }
 
-    /**
-     * @Then exactly :count admin magic link tokens should exist for :email
-     */
+    #[Then('exactly :count admin magic link tokens should exist for :email')]
     public function exactlyAdminMagicLinkTokensShouldExistFor(int $count, string $email): void
     {
         $this->entityManager->clear();
@@ -142,18 +125,14 @@ class MagicLinkContext implements Context
         Assert::same($actual, $count, sprintf('Expected exactly %d admin magic link tokens for "%s", got %d.', $count, $email, $actual));
     }
 
-    /**
-     * @Then I should see an admin magic link invalid-or-expired error
-     */
+    #[Then('I should see an admin magic link invalid-or-expired error')]
     public function iShouldSeeAnAdminMagicLinkInvalidOrExpiredError(): void
     {
         $url = $this->session->getCurrentUrl();
         Assert::contains($url, '/admin/magic-link', sprintf('Expected to be on admin magic link request page, got "%s".', $url));
     }
 
-    /**
-     * @Then I should be logged in as admin :email
-     */
+    #[Then('I should be logged in as admin :email')]
     public function iShouldBeLoggedInAsAdmin(string $email): void
     {
         $url = $this->session->getCurrentUrl();
@@ -177,9 +156,7 @@ class MagicLinkContext implements Context
         Assert::same(200, $this->session->getStatusCode(), 'The admin dashboard was not reachable after the magic link.');
     }
 
-    /**
-     * @Then an admin magic link email should have been sent to :email
-     */
+    #[Then('an admin magic link email should have been sent to :email')]
     public function anAdminMagicLinkEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::true(
@@ -188,9 +165,7 @@ class MagicLinkContext implements Context
         );
     }
 
-    /**
-     * @Then no admin magic link email should have been sent to :email
-     */
+    #[Then('no admin magic link email should have been sent to :email')]
     public function noAdminMagicLinkEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::false(
@@ -203,9 +178,8 @@ class MagicLinkContext implements Context
      * Storing a token and mailing a usable link are different things: the token
      * assertions above still pass when the address in the email points at the
      * shop route or carries the stored hash instead of the plain token.
-     *
-     * @When I follow the admin magic link from the email sent to :email
      */
+    #[When('I follow the admin magic link from the email sent to :email')]
     public function iFollowTheAdminMagicLinkFromTheEmailSentTo(string $email): void
     {
         $data = $this->spySender->getLastSentDataTo(Emails::MAGIC_LINK, $email);
@@ -222,9 +196,8 @@ class MagicLinkContext implements Context
      * address. Asserting the response code alone does not show that: Mink follows
      * redirects, so a consumed link that signs the administrator in and then hits
      * the same restriction on the dashboard reports the same 403.
-     *
-     * @Then the admin magic link :plainToken should still be unused
      */
+    #[Then('the admin magic link :plainToken should still be unused')]
     public function theAdminMagicLinkShouldStillBeUnused(string $plainToken): void
     {
         $this->entityManager->clear();
@@ -236,9 +209,7 @@ class MagicLinkContext implements Context
         Assert::null($token->getUsedAt(), sprintf('Magic link token "%s" was consumed by a refused request.', $plainToken));
     }
 
-    /**
-     * @Given magic link is disabled for customers
-     */
+    #[Given('magic link is disabled for customers')]
     public function magicLinkIsDisabledForCustomers(): void
     {
         $this->switchMagicLink(SettingsScope::CUSTOMER, false);
@@ -248,9 +219,8 @@ class MagicLinkContext implements Context
      * Combination K17: a switch thrown for one scope must not answer for the other.
      * Finding the customer page gone proves only that the switch works at all — the
      * admin page still being there is what proves it was scoped.
-     *
-     * @Then the customer magic link page should be gone
      */
+    #[Then('the customer magic link page should be gone')]
     public function theCustomerMagicLinkPageShouldBeGone(): void
     {
         $this->session->visit('/magic-link');
@@ -261,9 +231,7 @@ class MagicLinkContext implements Context
         ));
     }
 
-    /**
-     * @Then the admin magic link page should still be there
-     */
+    #[Then('the admin magic link page should still be there')]
     public function theAdminMagicLinkPageShouldStillBeThere(): void
     {
         $this->session->visit('/admin/magic-link');

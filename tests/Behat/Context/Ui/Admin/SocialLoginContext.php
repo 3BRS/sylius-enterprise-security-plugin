@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\AdminUserInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
@@ -38,17 +41,13 @@ class SocialLoginContext implements Context
         $this->spySender->reset();
     }
 
-    /**
-     * @Given the :provider OAuth provider will return admin user :providerUserId with email :email
-     */
+    #[Given('the :provider OAuth provider will return admin user :providerUserId with email :email')]
     public function theOAuthProviderWillReturnAdmin(string $provider, string $providerUserId, string $email): void
     {
         $this->fakeOAuthState->seedUserInfo($provider, $providerUserId, $email, 'Admin', 'Social');
     }
 
-    /**
-     * @Given the admin :email is already linked to :provider with id :providerUserId
-     */
+    #[Given('the admin :email is already linked to :provider with id :providerUserId')]
     public function theAdminIsAlreadyLinkedTo(string $email, string $provider, string $providerUserId): void
     {
         $admin = $this->findAdmin($email);
@@ -63,9 +62,7 @@ class SocialLoginContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I click the admin :provider social login button
-     */
+    #[When('I click the admin :provider social login button')]
     public function iClickTheAdminSocialLoginButton(string $provider): void
     {
         $this->session->visit('/admin/login');
@@ -74,26 +71,20 @@ class SocialLoginContext implements Context
         $button->click();
     }
 
-    /**
-     * @When I confirm the admin social link with the emailed code
-     */
+    #[When('I confirm the admin social link with the emailed code')]
     public function iConfirmAdminSocialLinkWithTheEmailedCode(): void
     {
         $this->submitConfirmCode($this->emailedLinkCode());
     }
 
-    /**
-     * @When I confirm the admin social link with an incorrect code
-     */
+    #[When('I confirm the admin social link with an incorrect code')]
     public function iConfirmAdminSocialLinkWithAnIncorrectCode(): void
     {
         $real = $this->emailedLinkCode();
         $this->submitConfirmCode(str_pad((string) (((int) $real + 1) % 1000000), 6, '0', STR_PAD_LEFT));
     }
 
-    /**
-     * @Given the administrator :email has no usable password
-     */
+    #[Given('the administrator :email has no usable password')]
     public function theAdministratorHasNoUsablePassword(string $email): void
     {
         $admin = $this->findAdmin($email);
@@ -101,9 +92,7 @@ class SocialLoginContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I click the admin :provider link button on the social accounts page
-     */
+    #[When('I click the admin :provider link button on the social accounts page')]
     public function iClickTheAdminLinkButtonOnTheSocialAccountsPage(string $provider): void
     {
         $this->session->visit('/admin/social-accounts');
@@ -112,9 +101,7 @@ class SocialLoginContext implements Context
         $button->click();
     }
 
-    /**
-     * @When I unlink my admin :provider social account
-     */
+    #[When('I unlink my admin :provider social account')]
     public function iUnlinkMyAdminSocialAccount(string $provider): void
     {
         $this->session->visit('/admin/social-accounts');
@@ -124,9 +111,7 @@ class SocialLoginContext implements Context
         $button->click();
     }
 
-    /**
-     * @Then the administrator :email should not be linked to :provider
-     */
+    #[Then('the administrator :email should not be linked to :provider')]
     public function theAdministratorShouldNotBeLinkedTo(string $email, string $provider): void
     {
         $this->entityManager->clear();
@@ -135,9 +120,7 @@ class SocialLoginContext implements Context
         Assert::null($link, sprintf('Expected no "%s" link for admin "%s", but found one.', $provider, $email));
     }
 
-    /**
-     * @Then the administrator :email should still be linked to :provider
-     */
+    #[Then('the administrator :email should still be linked to :provider')]
     public function theAdministratorShouldStillBeLinkedTo(string $email, string $provider): void
     {
         $this->entityManager->clear();
@@ -146,18 +129,14 @@ class SocialLoginContext implements Context
         Assert::notNull($link, sprintf('Expected "%s" link for admin "%s" to still exist.', $provider, $email));
     }
 
-    /**
-     * @Then I should be on the admin social link confirm page
-     */
+    #[Then('I should be on the admin social link confirm page')]
     public function iShouldBeOnTheAdminConfirmLinkPage(): void
     {
         $url = $this->session->getCurrentUrl();
         Assert::contains($url, '/admin/oauth/confirm-link', sprintf('Expected admin confirm-link URL, got "%s".', $url));
     }
 
-    /**
-     * @Then I should be logged in as admin :email
-     */
+    #[Then('I should be logged in as admin :email')]
     public function iShouldBeLoggedInAsAdmin(string $email): void
     {
         $url = $this->session->getCurrentUrl();
@@ -176,9 +155,7 @@ class SocialLoginContext implements Context
         Assert::notNull($admin, sprintf('Admin "%s" not found after social login.', $email));
     }
 
-    /**
-     * @Then an admin social link should exist for :email with :provider and provider id :providerUserId
-     */
+    #[Then('an admin social link should exist for :email with :provider and provider id :providerUserId')]
     public function anAdminSocialLinkShouldExistFor(string $email, string $provider, string $providerUserId): void
     {
         $this->entityManager->clear();
@@ -187,9 +164,7 @@ class SocialLoginContext implements Context
         Assert::same($link->getEmail(), $email);
     }
 
-    /**
-     * @Then the admin :email should exist
-     */
+    #[Then('the admin :email should exist')]
     public function theAdminShouldExist(string $email): void
     {
         $this->entityManager->clear();
@@ -197,9 +172,7 @@ class SocialLoginContext implements Context
         Assert::notNull($admin, sprintf('Admin "%s" was not created.', $email));
     }
 
-    /**
-     * @Then I should see an admin social-login error
-     */
+    #[Then('I should see an admin social-login error')]
     public function iShouldSeeAnAdminSocialLoginError(): void
     {
         $page = $this->session->getPage();
@@ -222,9 +195,8 @@ class SocialLoginContext implements Context
      * The confirm-code scenarios below prove the code the form accepts, but not
      * that one ever leaves for the customer: they read it straight out of the spy.
      * This says an email really went out, and in the shape the form expects.
-     *
-     * @Then an admin account linking code email should have been sent to :email
      */
+    #[Then('an admin account linking code email should have been sent to :email')]
     public function anAdminAccountLinkingCodeEmailShouldHaveBeenSentTo(string $email): void
     {
         $data = $this->spySender->getLastSentDataTo(Emails::OAUTH_LINK_CODE, $email);

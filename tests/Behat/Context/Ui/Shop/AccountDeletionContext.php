@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Service\SharedStorageInterface;
@@ -49,17 +52,13 @@ class AccountDeletionContext implements Context
         $this->spySender->reset();
     }
 
-    /**
-     * @When I visit the account deletion page
-     */
+    #[When('I visit the account deletion page')]
     public function iVisitAccountDeletionPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_shop_account_deletion_request', ['_locale' => 'en_US'], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
-    /**
-     * @When I confirm account deletion with my password :password
-     */
+    #[When('I confirm account deletion with my password :password')]
     public function iConfirmAccountDeletionWithMyPassword(string $password): void
     {
         $page = $this->session->getPage();
@@ -72,9 +71,7 @@ class AccountDeletionContext implements Context
         $form->find('css', 'button[type="submit"]')?->click();
     }
 
-    /**
-     * @When I confirm account deletion without a password
-     */
+    #[When('I confirm account deletion without a password')]
     public function iConfirmAccountDeletionWithoutAPassword(): void
     {
         $page = $this->session->getPage();
@@ -90,9 +87,7 @@ class AccountDeletionContext implements Context
         $form->find('css', 'button[type="submit"]')?->click();
     }
 
-    /**
-     * @Given the customer :email requested deletion :daysAgo days ago with grace :graceDays
-     */
+    #[Given('the customer :email requested deletion :daysAgo days ago with grace :graceDays')]
     public function theCustomerRequestedDeletionDaysAgoWithGrace(string $email, int $daysAgo, int $graceDays): void
     {
         $customer = $this->loadCustomer($email);
@@ -113,18 +108,14 @@ class AccountDeletionContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When the account deletion process-due command runs
-     */
+    #[When('the account deletion process-due command runs')]
     public function theAccountDeletionProcessDueCommandRuns(): void
     {
         $tester = new CommandTester(new ProcessDueAccountDeletionsCommand($this->dueProcessor));
         $tester->execute([]);
     }
 
-    /**
-     * @Then a deletion request should be scheduled for :email
-     */
+    #[Then('a deletion request should be scheduled for :email')]
     public function aDeletionRequestShouldBeScheduledFor(string $email): void
     {
         $customer = $this->loadCustomer($email);
@@ -136,9 +127,7 @@ class AccountDeletionContext implements Context
         );
     }
 
-    /**
-     * @Then no deletion request should exist for :email
-     */
+    #[Then('no deletion request should exist for :email')]
     public function noDeletionRequestShouldExistFor(string $email): void
     {
         $customer = $this->loadCustomer($email);
@@ -149,9 +138,7 @@ class AccountDeletionContext implements Context
         );
     }
 
-    /**
-     * @Then the customer :email should be disabled
-     */
+    #[Then('the customer :email should be disabled')]
     public function theCustomerShouldBeDisabled(string $email): void
     {
         $customer = $this->loadCustomer($email);
@@ -163,9 +150,7 @@ class AccountDeletionContext implements Context
         Assert::false($shopUser->isEnabled(), sprintf('Customer "%s" is still enabled.', $email));
     }
 
-    /**
-     * @Then the customer :email should be enabled
-     */
+    #[Then('the customer :email should be enabled')]
     public function theCustomerShouldBeEnabled(string $email): void
     {
         $customer = $this->loadCustomer($email);
@@ -177,9 +162,7 @@ class AccountDeletionContext implements Context
         Assert::true($shopUser->isEnabled(), sprintf('Customer "%s" is disabled.', $email));
     }
 
-    /**
-     * @Then the customer formerly known as :email should be anonymized
-     */
+    #[Then('the customer formerly known as :email should be anonymized')]
     public function theCustomerFormerlyKnownAsShouldBeAnonymized(string $email): void
     {
         // After anonymization the original email no longer matches; look up by ID
@@ -191,9 +174,7 @@ class AccountDeletionContext implements Context
         Assert::null($customer, sprintf('Customer "%s" still exists with original email.', $email));
     }
 
-    /**
-     * @Then an account deletion request email should have been sent to :email
-     */
+    #[Then('an account deletion request email should have been sent to :email')]
     public function anAccountDeletionRequestEmailShouldHaveBeenSentTo(string $email): void
     {
         $data = $this->spySender->getLastSentDataTo(Emails::ACCOUNT_DELETION_REQUESTED, $email);
@@ -218,9 +199,7 @@ class AccountDeletionContext implements Context
         );
     }
 
-    /**
-     * @Then no account deletion email should have been sent to :email
-     */
+    #[Then('no account deletion email should have been sent to :email')]
     public function noAccountDeletionEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::false(
@@ -230,9 +209,7 @@ class AccountDeletionContext implements Context
         );
     }
 
-    /**
-     * @Then an account deletion completed email should have been sent to :email
-     */
+    #[Then('an account deletion completed email should have been sent to :email')]
     public function anAccountDeletionCompletedEmailShouldHaveBeenSentTo(string $email): void
     {
         // Anonymization overwrites the address, so the notice has to leave before
@@ -248,9 +225,7 @@ class AccountDeletionContext implements Context
         );
     }
 
-    /**
-     * @Given the customer :email is signed in on another device as session :sessionId
-     */
+    #[Given('the customer :email is signed in on another device as session :sessionId')]
     public function theCustomerIsSignedInOnAnotherDeviceAsSession(string $email, string $sessionId): void
     {
         $user = $this->loadCustomer($email)->getUser();
@@ -265,9 +240,8 @@ class AccountDeletionContext implements Context
      * session already open is not the front door — it is a browser somewhere still
      * holding the account, and the grace period is exactly when somebody would
      * notice and object.
-     *
-     * @Then the session :sessionId should have been ended
      */
+    #[Then('the session :sessionId should have been ended')]
     public function theSessionShouldHaveBeenEnded(string $sessionId): void
     {
         Assert::true(

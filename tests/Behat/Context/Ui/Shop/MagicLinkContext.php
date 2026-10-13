@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
@@ -36,9 +39,7 @@ class MagicLinkContext implements Context
         $this->spySender->reset();
     }
 
-    /**
-     * @When I request a magic link for :email
-     */
+    #[When('I request a magic link for :email')]
     public function iRequestAMagicLinkFor(string $email): void
     {
         $this->submitMagicLinkRequestForm($email);
@@ -49,50 +50,38 @@ class MagicLinkContext implements Context
         return $this->session;
     }
 
-    /**
-     * @Given a valid magic link token :plainToken exists for :email
-     */
+    #[Given('a valid magic link token :plainToken exists for :email')]
     public function aValidMagicLinkTokenExistsFor(string $plainToken, string $email): void
     {
         $this->createToken($email, $plainToken, new \DateTimeImmutable('+5 minutes'), null);
     }
 
-    /**
-     * @Given an expired magic link token :plainToken exists for :email
-     */
+    #[Given('an expired magic link token :plainToken exists for :email')]
     public function anExpiredMagicLinkTokenExistsFor(string $plainToken, string $email): void
     {
         $this->createToken($email, $plainToken, new \DateTimeImmutable('-5 minutes'), null);
     }
 
-    /**
-     * @Given a used magic link token :plainToken exists for :email
-     */
+    #[Given('a used magic link token :plainToken exists for :email')]
     public function aUsedMagicLinkTokenExistsFor(string $plainToken, string $email): void
     {
         $this->createToken($email, $plainToken, new \DateTimeImmutable('+5 minutes'), new \DateTimeImmutable('-1 minute'));
     }
 
-    /**
-     * @When I follow the magic link :plainToken
-     */
+    #[When('I follow the magic link :plainToken')]
     public function iFollowTheMagicLink(string $plainToken): void
     {
         $this->session->visit('/magic-link/verify/' . $plainToken);
     }
 
-    /**
-     * @Then I should see a magic link request confirmation
-     */
+    #[Then('I should see a magic link request confirmation')]
     public function iShouldSeeAMagicLinkRequestConfirmation(): void
     {
         $url = $this->session->getCurrentUrl();
         Assert::contains($url, '/magic-link', sprintf('Expected to stay on magic link page, got "%s".', $url));
     }
 
-    /**
-     * @Then a magic link token should have been stored for :email
-     */
+    #[Then('a magic link token should have been stored for :email')]
     public function aMagicLinkTokenShouldHaveBeenStoredFor(string $email): void
     {
         $this->entityManager->clear();
@@ -101,9 +90,7 @@ class MagicLinkContext implements Context
         Assert::greaterThan($count, 0, sprintf('No magic link token stored for "%s".', $email));
     }
 
-    /**
-     * @Then no magic link token should have been stored for :email
-     */
+    #[Then('no magic link token should have been stored for :email')]
     public function noMagicLinkTokenShouldHaveBeenStoredFor(string $email): void
     {
         $this->entityManager->clear();
@@ -119,9 +106,7 @@ class MagicLinkContext implements Context
         Assert::same($count, 0, sprintf('Unexpected magic link token stored for "%s".', $email));
     }
 
-    /**
-     * @Given :count magic link tokens have recently been issued for :email
-     */
+    #[Given(':count magic link tokens have recently been issued for :email')]
     public function magicLinkTokensHaveRecentlyBeenIssuedFor(int $count, string $email): void
     {
         for ($i = 0; $i < $count; $i++) {
@@ -129,9 +114,7 @@ class MagicLinkContext implements Context
         }
     }
 
-    /**
-     * @Then exactly :count magic link tokens should exist for :email
-     */
+    #[Then('exactly :count magic link tokens should exist for :email')]
     public function exactlyMagicLinkTokensShouldExistFor(int $count, string $email): void
     {
         $this->entityManager->clear();
@@ -140,18 +123,14 @@ class MagicLinkContext implements Context
         Assert::same($actual, $count, sprintf('Expected exactly %d magic link tokens for "%s", got %d.', $count, $email, $actual));
     }
 
-    /**
-     * @Then I should see a magic link invalid-or-expired error
-     */
+    #[Then('I should see a magic link invalid-or-expired error')]
     public function iShouldSeeAMagicLinkInvalidOrExpiredError(): void
     {
         $url = $this->session->getCurrentUrl();
         Assert::contains($url, '/magic-link', sprintf('Expected to be on magic link request page, got "%s".', $url));
     }
 
-    /**
-     * @Then I should be logged in as :email
-     */
+    #[Then('I should be logged in as :email')]
     public function iShouldBeLoggedInAs(string $email): void
     {
         $url = $this->session->getCurrentUrl();
@@ -177,9 +156,7 @@ class MagicLinkContext implements Context
         );
     }
 
-    /**
-     * @Then a magic link email should have been sent to :email
-     */
+    #[Then('a magic link email should have been sent to :email')]
     public function aMagicLinkEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::true(
@@ -188,9 +165,7 @@ class MagicLinkContext implements Context
         );
     }
 
-    /**
-     * @Then no magic link email should have been sent to :email
-     */
+    #[Then('no magic link email should have been sent to :email')]
     public function noMagicLinkEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::false(
@@ -203,9 +178,8 @@ class MagicLinkContext implements Context
      * Storing a token and mailing a usable link are different things: the token
      * assertions above still pass when the address in the email points at the
      * wrong route or carries the stored hash instead of the plain token.
-     *
-     * @When I follow the magic link from the email sent to :email
      */
+    #[When('I follow the magic link from the email sent to :email')]
     public function iFollowTheMagicLinkFromTheEmailSentTo(string $email): void
     {
         $data = $this->spySender->getLastSentDataTo(Emails::MAGIC_LINK, $email);
@@ -215,9 +189,7 @@ class MagicLinkContext implements Context
         $this->session->visit((string) $data['magicLinkUrl']);
     }
 
-    /**
-     * @Then the magic link email to :email should expire in :minutes minutes
-     */
+    #[Then('the magic link email to :email should expire in :minutes minutes')]
     public function theMagicLinkEmailToShouldExpireInMinutes(string $email, int $minutes): void
     {
         $data = $this->spySender->getLastSentDataTo(Emails::MAGIC_LINK, $email);

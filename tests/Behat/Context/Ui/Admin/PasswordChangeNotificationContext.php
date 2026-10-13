@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Admin;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\User\Repository\UserRepositoryInterface;
 use Sylius\Component\User\Security\PasswordUpdaterInterface;
@@ -33,9 +36,7 @@ class PasswordChangeNotificationContext implements Context
         $this->spySender->reset();
     }
 
-    /**
-     * @Given the administrator :email has the password :password set directly
-     */
+    #[Given('the administrator :email has the password :password set directly')]
     public function theAdministratorHasThePasswordSetDirectly(string $email, string $password): void
     {
         $adminUser = $this->adminUserRepository->findOneByEmail($email);
@@ -46,17 +47,13 @@ class PasswordChangeNotificationContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given all password change notification emails are cleared
-     */
+    #[Given('all password change notification emails are cleared')]
     public function allPasswordChangeNotificationEmailsAreCleared(): void
     {
         $this->spySender->reset();
     }
 
-    /**
-     * @Then a password change notification email should have been sent to admin :email
-     */
+    #[Then('a password change notification email should have been sent to admin :email')]
     public function aPasswordChangeNotificationEmailShouldHaveBeenSentToAdmin(string $email): void
     {
         Assert::true(
@@ -65,9 +62,7 @@ class PasswordChangeNotificationContext implements Context
         );
     }
 
-    /**
-     * @Then no password change notification email should have been sent to admin :email
-     */
+    #[Then('no password change notification email should have been sent to admin :email')]
     public function noPasswordChangeNotificationEmailShouldHaveBeenSentToAdmin(string $email): void
     {
         Assert::false(
@@ -76,9 +71,7 @@ class PasswordChangeNotificationContext implements Context
         );
     }
 
-    /**
-     * @When I edit administrator :email
-     */
+    #[When('I edit administrator :email')]
     public function iEditAdministrator(string $email): void
     {
         $adminUser = $this->adminUserRepository->findOneByEmail($email);
@@ -87,9 +80,7 @@ class PasswordChangeNotificationContext implements Context
         $this->session->visit($this->router->generate('sylius_admin_admin_user_update', ['id' => $adminUser->getId()]));
     }
 
-    /**
-     * @When I change their password to :password
-     */
+    #[When('I change their password to :password')]
     public function iChangeTheirPasswordTo(string $password): void
     {
         $this->session->getPage()->find('css', '#sylius_admin_admin_user_plainPassword')?->setValue($password);
@@ -99,9 +90,8 @@ class PasswordChangeNotificationContext implements Context
      * The template only prints the "somebody else did this" warning and the reset
      * link when `initiatedByUser` is false, so the flag decides whether the email
      * is a receipt or an alarm — and nothing else in the suite reads it.
-     *
-     * @Then the password change notification to admin :email should read as self-initiated
      */
+    #[Then('the password change notification to admin :email should read as self-initiated')]
     public function thePasswordChangeNotificationToAdminShouldReadAsSelfInitiated(string $email): void
     {
         Assert::false($this->somebodyElseChangedThePasswordOf($email), sprintf(
@@ -110,9 +100,7 @@ class PasswordChangeNotificationContext implements Context
         ));
     }
 
-    /**
-     * @Then the password change notification to admin :email should warn that somebody else changed it
-     */
+    #[Then('the password change notification to admin :email should warn that somebody else changed it')]
     public function thePasswordChangeNotificationToAdminShouldWarnThatSomebodyElseChangedIt(string $email): void
     {
         Assert::true($this->somebodyElseChangedThePasswordOf($email), sprintf(

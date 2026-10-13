@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -33,9 +36,7 @@ class TwoFactorTrustedDeviceContext implements Context
     ) {
     }
 
-    /**
-     * @Given the customer :email has 2FA enabled with a known secret
-     */
+    #[Given('the customer :email has 2FA enabled with a known secret')]
     public function theCustomerHasTwoFactorEnabledWithKnownSecret(string $email): void
     {
         $this->knownSecret = TOTP::generate()->getSecret();
@@ -46,9 +47,7 @@ class TwoFactorTrustedDeviceContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I submit a valid TOTP challenge code trusting this device
-     */
+    #[When('I submit a valid TOTP challenge code trusting this device')]
     public function iSubmitAValidTotpChallengeCodeTrustingThisDevice(): void
     {
         Assert::notNull($this->knownSecret, 'Known secret was not stored.');
@@ -68,17 +67,13 @@ class TwoFactorTrustedDeviceContext implements Context
         $button->click();
     }
 
-    /**
-     * @When I sign out from the shop
-     */
+    #[When('I sign out from the shop')]
     public function iSignOutFromTheShop(): void
     {
         $this->session->visit('http://localhost:8080/en_US/logout');
     }
 
-    /**
-     * @When the customer :email revokes all trusted devices
-     */
+    #[When('the customer :email revokes all trusted devices')]
     public function theCustomerRevokesAllTrustedDevices(string $email): void
     {
         $user = $this->findShopUser($email);
@@ -86,17 +81,13 @@ class TwoFactorTrustedDeviceContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given a session :sessionId is recorded for customer :email
-     */
+    #[Given('a session :sessionId is recorded for customer :email')]
     public function aSessionIsRecordedForCustomer(string $sessionId, string $email): void
     {
         $this->recordSessionFor($this->findShopUser($email), $sessionId);
     }
 
-    /**
-     * @When every session of customer :email is revoked
-     */
+    #[When('every session of customer :email is revoked')]
     public function everySessionOfCustomerIsRevoked(string $email): void
     {
         $this->sessionTracker->revokeAll($this->findShopUser($email));
@@ -108,9 +99,8 @@ class TwoFactorTrustedDeviceContext implements Context
      * scheb will not challenge again, and a row in the customer's session list.
      * Clearing one must not clear the other, or revoking a trusted device would
      * quietly sign the customer out of machines they never touched.
-     *
-     * @Then the recorded session :sessionId should still be open
      */
+    #[Then('the recorded session :sessionId should still be open')]
     public function theRecordedSessionShouldStillBeOpen(string $sessionId): void
     {
         Assert::false(
@@ -129,9 +119,7 @@ class TwoFactorTrustedDeviceContext implements Context
         return $this->sessionRepository;
     }
 
-    /**
-     * @Then I should be on the 2FA challenge page
-     */
+    #[Then('I should be on the 2FA challenge page')]
     public function iShouldBeOnTheTwoFactorChallengePage(): void
     {
         $page = $this->session->getPage();
@@ -144,9 +132,7 @@ class TwoFactorTrustedDeviceContext implements Context
         }
     }
 
-    /**
-     * @Then I should be fully authenticated
-     */
+    #[Then('I should be fully authenticated')]
     public function iShouldBeFullyAuthenticated(): void
     {
         $url = $this->session->getCurrentUrl();

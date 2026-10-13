@@ -7,6 +7,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Behat\Context\Ui\Admin\Helper\SecurePasswordTrait;
@@ -43,9 +46,7 @@ class SessionManagementContext implements Context
         $this->spySender->reset();
     }
 
-    /**
-     * @When I sign in with email :email and password :password
-     */
+    #[When('I sign in with email :email and password :password')]
     public function iSignInWithEmailAndPassword(string $email, string $password): void
     {
         $this->session->visit($this->router->generate('sylius_shop_login', ['_locale' => 'en_US']));
@@ -55,17 +56,13 @@ class SessionManagementContext implements Context
         $page->pressButton('Login');
     }
 
-    /**
-     * @When I visit my active sessions page
-     */
+    #[When('I visit my active sessions page')]
     public function iVisitMyActiveSessionsPage(): void
     {
         $this->session->visit($this->router->generate('three_brs_shop_sessions', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @Then I should see exactly :count active session(s)
-     */
+    #[Then('I should see exactly :count active session(s)')]
     public function iShouldSeeExactlyActiveSessions(int $count): void
     {
         $page = $this->session->getPage();
@@ -73,9 +70,7 @@ class SessionManagementContext implements Context
         Assert::count($items, $count, sprintf('Expected %d active sessions, got %d.', $count, count($items)));
     }
 
-    /**
-     * @Then I should see my current session marker
-     */
+    #[Then('I should see my current session marker')]
     public function iShouldSeeMyCurrentSessionMarker(): void
     {
         $page = $this->session->getPage();
@@ -83,9 +78,7 @@ class SessionManagementContext implements Context
         Assert::notNull($marker, 'Expected current session marker to be visible.');
     }
 
-    /**
-     * @Then a login notification email should have been sent to :email
-     */
+    #[Then('a login notification email should have been sent to :email')]
     public function aLoginNotificationEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::true(
@@ -94,9 +87,7 @@ class SessionManagementContext implements Context
         );
     }
 
-    /**
-     * @Then no login notification email should have been sent to :email
-     */
+    #[Then('no login notification email should have been sent to :email')]
     public function noLoginNotificationEmailShouldHaveBeenSentTo(string $email): void
     {
         Assert::false(
@@ -105,25 +96,19 @@ class SessionManagementContext implements Context
         );
     }
 
-    /**
-     * @When login notification emails are cleared again
-     */
+    #[When('login notification emails are cleared again')]
     public function loginNotificationEmailsAreClearedAgain(): void
     {
         $this->spySender->reset();
     }
 
-    /**
-     * @When I sign out from the shop
-     */
+    #[When('I sign out from the shop')]
     public function iSignOutFromTheShop(): void
     {
         $this->session->visit($this->router->generate('sylius_shop_logout', ['_locale' => 'en_US']));
     }
 
-    /**
-     * @Given the customer :email has another active session :sessionId
-     */
+    #[Given('the customer :email has another active session :sessionId')]
     public function theCustomerHasAnotherActiveSession(string $email, string $sessionId): void
     {
         $user = $this->findShopUser($email);
@@ -137,9 +122,7 @@ class SessionManagementContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given the customer :email has another session :sessionId last active :days days ago
-     */
+    #[Given('the customer :email has another session :sessionId last active :days days ago')]
     public function theCustomerHasAnotherSessionLastActiveDaysAgo(string $email, string $sessionId, int $days): void
     {
         $this->theCustomerHasAnotherActiveSession($email, $sessionId);
@@ -150,9 +133,7 @@ class SessionManagementContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I revoke the other shop session :sessionId
-     */
+    #[When('I revoke the other shop session :sessionId')]
     public function iRevokeTheOtherShopSession(string $sessionId): void
     {
         $record = $this->sessionRepository->findOneBySessionId($sessionId);
@@ -165,9 +146,7 @@ class SessionManagementContext implements Context
         $button->click();
     }
 
-    /**
-     * @When I revoke all other shop sessions
-     */
+    #[When('I revoke all other shop sessions')]
     public function iRevokeAllOtherShopSessions(): void
     {
         $page = $this->session->getPage();
@@ -176,9 +155,7 @@ class SessionManagementContext implements Context
         $button->click();
     }
 
-    /**
-     * @Then the shop session :sessionId should be revoked
-     */
+    #[Then('the shop session :sessionId should be revoked')]
     public function theShopSessionShouldBeRevoked(string $sessionId): void
     {
         $this->entityManager->clear();
@@ -187,9 +164,7 @@ class SessionManagementContext implements Context
         Assert::true($record->isRevoked(), sprintf('Session "%s" was not revoked.', $sessionId));
     }
 
-    /**
-     * @When the current shop session for :email is revoked externally
-     */
+    #[When('the current shop session for :email is revoked externally')]
     public function theCurrentShopSessionForIsRevokedExternally(string $email): void
     {
         $user = $this->findShopUser($email);
@@ -203,18 +178,14 @@ class SessionManagementContext implements Context
         $this->entityManager->clear();
     }
 
-    /**
-     * @Then I should be redirected to the shop login page
-     */
+    #[Then('I should be redirected to the shop login page')]
     public function iShouldBeRedirectedToTheShopLoginPage(): void
     {
         $url = (string) $this->session->getCurrentUrl();
         Assert::contains($url, '/login', sprintf('Expected to land on the shop login page, got "%s".', $url));
     }
 
-    /**
-     * @When I try to revoke the session :sessionId that belongs to somebody else
-     */
+    #[When('I try to revoke the session :sessionId that belongs to somebody else')]
     public function iTryToRevokeTheSessionThatBelongsToSomebodyElse(string $sessionId): void
     {
         $record = $this->sessionRepository->findOneBySessionId($sessionId);
@@ -226,17 +197,13 @@ class SessionManagementContext implements Context
         );
     }
 
-    /**
-     * @Then the revoke should have been refused as not found
-     */
+    #[Then('the revoke should have been refused as not found')]
     public function theRevokeShouldHaveBeenRefusedAsNotFound(): void
     {
         $this->assertRefusedAsNotFound();
     }
 
-    /**
-     * @Then the shop session :sessionId should still be active
-     */
+    #[Then('the shop session :sessionId should still be active')]
     public function theShopSessionShouldStillBeActive(string $sessionId): void
     {
         $this->entityManager->clear();

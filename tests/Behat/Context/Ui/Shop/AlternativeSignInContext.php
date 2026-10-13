@@ -6,6 +6,8 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -45,9 +47,8 @@ class AlternativeSignInContext implements Context
      * The wording differs from the lockout suite's own step on purpose: this
      * context lives in suites that already load Sylius' shop login context, and
      * Behat refuses a suite in which one step text is defined twice.
-     *
-     * @Given the customer :email has been locked out
      */
+    #[Given('the customer :email has been locked out')]
     public function theCustomerHasBeenLockedOut(string $email): void
     {
         $user = $this->findShopUser($email);
@@ -72,9 +73,8 @@ class AlternativeSignInContext implements Context
      * pending, scheb holds a two-factor token that is not anonymous either, and
      * the redirect goes to the challenge rather than to the sign-in page. This
      * asks for the dashboard and insists on getting the dashboard.
-     *
-     * @Then I should be signed in without a second factor as :email
      */
+    #[Then('I should be signed in without a second factor as :email')]
     public function iShouldBeSignedInWithoutASecondFactorAs(string $email): void
     {
         $this->session->visit($this->router->generate('sylius_shop_account_dashboard', ['_locale' => 'en_US']));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Hook;
 
 use Behat\Behat\Context\Context;
+use Behat\Hook\BeforeScenario;
 use Doctrine\ORM\EntityManagerInterface;
 use ThreeBRS\EnterpriseSecurityBundle\Settings\SettingsProviderInterface;
 use ThreeBRS\SyliusEnterpriseSecurityPlugin\Entity\SecuritySetting;
@@ -26,7 +27,7 @@ class SecuritySettingsHookContext implements Context
     ) {
     }
 
-    /** @BeforeScenario */
+    #[BeforeScenario]
     public function resetSecuritySettings(): void
     {
         $this->entityManager->createQuery(sprintf('DELETE FROM %s', SecuritySetting::class))->execute();

@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Hook\BeforeScenario;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
@@ -34,9 +37,7 @@ class PasskeyCeremonyContext implements Context
     ) {
     }
 
-    /**
-     * @BeforeScenario
-     */
+    #[BeforeScenario]
     public function resetFakeAuthenticator(BeforeScenarioScope $scope): void
     {
         FakeAuthenticator::reset();
@@ -51,18 +52,14 @@ class PasskeyCeremonyContext implements Context
         $this->client->getCookieJar()->set($cookie);
     }
 
-    /**
-     * @When I am logged in to the shop as :email
-     */
+    #[When('I am logged in to the shop as :email')]
     public function iAmLoggedInAs(string $email): void
     {
         $shopUser = $this->findShopUser($email);
         $this->kernelBrowser()->loginUser($shopUser, self::FIREWALL_NAME);
     }
 
-    /**
-     * @When I sign out of the shop
-     */
+    #[When('I sign out of the shop')]
     public function iSignOut(): void
     {
         // KernelBrowser preserves cookies across requests; reset the session
@@ -71,9 +68,7 @@ class PasskeyCeremonyContext implements Context
         $this->client->restart();
     }
 
-    /**
-     * @When I register a shop passkey labelled :label
-     */
+    #[When('I register a shop passkey labelled :label')]
     public function iRegisterAShopPasskey(string $label): void
     {
         $options = $this->postJson($this->router->generate('three_brs_shop_passkey_register_options'), null);
@@ -99,9 +94,7 @@ class PasskeyCeremonyContext implements Context
         $this->credentialsByLabel[$label] = (string) $registrationResponse['id'];
     }
 
-    /**
-     * @Then a shop passkey labelled :label should be stored for :email
-     */
+    #[Then('a shop passkey labelled :label should be stored for :email')]
     public function aShopPasskeyShouldBeStoredFor(string $label, string $email): void
     {
         $this->entityManager->clear();
@@ -112,9 +105,7 @@ class PasskeyCeremonyContext implements Context
         Assert::notEmpty($matching, sprintf('No passkey labelled "%s" stored for "%s".', $label, $email));
     }
 
-    /**
-     * @When I sign in to the shop with the passkey :label
-     */
+    #[When('I sign in to the shop with the passkey :label')]
     public function iSignInWithTheShopPasskey(string $label): void
     {
         $credentialId = $this->credentialsByLabel[$label] ?? null;
@@ -138,9 +129,7 @@ class PasskeyCeremonyContext implements Context
         ));
     }
 
-    /**
-     * @When I attempt to sign in to the shop with an unknown passkey
-     */
+    #[When('I attempt to sign in to the shop with an unknown passkey')]
     public function iAttemptToSignInWithAnUnknownPasskey(): void
     {
         $options = $this->postJson($this->router->generate('three_brs_shop_passkey_login_options'), null);
@@ -161,9 +150,7 @@ class PasskeyCeremonyContext implements Context
         );
     }
 
-    /**
-     * @Then the last passkey login should have failed
-     */
+    #[Then('the last passkey login should have failed')]
     public function theLastPasskeyLoginShouldHaveFailed(): void
     {
         $status = $this->client->getResponse()->getStatusCode();
@@ -176,9 +163,7 @@ class PasskeyCeremonyContext implements Context
         Assert::contains($url, '/login', sprintf('The refused passkey still opened a session — the dashboard answered at "%s".', $url));
     }
 
-    /**
-     * @Then I should be logged in to the shop as :email
-     */
+    #[Then('I should be logged in to the shop as :email')]
     public function iShouldBeLoggedInAs(string $email): void
     {
         [$url, $content] = $this->visitAccountDashboard();
@@ -200,9 +185,8 @@ class PasskeyCeremonyContext implements Context
      * so every constructor that asks for one gets its own KernelBrowser with its
      * own cookie jar — the session the ceremony opened is only visible on the
      * client the ceremony used.
-     *
-     * @Then the passkey sign-in should have skipped the second factor for :email
      */
+    #[Then('the passkey sign-in should have skipped the second factor for :email')]
     public function thePasskeySignInShouldHaveSkippedTheSecondFactorFor(string $email): void
     {
         [$url, $content] = $this->visitAccountDashboard();

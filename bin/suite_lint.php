@@ -7,7 +7,7 @@ declare(strict_types=1);
  * Checks that every scenario is actually run by some suite, and that no suite is
  * broken by two contexts claiming the same step.
  *
- * Both failures are silent. A suite file that nobody imported into suites.yml is not
+ * Both failures are silent. A suite file that nobody imported into suites.php is not
  * an error to Behat - it simply does not exist, the feature file it would have run
  * looks alive, and the totals Behat prints are of what it loaded. Three suites sat
  * like that in this repository and five scenarios had never run, on any machine or
@@ -56,10 +56,10 @@ const NOT_AUTOMATED = [
 ];
 
 const SUITES_DIR = 'tests/Behat/Resources/suites';
-const SUITES_FILE = 'tests/Behat/Resources/suites.yml';
+const SUITES_FILE = 'tests/Behat/Resources/suites.php';
 const FEATURES_DIR = 'features';
 
-/** Every profile a scenario could be reached through; see behat.yml.dist. */
+/** Every profile a scenario could be reached through; see behat.dist.php. */
 const PROFILES = ['default', 'javascript'];
 
 chdir(dirname(__DIR__));
@@ -74,7 +74,7 @@ foreach ([SUITES_DIR, SUITES_FILE, FEATURES_DIR] as $path) {
     }
 }
 
-echo "Suite files that suites.yml never imports\n";
+echo "Suite files that suites.php never imports\n";
 $unimported = findUnimportedSuites();
 report($unimported, $problems, '  none.');
 
@@ -225,7 +225,7 @@ function findUnimportedSuites(): array
     $imports = (string) file_get_contents(SUITES_FILE);
     $missing = [];
 
-    foreach (glob(SUITES_DIR . '/*.yml') ?: [] as $suite) {
+    foreach (glob(SUITES_DIR . '/*.php') ?: [] as $suite) {
         if (!str_contains($imports, 'suites/' . basename($suite))) {
             $missing[] = $suite . ' is never imported, so nothing it defines runs';
         }

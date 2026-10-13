@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -34,9 +37,7 @@ class TwoFactorSetupContext implements Context
     ) {
     }
 
-    /**
-     * @Given the customer :email already has 2FA enabled
-     */
+    #[Given('the customer :email already has 2FA enabled')]
     public function theCustomerAlreadyHasTwoFactorEnabled(string $email): void
     {
         $user = $this->findShopUser($email);
@@ -46,9 +47,7 @@ class TwoFactorSetupContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @Given the customer :email already has 2FA enabled with recovery codes
-     */
+    #[Given('the customer :email already has 2FA enabled with recovery codes')]
     public function theCustomerAlreadyHasTwoFactorEnabledWithRecoveryCodes(string $email): void
     {
         $user = $this->findShopUser($email);
@@ -66,17 +65,13 @@ class TwoFactorSetupContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I visit the 2FA setup page
-     */
+    #[When('I visit the 2FA setup page')]
     public function iVisitTheTwoFactorSetupPage(): void
     {
         $this->session->visit('/en_US/account/two-factor/setup');
     }
 
-    /**
-     * @When I submit a valid TOTP code
-     */
+    #[When('I submit a valid TOTP code')]
     public function iSubmitAValidTotpCode(): void
     {
         $secret = $this->readSecretFromPage();
@@ -84,43 +79,33 @@ class TwoFactorSetupContext implements Context
         $this->submitSetupForm($code);
     }
 
-    /**
-     * @When I submit an invalid TOTP code
-     */
+    #[When('I submit an invalid TOTP code')]
     public function iSubmitAnInvalidTotpCode(): void
     {
         $this->submitSetupForm('000000');
     }
 
-    /**
-     * @When I disable 2FA confirming with the current authenticator code
-     */
+    #[When('I disable 2FA confirming with the current authenticator code')]
     public function iDisableTwoFactorConfirmingWithTheCurrentAuthenticatorCode(): void
     {
         $this->submitConfirmedForm('disable', $this->currentCode());
     }
 
-    /**
-     * @When I disable 2FA confirming with the current authenticator code written with a dash
-     */
+    #[When('I disable 2FA confirming with the current authenticator code written with a dash')]
     public function iDisableTwoFactorConfirmingWithTheCurrentAuthenticatorCodeWrittenWithADash(): void
     {
         $code = $this->currentCode();
         $this->submitConfirmedForm('disable', substr($code, 0, 3) . '-' . substr($code, 3));
     }
 
-    /**
-     * @When I disable 2FA confirming with the recovery code :code
-     * @When I try to disable 2FA with the code :code
-     */
+    #[When('I disable 2FA confirming with the recovery code :code')]
+    #[When('I try to disable 2FA with the code :code')]
     public function iDisableTwoFactorWithTheCode(string $code): void
     {
         $this->submitConfirmedForm('disable', $code);
     }
 
-    /**
-     * @When I try to disable 2FA with the code :code :count times
-     */
+    #[When('I try to disable 2FA with the code :code :count times')]
     public function iTryToDisableTwoFactorWithTheCodeRepeatedly(string $code, int $count): void
     {
         for ($attempt = 0; $attempt < $count; ++$attempt) {
@@ -128,41 +113,31 @@ class TwoFactorSetupContext implements Context
         }
     }
 
-    /**
-     * @When I regenerate recovery codes confirming with the current authenticator code
-     */
+    #[When('I regenerate recovery codes confirming with the current authenticator code')]
     public function iRegenerateRecoveryCodesConfirmingWithTheCurrentAuthenticatorCode(): void
     {
         $this->submitConfirmedForm('regenerate', $this->currentCode());
     }
 
-    /**
-     * @When I try to regenerate recovery codes with the code :code
-     */
+    #[When('I try to regenerate recovery codes with the code :code')]
     public function iTryToRegenerateRecoveryCodesWithTheCode(string $code): void
     {
         $this->submitConfirmedForm('regenerate', $code);
     }
 
-    /**
-     * @Then I should be told the two-factor code is invalid
-     */
+    #[Then('I should be told the two-factor code is invalid')]
     public function iShouldBeToldTheTwoFactorCodeIsInvalid(): void
     {
         $this->assertFlash('three_brs.two_factor.confirmation_code_invalid');
     }
 
-    /**
-     * @Then I should be told to try again later
-     */
+    #[Then('I should be told to try again later')]
     public function iShouldBeToldToTryAgainLater(): void
     {
         $this->assertFlash('three_brs.rate_limit.too_many_requests');
     }
 
-    /**
-     * @Then none of the previous recovery codes should work for :email
-     */
+    #[Then('none of the previous recovery codes should work for :email')]
     public function noneOfThePreviousRecoveryCodesShouldWorkFor(string $email): void
     {
         $this->entityManager->clear();
@@ -177,34 +152,26 @@ class TwoFactorSetupContext implements Context
         }
     }
 
-    /**
-     * @Then I should see the 2FA disable button
-     */
+    #[Then('I should see the 2FA disable button')]
     public function iShouldSeeTheTwoFactorDisableButton(): void
     {
         Assert::notNull($this->session->getPage()->find('css', '[data-test-two-factor-disable]'));
     }
 
-    /**
-     * @Then I should see the 2FA QR code
-     */
+    #[Then('I should see the 2FA QR code')]
     public function iShouldSeeTheTwoFactorQrCode(): void
     {
         Assert::notNull($this->session->getPage()->find('css', '[data-test-two-factor-qr]'));
     }
 
-    /**
-     * @Then I should see the TOTP secret
-     */
+    #[Then('I should see the TOTP secret')]
     public function iShouldSeeTheTotpSecret(): void
     {
         $secret = $this->readSecretFromPage();
         Assert::notEmpty($secret);
     }
 
-    /**
-     * @Then I should be on the 2FA recovery codes page
-     */
+    #[Then('I should be on the 2FA recovery codes page')]
     public function iShouldBeOnTheRecoveryCodesPage(): void
     {
         Assert::true(
@@ -213,18 +180,14 @@ class TwoFactorSetupContext implements Context
         );
     }
 
-    /**
-     * @Then I should see :count recovery codes
-     */
+    #[Then('I should see :count recovery codes')]
     public function iShouldSeeRecoveryCodes(int $count): void
     {
         $codes = $this->session->getPage()->findAll('css', '[data-test-recovery-code]');
         Assert::count($codes, $count);
     }
 
-    /**
-     * @Then 2FA should be enabled for :email
-     */
+    #[Then('2FA should be enabled for :email')]
     public function twoFactorShouldBeEnabledFor(string $email): void
     {
         $this->entityManager->clear();
@@ -233,9 +196,7 @@ class TwoFactorSetupContext implements Context
         Assert::notNull($user->getTotpSecret());
     }
 
-    /**
-     * @Then 2FA should not be enabled for :email
-     */
+    #[Then('2FA should not be enabled for :email')]
     public function twoFactorShouldNotBeEnabledFor(string $email): void
     {
         $this->entityManager->clear();
@@ -243,9 +204,7 @@ class TwoFactorSetupContext implements Context
         Assert::false($user->isTwoFactorEnabled());
     }
 
-    /**
-     * @Then I should remain on the 2FA setup page
-     */
+    #[Then('I should remain on the 2FA setup page')]
     public function iShouldRemainOnTheSetupPage(): void
     {
         Assert::true(
@@ -254,9 +213,7 @@ class TwoFactorSetupContext implements Context
         );
     }
 
-    /**
-     * @Then the customer should have no recovery codes
-     */
+    #[Then('the customer should have no recovery codes')]
     public function theCustomerShouldHaveNoRecoveryCodes(): void
     {
         $user = $this->findShopUser('john@example.com');

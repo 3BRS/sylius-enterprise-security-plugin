@@ -30,7 +30,7 @@ jobs:
                     -   prefer: "lowest"
                         api_platform: "4.3.5"
                 include:
-                    # composer.json allows php ^8.3 and symfony ^6.4|^7.4, and a
+                    # composer.json allows php ^8.3 and symfony ^6.4|^7.4|^8.0, and a
                     # constraint nothing installs is a claim nobody has checked. Both
                     # ends are covered by one leg each rather than by widening the
                     # matrix, which would turn six runs into twenty-four.
@@ -55,8 +55,7 @@ jobs:
                         symfony: "6.4"
                         prefer: "lowest"
                         api_platform: "default"
-                    # Newest PHP against the oldest Symfony — the mix that produced
-                    # the var-exporter major jump:
+                    # Newest PHP against the oldest Symfony:
                     -   php: "8.4"
                         sylius: "2.2"
                         symfony: "6.4"
@@ -68,6 +67,35 @@ jobs:
                         symfony: "7.4"
                         prefer: "dist"
                         api_platform: "default"
+                    # Sylius 2.3 on Symfony 6.4, 7.4 and 8; Symfony 8 requires PHP 8.4:
+                    -   php: "8.3"
+                        sylius: "2.3"
+                        symfony: "6.4"
+                        prefer: "lowest"
+                        api_platform: "default"
+                    -   php: "8.3"
+                        sylius: "2.3"
+                        symfony: "7.4"
+                        prefer: "lowest"
+                        api_platform: "default"
+                    -   php: "8.3"
+                        sylius: "2.3"
+                        symfony: "7.4"
+                        prefer: "dist"
+                        api_platform: "default"
+                    -   php: "8.4"
+                        sylius: "2.3"
+                        symfony: "8.1"
+                        prefer: "lowest"
+                        api_platform: "default"
+                    -   php: "8.4"
+                        sylius: "2.3"
+                        symfony: "8.1"
+                        prefer: "dist"
+                        api_platform: "default"
+
+        env:
+            SYMFONY_REQUIRE: "${{ matrix.symfony }}.*"
 
         services:
             mysql:
@@ -94,7 +122,7 @@ jobs:
             -   name: Setup Node
                 uses: actions/setup-node@v4
                 with:
-                    node-version: '20'
+                    node-version: '22'
 
             -   name: Install Yarn
                 run: npm install -g yarn
@@ -103,19 +131,23 @@ jobs:
                 run: composer require "sylius/sylius:${{ matrix.sylius }}.*" --no-interaction --no-update --no-scripts
 
             -   name: Require Symfony version
+                # Global Flex applies SYMFONY_REQUIRE to all symfony/* packages, including
+                # the transitive ones.
                 run: |
-                    grep -o -E '"(symfony/[^"]+)"' composer.json \
-                      | grep -v -E '(symfony/flex|symfony/webpack-encore-bundle|symfony/maker-bundle)' \
-                      | xargs printf '%s:${{ matrix.symfony }}.* ' \
-                      | xargs composer require --no-interaction --no-update
-                    # Pinning only what composer.json names leaves the transitive
-                    # components free, and from PHP 8.4 up Symfony 8 becomes
-                    # installable — so they jump a major while the named ones stay
-                    # put. Doctrine then refuses the mismatched var-exporter and the
-                    # leg fails for a reason that has nothing to do with the plugin.
-                    composer require --no-interaction --no-update --no-scripts \
-                      "symfony/var-exporter:${{ matrix.symfony }}.*" \
-                      "symfony/error-handler:${{ matrix.symfony }}.*"
+                    composer global config --no-plugins allow-plugins.symfony/flex true
+                    composer global require --no-progress --no-scripts --no-plugins symfony/flex
+
+            # Sylius 2.1 and 2.2 Behat contexts need Behat 3, their admin and shop assets Encore 5
+            -   name: Require Behat 3 and Encore 5
+                if: contains(fromJSON('["2.1", "2.2"]'), matrix.sylius)
+                run: |
+                    composer require --dev "behat/behat:^3.34" --no-interaction --no-update --no-scripts
+                    (cd tests/Application && npm pkg set "devDependencies.@symfony/webpack-encore=^5.0.1")
+
+            # sylius/fixtures-bundle 1.10 (Sylius 2.3) uses Monolog\Level, which only Monolog 3 has
+            -   name: Require Monolog 3
+                if: matrix.sylius == '2.3'
+                run: composer require --dev "monolog/monolog:^3.0" --no-interaction --no-update --no-scripts
 
             -   name: Pin API Platform version
                 if: matrix.api_platform != 'default'
@@ -242,15 +274,18 @@ jobs:
             -   name: Setup Node
                 uses: actions/setup-node@v4
                 with:
-                    node-version: '20'
+                    node-version: '22'
 
             -   name: Install Yarn
                 run: npm install -g yarn
 
-            # Sylius 2.3 needs Node 22 and a test application of its own; the matrix above
-            # runs 2.1 and 2.2 as well.
+            # Sylius 2.3 in both legs; the matrix above runs 2.1 and 2.2 as well.
             -   name: Require Sylius version
-                run: composer require "sylius/sylius:2.2.*" --no-interaction --no-update --no-scripts
+                run: composer require "sylius/sylius:2.3.*" --no-interaction --no-update --no-scripts
+
+            # sylius/fixtures-bundle 1.10 (Sylius 2.3) uses Monolog\Level, which only Monolog 3 has
+            -   name: Require Monolog 3
+                run: composer require --dev "monolog/monolog:^3.0" --no-interaction --no-update --no-scripts
 
             -   name: Install dependencies (prefer ${{ matrix.prefer }})
                 run: composer update --prefer-${{ matrix.prefer }} --no-interaction --no-scripts
@@ -289,7 +324,7 @@ jobs:
                     php bin/console doctrine:schema:update --env=test --no-interaction --complete --force
 
             -   name: Start Chrome
-                # behat.yml.dist reaches the browser at http://chrome:9222, which is the
+                # behat.dist.php reaches the browser at http://chrome:9222, which is the
                 # container name under docker compose. Aliasing it here is what lets one
                 # configuration serve both, instead of a CI-only profile that would then
                 # drift from the one developers actually run.

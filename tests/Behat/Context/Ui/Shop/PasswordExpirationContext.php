@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use ThreeBRS\EnterpriseSecurityBundle\PasswordExpiration\PasswordExpirationShopUserInterface;
@@ -20,9 +23,7 @@ class PasswordExpirationContext implements Context
     ) {
     }
 
-    /**
-     * @Given the customer :email has an expired password
-     */
+    #[Given('the customer :email has an expired password')]
     public function theCustomerHasAnExpiredPassword(string $email): void
     {
         $customer = $this->customerRepository->findOneBy(['email' => $email]);
@@ -36,17 +37,13 @@ class PasswordExpirationContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I try to open the account page
-     */
+    #[When('I try to open the account page')]
     public function iTryToOpenTheAccountPage(): void
     {
         $this->session->visit('/en_US/account/dashboard');
     }
 
-    /**
-     * @Then I should be on the change password page
-     */
+    #[Then('I should be on the change password page')]
     public function iShouldBeOnTheChangePasswordPage(): void
     {
         Assert::true(
@@ -55,9 +52,7 @@ class PasswordExpirationContext implements Context
         );
     }
 
-    /**
-     * @Then I should not be redirected to the change password page
-     */
+    #[Then('I should not be redirected to the change password page')]
     public function iShouldNotBeRedirectedToTheChangePasswordPage(): void
     {
         Assert::false(

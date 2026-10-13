@@ -130,7 +130,7 @@ class ShopSocialLoginHandler implements ShopSocialLoginHandlerInterface
         // flagged as unverified, so the account is marked verified immediately. No
         // Sylius email-verification token is generated and no verification email is
         // sent for OAuth signups.
-        $shopUser->setVerifiedAt(new \DateTimeImmutable());
+        $shopUser->setVerifiedAt(new \DateTime());
 
         $this->entityManager->persist($customer);
         $this->entityManager->persist($shopUser);

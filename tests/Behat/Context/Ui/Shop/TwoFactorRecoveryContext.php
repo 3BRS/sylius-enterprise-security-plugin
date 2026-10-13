@@ -6,6 +6,9 @@ namespace Tests\ThreeBRS\SyliusEnterpriseSecurityPlugin\Behat\Context\Ui\Shop;
 
 use Behat\Behat\Context\Context;
 use Behat\Mink\Session;
+use Behat\Step\Given;
+use Behat\Step\Then;
+use Behat\Step\When;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Sylius\Component\Core\Model\ShopUserInterface;
@@ -32,9 +35,7 @@ class TwoFactorRecoveryContext implements Context
     ) {
     }
 
-    /**
-     * @Given the customer :email has 2FA enabled with recovery codes
-     */
+    #[Given('the customer :email has 2FA enabled with recovery codes')]
     public function theCustomerHasTwoFactorEnabledWithRecoveryCodes(string $email): void
     {
         $user = $this->findShopUser($email);
@@ -52,17 +53,13 @@ class TwoFactorRecoveryContext implements Context
         $this->entityManager->flush();
     }
 
-    /**
-     * @When I visit the recovery code challenge page
-     */
+    #[When('I visit the recovery code challenge page')]
     public function iVisitTheRecoveryChallengePage(): void
     {
         $this->session->visit('http://localhost:8080/2fa/recovery');
     }
 
-    /**
-     * @When I submit a valid recovery code
-     */
+    #[When('I submit a valid recovery code')]
     public function iSubmitAValidRecoveryCode(): void
     {
         Assert::notEmpty($this->plainRecoveryCodes, 'No recovery codes prepared.');
@@ -70,26 +67,20 @@ class TwoFactorRecoveryContext implements Context
         $this->submitRecoveryForm($this->lastUsedCode);
     }
 
-    /**
-     * @When I submit the same recovery code again
-     */
+    #[When('I submit the same recovery code again')]
     public function iSubmitTheSameRecoveryCodeAgain(): void
     {
         Assert::notNull($this->lastUsedCode, 'No previously used recovery code.');
         $this->submitRecoveryForm($this->lastUsedCode);
     }
 
-    /**
-     * @When I submit an invalid recovery code
-     */
+    #[When('I submit an invalid recovery code')]
     public function iSubmitAnInvalidRecoveryCode(): void
     {
         $this->submitRecoveryForm('ZZZZZ-99999');
     }
 
-    /**
-     * @Then I should see a recovery code error
-     */
+    #[Then('I should see a recovery code error')]
     public function iShouldSeeARecoveryCodeError(): void
     {
         Assert::notNull(
@@ -98,9 +89,7 @@ class TwoFactorRecoveryContext implements Context
         );
     }
 
-    /**
-     * @Then I should be fully authenticated
-     */
+    #[Then('I should be fully authenticated')]
     public function iShouldBeFullyAuthenticated(): void
     {
         $url = $this->session->getCurrentUrl();
@@ -122,9 +111,7 @@ class TwoFactorRecoveryContext implements Context
         }
     }
 
-    /**
-     * @Then the used recovery code should be marked consumed
-     */
+    #[Then('the used recovery code should be marked consumed')]
     public function theUsedRecoveryCodeShouldBeMarkedConsumed(): void
     {
         Assert::notNull($this->lastUsedCode, 'No recovery code was used in this scenario.');
