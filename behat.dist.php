@@ -17,7 +17,7 @@ return (new Config())
     ->import('tests/Behat/Resources/suites.php')
     ->withProfile(
         (new Profile('default'))
-            ->withTesterOptions((new TesterOptions())->withErrorReporting(\E_ALL ^ \E_DEPRECATED))
+            ->withTesterOptions((new TesterOptions())->withErrorReporting(\E_ALL & ~(\E_DEPRECATED | \E_USER_DEPRECATED)))
             ->withExtension(new Extension(MinkExtension::class, [
                 'base_url' => 'http://localhost:8081/',
                 'default_session' => 'symfony',

@@ -10,8 +10,9 @@ if (($_SERVER['APP_ENV'] ?? '') === 'test') {
     /* to avoid Behat errors like
      * --- Failed scenarios: 8192: Function libxml_disable_entity_loader() is deprecated in vendor/symfony/dom-crawler/Crawler.php line 1183
      * --- constant NumberFormatter::TYPE_CURRENCY is deprecated in /srv/sylius/vendor/twig/intl-extra/IntlExtension.php line 40" at /srv/sylius/vendor/twig/intl-extra/IntlExtension.php line 40
+     * --- User Deprecated: Method Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorToken::eraseCredentials() is deprecated in vendor/symfony/security-http/Authentication/AuthenticatorManager.php line 204
      */
-    error_reporting(E_ALL ^ E_DEPRECATED);
+    error_reporting(E_ALL & ~(E_DEPRECATED | E_USER_DEPRECATED));
 }
 
 // Load cached env vars if the .env.local.php file exists
